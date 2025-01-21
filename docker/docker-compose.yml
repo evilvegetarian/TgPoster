@@ -1,0 +1,20 @@
+version: '3.9'
+
+networks:
+  default:
+    name: tg
+    
+volumes:
+  tg-pg:
+  
+services:
+  postgres:
+    container_name: tg-pg
+    image: postgres:16.4
+    ports:
+      - '5432:5432'
+    environment:
+      POSTGRES_USER: 'admin'
+      POSTGRES_PASSWORD: 'admin'
+    volumes:
+      - tg-pg:/var/lib/postgresql/data
