@@ -7,11 +7,8 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\Auth\Auth.csproj" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <PackageReference Include="MediatR" Version="12.4.1" />
+      <PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />
+      <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.1" />
     </ItemGroup>
 
 </Project>
