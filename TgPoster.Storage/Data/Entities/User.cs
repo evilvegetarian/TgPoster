@@ -26,4 +26,6 @@ public sealed class User : BaseEntity
     /// Хэш пароля
     /// </summary>
     public required string PasswordHash { get; set; }
+    
+    public IReadOnlyList<RefreshSession> RefreshSessions { get; set; }
 }

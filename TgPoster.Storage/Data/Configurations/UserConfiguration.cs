@@ -24,5 +24,9 @@ internal class UserConfiguration : BaseEntityConfig<User>
 
         builder.HasIndex(x => x.TelegramUserName)
             .IsUnique();
+
+        builder.HasMany(x => x.RefreshSessions)
+            .WithOne(x => x.User)
+            .HasForeignKey(x => x.UserId);
     }
 }
