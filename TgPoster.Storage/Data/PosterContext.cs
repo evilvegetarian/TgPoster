@@ -5,8 +5,9 @@ using TgPoster.Storage.Entities;
 
 namespace TgPoster.Storage.Data;
 
-public class PosterDbContext(DbContextOptions<PosterDbContext> options) : DbContext(options)
+public class PosterContext(DbContextOptions<PosterContext> options) : DbContext(options)
 {
+    public DbSet<User> Users { get; set; }
 
     public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = new CancellationToken())
     {
