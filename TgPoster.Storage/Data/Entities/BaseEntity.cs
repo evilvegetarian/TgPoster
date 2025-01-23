@@ -1,5 +1,3 @@
-using TgPoster.Storage.Entities;
-
 namespace TgPoster.Storage.Data.Entities;
 
 public abstract class BaseEntity

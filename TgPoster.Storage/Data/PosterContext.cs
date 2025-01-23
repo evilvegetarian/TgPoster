@@ -1,7 +1,6 @@
 ﻿using System.Reflection;
 using Microsoft.EntityFrameworkCore;
 using TgPoster.Storage.Data.Entities;
-using TgPoster.Storage.Entities;
 
 namespace TgPoster.Storage.Data;
 

@@ -1,7 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using TgPoster.Storage.Entities;
-using TgPoster.Storage.VO;
+using TgPoster.Storage.Data.Entities;
 
 namespace TgPoster.Storage.Data.Configurations;
 
@@ -13,8 +12,13 @@ internal class UserConfiguration : BaseEntityConfig<User>
 
         builder.Property(e => e.Email)
             .HasConversion(new EmailConverter())
-            .HasMaxLength(50)
+            .HasMaxLength(30)
             .IsRequired(false);
+        
+        builder.Property(e => e.UserName)
+            .HasConversion(new UserNameConverter())
+            .HasMaxLength(30)
+            .IsRequired();
 
         builder.HasIndex(x => x.UserName)
             .IsUnique();

@@ -1,8 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using TgPoster.Storage.Data.Entities;
-using TgPoster.Storage.VO;
+using TgPoster.Storage.Data.VO;
 
-namespace TgPoster.Storage.Entities;
+namespace TgPoster.Storage.Data.Entities;
 
 /// <summary>
 /// Пользователь
@@ -12,9 +11,11 @@ public sealed class User : BaseEntity
     /// <summary>
     /// Уникальный UserName пользователя
     /// </summary>
-    [StringLength(30, MinimumLength = 5)]
-    public required string UserName { get; set; }
+    public required UserName UserName { get; set; }
 
+    /// <summary>
+    /// Почта пользователя
+    /// </summary>
     public Email? Email { get; set; }
 
     /// <summary>

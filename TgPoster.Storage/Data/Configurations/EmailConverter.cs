@@ -1,5 +1,5 @@
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using TgPoster.Storage.VO;
+using TgPoster.Storage.Data.VO;
 
 namespace TgPoster.Storage.Data.Configurations;
 

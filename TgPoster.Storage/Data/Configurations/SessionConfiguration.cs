@@ -1,7 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using TgPoster.Storage.Data.Entities;
-using TgPoster.Storage.Entities;
 
 namespace TgPoster.Storage.Data.Configurations;
 

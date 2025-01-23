@@ -1,4 +1,4 @@
-namespace TgPoster.Storage.VO;
+namespace TgPoster.Storage.Data.VO;
 
 public sealed record Email
 {
@@ -18,5 +18,5 @@ public sealed record Email
         return email.Contains('@');
     }
 
-    public string Value;
+    public string Value { get; private set; }
 }
