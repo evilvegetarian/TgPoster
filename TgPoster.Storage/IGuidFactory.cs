@@ -2,12 +2,7 @@ using UUIDNext;
 
 namespace TgPoster.Storage;
 
-internal interface IGuidFactory
-{
-    Guid New();
-}
-
-internal class GuidFactory : IGuidFactory
+internal class GuidFactory 
 {
     public Guid New() => Uuid.NewDatabaseFriendly(Database.PostgreSql);
 }

@@ -6,7 +6,7 @@ using TgPoster.Storage.Data.VO;
 
 namespace TgPoster.Storage.Storages;
 
-internal sealed class SignOnStorage(PosterContext context, IGuidFactory guidFactory) : ISignOnStorage
+internal sealed class SignOnStorage(PosterContext context, GuidFactory guidFactory) : ISignOnStorage
 {
     public async Task<Guid> CreateUserAsync(string username, string password, CancellationToken token = default)
     {
@@ -26,7 +26,7 @@ internal sealed class SignOnStorage(PosterContext context, IGuidFactory guidFact
     public async Task<bool> HaveUserNameAsync(string userName, CancellationToken token = default)
     {
         return await context.Users.AnyAsync(x =>
-                x.UserName.Value.Equals(userName, StringComparison.CurrentCultureIgnoreCase),
+                x.UserName == new UserName(userName),
             token);
     }
 }

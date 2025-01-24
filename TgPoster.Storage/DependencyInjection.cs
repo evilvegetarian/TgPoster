@@ -14,9 +14,9 @@ public static class DependencyInjection
     {
         var dataBase = configuration.GetSection(nameof(DataBase)).Get<DataBase>()!;
         services.AddDbContextPool<PosterContext>(db => db.UseNpgsql(dataBase.ConnectionString));
-        
+
         services.AddScoped<ISignOnStorage, SignOnStorage>();
-        services.AddScoped<IGuidFactory, GuidFactory>();
+        services.AddScoped<GuidFactory>();
         return services;
     }
 }

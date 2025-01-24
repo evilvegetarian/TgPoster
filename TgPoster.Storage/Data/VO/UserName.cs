@@ -1,3 +1,5 @@
+using TgPoster.Storage.Exception;
+
 namespace TgPoster.Storage.Data.VO;
 
 public sealed record UserName
@@ -5,8 +7,8 @@ public sealed record UserName
     public UserName(string value)
     {
         if (string.IsNullOrWhiteSpace(value))
-            throw new NullOrWhiteSpace(nameof(value));
-        
+            throw new NullOrWhiteSpaceException(nameof(value));
+
         if (value.Length < 5)
             throw new ArgumentException("The value length must be at least 5 characters long.", nameof(value));
 
@@ -14,6 +16,16 @@ public sealed record UserName
     }
 
     public string Value { get; private set; }
-}
 
-public class NullOrWhiteSpace(string param) : ArgumentException("Value cannot be null or whitespace.", param);
+    public bool Equals(UserName? other)
+    {
+        if (other is null)
+            return false;
+        return string.Equals(Value, other.Value, StringComparison.OrdinalIgnoreCase);
+    }
+
+    public override int GetHashCode()
+    {
+        return StringComparer.OrdinalIgnoreCase.GetHashCode(Value);
+    }
+}

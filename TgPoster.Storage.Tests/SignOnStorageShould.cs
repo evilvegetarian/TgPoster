@@ -1,7 +1,8 @@
+using Auth;
 using Microsoft.EntityFrameworkCore;
-using Npgsql;
 using Shouldly;
 using TgPoster.Storage.Data;
+using TgPoster.Storage.Data.Entities;
 using TgPoster.Storage.Data.VO;
 using TgPoster.Storage.Storages;
 
@@ -63,5 +64,27 @@ public class SignOnStorageShould(StorageTestFixture fixture) : IClassFixture<Sto
         await Should.ThrowAsync<ArgumentException>(() =>
             sut.CreateUserAsync(username, password, CancellationToken.None)
         );
+    }
+
+    [Fact]
+    public async Task HaveUserNameAsync_ShouldReturnTrueIfUserExists()
+    {
+        var user = new User
+        {
+            Id = Guid.Parse("55d75f74-5c1b-43a3-8cae-777e80b68aaf"),
+            UserName = new UserName("Mickle"),
+            PasswordHash = "password123"
+        };
+        await _context.Users.AddAsync(user);
+        await _context.SaveChangesAsync();
+        var haveUser = await sut.HaveUserNameAsync("Mickle");
+        haveUser.ShouldBeTrue();
+    }
+    
+    [Fact]
+    public async Task HaveUserNameAsync_ShouldReturnFalseIfUserNotExists()
+    {
+        var haveUser = await sut.HaveUserNameAsync("FIlimon");
+        haveUser.ShouldBeFalse();
     }
 }
