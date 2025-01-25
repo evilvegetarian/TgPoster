@@ -3,10 +3,10 @@ using MediatR;
 
 namespace TgPoster.Domain.UseCases.SignOn;
 
-public sealed class SignOnUseCase(IPasswordHasher passwordHasher, ISignOnStorage storage)
+internal sealed class SignOnUseCase(IPasswordHasher passwordHasher, ISignOnStorage storage)
     : IRequestHandler<SignOnCommand, Guid>
 {
-    public async Task<Guid> Handle(SignOnCommand command, CancellationToken cancellationToken=default)
+    public async Task<Guid> Handle(SignOnCommand command, CancellationToken cancellationToken = default)
     {
         var passwordHash = passwordHasher.Generate(command.Password);
 

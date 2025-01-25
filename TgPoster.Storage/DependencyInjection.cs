@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
+using TgPoster.Domain.UseCases.SignIn;
 using TgPoster.Domain.UseCases.SignOn;
 using TgPoster.Storage.Config;
 using TgPoster.Storage.Data;
@@ -16,6 +17,7 @@ public static class DependencyInjection
         services.AddDbContextPool<PosterContext>(db => db.UseNpgsql(dataBase.ConnectionString));
 
         services.AddScoped<ISignOnStorage, SignOnStorage>();
+        services.AddScoped<ISignInStorage, SignInStorage>();
         services.AddScoped<GuidFactory>();
         return services;
     }

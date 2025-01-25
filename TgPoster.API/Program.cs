@@ -6,11 +6,12 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddSwaggerGen();
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddHttpContextAccessor();
 
 builder.Services
     .AddStorage(builder.Configuration)
     .AddDomain()
-    .AddAuth();
+    .AddAuth(builder.Configuration);
 
 var app = builder.Build();
 app.UseSwagger();
