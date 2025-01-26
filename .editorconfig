@@ -1,0 +1,11 @@
+[*.cs]
+# Правила для приватных полей
+dotnet_naming_rule.private_fields.severity = none
+dotnet_naming_rule.private_fields.symbols = private_fields
+dotnet_naming_rule.private_fields.style = any_style
+
+dotnet_naming_symbols.private_fields.applicable_kinds = field
+dotnet_naming_symbols.private_fields.applicable_accessibilities = private
+dotnet_naming_symbols.private_fields.required_modifiers = 
+
+dotnet_naming_style.any_style.capitalization = camel_case

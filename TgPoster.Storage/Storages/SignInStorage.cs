@@ -9,7 +9,7 @@ namespace TgPoster.Storage.Storages;
 
 internal class SignInStorage(PosterContext context) : ISignInStorage
 {
-    public async Task<UserDto?> GetUserAsync(string login)
+    public async Task<UserDto?> GetUserAsync(string login, CancellationToken token = default)
     {
         return await context.Users.Where(x => x.UserName == new UserName(login))
             .Select(x => new UserDto
@@ -18,10 +18,15 @@ internal class SignInStorage(PosterContext context) : ISignInStorage
                 Username = x.UserName.Value,
                 PasswordHash = x.PasswordHash
             })
-            .FirstOrDefaultAsync();
+            .FirstOrDefaultAsync(token);
     }
 
-    public async Task CreateRefreshSession(Guid userId, Guid refreshToken, DateTimeOffset refreshDate)
+    public async Task CreateRefreshSession(
+        Guid userId,
+        Guid refreshToken,
+        DateTimeOffset refreshDate,
+        CancellationToken token = default
+    )
     {
         var refresh = new RefreshSession
         {
@@ -29,7 +34,7 @@ internal class SignInStorage(PosterContext context) : ISignInStorage
             RefreshToken = refreshToken,
             ExpiresAt = refreshDate
         };
-        await context.RefreshSessions.AddAsync(refresh);
-        await context.SaveChangesAsync();
+        await context.RefreshSessions.AddAsync(refresh, token);
+        await context.SaveChangesAsync(token);
     }
 }

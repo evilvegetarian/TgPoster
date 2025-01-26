@@ -10,6 +10,8 @@ public static class Routes
     {
         public const string Root = Base + "/account";
         public const string GetById = Root + "/{id:guid}";
+        public const string SignOn = Root + "/sign-on";
+        public const string SignIn = Root + "/sign-in";
     }
     
 }

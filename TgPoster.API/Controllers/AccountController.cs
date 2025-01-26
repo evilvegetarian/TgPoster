@@ -1,5 +1,7 @@
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using TgPoster.API.Common;
+using TgPoster.API.Models;
 using TgPoster.Domain.UseCases.SignIn;
 using TgPoster.Domain.UseCases.SignOn;
 
@@ -11,18 +13,24 @@ public class AccountController(ISender sender) : ControllerBase
     /// <summary>
     /// Регистрация пользователя
     /// </summary>
-    /// <param name="login"></param>
-    /// <param name="password"></param>
+    /// <param name="request"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    [HttpPost("sign-on")]
-    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(Guid))]
+    [HttpPost(Routes.Account.SignOn)]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(SignOnResponse))]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<IActionResult> SignOn(string login, string password, CancellationToken cancellationToken)
+    public async Task<IActionResult> SignOn(
+        [FromBody] SignOnRequest request,
+        CancellationToken cancellationToken
+    )
     {
-        var userId = await sender.Send(new SignOnCommand(login, password), cancellationToken);
-        return Ok(userId);
+        var userId = await sender.Send(new SignOnCommand(request.Login, request.Password), cancellationToken);
+        var response = new SignOnResponse
+        {
+            UserId = userId
+        };
+        return Ok(response);
     }
 
     /// <summary>
@@ -32,7 +40,7 @@ public class AccountController(ISender sender) : ControllerBase
     /// <param name="password"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    [HttpPost("sign-in")]
+    [HttpPost(Routes.Account.SignIn)]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(SignInResponse))]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]

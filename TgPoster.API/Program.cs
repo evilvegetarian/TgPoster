@@ -1,4 +1,5 @@
 using Auth;
+using Microsoft.AspNetCore.CookiePolicy;
 using TgPoster.Domain;
 using TgPoster.Storage;
 
@@ -17,6 +18,7 @@ var app = builder.Build();
 app.UseSwagger();
 app.UseSwaggerUI();
 app.MapControllers();
+
 app.Run();
 
 public partial class Program { }

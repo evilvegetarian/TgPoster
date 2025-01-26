@@ -15,13 +15,12 @@ public sealed record UserName
         Value = value;
     }
 
-    public string Value { get; private set; }
+    public string Value { get; }
 
     public bool Equals(UserName? other)
     {
-        if (other is null)
-            return false;
-        return string.Equals(Value, other.Value, StringComparison.OrdinalIgnoreCase);
+        return other is not null 
+               && string.Equals(Value, other.Value, StringComparison.OrdinalIgnoreCase);
     }
 
     public override int GetHashCode()

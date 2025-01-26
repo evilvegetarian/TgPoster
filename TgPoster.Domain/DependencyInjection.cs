@@ -10,7 +10,7 @@ public static class DependencyInjection
     {
         services
             .AddMediatR(cfg => cfg
-                .RegisterServicesFromAssembly(Assembly.GetAssembly(typeof(DependencyInjection))));
+                .RegisterServicesFromAssembly(Assembly.GetAssembly(typeof(DependencyInjection))!));
 
         return services;
     }

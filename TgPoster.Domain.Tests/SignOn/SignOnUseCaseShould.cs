@@ -66,7 +66,7 @@ public class SignOnUseCaseShould
 
         var command = new SignOnCommand("ExistingUser", "password123");
 
-        var exception = await Should.ThrowAsync<Exception>(async () =>
+        await Should.ThrowAsync<Exception>(async () =>
             await sut.Handle(command, It.IsAny<CancellationToken>()));
 
         storage.Verify(s => s.CreateUserAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()),

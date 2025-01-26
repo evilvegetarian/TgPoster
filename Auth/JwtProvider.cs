@@ -31,7 +31,7 @@ internal class JwtProvider(IOptions<JwtOptions> options) : IJwtProvider
         return new JwtSecurityTokenHandler().WriteToken(token);
     }
 
-    public (Guid RefreshToken, DateTime RefreshExpireTime) GenerateRefreshToken()
+    public (Guid RefreshToken, DateTimeOffset RefreshExpireTime) GenerateRefreshToken()
     {
         return (Guid.NewGuid(), DateTime.UtcNow.AddHours(_options.RefreshTokenExpiresHours));
     }
