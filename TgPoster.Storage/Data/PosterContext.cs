@@ -8,6 +8,8 @@ public class PosterContext(DbContextOptions<PosterContext> options) : DbContext(
 {
     public DbSet<User> Users { get; set; }
     public DbSet<RefreshSession> RefreshSessions { get; set; }
+    public DbSet<Day> Days { get; set; }
+    public DbSet<Schedule> Schedules { get; set; }
 
     public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = new CancellationToken())
     {
