@@ -1,5 +1,6 @@
 using Auth;
 using Microsoft.AspNetCore.CookiePolicy;
+using TgPoster.API.Middlewares;
 using TgPoster.Domain;
 using TgPoster.Storage;
 
@@ -15,6 +16,9 @@ builder.Services
     .AddAuth(builder.Configuration);
 
 var app = builder.Build();
+
+app.UseMiddleware<ErrorHandlingMiddleware>();
+
 app.UseSwagger();
 app.UseSwaggerUI();
 app.MapControllers();
