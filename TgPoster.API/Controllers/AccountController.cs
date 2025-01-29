@@ -2,8 +2,8 @@ using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using TgPoster.API.Common;
 using TgPoster.API.Models;
-using TgPoster.Domain.UseCases.SignIn;
-using TgPoster.Domain.UseCases.SignOn;
+using TgPoster.Domain.UseCases.Accounts.SignIn;
+using TgPoster.Domain.UseCases.Accounts.SignOn;
 
 namespace TgPoster.API.Controllers;
 

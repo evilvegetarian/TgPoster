@@ -1,4 +1,4 @@
-namespace TgPoster.Domain.UseCases.SignIn;
+namespace TgPoster.Domain.UseCases.Accounts.SignIn;
 
 public class SignInResponse
 {

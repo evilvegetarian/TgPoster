@@ -1,7 +1,7 @@
 using Auth;
 using MediatR;
 
-namespace TgPoster.Domain.UseCases.SignOn;
+namespace TgPoster.Domain.UseCases.Accounts.SignOn;
 
 internal sealed class SignOnUseCase(IPasswordHasher passwordHasher, ISignOnStorage storage)
     : IRequestHandler<SignOnCommand, Guid>

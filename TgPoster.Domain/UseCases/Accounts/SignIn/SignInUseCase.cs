@@ -1,9 +1,10 @@
 using Auth;
+using Auth.Models;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using TgPoster.Domain.Exceptions;
 
-namespace TgPoster.Domain.UseCases.SignIn;
+namespace TgPoster.Domain.UseCases.Accounts.SignIn;
 
 internal sealed class SignInUseCase(
     ISignInStorage storage,

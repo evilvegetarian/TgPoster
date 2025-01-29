@@ -1,9 +1,9 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
-using TgPoster.Domain.UseCases.SignIn;
-using TgPoster.Domain.UseCases.SignOn;
-using TgPoster.Storage.Config;
+using TgPoster.Domain.UseCases.Accounts.SignIn;
+using TgPoster.Domain.UseCases.Accounts.SignOn;
+using TgPoster.Storage.ConfigModels;
 using TgPoster.Storage.Data;
 using TgPoster.Storage.Storages;
 

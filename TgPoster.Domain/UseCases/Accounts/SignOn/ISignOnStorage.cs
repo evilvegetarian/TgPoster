@@ -1,4 +1,4 @@
-namespace TgPoster.Domain.UseCases.SignOn;
+namespace TgPoster.Domain.UseCases.Accounts.SignOn;
 
 public interface ISignOnStorage
 {

@@ -1,6 +1,5 @@
 using System.Reflection;
 using Microsoft.Extensions.DependencyInjection;
-using TgPoster.Domain.UseCases.SignOn;
 
 namespace TgPoster.Domain;
 

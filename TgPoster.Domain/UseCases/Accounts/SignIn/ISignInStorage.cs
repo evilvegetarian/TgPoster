@@ -1,6 +1,6 @@
 using TgPoster.Domain.Models;
 
-namespace TgPoster.Domain.UseCases.SignIn;
+namespace TgPoster.Domain.UseCases.Accounts.SignIn;
 
 public interface ISignInStorage
 {

@@ -2,7 +2,7 @@ using Auth;
 using Moq;
 using Moq.Language.Flow;
 using Shouldly;
-using TgPoster.Domain.UseCases.SignOn;
+using TgPoster.Domain.UseCases.Accounts.SignOn;
 
 namespace TgPoster.Domain.Tests.SignOn;
 

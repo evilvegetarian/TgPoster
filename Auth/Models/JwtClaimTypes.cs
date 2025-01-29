@@ -1,4 +1,4 @@
-namespace Auth;
+namespace Auth.Models;
 
 public struct JwtClaimTypes
 {

@@ -1,5 +1,4 @@
 using Auth;
-using Microsoft.AspNetCore.CookiePolicy;
 using TgPoster.API.Middlewares;
 using TgPoster.Domain;
 using TgPoster.Storage;

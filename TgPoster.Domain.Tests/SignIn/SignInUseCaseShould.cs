@@ -1,11 +1,12 @@
 using Auth;
+using Auth.Models;
 using Microsoft.AspNetCore.Http;
 using Moq;
 using Moq.Language.Flow;
 using Shouldly;
 using TgPoster.Domain.Exceptions;
 using TgPoster.Domain.Models;
-using TgPoster.Domain.UseCases.SignIn;
+using TgPoster.Domain.UseCases.Accounts.SignIn;
 
 namespace TgPoster.Domain.Tests.SignIn;
 

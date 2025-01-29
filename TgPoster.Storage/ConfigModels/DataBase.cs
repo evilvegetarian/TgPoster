@@ -1,4 +1,4 @@
-namespace TgPoster.Storage.Config;
+namespace TgPoster.Storage.ConfigModels;
 
 public class DataBase
 {

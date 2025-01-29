@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using Auth.Models;
 using Microsoft.AspNetCore.Http;
 
 namespace Auth;

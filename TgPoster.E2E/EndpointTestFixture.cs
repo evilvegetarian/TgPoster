@@ -4,7 +4,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Testcontainers.PostgreSql;
-using TgPoster.Storage.Config;
+using TgPoster.API;
+using TgPoster.Storage.ConfigModels;
 using TgPoster.Storage.Data;
 
 namespace TgPoster.E2E;
