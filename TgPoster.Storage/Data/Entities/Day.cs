@@ -15,7 +15,7 @@ public sealed class Day : BaseEntity
     /// <summary>
     /// Время постинга
     /// </summary>
-    public IEnumerable<TimeOnly> TimePostings { get; set; } = [];
+    public ICollection<TimeOnly> TimePostings { get; set; } = [];
 
     /// <summary>
     /// Расписание

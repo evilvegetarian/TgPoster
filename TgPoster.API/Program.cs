@@ -17,6 +17,7 @@ builder.Services
 var app = builder.Build();
 
 app.UseMiddleware<ErrorHandlingMiddleware>();
+app.UseMiddleware<AuthenticationMiddleware>();
 
 app.UseSwagger();
 app.UseSwaggerUI();

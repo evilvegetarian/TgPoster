@@ -3,12 +3,12 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace TgPoster.Storage.Data.Configurations;
 
-internal class TimeOnlyListJsonConverter : ValueConverter<IEnumerable<TimeOnly>, string>
+internal class TimeOnlyListJsonConverter : ValueConverter<ICollection<TimeOnly>, string>
 {
     public TimeOnlyListJsonConverter(ConverterMappingHints? mappingHints = null)
         : base(
             times => JsonSerializer.Serialize(times, (JsonSerializerOptions?)null),
-            json => JsonSerializer.Deserialize<List<TimeOnly>>(json, (JsonSerializerOptions?)null) ?? new List<TimeOnly>(),
+            json => JsonSerializer.Deserialize<ICollection<TimeOnly>>(json, (JsonSerializerOptions?)null) ?? new List<TimeOnly>(),
             mappingHints
         ) { }
 }

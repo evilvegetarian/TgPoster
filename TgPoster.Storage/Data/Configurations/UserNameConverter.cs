@@ -3,7 +3,7 @@ using TgPoster.Storage.Data.VO;
 
 namespace TgPoster.Storage.Data.Configurations;
 
-public class UserNameConverter : ValueConverter<UserName, string>
+internal class UserNameConverter : ValueConverter<UserName, string>
 {
     public UserNameConverter(ConverterMappingHints? mappingHints = null)
         : base(

@@ -55,7 +55,7 @@ public class SignOnUseCaseShould
         createUserSetup.ReturnsAsync(id);
 
         var actual = await sut.Handle(new SignOnCommand("Test", "password"));
-        actual.ShouldBe(id);
+        actual.UserId.ShouldBe(id);
     }
 
     [Fact]

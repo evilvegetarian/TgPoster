@@ -1,4 +1,4 @@
 using System;
 namespace TgPoster.Domain.Exceptions;
 
-public class UserNotFoundException() : DomainException("User does not exist.");
+public class UserNotFoundException() : NotFoundException("User does not exist.");

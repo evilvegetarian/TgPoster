@@ -1,11 +1,9 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
-using TgPoster.Domain.UseCases.Accounts.SignIn;
-using TgPoster.Domain.UseCases.Accounts.SignOn;
+using Scrutor;
 using TgPoster.Storage.ConfigModels;
 using TgPoster.Storage.Data;
-using TgPoster.Storage.Storages;
 
 namespace TgPoster.Storage;
 
@@ -16,9 +14,35 @@ public static class DependencyInjection
         var dataBase = configuration.GetSection(nameof(DataBase)).Get<DataBase>()!;
         services.AddDbContextPool<PosterContext>(db => db.UseNpgsql(dataBase.ConnectionString));
 
-        services.AddScoped<ISignOnStorage, SignOnStorage>();
-        services.AddScoped<ISignInStorage, SignInStorage>();
         services.AddScoped<GuidFactory>();
+        services.RegisterStorage();
+
+        return services;
+    }
+
+    private static IServiceCollection RegisterStorage(this IServiceCollection services)
+    {
+        var types = typeof(DependencyInjection).Assembly.GetTypes()
+            .Where(t => t.IsClass && !t.IsAbstract && t.Name.EndsWith("Storage"));
+
+        foreach (var type in types)
+        {
+            var interfaces = type.GetInterfaces();
+            foreach (var inter in interfaces)
+            {
+                services.Add(new ServiceDescriptor(inter, type, ServiceLifetime.Scoped));
+            }
+        }
+
+        // services.Scan(scan => scan
+        //     .FromApplicationDependencies()
+        //     .AddClasses(classes => classes
+        //         .Where(type => type.IsClass && type.Name.EndsWith("Storage"))
+        //     )
+        //     .UsingRegistrationStrategy(RegistrationStrategy.Throw)
+        //     .AsImplementedInterfaces()
+        //     .WithScopedLifetime()
+        // );
         return services;
     }
 }

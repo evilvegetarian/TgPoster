@@ -20,5 +20,5 @@ public sealed class Schedule : BaseEntity
     /// <summary>
     /// Дни постинга
     /// </summary>
-    public IEnumerable<Day> Days { get; set; } = [];
+    public ICollection<Day> Days { get; set; } = [];
 }

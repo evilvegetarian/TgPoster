@@ -1,6 +1,6 @@
 namespace TgPoster.Storage.ConfigModels;
 
-public class DataBase
+internal class DataBase
 {
     public required string ConnectionString { get; init; }
 }

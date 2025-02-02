@@ -1,4 +1,4 @@
-namespace TgPoster.API.Models;
+namespace TgPoster.Domain.UseCases.Accounts.SignOn;
 
 public class SignOnResponse
 {

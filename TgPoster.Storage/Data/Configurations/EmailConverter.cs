@@ -3,7 +3,7 @@ using TgPoster.Storage.Data.VO;
 
 namespace TgPoster.Storage.Data.Configurations;
 
-public class EmailConverter : ValueConverter<Email, string>
+internal class EmailConverter : ValueConverter<Email, string>
 {
     public EmailConverter(ConverterMappingHints? mappingHints = null)
         : base(

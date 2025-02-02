@@ -28,6 +28,6 @@ public sealed class User : BaseEntity
     /// </summary>
     public required string PasswordHash { get; set; }
 
-    public IEnumerable<RefreshSession> RefreshSessions { get; set; } = [];
-    public IEnumerable<Schedule> Schedules { get; set; } = [];
+    public ICollection<RefreshSession> RefreshSessions { get; set; } = [];
+    public ICollection<Schedule> Schedules { get; set; } = [];
 }

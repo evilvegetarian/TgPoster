@@ -4,9 +4,9 @@ using MediatR;
 namespace TgPoster.Domain.UseCases.Accounts.SignOn;
 
 internal sealed class SignOnUseCase(IPasswordHasher passwordHasher, ISignOnStorage storage)
-    : IRequestHandler<SignOnCommand, Guid>
+    : IRequestHandler<SignOnCommand, SignOnResponse>
 {
-    public async Task<Guid> Handle(SignOnCommand command, CancellationToken cancellationToken = default)
+    public async Task<SignOnResponse> Handle(SignOnCommand command, CancellationToken cancellationToken = default)
     {
         var passwordHash = passwordHasher.Generate(command.Password);
 
@@ -16,6 +16,9 @@ internal sealed class SignOnUseCase(IPasswordHasher passwordHasher, ISignOnStora
         }
 
         var userId = await storage.CreateUserAsync(command.Login, passwordHash, cancellationToken);
-        return userId;
+        return new SignOnResponse
+        {
+            UserId = userId,
+        };
     }
 }

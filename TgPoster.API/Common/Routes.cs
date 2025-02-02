@@ -8,14 +8,14 @@ public static class Routes
 
     public static class Account
     {
-        private const string Root = Base + "/account";
+        public const string Root = Base + "/account";
         public const string SignOn = Root + "/sign-on";
         public const string SignIn = Root + "/sign-in";
     }
 
     public static class Schedule
     {
-        private const string Root = Base + "/schedule";
+        public const string Root = Base + "/schedule";
         public const string List = Root;
         public const string Create = Root;
         public const string GetById = Root + "/{id:guid}";

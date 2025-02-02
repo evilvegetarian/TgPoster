@@ -19,7 +19,7 @@ public class EndpointTestFixture : WebApplicationFactory<Program>, IAsyncLifetim
         var configuration = new ConfigurationBuilder()
             .AddInMemoryCollection(new[]
             {
-                new KeyValuePair<string, string>($"{nameof(DataBase)}:{nameof(DataBase.ConnectionString)}",
+                new KeyValuePair<string, string>("DataBase:ConnectionString",
                     dbContainer.GetConnectionString())
             }!)
             .Build();

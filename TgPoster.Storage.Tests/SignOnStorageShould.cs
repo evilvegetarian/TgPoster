@@ -80,7 +80,7 @@ public class SignOnStorageShould(StorageTestFixture fixture) : IClassFixture<Sto
         var haveUser = await sut.HaveUserNameAsync("Mickle");
         haveUser.ShouldBeTrue();
     }
-    
+
     [Fact]
     public async Task HaveUserNameAsync_ShouldReturnFalseIfUserNotExists()
     {

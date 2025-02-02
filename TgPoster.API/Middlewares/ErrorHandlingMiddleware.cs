@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using TgPoster.Domain.Exceptions;
@@ -34,6 +35,14 @@ internal sealed class ErrorHandlingMiddleware(RequestDelegate next)
                         StatusCodes.Status400BadRequest,
                         exception.Message);
                     logger.LogInformation(exception, "Некорректный запрос от клиента.");
+                    break;
+
+                case NotFoundException:
+                    problemDetails = problemDetailsFactory.CreateProblemDetails(
+                        context,
+                        StatusCodes.Status404NotFound,
+                        exception.Message);
+                    logger.LogInformation(exception, "Ресурса нет");
                     break;
 
                 default:
