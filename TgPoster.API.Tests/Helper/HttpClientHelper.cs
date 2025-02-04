@@ -19,9 +19,4 @@ public static class HttpClientHelper
         return await response.ToObject<T>();
     }
 
-    public static async Task PostAsync(this HttpClient client, string url, object request)
-    {
-        var response = await client.PostAsync(url, request.ToStringContent());
-        response.StatusCode.ShouldBe(HttpStatusCode.OK);
-    }
 }

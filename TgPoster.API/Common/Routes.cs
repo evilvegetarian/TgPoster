@@ -21,4 +21,15 @@ public static class Routes
         public const string GetById = Root + "/{id:guid}";
         public const string Delete = Root + "/{id:guid}";
     }
+
+    public static class Day
+    {
+        public const string Root = Base + "/day";
+        public const string DayOfWeek = Root + "/dayofweek";
+        public const string UpdateTime = Root + "/time";
+        public const string Delete = Root + "/{id:guid}";
+        public const string GetById = Root + "/{id:guid}";
+        public const string Get = Root;
+        public const string Create = Root;
+    }
 }

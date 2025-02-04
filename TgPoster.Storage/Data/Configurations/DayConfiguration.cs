@@ -14,6 +14,8 @@ internal class DayConfiguration : BaseEntityConfig<Day>
         builder.Property(x => x.DayOfWeek)
             .IsRequired();
 
+        builder.HasKey(x => new { x.ScheduleId, x.DayOfWeek });
+
         builder.HasOne(x => x.Schedule)
             .WithMany(x => x.Days)
             .HasForeignKey(x => x.ScheduleId);

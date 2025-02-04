@@ -1,5 +1,4 @@
 using System.Net;
-using Bogus;
 using Shouldly;
 using TgPoster.API.Common;
 using TgPoster.API.Models;
@@ -12,7 +11,8 @@ namespace TgPoster.Endpoint.Tests;
 public class ScheduleEndpointTest(EndpointTestFixture fixture) : IClassFixture<EndpointTestFixture>
 {
     private readonly HttpClient client = fixture.CreateClient();
-    private readonly string Url = Routes.Schedule.Root;
+    private const string Url = Routes.Schedule.Root;
+    private readonly CreateHelper create = new(fixture.CreateClient());
 
     [Fact]
     public async Task Create_ShouldReturnOk_WithCreatedSchedule()
@@ -35,7 +35,7 @@ public class ScheduleEndpointTest(EndpointTestFixture fixture) : IClassFixture<E
     {
         for (int i = 0; i < 5; i++)
         {
-            await CreateSchedule();
+            await create.CreateSchedule();
         }
 
         var schedules = await client.GetAsync<List<ScheduleResponse>>(Url);
@@ -72,15 +72,5 @@ public class ScheduleEndpointTest(EndpointTestFixture fixture) : IClassFixture<E
         var response = await client.DeleteAsync($"{Url}/{nonExistentId}");
 
         response.StatusCode.ShouldBe(HttpStatusCode.NotFound);
-    }
-
-    private async Task<Guid> CreateSchedule()
-    {
-        var request = new CreateScheduleRequest
-        {
-            Name = "Test Schedule",
-        };
-        var response = await client.PostAsync<CreateScheduleResponse>(Url, request);
-        return response.Id;
     }
 }

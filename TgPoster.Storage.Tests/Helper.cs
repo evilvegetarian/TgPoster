@@ -35,4 +35,24 @@ public class Helper(PosterContext context)
         await context.SaveChangesAsync();
         return schedule;
     }
+
+    public async Task<Day> CreateDayAsync()
+    {
+        var schedule = await CreateScheduleAsync();
+        var randomTimes = Enumerable.Range(0, 10)
+            .Select(_ => TimeOnly.FromDateTime(faker.Date.Between(
+                new DateTime(1, 1, 1, 0, 0, 0),
+                new DateTime(1, 1, 1, 23, 59, 59)
+            ))).ToList();
+        var day = new Day
+        {
+            Id = Guid.NewGuid(),
+            ScheduleId = schedule.Id,
+            DayOfWeek = faker.Random.Enum<DayOfWeek>(),
+            TimePostings = randomTimes
+        };
+        await context.Days.AddAsync(day);
+        await context.SaveChangesAsync();
+        return day;
+    }
 }
