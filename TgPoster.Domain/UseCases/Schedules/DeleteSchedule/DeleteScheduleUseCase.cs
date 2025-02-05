@@ -1,4 +1,4 @@
-using Auth;
+using Security;
 using MediatR;
 using TgPoster.Domain.Exceptions;
 

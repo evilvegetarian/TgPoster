@@ -1,4 +1,3 @@
-using Auth;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
@@ -6,9 +5,10 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Moq;
+using Security;
+using Security.Models;
 using Testcontainers.PostgreSql;
 using TgPoster.Endpoint.Tests.Seeder;
-using TgPoster.Storage.ConfigModels;
 using TgPoster.Storage.Data;
 using TgPoster.Storage.Data.Entities;
 using TgPoster.Storage.Data.VO;

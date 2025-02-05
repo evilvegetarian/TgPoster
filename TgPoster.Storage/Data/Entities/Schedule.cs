@@ -15,6 +15,7 @@ public sealed class Schedule : BaseEntity
     /// <summary>
     /// Пользователь
     /// </summary>
+    //TODO: Вынести отдельно в Many-to-Many в будущем 
     public User User { get; set; } = null!;
 
     /// <summary>

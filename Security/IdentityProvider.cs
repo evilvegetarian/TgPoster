@@ -1,4 +1,6 @@
-namespace Auth;
+using Security.Models;
+
+namespace Security;
 
 internal class IdentityProvider : IIdentityProvider
 {

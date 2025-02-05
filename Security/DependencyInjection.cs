@@ -1,11 +1,11 @@
 using System.Text;
-using Auth.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
+using Security.Models;
 
-namespace Auth;
+namespace Security;
 
 public static class DependencyInjection
 {

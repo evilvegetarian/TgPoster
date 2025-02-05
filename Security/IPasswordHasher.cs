@@ -1,4 +1,4 @@
-namespace Auth;
+namespace Security;
 
 public interface IPasswordHasher
 {

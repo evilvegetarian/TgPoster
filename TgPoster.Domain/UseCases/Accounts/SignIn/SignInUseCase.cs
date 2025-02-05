@@ -1,5 +1,5 @@
-using Auth;
-using Auth.Models;
+using Security;
+using Security.Models;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using TgPoster.Domain.Exceptions;

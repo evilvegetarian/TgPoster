@@ -1,4 +1,3 @@
-using Auth;
 using Microsoft.EntityFrameworkCore;
 using Shouldly;
 using TgPoster.Storage.Data;

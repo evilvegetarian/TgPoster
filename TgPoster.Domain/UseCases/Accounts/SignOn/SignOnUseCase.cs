@@ -1,4 +1,4 @@
-using Auth;
+using Security;
 using MediatR;
 
 namespace TgPoster.Domain.UseCases.Accounts.SignOn;

@@ -1,4 +1,4 @@
-using Auth;
+using Security;
 using TgPoster.API.Middlewares;
 using TgPoster.Domain;
 using TgPoster.Storage;

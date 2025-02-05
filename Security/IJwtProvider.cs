@@ -1,8 +1,8 @@
 using System.Security.Claims;
-using Auth.Models;
 using Microsoft.AspNetCore.Http;
+using Security.Models;
 
-namespace Auth;
+namespace Security;
 
 public interface IJwtProvider
 {

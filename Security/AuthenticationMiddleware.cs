@@ -1,7 +1,7 @@
-using Auth.Models;
 using Microsoft.AspNetCore.Http;
+using Security.Models;
 
-namespace Auth;
+namespace Security;
 
 public class AuthenticationMiddleware(RequestDelegate next)
 {

@@ -1,5 +1,5 @@
 using System.Xml.Linq;
-using Auth;
+using Security;
 using MediatR;
 using TgPoster.Domain.Exceptions;
 
