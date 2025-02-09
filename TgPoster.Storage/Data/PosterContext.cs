@@ -11,6 +11,8 @@ public class PosterContext(DbContextOptions<PosterContext> options) : DbContext(
     public DbSet<Day> Days { get; set; }
     public DbSet<Schedule> Schedules { get; set; }
     public DbSet<TelegramBot> TelegramBots { get; set; }
+    public DbSet<Message> Messages { get; set; }
+    public DbSet<MessageFile> MessageFiles { get; set; }
 
     public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = new())
     {
