@@ -1,8 +1,3 @@
-using System.Net;
-using Shouldly;
-using TgPoster.API.Common;
-using TgPoster.API.Models;
-
 namespace TgPoster.E2E;
 
 public class AccountEndpointsShould(EndpointTestFixture fixture) : IClassFixture<EndpointTestFixture>

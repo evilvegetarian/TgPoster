@@ -1,5 +1,3 @@
-using System.Xml.Linq;
-using Security;
 using MediatR;
 using Security.Interfaces;
 using TgPoster.Domain.Exceptions;

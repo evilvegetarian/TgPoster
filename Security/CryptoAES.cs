@@ -38,7 +38,7 @@ public class CryptoAES : ICryptoAES
     public string Decrypt(IOptions<BaseOptions> options, string cipherText)
     {
         aes.Key = Encoding.UTF8.GetBytes(options.Value.SecretKey);
-        byte[] cipherBytes = Convert.FromBase64String(cipherText);
+        var cipherBytes = Convert.FromBase64String(cipherText);
         using var memoryStream = new MemoryStream(cipherBytes);
         using var cryptoStream = new CryptoStream(memoryStream, aes.CreateDecryptor(), CryptoStreamMode.Read);
         using var reader = new StreamReader(cryptoStream);

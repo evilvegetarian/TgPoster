@@ -5,11 +5,9 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Moq;
-using Security;
 using Security.Interfaces;
 using Security.Models;
 using Testcontainers.PostgreSql;
-using TgPoster.Domain.ConfigModels;
 using TgPoster.Endpoint.Tests.Seeder;
 using TgPoster.Storage.Data;
 using TgPoster.Storage.Data.Entities;
@@ -17,11 +15,26 @@ using TgPoster.Storage.Data.VO;
 
 namespace TgPoster.Endpoint.Tests;
 
-public class EndpointTestFixture : WebApplicationFactory<API.Program>, IAsyncLifetime
+public class EndpointTestFixture : WebApplicationFactory<Program>, IAsyncLifetime
 {
     private readonly PostgreSqlContainer dbContainer = new PostgreSqlBuilder().Build();
     private Mock<IIdentityProvider> mockIdentityProvider;
     public User TestUser { get; set; }
+
+    public async Task InitializeAsync()
+    {
+        await dbContainer.StartAsync();
+        var context = new PosterContext(new DbContextOptionsBuilder<PosterContext>()
+            .UseNpgsql(dbContainer.GetConnectionString()).Options);
+        await context.Database.MigrateAsync();
+        await InsertSeed(context);
+        await Mocked(context);
+    }
+
+    public new async Task DisposeAsync()
+    {
+        await dbContainer.DisposeAsync();
+    }
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
@@ -38,27 +51,12 @@ public class EndpointTestFixture : WebApplicationFactory<API.Program>, IAsyncLif
         base.ConfigureWebHost(builder);
     }
 
-    public async Task InitializeAsync()
-    {
-        await dbContainer.StartAsync();
-        var context = new PosterContext(new DbContextOptionsBuilder<PosterContext>()
-            .UseNpgsql(dbContainer.GetConnectionString()).Options);
-        await context.Database.MigrateAsync();
-        await InsertSeed(context);
-        await Mocked(context);
-    }
-
     private async Task Mocked(PosterContext context)
     {
         TestUser = await InitUser(context);
         mockIdentityProvider = new Mock<IIdentityProvider>();
         mockIdentityProvider.Setup(ip => ip.Current)
             .Returns(new Identity(TestUser.Id));
-    }
-
-    public new async Task DisposeAsync()
-    {
-        await dbContainer.DisposeAsync();
     }
 
     private async Task<User> InitUser(PosterContext context)

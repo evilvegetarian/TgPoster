@@ -13,7 +13,7 @@ public class AuthenticationMiddleware(RequestDelegate next)
     )
     {
         var stringId = httpContextAccessor.HttpContext?.User.FindFirst(JwtClaimTypes.UserId)?.Value;
-        var canParse = Guid.TryParse(stringId, out Guid userId);
+        var canParse = Guid.TryParse(stringId, out var userId);
         identityProvider.Current = new Identity(canParse ? userId : Guid.Empty);
 
         await next(context);

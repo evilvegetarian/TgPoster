@@ -1,5 +1,4 @@
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using TgPoster.Storage.Data.Entities;
 
@@ -14,7 +13,7 @@ internal abstract class BaseEntityConfig<TEntity> : IEntityTypeConfiguration<TEn
         builder.HasOne(x => x.CreatedBy).WithMany().HasForeignKey(x => x.CreatedById);
         builder.HasOne(x => x.UpdatedBy).WithMany().HasForeignKey(x => x.UpdatedById);
         builder.HasOne(x => x.DeletedBy).WithMany().HasForeignKey(x => x.DeletedById);
-        
+
         builder.HasQueryFilter(x => !x.Deleted.HasValue);
     }
 }

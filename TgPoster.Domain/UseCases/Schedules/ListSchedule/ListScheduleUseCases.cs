@@ -1,4 +1,3 @@
-using Security;
 using MediatR;
 using Security.Interfaces;
 

@@ -9,14 +9,14 @@ namespace TgPoster.Storage.Tests;
 
 public class SignOnStorageShould(StorageTestFixture fixture) : IClassFixture<StorageTestFixture>
 {
-    private readonly SignOnStorage sut = new(fixture.GetDbContext(), new GuidFactory());
     private readonly PosterContext _context = fixture.GetDbContext();
+    private readonly SignOnStorage sut = new(fixture.GetDbContext(), new GuidFactory());
 
     [Fact]
     public async Task CreateUserAsync_ShouldAddUserAndReturnId()
     {
-        string username = "testuser";
-        string password = "password123";
+        var username = "testuser";
+        var password = "password123";
 
         var result = await sut.CreateUserAsync(username, password, CancellationToken.None);
 
@@ -29,9 +29,9 @@ public class SignOnStorageShould(StorageTestFixture fixture) : IClassFixture<Sto
     [Fact]
     public async Task CreateUserAsync_WithDuplicateUsername_ShouldThrowInvalidOperationException()
     {
-        string username = "duplicateUser";
-        string password1 = "password1";
-        string password2 = "password2";
+        var username = "duplicateUser";
+        var password1 = "password1";
+        var password2 = "password2";
 
         var firstUserId = await sut.CreateUserAsync(username, password1, CancellationToken.None);
 

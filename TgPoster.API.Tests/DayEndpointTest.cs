@@ -9,8 +9,8 @@ namespace TgPoster.Endpoint.Tests;
 
 public class DayEndpointTest(EndpointTestFixture fixture) : IClassFixture<EndpointTestFixture>
 {
-    private readonly HttpClient client = fixture.CreateClient();
     private const string Url = Routes.Day.Root;
+    private readonly HttpClient client = fixture.CreateClient();
     private readonly CreateHelper create = new(fixture.CreateClient());
 
     [Fact]
@@ -187,13 +187,13 @@ public class DayEndpointTest(EndpointTestFixture fixture) : IClassFixture<Endpoi
             [
                 new TimeOnly(10, 15),
                 new TimeOnly(20, 30),
-                new TimeOnly(20, 40),
+                new TimeOnly(20, 40)
             ]
         };
         var response = await client.PatchAsync(Url + "/time", upd.ToStringContent());
         response.StatusCode.ShouldBe(HttpStatusCode.NotFound);
     }
-    
+
     [Fact]
     public async Task UpdateTimeDay_WithDuplicateTime_ShouldReturnBadRequest()
     {
@@ -208,7 +208,7 @@ public class DayEndpointTest(EndpointTestFixture fixture) : IClassFixture<Endpoi
                 new TimeOnly(20, 15),
                 new TimeOnly(20, 40),
                 new TimeOnly(21, 46),
-                new TimeOnly(22, 40),
+                new TimeOnly(22, 40)
             ]
         };
         var response = await client.PatchAsync(Url + "/time", upd.ToStringContent());

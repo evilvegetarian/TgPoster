@@ -1,15 +1,16 @@
 using System.ComponentModel.DataAnnotations;
 
 namespace TgPoster.API.Models;
+
 public class CreateDaysRequest : IValidatableObject
 {
     /// <summary>
-    /// Id расписания
+    ///     Id расписания
     /// </summary>
     public required Guid ScheduleId { get; set; }
 
     /// <summary>
-    /// Список дней недели с настройками публикации
+    ///     Список дней недели с настройками публикации
     /// </summary>
     public List<DayOfWeekRequest> DaysOfWeek { get; set; } = [];
 

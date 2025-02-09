@@ -1,5 +1,4 @@
 using MediatR;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TgPoster.API.Common;
 using TgPoster.API.Models;
@@ -15,7 +14,7 @@ namespace TgPoster.API.Controllers;
 public class ScheduleController(ISender sender) : ControllerBase
 {
     /// <summary>
-    /// Получение расписаний
+    ///     Получение расписаний
     /// </summary>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
@@ -29,7 +28,7 @@ public class ScheduleController(ISender sender) : ControllerBase
     }
 
     /// <summary>
-    /// Создание расписания
+    ///     Создание расписания
     /// </summary>
     /// <param name="request"></param>
     /// <param name="cancellationToken"></param>
@@ -45,7 +44,7 @@ public class ScheduleController(ISender sender) : ControllerBase
     }
 
     /// <summary>
-    /// Получение расписания 
+    ///     Получение расписания
     /// </summary>
     /// <param name="id"></param>
     /// <param name="cancellationToken"></param>
@@ -61,7 +60,7 @@ public class ScheduleController(ISender sender) : ControllerBase
     }
 
     /// <summary>
-    /// Удаление расписания
+    ///     Удаление расписания
     /// </summary>
     /// <param name="id"></param>
     /// <param name="cancellationToken"></param>

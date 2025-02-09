@@ -30,7 +30,7 @@ public static class Routes
         public const string Get = Root;
         public const string Create = Root;
     }
-    
+
     public static class TelegramBot
     {
         public const string Root = Base + "/telegram-bot";

@@ -1,4 +1,3 @@
-using Security;
 using MediatR;
 using Security.Interfaces;
 
@@ -9,7 +8,11 @@ internal sealed class CreateScheduleUseCase(ICreateScheduleStorage storage, IIde
 {
     public async Task<CreateScheduleResponse> Handle(CreateScheduleCommand request, CancellationToken cancellationToken)
     {
-        var newSchedule = await storage.CreateSchedule(request.Name, identity.Current.UserId, request.TelegramBotId,cancellationToken);
+        var newSchedule = await storage.CreateSchedule(
+            request.Name,
+            identity.Current.UserId,
+            request.TelegramBotId,
+            cancellationToken);
         return new CreateScheduleResponse
         {
             Id = newSchedule

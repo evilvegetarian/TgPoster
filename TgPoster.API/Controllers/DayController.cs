@@ -14,7 +14,7 @@ namespace TgPoster.API.Controllers;
 public class DayController(ISender sender) : ControllerBase
 {
     /// <summary>
-    /// Получение дней недели
+    ///     Получение дней недели
     /// </summary>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
@@ -27,7 +27,6 @@ public class DayController(ISender sender) : ControllerBase
     }
 
     /// <summary>
-    /// 
     /// </summary>
     /// <param name="request"></param>
     /// <param name="cancellationToken"></param>
@@ -54,7 +53,7 @@ public class DayController(ISender sender) : ControllerBase
     }
 
     /// <summary>
-    /// Получение дней
+    ///     Получение дней
     /// </summary>
     /// <param name="scheduleId"></param>
     /// <param name="cancellationToken"></param>
@@ -63,14 +62,14 @@ public class DayController(ISender sender) : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(List<GetDaysResponse>))]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<IActionResult> GetDays([FromQuery, Required] Guid scheduleId, CancellationToken cancellationToken)
+    public async Task<IActionResult> GetDays([FromQuery] [Required] Guid scheduleId, CancellationToken cancellationToken)
     {
         var response = await sender.Send(new GetDaysQuery(scheduleId), cancellationToken);
         return Ok(response);
     }
 
     /// <summary>
-    /// Обновление времени для определенного дня
+    ///     Обновление времени для определенного дня
     /// </summary>
     /// <param name="request"></param>
     /// <param name="cancellationToken"></param>

@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Http;
 using Moq;
 using Moq.Language.Flow;
-using Security;
 using Security.Interfaces;
 using Security.Models;
 using Shouldly;
@@ -13,13 +12,13 @@ namespace TgPoster.Domain.Tests.SignIn;
 
 public class SignInUseCaseShould
 {
-    private readonly SignInUseCase sut;
-    private readonly ISetup<ISignInStorage, Task<UserDto?>> getUserSetup;
     private readonly ISetup<IPasswordHasher, bool> checkPasswordSetup;
     private readonly ISetup<IJwtProvider, string> generateAccessTokenSetup;
     private readonly ISetup<IJwtProvider, (Guid, DateTimeOffset)> generateRefreshTokenSetup;
-    private readonly Mock<ISignInStorage> storage;
+    private readonly ISetup<ISignInStorage, Task<UserDto?>> getUserSetup;
     private readonly Mock<IJwtProvider> jwt;
+    private readonly Mock<ISignInStorage> storage;
+    private readonly SignInUseCase sut;
 
     public SignInUseCaseShould()
     {
@@ -29,9 +28,9 @@ public class SignInUseCaseShould
         var context = new Mock<IHttpContextAccessor>();
         getUserSetup = storage.Setup(s => s.GetUserAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()));
         checkPasswordSetup = hasher.Setup(x => x.CheckPassword(It.IsAny<string>(), It.IsAny<string>()));
-        generateAccessTokenSetup=jwt.Setup(s=>s.GenerateToken(It.IsAny<TokenServiceBuildTokenPayload>()));
-        generateRefreshTokenSetup=jwt.Setup(s=>s.GenerateRefreshToken());
-        
+        generateAccessTokenSetup = jwt.Setup(s => s.GenerateToken(It.IsAny<TokenServiceBuildTokenPayload>()));
+        generateRefreshTokenSetup = jwt.Setup(s => s.GenerateRefreshToken());
+
         sut = new SignInUseCase(storage.Object, hasher.Object, jwt.Object, context.Object);
     }
 
@@ -68,20 +67,22 @@ public class SignInUseCaseShould
         var accessToken = "access_token";
         var refreshToken = Guid.Parse("b0f737e2-1a05-49d2-b4b0-b659a8eddeed");
         var refreshExpireTime = DateTimeOffset.UtcNow.AddDays(7);
-        
+
         getUserSetup.ReturnsAsync(user);
         checkPasswordSetup.Returns(true);
         generateAccessTokenSetup.Returns(accessToken);
         generateRefreshTokenSetup.Returns((refreshToken, refreshExpireTime));
-        
+
         var response = await sut.Handle(command, It.IsAny<CancellationToken>());
         response.ShouldNotBeNull();
         response.RefreshToken.ShouldBe(refreshToken);
         response.AccessToken.ShouldBe(accessToken);
         response.RefreshTokenExpiration.ShouldBe(refreshExpireTime);
-        
+
         jwt.Verify(j => j.AddTokenToCookie(It.IsAny<HttpContext>(), accessToken), Times.Once);
 
-        storage.Verify(s => s.CreateRefreshSession(user.Id, refreshToken, refreshExpireTime,It.IsAny<CancellationToken>()), Times.Once);
+        storage.Verify(
+            s => s.CreateRefreshSession(user.Id, refreshToken, refreshExpireTime, It.IsAny<CancellationToken>()),
+            Times.Once);
     }
 }

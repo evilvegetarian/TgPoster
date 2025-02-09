@@ -8,9 +8,6 @@ public class StorageTestFixture : IAsyncLifetime
 {
     private readonly PostgreSqlContainer dbContainer = new PostgreSqlBuilder().Build();
 
-    public PosterContext GetDbContext() => new(new DbContextOptionsBuilder<PosterContext>()
-        .UseNpgsql(dbContainer.GetConnectionString()).Options);
-
     public virtual async Task InitializeAsync()
     {
         await dbContainer.StartAsync();
@@ -23,4 +20,7 @@ public class StorageTestFixture : IAsyncLifetime
     {
         await dbContainer.StopAsync();
     }
+
+    public PosterContext GetDbContext() => new(new DbContextOptionsBuilder<PosterContext>()
+        .UseNpgsql(dbContainer.GetConnectionString()).Options);
 }

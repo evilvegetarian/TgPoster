@@ -10,7 +10,7 @@ public sealed class UpdateTimeRequest : IValidatableObject
     public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
     {
         var validationErrors = new List<ValidationResult>();
-        
+
         var duplicateTime = Times
             .GroupBy(x => x)
             .Where(g => g.Count() > 1)

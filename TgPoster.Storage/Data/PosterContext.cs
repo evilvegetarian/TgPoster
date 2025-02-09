@@ -12,7 +12,7 @@ public class PosterContext(DbContextOptions<PosterContext> options) : DbContext(
     public DbSet<Schedule> Schedules { get; set; }
     public DbSet<TelegramBot> TelegramBots { get; set; }
 
-    public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = new CancellationToken())
+    public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = new())
     {
         var entries = ChangeTracker.Entries<BaseEntity>()
             .Where(e => e.State is EntityState.Added or EntityState.Modified or EntityState.Deleted);

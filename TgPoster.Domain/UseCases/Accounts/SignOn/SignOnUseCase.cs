@@ -1,4 +1,3 @@
-using Security;
 using MediatR;
 using Security.Interfaces;
 
@@ -19,7 +18,7 @@ internal sealed class SignOnUseCase(IPasswordHasher passwordHasher, ISignOnStora
         var userId = await storage.CreateUserAsync(command.Login, passwordHash, cancellationToken);
         return new SignOnResponse
         {
-            UserId = userId,
+            UserId = userId
         };
     }
 }

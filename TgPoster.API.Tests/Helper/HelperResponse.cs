@@ -18,7 +18,7 @@ public static class HelperResponse
     {
         var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
         var responseString = await response.Content.ReadAsStringAsync();
-        var result = JsonSerializer.Deserialize<T>(responseString,options)!;
+        var result = JsonSerializer.Deserialize<T>(responseString, options)!;
         return result;
     }
 }

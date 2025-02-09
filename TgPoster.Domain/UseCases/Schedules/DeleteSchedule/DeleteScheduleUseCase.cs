@@ -1,11 +1,11 @@
-using Security;
 using MediatR;
 using Security.Interfaces;
 using TgPoster.Domain.Exceptions;
 
 namespace TgPoster.Domain.UseCases.Schedules.DeleteSchedule;
 
-internal sealed class DeleteScheduleUseCase(IDeleteScheduleStorage storage, IIdentityProvider identity) : IRequestHandler<DeleteScheduleCommand>
+internal sealed class DeleteScheduleUseCase(IDeleteScheduleStorage storage, IIdentityProvider identity)
+    : IRequestHandler<DeleteScheduleCommand>
 {
     public async Task Handle(DeleteScheduleCommand request, CancellationToken cancellationToken)
     {
@@ -13,7 +13,7 @@ internal sealed class DeleteScheduleUseCase(IDeleteScheduleStorage storage, IIde
         {
             throw new ScheduleNotFoundException();
         }
-        
+
         await storage.DeleteSchedule(request.Id);
     }
 }

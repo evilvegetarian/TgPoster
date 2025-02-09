@@ -47,7 +47,7 @@ public class Helper(PosterContext context)
             Name = faker.Company.CompanyName(),
             ApiTelegram = "api",
             ChatId = faker.Random.Long(),
-            OwnerId = user,
+            OwnerId = user
         };
         await context.TelegramBots.AddAsync(telegramBot);
         await context.SaveChangesAsync();

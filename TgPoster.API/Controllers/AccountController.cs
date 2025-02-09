@@ -11,15 +11,15 @@ namespace TgPoster.API.Controllers;
 public class AccountController(ISender sender) : ControllerBase
 {
     /// <summary>
-    /// Регистрация пользователя
+    ///     Регистрация пользователя
     /// </summary>
     /// <param name="request"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
     [HttpPost(Routes.Account.SignOn)]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(SignOnResponse))]
-    [ProducesResponseType(StatusCodes.Status400BadRequest,Type = typeof(ProblemDetails))]
-    [ProducesResponseType(StatusCodes.Status500InternalServerError,Type = typeof(ProblemDetails))]
+    [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
     public async Task<IActionResult> SignOn(
         [FromBody] SignOnRequest request,
         CancellationToken cancellationToken
@@ -30,7 +30,7 @@ public class AccountController(ISender sender) : ControllerBase
     }
 
     /// <summary>
-    /// Зайти в аккаунт
+    ///     Зайти в аккаунт
     /// </summary>
     /// <param name="request"></param>
     /// <param name="cancellationToken"></param>

@@ -12,7 +12,7 @@ namespace TgPoster.API.Controllers;
 public class TelegramBotController(ISender sender) : ControllerBase
 {
     /// <summary>
-    /// Добавление бота
+    ///     Добавление бота
     /// </summary>
     /// <param name="botRequest"></param>
     /// <param name="cancellationToken"></param>
@@ -28,7 +28,7 @@ public class TelegramBotController(ISender sender) : ControllerBase
     }
 
     /// <summary>
-    /// Получение ботов
+    ///     Получение ботов
     /// </summary>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>

@@ -1,6 +1,5 @@
 using MediatR;
 using Microsoft.Extensions.Options;
-using Security;
 using Security.Interfaces;
 using Telegram.Bot;
 using TgPoster.Domain.ConfigModels;
@@ -38,7 +37,7 @@ internal class CreateTelegramBotUseCase(
 
         return new CreateTelegramBotResponse
         {
-            Id = id,
+            Id = id
         };
     }
 }

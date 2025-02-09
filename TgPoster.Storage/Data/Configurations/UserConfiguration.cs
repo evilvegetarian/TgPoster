@@ -1,4 +1,3 @@
-using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using TgPoster.Storage.Data.Entities;
 
@@ -14,7 +13,7 @@ internal class UserConfiguration : BaseEntityConfig<User>
             .HasConversion(new EmailConverter())
             .HasMaxLength(30)
             .IsRequired(false);
-        
+
         builder.Property(e => e.UserName)
             .HasConversion(new UserNameConverter())
             .HasMaxLength(30)
@@ -24,8 +23,8 @@ internal class UserConfiguration : BaseEntityConfig<User>
             .IsUnique();
 
         builder.Property(x => x.TelegramUserName)
-            .HasMaxLength(32);        
-        
+            .HasMaxLength(32);
+
         builder.Property(x => x.PasswordHash)
             .HasMaxLength(1000);
 

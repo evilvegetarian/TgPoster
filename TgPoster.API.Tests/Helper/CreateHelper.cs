@@ -3,14 +3,13 @@ using Shouldly;
 using TgPoster.API.Common;
 using TgPoster.API.Models;
 using TgPoster.Domain.UseCases.Schedules.CreateSchedule;
-using TgPoster.Domain.UseCases.TelegramBots;
 using TgPoster.Domain.UseCases.TelegramBots.CreateTelegramBot;
 
 namespace TgPoster.Endpoint.Tests.Helper;
 
 public class CreateHelper(HttpClient client)
 {
-    private string testTgApi = "8168097685:AAEWcQ8t9H0ser5L-5L1l5Lhu2ym2PFp_Sg";
+    private readonly string testTgApi = "8168097685:AAEWcQ8t9H0ser5L-5L1l5Lhu2ym2PFp_Sg";
 
     public async Task<Guid> CreateSchedule()
     {

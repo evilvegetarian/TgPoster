@@ -14,6 +14,6 @@ internal sealed class ListTelegramBotStorage(PosterContext context) : IListTeleg
             {
                 Id = x.Id,
                 Name = x.Name
-            }).ToListAsync(cancellationToken: cancellationToken);
+            }).ToListAsync(cancellationToken);
     }
 }

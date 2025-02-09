@@ -1,8 +1,7 @@
-using Security;
-using Security.Models;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Security.Interfaces;
+using Security.Models;
 using TgPoster.Domain.Exceptions;
 
 namespace TgPoster.Domain.UseCases.Accounts.SignIn;
@@ -39,7 +38,7 @@ internal sealed class SignInUseCase(
         {
             RefreshToken = refreshToken,
             RefreshTokenExpiration = refreshExpireTime,
-            AccessToken = accessToken,
+            AccessToken = accessToken
         };
     }
 }

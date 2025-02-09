@@ -1,6 +1,5 @@
 using Moq;
 using Moq.Language.Flow;
-using Security;
 using Security.Interfaces;
 using Shouldly;
 using TgPoster.Domain.UseCases.Accounts.SignOn;
@@ -9,11 +8,11 @@ namespace TgPoster.Domain.Tests.SignOn;
 
 public class SignOnUseCaseShould
 {
-    private readonly SignOnUseCase sut;
-    private readonly ISetup<IPasswordHasher, string> generatePasswordPartsSetup;
     private readonly ISetup<ISignOnStorage, Task<Guid>> createUserSetup;
+    private readonly ISetup<IPasswordHasher, string> generatePasswordPartsSetup;
     private readonly ISetup<ISignOnStorage, Task<bool>> haveUserNameSetup;
     private readonly Mock<ISignOnStorage> storage;
+    private readonly SignOnUseCase sut;
 
     public SignOnUseCaseShould()
     {

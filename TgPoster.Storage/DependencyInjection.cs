@@ -1,7 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
-using Scrutor;
+using Microsoft.Extensions.DependencyInjection;
 using TgPoster.Storage.ConfigModels;
 using TgPoster.Storage.Data;
 

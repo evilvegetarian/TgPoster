@@ -6,7 +6,7 @@ namespace TgPoster.Storage.Storages;
 
 internal class CreateScheduleStorage(PosterContext context, GuidFactory guidFactory) : ICreateScheduleStorage
 {
-    public async Task<Guid> CreateSchedule(string name, Guid userId, Guid telegramBot, CancellationToken cancellationToken )
+    public async Task<Guid> CreateSchedule(string name, Guid userId, Guid telegramBot, CancellationToken cancellationToken)
     {
         var schedule = new Schedule
         {

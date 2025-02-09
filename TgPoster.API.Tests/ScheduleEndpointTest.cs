@@ -11,8 +11,8 @@ namespace TgPoster.Endpoint.Tests;
 
 public class ScheduleEndpointTest(EndpointTestFixture fixture) : IClassFixture<EndpointTestFixture>
 {
-    private readonly HttpClient client = fixture.CreateClient();
     private const string Url = Routes.Schedule.Root;
+    private readonly HttpClient client = fixture.CreateClient();
     private readonly CreateHelper create = new(fixture.CreateClient());
 
     [Fact]
@@ -35,7 +35,7 @@ public class ScheduleEndpointTest(EndpointTestFixture fixture) : IClassFixture<E
     [Fact]
     public async Task List_ShouldReturnOk_WithSchedules()
     {
-        for (int i = 0; i < 5; i++)
+        for (var i = 0; i < 5; i++)
         {
             await create.CreateSchedule();
         }

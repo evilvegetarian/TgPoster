@@ -35,7 +35,7 @@ public static class DependencyInjection
                     };
                 });
         services.AddAuthorization();
-        
+
         services.AddScoped<IPasswordHasher, PasswordHasher>();
         services.AddScoped<IJwtProvider, JwtProvider>();
         services.AddScoped<IIdentityProvider, IdentityProvider>();

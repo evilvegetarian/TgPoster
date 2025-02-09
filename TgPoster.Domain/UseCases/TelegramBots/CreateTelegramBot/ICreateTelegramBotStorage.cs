@@ -2,7 +2,7 @@ namespace TgPoster.Domain.UseCases.TelegramBots.CreateTelegramBot;
 
 public interface ICreateTelegramBotStorage
 {
-    public Task<Guid>  CreateTelegramBotAsync(
+    public Task<Guid> CreateTelegramBotAsync(
         string apiToken,
         long chatId,
         Guid ownerId,

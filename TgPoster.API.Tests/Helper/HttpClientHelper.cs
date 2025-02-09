@@ -18,5 +18,4 @@ public static class HttpClientHelper
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
         return await response.ToObject<T>();
     }
-
 }

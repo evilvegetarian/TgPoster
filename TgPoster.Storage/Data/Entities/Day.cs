@@ -3,22 +3,22 @@ namespace TgPoster.Storage.Data.Entities;
 public sealed class Day : BaseEntity
 {
     /// <summary>
-    /// Id расписания.
+    ///     Id расписания.
     /// </summary>
     public required Guid ScheduleId { get; set; }
-    
+
     /// <summary>
-    /// День недели постинга.
+    ///     День недели постинга.
     /// </summary>
     public required DayOfWeek DayOfWeek { get; set; }
-    
+
     /// <summary>
-    /// Время постинга.
+    ///     Время постинга.
     /// </summary>
     public ICollection<TimeOnly> TimePostings { get; set; } = [];
 
     /// <summary>
-    /// Расписание.
+    ///     Расписание.
     /// </summary>
     public Schedule Schedule { get; set; } = null!;
 }

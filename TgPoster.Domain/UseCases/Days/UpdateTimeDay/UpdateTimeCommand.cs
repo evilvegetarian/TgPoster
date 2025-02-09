@@ -9,10 +9,11 @@ internal class UpdateTimeUseCase(IUpdateTimeStorage storage) : IRequestHandler<U
 {
     public async Task Handle(UpdateTimeCommand request, CancellationToken cancellationToken)
     {
-        if (!await storage.DayExistAsync(request.Id,cancellationToken))
+        if (!await storage.DayExistAsync(request.Id, cancellationToken))
         {
             throw new DaysNotFoundException();
         }
+
         await storage.UpdateTimeDayAsync(request.Id, request.Times, cancellationToken);
     }
 }

@@ -7,9 +7,9 @@ namespace TgPoster.Storage.Tests;
 
 public class DeleteScheduleStorageShould(StorageTestFixture fixture) : IClassFixture<StorageTestFixture>
 {
-    private readonly DeleteScheduleStorage sut = new(fixture.GetDbContext());
     private readonly PosterContext context = fixture.GetDbContext();
     private readonly Helper helper = new(fixture.GetDbContext());
+    private readonly DeleteScheduleStorage sut = new(fixture.GetDbContext());
 
     [Fact]
     public async Task ScheduleExist_ShouldReturnTrueIfScheduleExists()
