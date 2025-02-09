@@ -11,7 +11,7 @@ builder.Services.AddHttpContextAccessor();
 
 builder.Services
     .AddStorage(builder.Configuration)
-    .AddDomain()
+    .AddDomain(builder.Configuration)
     .AddAuth(builder.Configuration);
 
 var app = builder.Build();
@@ -25,4 +25,7 @@ app.MapControllers();
 
 app.Run();
 
-public partial class Program { }
+namespace TgPoster.API
+{
+    public partial class Program { }
+}

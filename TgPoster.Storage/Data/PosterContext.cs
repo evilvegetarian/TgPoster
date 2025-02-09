@@ -10,6 +10,7 @@ public class PosterContext(DbContextOptions<PosterContext> options) : DbContext(
     public DbSet<RefreshSession> RefreshSessions { get; set; }
     public DbSet<Day> Days { get; set; }
     public DbSet<Schedule> Schedules { get; set; }
+    public DbSet<TelegramBot> TelegramBots { get; set; }
 
     public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = new CancellationToken())
     {

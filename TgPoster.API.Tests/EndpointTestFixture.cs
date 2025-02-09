@@ -6,8 +6,10 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Security;
+using Security.Interfaces;
 using Security.Models;
 using Testcontainers.PostgreSql;
+using TgPoster.Domain.ConfigModels;
 using TgPoster.Endpoint.Tests.Seeder;
 using TgPoster.Storage.Data;
 using TgPoster.Storage.Data.Entities;
@@ -15,7 +17,7 @@ using TgPoster.Storage.Data.VO;
 
 namespace TgPoster.Endpoint.Tests;
 
-public class EndpointTestFixture : WebApplicationFactory<Program>, IAsyncLifetime
+public class EndpointTestFixture : WebApplicationFactory<API.Program>, IAsyncLifetime
 {
     private readonly PostgreSqlContainer dbContainer = new PostgreSqlBuilder().Build();
     private Mock<IIdentityProvider> mockIdentityProvider;
@@ -77,6 +79,8 @@ public class EndpointTestFixture : WebApplicationFactory<Program>, IAsyncLifetim
         var seeders = new BaseSeeder[]
         {
             new ScheduleSeeder(context),
+            new UserSeeder(context),
+            new TelegramBotSeeder(context)
         };
 
         foreach (var seeder in seeders)

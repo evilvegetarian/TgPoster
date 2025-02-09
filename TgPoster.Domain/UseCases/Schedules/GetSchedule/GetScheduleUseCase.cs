@@ -1,5 +1,6 @@
 using Security;
 using MediatR;
+using Security.Interfaces;
 using TgPoster.Domain.Exceptions;
 using TgPoster.Domain.UseCases.Schedules.ListSchedule;
 

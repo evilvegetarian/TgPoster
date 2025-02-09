@@ -2,7 +2,7 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Http;
 using Security.Models;
 
-namespace Security;
+namespace Security.Interfaces;
 
 public interface IJwtProvider
 {

@@ -2,6 +2,7 @@ using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
+using Telegram.Bot.Exceptions;
 using TgPoster.Domain.Exceptions;
 
 namespace TgPoster.API.Middlewares;
@@ -29,7 +30,7 @@ internal sealed class ErrorHandlingMiddleware(RequestDelegate next)
             ProblemDetails problemDetails;
             switch (exception)
             {
-                case ArgumentException or ValidationException or DomainException:
+                case ArgumentException or ValidationException or DomainException or ApiRequestException:
                     problemDetails = problemDetailsFactory.CreateProblemDetails(
                         context,
                         StatusCodes.Status400BadRequest,

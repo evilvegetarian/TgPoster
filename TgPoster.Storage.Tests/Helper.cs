@@ -25,15 +25,33 @@ public class Helper(PosterContext context)
     public async Task<Schedule> CreateScheduleAsync()
     {
         var user = await CreateUserAsync();
+        var telegramBot = await CreateTelegramBotAsync(user.Id);
         var schedule = new Schedule
         {
             Id = Guid.NewGuid(),
             Name = faker.Company.CompanyName(),
             UserId = user.Id,
+            TelegramBotId = telegramBot.Id
         };
         await context.Schedules.AddAsync(schedule);
         await context.SaveChangesAsync();
         return schedule;
+    }
+
+    public async Task<TelegramBot> CreateTelegramBotAsync(Guid? userId)
+    {
+        var user = userId ?? (await CreateUserAsync()).Id;
+        var telegramBot = new TelegramBot
+        {
+            Id = Guid.NewGuid(),
+            Name = faker.Company.CompanyName(),
+            ApiTelegram = "api",
+            ChatId = faker.Random.Long(),
+            OwnerId = user,
+        };
+        await context.TelegramBots.AddAsync(telegramBot);
+        await context.SaveChangesAsync();
+        return telegramBot;
     }
 
     public async Task<Day> CreateDayAsync()

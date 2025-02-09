@@ -18,6 +18,13 @@ internal class ScheduleConfiguration : BaseEntityConfig<Schedule>
             .WithMany(x => x.Schedules)
             .HasForeignKey(x => x.UserId);
 
+        builder.Property(x => x.TelegramBotId)
+            .IsRequired();
+
+        builder.HasOne(x => x.TelegramBot)
+            .WithMany(x => x.Schedules)
+            .HasForeignKey(x => x.TelegramBotId);
+
         base.Configure(builder);
     }
 }

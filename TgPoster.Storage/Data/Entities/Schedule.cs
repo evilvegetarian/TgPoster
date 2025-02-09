@@ -3,23 +3,33 @@ namespace TgPoster.Storage.Data.Entities;
 public sealed class Schedule : BaseEntity
 {
     /// <summary>
+    /// Наименование расписания.
+    /// </summary>
+    public required string Name { get; set; }
+
+    /// <summary>
     /// Id пользователя 
     /// </summary>
     public required Guid UserId { get; set; }
 
     /// <summary>
-    /// Наименование расписания
+    /// Id телеграм бота.
     /// </summary>
-    public required string Name { get; set; }
+    public required Guid TelegramBotId { get; set; }
 
     /// <summary>
-    /// Пользователь
+    /// телеграм бот.
+    /// </summary>
+    public TelegramBot TelegramBot { get; set; } = null!;
+
+    /// <summary>
+    /// Пользователь.
     /// </summary>
     //TODO: Вынести отдельно в Many-to-Many в будущем 
     public User User { get; set; } = null!;
 
     /// <summary>
-    /// Дни постинга
+    /// Дни постинга.
     /// </summary>
     public ICollection<Day> Days { get; set; } = [];
 }

@@ -1,5 +1,6 @@
 using Security;
 using MediatR;
+using Security.Interfaces;
 using TgPoster.Domain.Exceptions;
 
 namespace TgPoster.Domain.UseCases.Days.GetDays;

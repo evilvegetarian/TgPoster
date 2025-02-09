@@ -111,6 +111,9 @@ namespace TgPoster.Storage.Data.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
+                    b.Property<Guid>("TelegramBotId")
+                        .HasColumnType("uuid");
+
                     b.Property<DateTime?>("Updated")
                         .HasColumnType("timestamp with time zone");
 
@@ -126,11 +129,66 @@ namespace TgPoster.Storage.Data.Migrations
 
                     b.HasIndex("DeletedById");
 
+                    b.HasIndex("TelegramBotId");
+
                     b.HasIndex("UpdatedById");
 
                     b.HasIndex("UserId");
 
                     b.ToTable("Schedules");
+                });
+
+            modelBuilder.Entity("TgPoster.Storage.Data.Entities.TelegramBot", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("ApiTelegram")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<long>("ChatId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime?>("Created")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("CreatedById")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("Deleted")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("DeletedById")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<Guid>("OwnerId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("Updated")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("UpdatedById")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedById");
+
+                    b.HasIndex("DeletedById");
+
+                    b.HasIndex("OwnerId");
+
+                    b.HasIndex("UpdatedById");
+
+                    b.ToTable("TelegramBots");
                 });
 
             modelBuilder.Entity("TgPoster.Storage.Data.Entities.User", b =>
@@ -242,6 +300,12 @@ namespace TgPoster.Storage.Data.Migrations
                         .WithMany()
                         .HasForeignKey("DeletedById");
 
+                    b.HasOne("TgPoster.Storage.Data.Entities.TelegramBot", "TelegramBot")
+                        .WithMany("Schedules")
+                        .HasForeignKey("TelegramBotId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("TgPoster.Storage.Data.Entities.User", "UpdatedBy")
                         .WithMany()
                         .HasForeignKey("UpdatedById");
@@ -256,9 +320,40 @@ namespace TgPoster.Storage.Data.Migrations
 
                     b.Navigation("DeletedBy");
 
+                    b.Navigation("TelegramBot");
+
                     b.Navigation("UpdatedBy");
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("TgPoster.Storage.Data.Entities.TelegramBot", b =>
+                {
+                    b.HasOne("TgPoster.Storage.Data.Entities.User", "CreatedBy")
+                        .WithMany()
+                        .HasForeignKey("CreatedById");
+
+                    b.HasOne("TgPoster.Storage.Data.Entities.User", "DeletedBy")
+                        .WithMany()
+                        .HasForeignKey("DeletedById");
+
+                    b.HasOne("TgPoster.Storage.Data.Entities.User", "Owner")
+                        .WithMany("TelegramBots")
+                        .HasForeignKey("OwnerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("TgPoster.Storage.Data.Entities.User", "UpdatedBy")
+                        .WithMany()
+                        .HasForeignKey("UpdatedById");
+
+                    b.Navigation("CreatedBy");
+
+                    b.Navigation("DeletedBy");
+
+                    b.Navigation("Owner");
+
+                    b.Navigation("UpdatedBy");
                 });
 
             modelBuilder.Entity("TgPoster.Storage.Data.Entities.User", b =>
@@ -287,11 +382,18 @@ namespace TgPoster.Storage.Data.Migrations
                     b.Navigation("Days");
                 });
 
+            modelBuilder.Entity("TgPoster.Storage.Data.Entities.TelegramBot", b =>
+                {
+                    b.Navigation("Schedules");
+                });
+
             modelBuilder.Entity("TgPoster.Storage.Data.Entities.User", b =>
                 {
                     b.Navigation("RefreshSessions");
 
                     b.Navigation("Schedules");
+
+                    b.Navigation("TelegramBots");
                 });
 #pragma warning restore 612, 618
         }

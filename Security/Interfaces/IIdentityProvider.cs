@@ -1,6 +1,6 @@
 using Security.Models;
 
-namespace Security;
+namespace Security.Interfaces;
 
 public interface IIdentityProvider
 {

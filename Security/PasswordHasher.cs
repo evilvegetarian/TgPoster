@@ -1,4 +1,5 @@
 using BCrypt.Net;
+using Security.Interfaces;
 
 namespace Security;
 

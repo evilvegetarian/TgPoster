@@ -3,7 +3,7 @@ namespace TgPoster.Storage.Data.Entities;
 public abstract class BaseEntity
 {
     /// <summary>ID.</summary>
-    public Guid Id { get; set; }
+    public required Guid Id { get; set; }
 
     /// <summary>Дата и время создания сущности.</summary>
     public DateTime? Created { get; set; }

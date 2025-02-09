@@ -1,6 +1,7 @@
 using Moq;
 using Moq.Language.Flow;
 using Security;
+using Security.Interfaces;
 using Shouldly;
 using TgPoster.Domain.UseCases.Accounts.SignOn;
 

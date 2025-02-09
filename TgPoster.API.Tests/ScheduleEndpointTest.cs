@@ -5,6 +5,7 @@ using TgPoster.API.Models;
 using TgPoster.Domain.UseCases.Schedules.CreateSchedule;
 using TgPoster.Domain.UseCases.Schedules.ListSchedule;
 using TgPoster.Endpoint.Tests.Helper;
+using TgPoster.Endpoint.Tests.Seeder;
 
 namespace TgPoster.Endpoint.Tests;
 
@@ -19,7 +20,8 @@ public class ScheduleEndpointTest(EndpointTestFixture fixture) : IClassFixture<E
     {
         var request = new CreateScheduleRequest
         {
-            Name = "Test Schedule"
+            Name = "Test Schedule",
+            TelegramBotId = GlobalConst.TelegramNotWorkedBotId
         };
 
         var createdSchedule = await client.PostAsync<CreateScheduleResponse>(Url, request);
@@ -54,7 +56,11 @@ public class ScheduleEndpointTest(EndpointTestFixture fixture) : IClassFixture<E
     [Fact]
     public async Task Delete_ShouldReturnOk_WhenScheduleExists()
     {
-        var request = new CreateScheduleRequest { Name = "Schedule to Delete" };
+        var request = new CreateScheduleRequest
+        {
+            Name = "Schedule to Delete",
+            TelegramBotId = GlobalConst.TelegramNotWorkedBotId
+        };
         var createSchedule = await client.PostAsync<CreateScheduleResponse>(Url, request);
 
         var deleteResponse = await client.DeleteAsync(Url + "/" + createSchedule.Id);

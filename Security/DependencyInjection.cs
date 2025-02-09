@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
+using Security.Interfaces;
 using Security.Models;
 
 namespace Security;
@@ -38,6 +39,7 @@ public static class DependencyInjection
         services.AddScoped<IPasswordHasher, PasswordHasher>();
         services.AddScoped<IJwtProvider, JwtProvider>();
         services.AddScoped<IIdentityProvider, IdentityProvider>();
+        services.AddScoped<ICryptoAES, CryptoAES>();
         services.Configure<JwtOptions>(configuration.GetSection(nameof(JwtOptions)));
         return services;
     }

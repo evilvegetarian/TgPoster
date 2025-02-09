@@ -7,4 +7,7 @@ public sealed class CreateScheduleRequest
     [Required]
     [MaxLength(100)]
     public required string Name { get; init; }
+
+    [Required]
+    public required Guid TelegramBotId { get; init; }
 }
