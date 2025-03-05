@@ -15,7 +15,7 @@ public static class HttpClientHelper
     public static async Task<T> PostAsync<T>(this HttpClient client, string url, object request)
     {
         var response = await client.PostAsync(url, request.ToStringContent());
-        response.StatusCode.ShouldBe(HttpStatusCode.OK);
+        response.StatusCode.ShouldBeOneOf(HttpStatusCode.OK, HttpStatusCode.Created);
         return await response.ToObject<T>();
     }
 }

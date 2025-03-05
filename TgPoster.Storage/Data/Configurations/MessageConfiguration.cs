@@ -7,6 +7,8 @@ internal class MessageConfiguration : BaseEntityConfig<Message>
 {
     public override void Configure(EntityTypeBuilder<Message> builder)
     {
+        base.Configure(builder);
+
         builder.Property(x => x.TextMessage)
             .HasMaxLength(4096);
         

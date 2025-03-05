@@ -38,5 +38,5 @@ public class Message : BaseEntity
     /// <summary>
     ///     Файлы сообщения
     /// </summary>
-    public List<MessageFile> MessageFiles { get; set; } = [];
+    public ICollection<MessageFile> MessageFiles { get; set; } = [];
 }

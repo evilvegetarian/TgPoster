@@ -4,7 +4,7 @@ using TgPoster.Storage.Data.Entities;
 
 namespace TgPoster.Endpoint.Tests.Seeder;
 
-internal class TelegramBotSeeder(PosterContext context) : BaseSeeder(context)
+internal class TelegramBotSeeder(PosterContext context, string api) : BaseSeeder()
 {
     public override async Task Seed()
     {
@@ -19,7 +19,15 @@ internal class TelegramBotSeeder(PosterContext context) : BaseSeeder(context)
             ChatId = long.MaxValue,
             OwnerId = GlobalConst.UserId
         };
+        var bot2 = new TelegramBot
+        {
+            Id = GlobalConst.WorkedBotId,
+            Name = "TelegramBot2",
+            ApiTelegram = api,
+            ChatId = GlobalConst.ChatIdTg,
+            OwnerId = GlobalConst.UserId
+        };
 
-        await context.TelegramBots.AddRangeAsync(bot);
+        await context.TelegramBots.AddRangeAsync(bot, bot2);
     }
 }

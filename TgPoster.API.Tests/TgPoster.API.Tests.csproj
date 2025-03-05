@@ -35,4 +35,11 @@
         <ProjectReference Include="..\TgPoster.Storage\TgPoster.Storage.csproj"/>
     </ItemGroup>
 
+    <ItemGroup>
+      <None Remove="appsettingsTest.json" />
+      <Content Include="appsettingsTest.json">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </Content>
+    </ItemGroup>
+
 </Project>

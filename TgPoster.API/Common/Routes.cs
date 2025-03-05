@@ -35,8 +35,24 @@ public static class Routes
     {
         public const string Root = Base + "/telegram-bot";
         public const string List = Root;
+        public const string Create = Root ;
+        public const string GetById = Root + "/{id:guid}";
+        public const string Delete = Root + "/{id:guid}";
+    }
+
+    public static class Message
+    {
+        public const string Root = Base + "/message";
+        public const string List = Root;
+        public const string CreateFromFiles = Root + "/from-files";
         public const string Create = Root;
         public const string GetById = Root + "/{id:guid}";
         public const string Delete = Root + "/{id:guid}";
+    }
+    
+    public static class File
+    {
+        public const string Root = Base + "/file";
+        public const string GetById = Root + "/{id:guid}";
     }
 }

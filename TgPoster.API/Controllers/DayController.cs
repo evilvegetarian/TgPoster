@@ -32,7 +32,7 @@ public class DayController(ISender sender) : ControllerBase
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
     [HttpPost(Routes.Day.Create)]
-    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
@@ -49,7 +49,7 @@ public class DayController(ISender sender) : ControllerBase
                 ).ToList()
         );
         await sender.Send(command, cancellationToken);
-        return Ok();
+        return Created();
     }
 
     /// <summary>

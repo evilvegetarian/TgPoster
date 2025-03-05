@@ -33,5 +33,5 @@ public sealed class Schedule : BaseEntity
     /// </summary>
     public ICollection<Day> Days { get; set; } = [];
     
-    public List<Message> Messages { get; set; } = [];
+    public ICollection<Message> Messages { get; set; } = [];
 }

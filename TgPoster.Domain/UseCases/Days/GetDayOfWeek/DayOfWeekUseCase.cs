@@ -9,5 +9,6 @@ internal sealed class DayOfWeekUseCase : IRequestHandler<DayOfWeekQuery, List<Da
         return Enum.GetValues<DayOfWeek>()
             .Select(x => new DayOfWeekResponse((int)x, x.ToString()))
             .ToList();
+        await Task.CompletedTask;
     }
 }

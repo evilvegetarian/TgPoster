@@ -4,5 +4,5 @@ namespace Security.Interfaces;
 
 internal class IdentityProvider : IIdentityProvider
 {
-    public Identity Current { get; set; }
+    public required Identity Current { get; set; }
 }

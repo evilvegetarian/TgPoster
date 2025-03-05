@@ -5,7 +5,7 @@ using TgPoster.Storage.Data.VO;
 
 namespace TgPoster.Endpoint.Tests.Seeder;
 
-internal class UserSeeder(PosterContext context) : BaseSeeder(context)
+internal class UserSeeder(PosterContext context) : BaseSeeder()
 {
     public override async Task Seed()
     {
@@ -14,9 +14,16 @@ internal class UserSeeder(PosterContext context) : BaseSeeder(context)
         var user = new User
         {
             Id = GlobalConst.UserId,
-            UserName = new UserName("KuperSan"),
-            PasswordHash = "PasswordHash"
+            UserName = new UserName("Kuper"),
+            PasswordHash = "PasswordHash",
         };
-        await context.Users.AddRangeAsync(user);
+
+        var defaultUser = new User
+        {
+            Id = GlobalConst.UserDefaultId,
+            PasswordHash = "DefaultPasswordHash",
+            UserName = new UserName("Default_User_For_APP")
+        };
+        await context.Users.AddRangeAsync(user, defaultUser);
     }
 }

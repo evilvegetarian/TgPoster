@@ -6,11 +6,24 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace TgPoster.Storage.Data.Migrations
 {
     /// <inheritdoc />
-    public partial class AddMessageAndFile : Migration
+    public partial class AddMessageAndFiles : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropPrimaryKey(
+                name: "PK_Days",
+                table: "Days");
+
+            migrationBuilder.DropIndex(
+                name: "IX_Days_ScheduleId",
+                table: "Days");
+
+            migrationBuilder.AddPrimaryKey(
+                name: "PK_Days",
+                table: "Days",
+                columns: new[] { "ScheduleId", "DayOfWeek" });
+
             migrationBuilder.CreateTable(
                 name: "Messages",
                 columns: table => new
@@ -63,6 +76,8 @@ namespace TgPoster.Storage.Data.Migrations
                     TgFileId = table.Column<string>(type: "character varying(1000)", maxLength: 1000, nullable: false),
                     Caption = table.Column<string>(type: "character varying(1024)", maxLength: 1024, nullable: true),
                     Type = table.Column<int>(type: "integer", nullable: false),
+                    Discriminator = table.Column<string>(type: "character varying(21)", maxLength: 21, nullable: false),
+                    ThumbnailIds = table.Column<string>(type: "json", nullable: true),
                     Created = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     Updated = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     Deleted = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
@@ -145,6 +160,20 @@ namespace TgPoster.Storage.Data.Migrations
 
             migrationBuilder.DropTable(
                 name: "Messages");
+
+            migrationBuilder.DropPrimaryKey(
+                name: "PK_Days",
+                table: "Days");
+
+            migrationBuilder.AddPrimaryKey(
+                name: "PK_Days",
+                table: "Days",
+                column: "Id");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Days_ScheduleId",
+                table: "Days",
+                column: "ScheduleId");
         }
     }
 }

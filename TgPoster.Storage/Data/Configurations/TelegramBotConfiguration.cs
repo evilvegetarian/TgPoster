@@ -7,6 +7,8 @@ internal class TelegramBotConfiguration : BaseEntityConfig<TelegramBot>
 {
     public override void Configure(EntityTypeBuilder<TelegramBot> builder)
     {
+        base.Configure(builder);
+        
         builder.Property(x => x.Name)
             .HasMaxLength(100)
             .IsRequired();
@@ -24,7 +26,5 @@ internal class TelegramBotConfiguration : BaseEntityConfig<TelegramBot>
         builder.HasOne(x => x.Owner)
             .WithMany(x => x.TelegramBots)
             .HasForeignKey(x => x.OwnerId);
-
-        base.Configure(builder);
     }
 }

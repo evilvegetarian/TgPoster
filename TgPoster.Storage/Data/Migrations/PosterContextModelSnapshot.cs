@@ -24,9 +24,11 @@ namespace TgPoster.Storage.Data.Migrations
 
             modelBuilder.Entity("TgPoster.Storage.Data.Entities.Day", b =>
                 {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
+                    b.Property<Guid>("ScheduleId")
                         .HasColumnType("uuid");
+
+                    b.Property<int>("DayOfWeek")
+                        .HasColumnType("integer");
 
                     b.Property<DateTime?>("Created")
                         .HasColumnType("timestamp with time zone");
@@ -34,16 +36,13 @@ namespace TgPoster.Storage.Data.Migrations
                     b.Property<Guid?>("CreatedById")
                         .HasColumnType("uuid");
 
-                    b.Property<int>("DayOfWeek")
-                        .HasColumnType("integer");
-
                     b.Property<DateTime?>("Deleted")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<Guid?>("DeletedById")
                         .HasColumnType("uuid");
 
-                    b.Property<Guid>("ScheduleId")
+                    b.Property<Guid>("Id")
                         .HasColumnType("uuid");
 
                     b.Property<string>("TimePostings")
@@ -56,17 +55,15 @@ namespace TgPoster.Storage.Data.Migrations
                     b.Property<Guid?>("UpdatedById")
                         .HasColumnType("uuid");
 
-                    b.HasKey("Id");
+                    b.HasKey("ScheduleId", "DayOfWeek");
 
                     b.HasIndex("CreatedById");
 
                     b.HasIndex("DeletedById");
 
-                    b.HasIndex("ScheduleId");
-
                     b.HasIndex("UpdatedById");
 
-                    b.ToTable("Days");
+                    b.ToTable("Days", (string)null);
                 });
 
             modelBuilder.Entity("TgPoster.Storage.Data.Entities.Message", b =>
@@ -119,7 +116,7 @@ namespace TgPoster.Storage.Data.Migrations
 
                     b.HasIndex("UpdatedById");
 
-                    b.ToTable("Messages");
+                    b.ToTable("Messages", (string)null);
                 });
 
             modelBuilder.Entity("TgPoster.Storage.Data.Entities.MessageFile", b =>
@@ -143,6 +140,11 @@ namespace TgPoster.Storage.Data.Migrations
 
                     b.Property<Guid?>("DeletedById")
                         .HasColumnType("uuid");
+
+                    b.Property<string>("Discriminator")
+                        .IsRequired()
+                        .HasMaxLength(21)
+                        .HasColumnType("character varying(21)");
 
                     b.Property<Guid>("MessageId")
                         .HasColumnType("uuid");
@@ -171,7 +173,11 @@ namespace TgPoster.Storage.Data.Migrations
 
                     b.HasIndex("UpdatedById");
 
-                    b.ToTable("MessageFiles");
+                    b.ToTable("MessageFiles", (string)null);
+
+                    b.HasDiscriminator().HasValue("MessageFile");
+
+                    b.UseTphMappingStrategy();
                 });
 
             modelBuilder.Entity("TgPoster.Storage.Data.Entities.RefreshSession", b =>
@@ -190,7 +196,7 @@ namespace TgPoster.Storage.Data.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("RefreshSessions");
+                    b.ToTable("RefreshSessions", (string)null);
                 });
 
             modelBuilder.Entity("TgPoster.Storage.Data.Entities.Schedule", b =>
@@ -240,7 +246,7 @@ namespace TgPoster.Storage.Data.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Schedules");
+                    b.ToTable("Schedules", (string)null);
                 });
 
             modelBuilder.Entity("TgPoster.Storage.Data.Entities.TelegramBot", b =>
@@ -293,7 +299,7 @@ namespace TgPoster.Storage.Data.Migrations
 
                     b.HasIndex("UpdatedById");
 
-                    b.ToTable("TelegramBots");
+                    b.ToTable("TelegramBots", (string)null);
                 });
 
             modelBuilder.Entity("TgPoster.Storage.Data.Entities.User", b =>
@@ -352,7 +358,25 @@ namespace TgPoster.Storage.Data.Migrations
                     b.HasIndex("UserName")
                         .IsUnique();
 
-                    b.ToTable("Users");
+                    b.ToTable("Users", (string)null);
+                });
+
+            modelBuilder.Entity("TgPoster.Storage.Data.Entities.PhotoMessageFile", b =>
+                {
+                    b.HasBaseType("TgPoster.Storage.Data.Entities.MessageFile");
+
+                    b.HasDiscriminator().HasValue("PhotoMessageFile");
+                });
+
+            modelBuilder.Entity("TgPoster.Storage.Data.Entities.VideoMessageFile", b =>
+                {
+                    b.HasBaseType("TgPoster.Storage.Data.Entities.MessageFile");
+
+                    b.Property<string>("ThumbnailIds")
+                        .IsRequired()
+                        .HasColumnType("json");
+
+                    b.HasDiscriminator().HasValue("VideoMessageFile");
                 });
 
             modelBuilder.Entity("TgPoster.Storage.Data.Entities.Day", b =>

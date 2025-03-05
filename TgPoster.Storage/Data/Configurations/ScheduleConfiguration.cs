@@ -7,6 +7,8 @@ internal class ScheduleConfiguration : BaseEntityConfig<Schedule>
 {
     public override void Configure(EntityTypeBuilder<Schedule> builder)
     {
+        base.Configure(builder);
+        
         builder.Property(x => x.UserId)
             .IsRequired();
 
@@ -24,7 +26,5 @@ internal class ScheduleConfiguration : BaseEntityConfig<Schedule>
         builder.HasOne(x => x.TelegramBot)
             .WithMany(x => x.Schedules)
             .HasForeignKey(x => x.TelegramBotId);
-
-        base.Configure(builder);
     }
 }

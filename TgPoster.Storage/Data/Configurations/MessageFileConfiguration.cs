@@ -7,6 +7,8 @@ internal class MessageFileConfiguration : BaseEntityConfig<MessageFile>
 {
     public override void Configure(EntityTypeBuilder<MessageFile> builder)
     {
+        base.Configure(builder);
+        
         builder.Property(x => x.Caption)
             .HasMaxLength(1024);
 

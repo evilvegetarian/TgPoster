@@ -4,6 +4,7 @@ using TgPoster.API.Common;
 using TgPoster.API.Models;
 using TgPoster.Domain.UseCases.Schedules.CreateSchedule;
 using TgPoster.Domain.UseCases.TelegramBots.CreateTelegramBot;
+using TgPoster.Endpoint.Tests.Seeder;
 
 namespace TgPoster.Endpoint.Tests.Helper;
 
@@ -13,13 +14,12 @@ public class CreateHelper(HttpClient client)
 
     public async Task<Guid> CreateSchedule()
     {
-        var bot = await CreateTelegramBot();
         var request = new CreateScheduleRequest
         {
             Name = "Test Schedule",
-            TelegramBotId = bot
+            TelegramBotId = GlobalConst.TelegramNotWorkedBotId
         };
-        var response = await client.PostAsync<CreateScheduleResponse>(Routes.Schedule.Root, request);
+        var response = await client.PostAsync<CreateScheduleResponse>(Routes.Schedule.Create, request);
         return response.Id;
     }
 
@@ -41,15 +41,5 @@ public class CreateHelper(HttpClient client)
         };
         var response = await client.PostAsync(Routes.Day.Root + "?scheduleId=" + scheduleId, request.ToStringContent());
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
-    }
-
-    public async Task<Guid> CreateTelegramBot()
-    {
-        var request = new CreateTelegramBotRequest
-        {
-            Token = testTgApi
-        };
-        var response = await client.PostAsync<CreateTelegramBotResponse>(Routes.TelegramBot.Root, request);
-        return response.Id;
     }
 }

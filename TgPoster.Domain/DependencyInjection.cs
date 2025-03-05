@@ -2,6 +2,7 @@ using System.Reflection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using TgPoster.Domain.ConfigModels;
+using TgPoster.Domain.Services;
 
 namespace TgPoster.Domain;
 
@@ -14,7 +15,10 @@ public static class DependencyInjection
                 .RegisterServicesFromAssembly(Assembly.GetAssembly(typeof(DependencyInjection))!));
 
         services.Configure<TelegramOptions>(configuration.GetSection(nameof(TelegramOptions)));
-
+        services.AddScoped<TelegramService>();
+        services.AddScoped<VideoService>();
+        services.AddScoped<FileService>();
+        services.AddScoped<TimePostingService>();
         return services;
     }
 }

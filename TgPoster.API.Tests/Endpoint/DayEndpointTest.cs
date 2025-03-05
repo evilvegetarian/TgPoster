@@ -5,7 +5,7 @@ using TgPoster.API.Models;
 using TgPoster.Domain.UseCases.Days.GetDays;
 using TgPoster.Endpoint.Tests.Helper;
 
-namespace TgPoster.Endpoint.Tests;
+namespace TgPoster.Endpoint.Tests.Endpoint;
 
 public class DayEndpointTest(EndpointTestFixture fixture) : IClassFixture<EndpointTestFixture>
 {
@@ -26,7 +26,7 @@ public class DayEndpointTest(EndpointTestFixture fixture) : IClassFixture<Endpoi
     }
 
     [Fact]
-    public async Task CreateDay_DoubleDayOfWeek_ShouldReturnOk()
+    public async Task CreateDay_DoubleDayOfWeek_ShouldReturnBadRequest()
     {
         var scheduleId = await create.CreateSchedule();
         var request = new CreateDaysRequest
@@ -44,7 +44,7 @@ public class DayEndpointTest(EndpointTestFixture fixture) : IClassFixture<Endpoi
             ]
         };
         var response = await client.PostAsync(Url, request.ToStringContent());
-        response.StatusCode.ShouldBe(HttpStatusCode.OK);
+        response.StatusCode.ShouldBe(HttpStatusCode.Created);
 
         var response2 = await client.PostAsync(Url, request.ToStringContent());
         response2.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
@@ -76,7 +76,7 @@ public class DayEndpointTest(EndpointTestFixture fixture) : IClassFixture<Endpoi
             ]
         };
         var response = await client.PostAsync(Url, request.ToStringContent());
-        response.StatusCode.ShouldBe(HttpStatusCode.OK);
+        response.StatusCode.ShouldBe(HttpStatusCode.Created);
 
         var getResponse = await client.GetAsync<List<GetDaysResponse>>(Url + "?scheduleId=" + scheduleId);
         getResponse.Count.ShouldBe(2);

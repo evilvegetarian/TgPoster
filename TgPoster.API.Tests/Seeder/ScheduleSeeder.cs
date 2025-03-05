@@ -4,7 +4,7 @@ using TgPoster.Storage.Data.Entities;
 
 namespace TgPoster.Endpoint.Tests.Seeder;
 
-internal class ScheduleSeeder(PosterContext context) : BaseSeeder(context)
+internal class ScheduleSeeder(PosterContext context) : BaseSeeder()
 {
     public override async Task Seed()
     {
@@ -15,7 +15,7 @@ internal class ScheduleSeeder(PosterContext context) : BaseSeeder(context)
         {
             new()
             {
-                Id = Guid.Parse("4af2c620-b83c-41f4-8800-1cafa16c5c19"),
+                Id = GlobalConst.ScheduleId,
                 Name = "PerfectSchedule",
                 UserId = GlobalConst.UserId,
                 TelegramBotId = GlobalConst.TelegramNotWorkedBotId

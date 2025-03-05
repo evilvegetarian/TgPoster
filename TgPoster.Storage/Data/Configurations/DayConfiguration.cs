@@ -8,6 +8,8 @@ internal class DayConfiguration : BaseEntityConfig<Day>
 {
     public override void Configure(EntityTypeBuilder<Day> builder)
     {
+        base.Configure(builder);
+
         builder.Property(x => x.ScheduleId)
             .IsRequired();
 
@@ -23,7 +25,5 @@ internal class DayConfiguration : BaseEntityConfig<Day>
         builder.Property(x => x.TimePostings)
             .HasConversion(new TimeOnlyListJsonConverter())
             .HasColumnType("json");
-
-        base.Configure(builder);
     }
 }

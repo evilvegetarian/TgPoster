@@ -19,7 +19,6 @@ public class EndpointTestFixture : WebApplicationFactory<Program>, IAsyncLifetim
 {
     private readonly PostgreSqlContainer dbContainer = new PostgreSqlBuilder().Build();
     private Mock<IIdentityProvider> mockIdentityProvider;
-    public User TestUser { get; set; }
 
     public async Task InitializeAsync()
     {
@@ -53,32 +52,26 @@ public class EndpointTestFixture : WebApplicationFactory<Program>, IAsyncLifetim
 
     private async Task Mocked(PosterContext context)
     {
-        TestUser = await InitUser(context);
         mockIdentityProvider = new Mock<IIdentityProvider>();
         mockIdentityProvider.Setup(ip => ip.Current)
-            .Returns(new Identity(TestUser.Id));
-    }
-
-    private async Task<User> InitUser(PosterContext context)
-    {
-        var user = new User
-        {
-            Id = Guid.Parse("b6cbe54a-21d2-44d5-bfcc-a9f93e3fc93c"),
-            PasswordHash = "password",
-            UserName = new UserName("newUserName")
-        };
-        await context.Users.AddAsync(user);
-        await context.SaveChangesAsync();
-        return user;
+            .Returns(new Identity(GlobalConst.UserDefaultId));
     }
 
     private async Task InsertSeed(PosterContext context)
     {
+        IConfiguration configuration = new ConfigurationBuilder()
+            .SetBasePath(AppContext.BaseDirectory)
+            .AddJsonFile("appsettingsTest.json", optional: false, reloadOnChange: true)
+            .Build();
+        var apiValue = configuration["Api"];
+
         var seeders = new BaseSeeder[]
         {
             new ScheduleSeeder(context),
             new UserSeeder(context),
-            new TelegramBotSeeder(context)
+            new TelegramBotSeeder(context, apiValue),
+            new MessageSeeder(context),
+            new MessageFileSeeder(context),
         };
 
         foreach (var seeder in seeders)
