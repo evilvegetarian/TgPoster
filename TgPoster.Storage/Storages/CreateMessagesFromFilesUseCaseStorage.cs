@@ -25,7 +25,7 @@ internal class CreateMessagesFromFilesUseCaseStorage(PosterContext context, Guid
             }).FirstOrDefaultAsync(cancellationToken);
     }
 
-    public Task<List<DateTime>> GetExistMessageTimePosting(Guid scheduleId, CancellationToken cancellationToken)
+    public Task<List<DateTimeOffset>> GetExistMessageTimePosting(Guid scheduleId, CancellationToken cancellationToken)
     {
         return context.Messages
             .Where(x => x.ScheduleId == scheduleId)
@@ -48,7 +48,7 @@ internal class CreateMessagesFromFilesUseCaseStorage(PosterContext context, Guid
     public async Task CreateMessages(
         Guid scheduleId,
         List<MediaFileResult> files,
-        List<DateTime> postingTime,
+        List<DateTimeOffset> postingTime,
         CancellationToken cancellationToken
     )
     {

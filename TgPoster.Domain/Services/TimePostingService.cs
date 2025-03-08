@@ -2,18 +2,18 @@ namespace TgPoster.Domain.Services;
 
 public class TimePostingService
 {
-    public List<DateTime> GetTimeForPosting(
+    public List<DateTimeOffset> GetTimeForPosting(
         int mediaCount,
         Dictionary<DayOfWeek, List<TimeOnly>> scheduleTime,
-        List<DateTime> existMessageTimePosting
+        List<DateTimeOffset> existMessageTimePosting
     )
     {
-        var currentDateValue = DateTime.Now;
+        var currentDateValue = DateTimeOffset.UtcNow;
 
         var currentDayOfWeek = currentDateValue.DayOfWeek;
         var currentTime = currentDateValue.TimeOfDay;
 
-        var dateTimes = new List<DateTime>();
+        var dateTimes = new List<DateTimeOffset>();
         int index = 0;
 
         while (index < mediaCount)

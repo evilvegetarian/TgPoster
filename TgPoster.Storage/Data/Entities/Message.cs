@@ -12,7 +12,7 @@ public class Message : BaseEntity
     /// <summary>
     ///     Время поста
     /// </summary>
-    public required DateTime TimePosting { get; set; }
+    public required DateTimeOffset TimePosting { get; set; }
 
     /// <summary>
     ///     Текстовое сообщение
