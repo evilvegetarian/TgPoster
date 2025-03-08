@@ -13,7 +13,7 @@ internal class TelegramBotSeeder(PosterContext context, string api) : BaseSeeder
 
         var bot = new TelegramBot
         {
-            Id = GlobalConst.TelegramNotWorkedBotId,
+            Id = GlobalConst.TelegramBotId,
             Name = "TelegramBot",
             ApiTelegram = "API Key",
             ChatId = long.MaxValue,
@@ -21,11 +21,11 @@ internal class TelegramBotSeeder(PosterContext context, string api) : BaseSeeder
         };
         var bot2 = new TelegramBot
         {
-            Id = GlobalConst.WorkedBotId,
+            Id = GlobalConst.Worked.TelegramBotId,
             Name = "TelegramBot2",
             ApiTelegram = api,
-            ChatId = GlobalConst.ChatIdTg,
-            OwnerId = GlobalConst.UserId
+            ChatId = GlobalConst.Worked.ChatIdTg,
+            OwnerId = GlobalConst.Worked.UserId
         };
 
         await context.TelegramBots.AddRangeAsync(bot, bot2);

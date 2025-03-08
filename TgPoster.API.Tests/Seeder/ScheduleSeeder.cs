@@ -18,21 +18,21 @@ internal class ScheduleSeeder(PosterContext context) : BaseSeeder()
                 Id = GlobalConst.ScheduleId,
                 Name = "PerfectSchedule",
                 UserId = GlobalConst.UserId,
-                TelegramBotId = GlobalConst.TelegramNotWorkedBotId
+                TelegramBotId = GlobalConst.TelegramBotId
             },
             new()
             {
                 Id = Guid.Parse("e57ba368-531c-457a-b00c-8c847f163218"),
                 Name = "SecondSchedule",
                 UserId = GlobalConst.UserId,
-                TelegramBotId = GlobalConst.TelegramNotWorkedBotId
+                TelegramBotId = GlobalConst.TelegramBotId,
             },
             new()
             {
-                Id = Guid.Parse("351666a2-7847-468d-a546-3b362a5fec1f"),
-                Name = "ThirdSchedule",
-                UserId = GlobalConst.UserId,
-                TelegramBotId = GlobalConst.TelegramNotWorkedBotId
+                Id = GlobalConst.Worked.ScheduleId,
+                Name = "Schedule For Test",
+                UserId = GlobalConst.Worked.UserId,
+                TelegramBotId = GlobalConst.Worked.TelegramBotId
             }
         };
 

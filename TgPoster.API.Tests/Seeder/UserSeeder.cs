@@ -20,7 +20,7 @@ internal class UserSeeder(PosterContext context) : BaseSeeder()
 
         var defaultUser = new User
         {
-            Id = GlobalConst.UserDefaultId,
+            Id = GlobalConst.Worked.UserId,
             PasswordHash = "DefaultPasswordHash",
             UserName = new UserName("Default_User_For_APP")
         };

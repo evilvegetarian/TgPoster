@@ -39,7 +39,7 @@ public class ScheduleController(ISender sender) : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
     public async Task<IActionResult> Create([FromBody] CreateScheduleRequest request, CancellationToken cancellationToken)
     {
-        var response = await sender.Send(new CreateScheduleCommand(request.Name,request.TelegramBotId), cancellationToken);
+        var response = await sender.Send(new CreateScheduleCommand(request.Name, request.TelegramBotId), cancellationToken);
         return Created(Routes.Schedule.Create, response);
     }
 

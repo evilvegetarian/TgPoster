@@ -39,7 +39,12 @@ internal sealed class TelegramService(VideoService videoService)
                         disableNotification: true,
                         cancellationToken: cancellationToken);
                     var previewPhotoIds = messages
-                        .SelectMany(m => m.Photo?.OrderBy(x => x.FileSize).Select(x => x.FileId)).Distinct();
+                        .Select(m => m.Photo?
+                            .OrderByDescending(x => x.FileSize)
+                            .Select(x => x.FileId)
+                            .FirstOrDefault())
+                        .Where(x => x != null)
+                        .Distinct();
                     var fileVideoId = messages
                         .Select(m => m.Video?.FileId).FirstOrDefault();
                     foreach (var mess in messages)

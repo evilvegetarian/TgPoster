@@ -5,6 +5,9 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TgPoster.Storage", "TgPoster.Storage\TgPoster.Storage.csproj", "{0DDA73A7-1932-4AFE-A175-21E4C04C28E7}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{C08103D3-FE72-44CE-B6F4-D8583B4A725C}"
+	ProjectSection(SolutionItems) = preProject
+		TestFiles\video_2025-03-06_21-26-53.mp4 = TestFiles\video_2025-03-06_21-26-53.mp4
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TgPoster.E2E", "TgPoster.E2E\TgPoster.E2E.csproj", "{A545D866-70C5-47B0-A45A-295ED4B60D79}"
 EndProject

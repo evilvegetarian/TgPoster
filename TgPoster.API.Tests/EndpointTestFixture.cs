@@ -54,7 +54,7 @@ public class EndpointTestFixture : WebApplicationFactory<Program>, IAsyncLifetim
     {
         mockIdentityProvider = new Mock<IIdentityProvider>();
         mockIdentityProvider.Setup(ip => ip.Current)
-            .Returns(new Identity(GlobalConst.UserDefaultId));
+            .Returns(new Identity(GlobalConst.Worked.UserId));
     }
 
     private async Task InsertSeed(PosterContext context)
@@ -67,11 +67,12 @@ public class EndpointTestFixture : WebApplicationFactory<Program>, IAsyncLifetim
 
         var seeders = new BaseSeeder[]
         {
-            new ScheduleSeeder(context),
-            new UserSeeder(context),
             new TelegramBotSeeder(context, apiValue),
-            new MessageSeeder(context),
             new MessageFileSeeder(context),
+            new ScheduleSeeder(context),
+            new MessageSeeder(context),
+            new UserSeeder(context),
+            new DaySeeder(context),
         };
 
         foreach (var seeder in seeders)

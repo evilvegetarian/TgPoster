@@ -3,6 +3,7 @@ using Microsoft.Extensions.Options;
 using Security.Interfaces;
 using Telegram.Bot;
 using TgPoster.Domain.ConfigModels;
+using TgPoster.Domain.Exceptions;
 using TgPoster.Domain.Services;
 
 namespace TgPoster.Domain.UseCases.Messages.CreateMessagesFromFiles;
@@ -21,9 +22,7 @@ internal sealed class CreateMessagesFromFilesUseCase(
         var userId = identity.Current.UserId;
         var telegramBot = await storage.GetTelegramBot(request.ScheduleId, userId, cancellationToken);
         if (telegramBot == null)
-        {
-            throw new Exception();
-        }
+            throw new TelegramNotFoundException();
 
         var token = cryptoAes.Decrypt(options, telegramBot.ApiTelegram);
         var bot = new TelegramBotClient(token);

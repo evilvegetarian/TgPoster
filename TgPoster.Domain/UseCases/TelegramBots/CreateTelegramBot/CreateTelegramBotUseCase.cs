@@ -32,7 +32,7 @@ internal class CreateTelegramBotUseCase(
             tokenEncrypted,
             chatId,
             identity.Current.UserId,
-            botInfo.Username,
+            botInfo.Username!,
             cancellationToken);
 
         return new CreateTelegramBotResponse

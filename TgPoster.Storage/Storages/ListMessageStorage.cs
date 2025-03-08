@@ -1,6 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using TgPoster.Domain.UseCases.Messages.ListMessage;
 using TgPoster.Storage.Data;
+using TgPoster.Storage.Data.Entities;
+using TgPoster.Storage.Mapping;
 
 namespace TgPoster.Storage.Storages;
 
@@ -19,13 +21,26 @@ public class ListMessageStorage(PosterContext context) : IListMessageStorage
             .FirstOrDefaultAsync(cancellationToken: cancellationToken);
     }
 
-    public Task<List<MessageDto>> GetMessagesAsync(Guid scheduleId, CancellationToken cancellationToken)
+    public async Task<List<MessageDto>> GetMessagesAsync(Guid scheduleId, CancellationToken cancellationToken)
     {
-        return context.Messages.Where(x => x.ScheduleId == scheduleId)
-            .Select(x => new MessageDto
+        var messages = await context.Messages
+            .Where(message => message.ScheduleId == scheduleId)
+            .Include(message => message.MessageFiles)
+            .ToListAsync(cancellationToken);
+
+        return messages.Select(x => new MessageDto
+        {
+            Id = x.Id,
+            TextMessage = x.TextMessage,
+            Files = x.MessageFiles.Select(file => new FileDto
             {
-                Id = x.Id,
-                TextMessage = x.TextMessage
-            }).ToListAsync(cancellationToken: cancellationToken);
+                Id = file.Id,
+                Type = file.Type.ToDomain(),
+                TgFileId = file.TgFileId,
+                PreviewIds = file is VideoMessageFile videoFile
+                    ? videoFile.ThumbnailIds.ToList()
+                    : []
+            }).ToList()
+        }).ToList();
     }
 }

@@ -1,10 +1,11 @@
+using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.Extensions.Caching.Memory;
 using Telegram.Bot;
 using TgPoster.Domain.UseCases.Messages.ListMessage;
 
 namespace TgPoster.Domain.Services;
 
-internal sealed class FileService(IMemoryCache memoryCache)
+internal sealed class FileService(IMemoryCache memoryCache, FileExtensionContentTypeProvider contentTypeProvider)
 {
     /// <summary>
     /// Обрабатывает список файлов и возвращает список объектов с информацией о кешированном контенте.
@@ -38,7 +39,6 @@ internal sealed class FileService(IMemoryCache memoryCache)
                     var cacheIdentifier = await DownloadAndCacheFileAsync(
                         botClient,
                         fileDto.TgFileId,
-                        fileDto.Type.GetMimeType(),
                         cancellationToken);
                     cacheInfo.FileCacheId = cacheIdentifier;
                     break;
@@ -51,7 +51,6 @@ internal sealed class FileService(IMemoryCache memoryCache)
                         var previewCacheId = await DownloadAndCacheFileAsync(
                             botClient,
                             previewFileId,
-                            MimeType.Photo,
                             cancellationToken);
                         cacheInfo.PreviewCacheIds.Add(previewCacheId);
                     }
@@ -82,13 +81,13 @@ internal sealed class FileService(IMemoryCache memoryCache)
     private async Task<Guid> DownloadAndCacheFileAsync(
         TelegramBotClient botClient,
         string telegramFileId,
-        string mimeType,
         CancellationToken cancellationToken
     )
     {
         using var memoryStream = new MemoryStream();
-        await botClient.GetInfoAndDownloadFile(telegramFileId, memoryStream, cancellationToken);
-        return CacheFile(memoryStream.ToArray(), mimeType);
+        var file = await botClient.GetInfoAndDownloadFile(telegramFileId, memoryStream, cancellationToken);
+        contentTypeProvider.TryGetContentType(file.FilePath, out var contentType);
+        return CacheFile(memoryStream.ToArray(), contentType);
     }
 
     /// <summary>
@@ -142,4 +141,3 @@ public class FileCacheItem
     public required byte[] Data { get; set; }
     public required string ContentType { get; set; }
 }
-

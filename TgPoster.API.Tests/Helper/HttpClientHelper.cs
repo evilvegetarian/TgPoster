@@ -18,4 +18,10 @@ public static class HttpClientHelper
         response.StatusCode.ShouldBeOneOf(HttpStatusCode.OK, HttpStatusCode.Created);
         return await response.ToObject<T>();
     }
+    public static async Task<T> PostMultipartFormAsync<T>(this HttpClient client, string url, object request)
+    {
+        var response = await client.PostAsync(url, request.ToMultipartForm());
+        response.StatusCode.ShouldBeOneOf(HttpStatusCode.OK, HttpStatusCode.Created);
+        return await response.ToObject<T>();
+    }
 }

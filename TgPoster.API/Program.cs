@@ -1,7 +1,8 @@
-using Security;
+using Microsoft.AspNetCore.StaticFiles;
 using TgPoster.API.Middlewares;
-using TgPoster.Domain;
 using TgPoster.Storage;
+using TgPoster.Domain;
+using Security;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddSwaggerGen();
@@ -9,7 +10,7 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddMemoryCache();
-
+builder.Services.AddSingleton<FileExtensionContentTypeProvider>();
 builder.Services
     .AddStorage(builder.Configuration)
     .AddDomain(builder.Configuration)

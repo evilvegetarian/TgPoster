@@ -21,7 +21,7 @@ public class ScheduleEndpointTest(EndpointTestFixture fixture) : IClassFixture<E
         var request = new CreateScheduleRequest
         {
             Name = "Test Schedule",
-            TelegramBotId = GlobalConst.TelegramNotWorkedBotId
+            TelegramBotId = GlobalConst.TelegramBotId
         };
 
         var createdSchedule = await client.PostAsync<CreateScheduleResponse>(Url, request);
@@ -59,7 +59,7 @@ public class ScheduleEndpointTest(EndpointTestFixture fixture) : IClassFixture<E
         var request = new CreateScheduleRequest
         {
             Name = "Schedule to Delete",
-            TelegramBotId = GlobalConst.TelegramNotWorkedBotId
+            TelegramBotId = GlobalConst.TelegramBotId
         };
         var createSchedule = await client.PostAsync<CreateScheduleResponse>(Url, request);
 

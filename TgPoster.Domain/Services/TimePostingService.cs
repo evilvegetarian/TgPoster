@@ -1,6 +1,6 @@
 namespace TgPoster.Domain.Services;
 
-public class TimePostingService
+internal sealed class TimePostingService
 {
     public List<DateTimeOffset> GetTimeForPosting(
         int mediaCount,
@@ -8,6 +8,8 @@ public class TimePostingService
         List<DateTimeOffset> existMessageTimePosting
     )
     {
+        if (!scheduleTime.Any())
+            throw new ArgumentNullException("Расписание не заполнено!");
         var currentDateValue = DateTimeOffset.UtcNow;
 
         var currentDayOfWeek = currentDateValue.DayOfWeek;
@@ -24,7 +26,7 @@ public class TimePostingService
                 foreach (var time in timesForToday)
                 {
                     var timeSpan = time.ToTimeSpan();
-                    var potentialNewDateTime = currentDateValue.Date + timeSpan;
+                    var potentialNewDateTime = new DateTimeOffset(currentDateValue.Date + timeSpan, TimeSpan.Zero);
 
                     if (timeSpan > currentTime && !existMessageTimePosting.Contains(potentialNewDateTime))
                     {
