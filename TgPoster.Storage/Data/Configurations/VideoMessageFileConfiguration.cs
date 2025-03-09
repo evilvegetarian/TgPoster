@@ -8,8 +8,8 @@ internal class VideoMessageFileConfiguration : BaseEntityConfig<VideoMessageFile
 {
     public override void Configure(EntityTypeBuilder<VideoMessageFile> builder)
     {
-       builder.Property(x => x.ThumbnailIds)
-           .HasConversion(new StringListJsonConverter())
-           .HasColumnType("json");
+        builder.Property(x => x.ThumbnailIds)
+            .HasConversion(new StringListJsonConverter())
+            .HasColumnType("json");
     }
 }

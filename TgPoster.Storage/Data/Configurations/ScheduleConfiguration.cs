@@ -8,7 +8,7 @@ internal class ScheduleConfiguration : BaseEntityConfig<Schedule>
     public override void Configure(EntityTypeBuilder<Schedule> builder)
     {
         base.Configure(builder);
-        
+
         builder.Property(x => x.UserId)
             .IsRequired();
 

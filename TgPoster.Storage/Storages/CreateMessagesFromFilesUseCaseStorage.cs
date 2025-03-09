@@ -21,7 +21,7 @@ internal class CreateMessagesFromFilesUseCaseStorage(PosterContext context, Guid
             .Select(x => new TelegramBotDto
             {
                 ApiTelegram = x.TelegramBot.ApiTelegram,
-                ChatId = x.TelegramBot.ChatId,
+                ChatId = x.TelegramBot.ChatId
             }).FirstOrDefaultAsync(cancellationToken);
     }
 
@@ -52,7 +52,7 @@ internal class CreateMessagesFromFilesUseCaseStorage(PosterContext context, Guid
         CancellationToken cancellationToken
     )
     {
-        for (int i = 0; i < files.Count; i++)
+        for (var i = 0; i < files.Count; i++)
         {
             var messageId = guidFactory.New();
 

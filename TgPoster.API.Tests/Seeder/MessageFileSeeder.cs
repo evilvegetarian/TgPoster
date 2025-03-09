@@ -16,7 +16,7 @@ internal class MessageFileSeeder(PosterContext context) : BaseSeeder
                 MessageId = GlobalConst.MessageId,
                 Type = ContentTypes.Video,
                 //TODO:возможно в будущем ошибки будут
-                TgFileId = "randomTgFile",
+                TgFileId = "randomTgFile"
             },
             new PhotoMessageFile
             {
@@ -24,15 +24,15 @@ internal class MessageFileSeeder(PosterContext context) : BaseSeeder
                 MessageId = GlobalConst.MessageId,
                 Type = ContentTypes.Photo,
                 //TODO:возможно в будущем ошибки будут
-                TgFileId = "randomTgFile",
-            } ,
+                TgFileId = "randomTgFile"
+            },
             new PhotoMessageFile
             {
                 Id = Guid.Parse("f54d2728-d33c-4e84-aead-ae7c7ee5422a"),
                 MessageId = GlobalConst.MessageId,
                 Type = ContentTypes.Photo,
                 //TODO:возможно в будущем ошибки будут
-                TgFileId = "randomTgFile",
+                TgFileId = "randomTgFile"
             }
         };
 

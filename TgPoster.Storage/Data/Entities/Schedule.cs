@@ -32,6 +32,6 @@ public sealed class Schedule : BaseEntity
     ///     Дни постинга.
     /// </summary>
     public ICollection<Day> Days { get; set; } = [];
-    
+
     public ICollection<Message> Messages { get; set; } = [];
 }

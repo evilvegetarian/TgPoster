@@ -1,8 +1,8 @@
 using Microsoft.AspNetCore.StaticFiles;
-using TgPoster.API.Middlewares;
-using TgPoster.Storage;
-using TgPoster.Domain;
 using Security;
+using TgPoster.API.Middlewares;
+using TgPoster.Domain;
+using TgPoster.Storage;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddSwaggerGen();

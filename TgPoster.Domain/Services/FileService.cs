@@ -8,9 +8,9 @@ namespace TgPoster.Domain.Services;
 internal sealed class FileService(IMemoryCache memoryCache, FileExtensionContentTypeProvider contentTypeProvider)
 {
     /// <summary>
-    /// Обрабатывает список файлов и возвращает список объектов с информацией о кешированном контенте.
-    /// Для ContentTypes.Photo загружается и кэшируется изображение, 
-    /// для ContentTypes.Video кешируются только preview-изображения, основной видеофайл не кэшируется.
+    ///     Обрабатывает список файлов и возвращает список объектов с информацией о кешированном контенте.
+    ///     Для ContentTypes.Photo загружается и кэшируется изображение,
+    ///     для ContentTypes.Video кешируются только preview-изображения, основной видеофайл не кэшируется.
     /// </summary>
     /// <param name="botClient">Экземпляр TelegramBotClient для работы со скачиванием файлов.</param>
     /// <param name="fileDtos">Список DTO файлов для обработки.</param>
@@ -71,7 +71,7 @@ internal sealed class FileService(IMemoryCache memoryCache, FileExtensionContent
     }
 
     /// <summary>
-    /// Скачивает файл и добавляет его в кеш.
+    ///     Скачивает файл и добавляет его в кеш.
     /// </summary>
     /// <param name="botClient">Экземпляр TelegramBotClient.</param>
     /// <param name="telegramFileId">Идентификатор файла в Telegram.</param>
@@ -91,7 +91,7 @@ internal sealed class FileService(IMemoryCache memoryCache, FileExtensionContent
     }
 
     /// <summary>
-    /// Сохраняет файл в cache и возвращает уникальный идентификатор.
+    ///     Сохраняет файл в cache и возвращает уникальный идентификатор.
     /// </summary>
     /// <param name="fileData">Байт-представление файла.</param>
     /// <param name="mimeType">MIME-тип файла.</param>
@@ -106,7 +106,7 @@ internal sealed class FileService(IMemoryCache memoryCache, FileExtensionContent
 
         var fileCacheId = Guid.NewGuid();
 
-        var memoryCacheOptions = new MemoryCacheEntryOptions()
+        var memoryCacheOptions = new MemoryCacheEntryOptions
         {
             AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5)
         };
@@ -117,16 +117,14 @@ internal sealed class FileService(IMemoryCache memoryCache, FileExtensionContent
     }
 
     /// <summary>
-    /// Извлекает файл из кеша по его идентификатору.
+    ///     Извлекает файл из кеша по его идентификатору.
     /// </summary>
     /// <param name="cacheId">GUID файла в кеше.</param>
     /// <returns>Объект FileCacheItem, если файл найден; иначе null.</returns>
-    public FileCacheItem? RetrieveFileFromCache(Guid cacheId)
-    {
-        return memoryCache.TryGetValue<FileCacheItem>(cacheId, out var fileCacheItem)
+    public FileCacheItem? RetrieveFileFromCache(Guid cacheId) =>
+        memoryCache.TryGetValue<FileCacheItem>(cacheId, out var fileCacheItem)
             ? fileCacheItem
             : null;
-    }
 }
 
 public class FilesCacheInfo

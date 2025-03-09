@@ -19,13 +19,11 @@ public static class HelperResponse
 
 public static class HttpContentHelper
 {
-    public static HttpContent ToStringContent<T>(this T request)
-    {
-        return new StringContent(
+    public static HttpContent ToStringContent<T>(this T request) =>
+        new StringContent(
             JsonSerializer.Serialize(request),
             Encoding.UTF8,
             "application/json");
-    }
 
     public static MultipartFormDataContent ToMultipartForm<T>(this T data)
     {

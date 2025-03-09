@@ -30,7 +30,7 @@ public class MessageController(ISender sender) : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(List<MessageResponse>))]
     [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
     [ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
-    public async Task<IActionResult> List([FromQuery, Required] Guid scheduleId, CancellationToken cancellationToken)
+    public async Task<IActionResult> List([FromQuery] [Required] Guid scheduleId, CancellationToken cancellationToken)
     {
         var response = await sender.Send(new ListMessageQuery(scheduleId), cancellationToken);
         return Ok(response);

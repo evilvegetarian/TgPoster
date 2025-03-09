@@ -4,7 +4,7 @@ using TgPoster.Storage.Data.Entities;
 
 namespace TgPoster.Endpoint.Tests.Seeder;
 
-internal class TelegramBotSeeder(PosterContext context, string api) : BaseSeeder()
+internal class TelegramBotSeeder(PosterContext context, string api) : BaseSeeder
 {
     public override async Task Seed()
     {

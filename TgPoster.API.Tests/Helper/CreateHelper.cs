@@ -3,8 +3,6 @@ using Shouldly;
 using TgPoster.API.Common;
 using TgPoster.API.Models;
 using TgPoster.Domain.UseCases.Schedules.CreateSchedule;
-using TgPoster.Domain.UseCases.TelegramBots.CreateTelegramBot;
-using TgPoster.Endpoint.Tests.Seeder;
 
 namespace TgPoster.Endpoint.Tests.Helper;
 

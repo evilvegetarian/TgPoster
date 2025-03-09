@@ -40,7 +40,7 @@ internal sealed class ListMessageUseCase(
                 {
                     ContentType = x.ContentType,
                     FileCacheId = x.FileCacheId,
-                    PreviewCacheIds = x.PreviewCacheIds,
+                    PreviewCacheIds = x.PreviewCacheIds
                 }).ToList()
             });
         }

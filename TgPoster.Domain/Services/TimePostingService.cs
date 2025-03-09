@@ -16,7 +16,7 @@ internal sealed class TimePostingService
         var currentTime = currentDateValue.TimeOfDay;
 
         var dateTimes = new List<DateTimeOffset>();
-        int index = 0;
+        var index = 0;
 
         while (index < mediaCount)
         {

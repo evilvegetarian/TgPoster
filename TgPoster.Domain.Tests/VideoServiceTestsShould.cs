@@ -6,9 +6,10 @@ namespace TgPoster.Domain.Tests;
 
 public sealed class VideoServiceTestsShould
 {
-    private readonly VideoService sut = new();
     private readonly string filePath = Directory.GetFiles(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "TestFiles"))
         .First(x => x.EndsWith(".mp4", StringComparison.OrdinalIgnoreCase));
+
+    private readonly VideoService sut = new();
 
     [Fact]
     public void ExtractScreenshots_WithValidVideo_ReturnsExpectedNumberOfScreenshots()

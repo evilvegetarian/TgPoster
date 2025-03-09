@@ -13,7 +13,7 @@ internal sealed class TelegramService(VideoService videoService)
         CancellationToken cancellationToken
     )
     {
-        var chat = await botClient.GetChat(chatIdWithBotUser, cancellationToken: cancellationToken);
+        var chat = await botClient.GetChat(chatIdWithBotUser, cancellationToken);
 
         List<MediaFileResult> media = [];
         foreach (var file in files)
@@ -30,7 +30,7 @@ internal sealed class TelegramService(VideoService videoService)
                     [
                         new InputMediaVideo { Media = inputFile }
                     ];
-                    var previews = videoService.ExtractScreenshots(memoryStream, 3, 0);
+                    var previews = videoService.ExtractScreenshots(memoryStream, 3);
                     album.AddRange(previews.Select(preview => new InputMediaPhoto(preview)));
 
                     var messages = await botClient.SendMediaGroup(
@@ -49,7 +49,7 @@ internal sealed class TelegramService(VideoService videoService)
                         .Select(m => m.Video?.FileId).FirstOrDefault();
                     foreach (var mess in messages)
                     {
-                        await botClient.DeleteMessage(chat.Id, mess.MessageId, cancellationToken: cancellationToken);
+                        await botClient.DeleteMessage(chat.Id, mess.MessageId, cancellationToken);
                     }
 
                     media.Add(new MediaFileResult
@@ -75,7 +75,7 @@ internal sealed class TelegramService(VideoService videoService)
                         Type = type,
                         FileId = photoId!
                     });
-                    await botClient.DeleteMessage(chat.Id, message.MessageId, cancellationToken: cancellationToken);
+                    await botClient.DeleteMessage(chat.Id, message.MessageId, cancellationToken);
                     break;
 
                 case ContentTypes.NoOne:

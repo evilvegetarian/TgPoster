@@ -8,7 +8,7 @@ internal class TelegramBotConfiguration : BaseEntityConfig<TelegramBot>
     public override void Configure(EntityTypeBuilder<TelegramBot> builder)
     {
         base.Configure(builder);
-        
+
         builder.Property(x => x.Name)
             .HasMaxLength(100)
             .IsRequired();

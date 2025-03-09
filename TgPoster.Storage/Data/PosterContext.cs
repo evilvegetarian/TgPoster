@@ -1,6 +1,5 @@
 ﻿using System.Reflection;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Diagnostics;
 using TgPoster.Storage.Data.Entities;
 
 namespace TgPoster.Storage.Data;
@@ -14,9 +13,9 @@ public class PosterContext(DbContextOptions<PosterContext> options) : DbContext(
     public DbSet<TelegramBot> TelegramBots { get; set; }
     public DbSet<Message> Messages { get; set; }
     public DbSet<MessageFile> MessageFiles { get; set; }
-    
+
     public DbSet<VideoMessageFile> VideoMessageFiles { get; set; }
-    
+
     public DbSet<PhotoMessageFile> PhotoMessageFiles { get; set; }
 
     public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = new())

@@ -5,7 +5,6 @@ using TgPoster.API.Models;
 using TgPoster.Domain.UseCases.Schedules.CreateSchedule;
 using TgPoster.Domain.UseCases.Schedules.ListSchedule;
 using TgPoster.Endpoint.Tests.Helper;
-using TgPoster.Endpoint.Tests.Seeder;
 
 namespace TgPoster.Endpoint.Tests.Endpoint;
 

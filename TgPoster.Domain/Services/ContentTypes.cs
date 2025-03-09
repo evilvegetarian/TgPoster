@@ -1,4 +1,3 @@
-
 namespace TgPoster.Domain.Services;
 
 public enum ContentTypes

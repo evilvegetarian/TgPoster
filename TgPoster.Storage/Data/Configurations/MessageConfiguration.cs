@@ -11,7 +11,7 @@ internal class MessageConfiguration : BaseEntityConfig<Message>
 
         builder.Property(x => x.TextMessage)
             .HasMaxLength(4096);
-        
+
         builder.HasIndex(x => x.ScheduleId);
 
         builder.HasOne(x => x.Schedule)

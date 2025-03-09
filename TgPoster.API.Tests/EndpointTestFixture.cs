@@ -10,8 +10,6 @@ using Security.Models;
 using Testcontainers.PostgreSql;
 using TgPoster.Endpoint.Tests.Seeder;
 using TgPoster.Storage.Data;
-using TgPoster.Storage.Data.Entities;
-using TgPoster.Storage.Data.VO;
 
 namespace TgPoster.Endpoint.Tests;
 
@@ -61,7 +59,7 @@ public class EndpointTestFixture : WebApplicationFactory<Program>, IAsyncLifetim
     {
         IConfiguration configuration = new ConfigurationBuilder()
             .SetBasePath(AppContext.BaseDirectory)
-            .AddJsonFile("appsettingsTest.json", optional: false, reloadOnChange: true)
+            .AddJsonFile("appsettingsTest.json", false, true)
             .Build();
         var apiValue = configuration["Api"];
 
@@ -72,7 +70,7 @@ public class EndpointTestFixture : WebApplicationFactory<Program>, IAsyncLifetim
             new ScheduleSeeder(context),
             new MessageSeeder(context),
             new UserSeeder(context),
-            new DaySeeder(context),
+            new DaySeeder(context)
         };
 
         foreach (var seeder in seeders)

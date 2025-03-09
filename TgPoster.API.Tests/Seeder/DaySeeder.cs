@@ -4,14 +4,14 @@ using TgPoster.Storage.Data.Entities;
 
 namespace TgPoster.Endpoint.Tests.Seeder;
 
-internal class DaySeeder(PosterContext context) : BaseSeeder()
+internal class DaySeeder(PosterContext context) : BaseSeeder
 {
     public override async Task Seed()
     {
         if (await context.Days.AnyAsync())
             return;
 
-        var days = new List<Day>()
+        var days = new List<Day>
         {
             new()
             {

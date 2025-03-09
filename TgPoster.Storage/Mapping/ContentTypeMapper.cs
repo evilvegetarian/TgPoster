@@ -11,7 +11,7 @@ public static class ContentTypeMapper
         {
             ContentTypes.Photo => DomainContentType.Photo,
             ContentTypes.Video => DomainContentType.Video,
-            _ => DomainContentType.NoOne,
+            _ => DomainContentType.NoOne
         };
     }
 
@@ -21,7 +21,7 @@ public static class ContentTypeMapper
         {
             DomainContentType.Photo => ContentTypes.Photo,
             DomainContentType.Video => ContentTypes.Video,
-            _ => ContentTypes.NoOne,
+            _ => ContentTypes.NoOne
         };
     }
 }

@@ -9,9 +9,9 @@ internal static class GlobalConst
 
     public static class Worked
     {
+        public const long ChatIdTg = 492807650;
         public static Guid TelegramBotId = Guid.Parse("55f1dee4-137d-4ade-9f91-84249aceaec4");
         public static Guid ScheduleId = Guid.Parse("cee7c166-b5cf-41b4-8c66-d470a4974000");
-        public const long ChatIdTg = 492807650;
         public static Guid UserId = Guid.Parse("b6cbe54a-21d2-44d5-bfcc-a9f93e3fc93c");
     }
 }

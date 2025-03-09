@@ -36,7 +36,7 @@ internal class MessageSeeder(PosterContext context) : BaseSeeder
                 ScheduleId = GlobalConst.ScheduleId,
                 IsTextMessage = true,
                 TimePosting = new DateTime(2025, 10, 10, 14, 1, 2, DateTimeKind.Utc)
-            },
+            }
         };
         await context.Messages.AddRangeAsync(messages);
     }
