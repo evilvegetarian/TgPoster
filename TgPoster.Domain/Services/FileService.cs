@@ -29,12 +29,13 @@ internal sealed class FileService(IMemoryCache memoryCache, FileExtensionContent
         {
             var cacheInfo = new FilesCacheInfo
             {
-                ContentType = fileDto.Type
+                FileType = fileDto.ContentType.GetFileType()
             };
 
-            switch (fileDto.Type)
+            var fileType = fileDto.ContentType.GetFileType();
+            switch (fileType)
             {
-                case ContentTypes.Photo:
+                case FileTypes.Photo:
                 {
                     var cacheIdentifier = await DownloadAndCacheFileAsync(
                         botClient,
@@ -44,7 +45,7 @@ internal sealed class FileService(IMemoryCache memoryCache, FileExtensionContent
                     break;
                 }
 
-                case ContentTypes.Video:
+                case FileTypes.Video:
                 {
                     foreach (var previewFileId in fileDto.PreviewIds)
                     {
@@ -58,10 +59,10 @@ internal sealed class FileService(IMemoryCache memoryCache, FileExtensionContent
                     break;
                 }
 
-                case ContentTypes.NoOne:
+                case FileTypes.NoOne:
                 default:
-                    throw new ArgumentOutOfRangeException(nameof(fileDto.Type),
-                        $"Неизвестный тип контента: {fileDto.Type}");
+                    throw new ArgumentOutOfRangeException(nameof(fileType),
+                        $"Неизвестный тип контента: {fileType}");
             }
 
             filesCacheInfoList.Add(cacheInfo);
@@ -108,9 +109,8 @@ internal sealed class FileService(IMemoryCache memoryCache, FileExtensionContent
 
         var memoryCacheOptions = new MemoryCacheEntryOptions
         {
-            AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5)
+            AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(10)
         };
-
         memoryCache.Set(fileCacheId, fileCacheItem, memoryCacheOptions);
 
         return fileCacheId;
@@ -129,7 +129,7 @@ internal sealed class FileService(IMemoryCache memoryCache, FileExtensionContent
 
 public class FilesCacheInfo
 {
-    public ContentTypes ContentType { get; set; }
+    public FileTypes FileType { get; set; }
     public Guid? FileCacheId { get; set; }
     public List<Guid> PreviewCacheIds { get; set; } = [];
 }

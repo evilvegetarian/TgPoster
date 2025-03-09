@@ -2,11 +2,10 @@ using Microsoft.EntityFrameworkCore;
 using TgPoster.Domain.UseCases.Messages.ListMessage;
 using TgPoster.Storage.Data;
 using TgPoster.Storage.Data.Entities;
-using TgPoster.Storage.Mapping;
 
 namespace TgPoster.Storage.Storages;
 
-public class ListMessageStorage(PosterContext context) : IListMessageStorage
+internal sealed class ListMessageStorage(PosterContext context) : IListMessageStorage
 {
     public Task<bool> ExistSchedule(Guid scheduleId, CancellationToken cancellationToken)
     {
@@ -35,7 +34,7 @@ public class ListMessageStorage(PosterContext context) : IListMessageStorage
             Files = x.MessageFiles.Select(file => new FileDto
             {
                 Id = file.Id,
-                Type = file.Type.ToDomain(),
+                ContentType = file.ContentType,
                 TgFileId = file.TgFileId,
                 PreviewIds = file is VideoMessageFile videoFile
                     ? videoFile.ThumbnailIds.ToList()

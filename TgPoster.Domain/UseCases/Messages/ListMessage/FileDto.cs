@@ -6,6 +6,6 @@ public sealed class FileDto
 {
     public required Guid Id { get; set; }
     public required string TgFileId { get; set; }
-    public required ContentTypes Type { get; set; }
+    public required string ContentType { get; set; }
     public List<string> PreviewIds { get; set; } = [];
 }

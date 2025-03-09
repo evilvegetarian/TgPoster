@@ -38,7 +38,7 @@ internal sealed class ListMessageUseCase(
                 TextMessage = m.TextMessage,
                 Files = filesCacheInfos.Select(x => new FileResponse
                 {
-                    ContentType = x.ContentType,
+                    FileType = x.FileType,
                     FileCacheId = x.FileCacheId,
                     PreviewCacheIds = x.PreviewCacheIds
                 }).ToList()

@@ -22,10 +22,10 @@ internal sealed class TelegramService(VideoService videoService)
             await file.CopyToAsync(memoryStream, cancellationToken);
             memoryStream.Position = 0;
             var inputFile = new InputFileStream(memoryStream, file.FileName);
-            var type = file.GetContentType();
+            var type = file.GetFileType();
             switch (type)
             {
-                case ContentTypes.Video:
+                case FileTypes.Video:
                     List<IAlbumInputMedia> album =
                     [
                         new InputMediaVideo { Media = inputFile }
@@ -54,13 +54,13 @@ internal sealed class TelegramService(VideoService videoService)
 
                     media.Add(new MediaFileResult
                     {
-                        Type = type,
+                        ContentType = file.ContentType,
                         FileId = fileVideoId!,
                         PreviewPhotoIds = previewPhotoIds.ToList()
                     });
                     break;
 
-                case ContentTypes.Photo:
+                case FileTypes.Photo:
                     var message = await botClient.SendPhoto(
                         chat.Id,
                         inputFile,
@@ -72,13 +72,13 @@ internal sealed class TelegramService(VideoService videoService)
                         .FirstOrDefault();
                     media.Add(new MediaFileResult
                     {
-                        Type = type,
+                        ContentType = file.ContentType,
                         FileId = photoId!
                     });
                     await botClient.DeleteMessage(chat.Id, message.MessageId, cancellationToken);
                     break;
 
-                case ContentTypes.NoOne:
+                case FileTypes.NoOne:
                     break;
 
                 default:
@@ -92,7 +92,7 @@ internal sealed class TelegramService(VideoService videoService)
 
 public class MediaFileResult
 {
-    public required ContentTypes Type { get; set; }
+    public required string ContentType { get; set; }
     public required string FileId { get; set; }
     public List<string> PreviewPhotoIds { get; set; } = [];
 }

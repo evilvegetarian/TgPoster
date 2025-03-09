@@ -4,7 +4,7 @@ using TgPoster.Storage.Data;
 
 namespace TgPoster.Storage.Storages;
 
-internal class ListScheduleStorage(PosterContext context) : IListScheduleStorage
+internal sealed class ListScheduleStorage(PosterContext context) : IListScheduleStorage
 {
     public async Task<List<ScheduleResponse>> GetListScheduleAsync(Guid userId, CancellationToken cancellationToken)
     {

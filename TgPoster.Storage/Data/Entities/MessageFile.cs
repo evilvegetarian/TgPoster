@@ -18,11 +18,11 @@ public class MessageFile : BaseEntity
     ///     Подпись к фото
     /// </summary>
     public string? Caption { get; set; }
-
+    
     /// <summary>
     ///     Тип файла
     /// </summary>
-    public required ContentTypes Type { get; set; }
+    public required string ContentType { get; set; }
 
     /// <summary>
     ///     Сообщение

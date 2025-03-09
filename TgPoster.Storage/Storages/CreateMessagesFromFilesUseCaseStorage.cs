@@ -4,12 +4,10 @@ using TgPoster.Domain.UseCases.Messages.CreateMessagesFromFiles;
 using TgPoster.Storage.Data;
 using TgPoster.Storage.Data.Entities;
 using TgPoster.Storage.Data.Enum;
-using TgPoster.Storage.Mapping;
-using ContentTypes = TgPoster.Domain.Services.ContentTypes;
 
 namespace TgPoster.Storage.Storages;
 
-internal class CreateMessagesFromFilesUseCaseStorage(PosterContext context, GuidFactory guidFactory)
+internal sealed class CreateMessagesFromFilesUseCaseStorage(PosterContext context, GuidFactory guidFactory)
     : ICreateMessagesFromFilesUseCaseStorage
 {
     public Task<TelegramBotDto?> GetTelegramBot(Guid scheduleId, Guid userId, CancellationToken cancellationToken)
@@ -55,22 +53,23 @@ internal class CreateMessagesFromFilesUseCaseStorage(PosterContext context, Guid
         for (var i = 0; i < files.Count; i++)
         {
             var messageId = guidFactory.New();
+            var file = files[i];
 
-            MessageFile messageFile = files[i].Type == ContentTypes.Photo
+            MessageFile messageFile = !file.PreviewPhotoIds.Any()
                 ? new PhotoMessageFile
                 {
                     Id = guidFactory.New(),
                     MessageId = messageId,
-                    TgFileId = files[i].FileId,
-                    Type = files[i].Type.ToStorage()
+                    TgFileId = file.FileId,
+                    ContentType = file.ContentType,
                 }
                 : new VideoMessageFile
                 {
                     Id = guidFactory.New(),
                     MessageId = messageId,
-                    TgFileId = files[i].FileId,
-                    Type = files[i].Type.ToStorage(),
-                    ThumbnailIds = files[i].PreviewPhotoIds
+                    TgFileId = file.FileId,
+                    ContentType = file.ContentType,
+                    ThumbnailIds = file.PreviewPhotoIds
                 };
             var message = new Message
             {

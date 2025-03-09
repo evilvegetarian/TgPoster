@@ -7,7 +7,7 @@ using TgPoster.Domain.Exceptions;
 
 namespace TgPoster.Domain.UseCases.TelegramBots.CreateTelegramBot;
 
-internal class CreateTelegramBotUseCase(
+internal sealed class CreateTelegramBotUseCase(
     ICreateTelegramBotStorage storage,
     IIdentityProvider identity,
     ICryptoAES cryptoAes,

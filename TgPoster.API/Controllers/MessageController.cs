@@ -12,6 +12,12 @@ namespace TgPoster.API.Controllers;
 [ApiController]
 public class MessageController(ISender sender) : ControllerBase
 {
+    /// <summary>
+    /// Создает сообщения из файлов, один файл = одно сообщение.
+    /// </summary>
+    /// <param name="request"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
     [HttpPost(Routes.Message.CreateMessagesFromFiles)]
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
@@ -26,6 +32,12 @@ public class MessageController(ISender sender) : ControllerBase
         return Created();
     }
 
+    /// <summary>
+    /// Получение списка сообщений
+    /// </summary>
+    /// <param name="scheduleId"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
     [HttpGet(Routes.Message.List)]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(List<MessageResponse>))]
     [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]

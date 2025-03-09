@@ -4,7 +4,7 @@ using TgPoster.Storage.Data;
 
 namespace TgPoster.Storage.Storages;
 
-internal class DeleteScheduleStorage(PosterContext context) : IDeleteScheduleStorage
+internal sealed  class DeleteScheduleStorage(PosterContext context) : IDeleteScheduleStorage
 {
     public async Task DeleteSchedule(Guid id)
     {

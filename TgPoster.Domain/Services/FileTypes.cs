@@ -1,6 +1,6 @@
 namespace TgPoster.Domain.Services;
 
-public enum ContentTypes
+public enum FileTypes
 {
     NoOne = 0,
     Photo = 1,
@@ -9,15 +9,15 @@ public enum ContentTypes
 
 public static class ContentTypesExtentions
 {
-    public static string GetMimeType(this ContentTypes types)
+    public static string GetMimeType(this FileTypes types)
     {
         switch (types)
         {
-            case ContentTypes.NoOne:
+            case FileTypes.NoOne:
                 break;
-            case ContentTypes.Photo:
+            case FileTypes.Photo:
                 return "image/jpeg";
-            case ContentTypes.Video:
+            case FileTypes.Video:
                 break;
             default:
                 throw new ArgumentOutOfRangeException(nameof(types), types, null);

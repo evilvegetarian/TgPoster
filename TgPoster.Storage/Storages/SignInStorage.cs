@@ -7,7 +7,7 @@ using TgPoster.Storage.Data.VO;
 
 namespace TgPoster.Storage.Storages;
 
-internal class SignInStorage(PosterContext context) : ISignInStorage
+internal sealed  class SignInStorage(PosterContext context) : ISignInStorage
 {
     public async Task<UserDto?> GetUserAsync(string login, CancellationToken token)
     {

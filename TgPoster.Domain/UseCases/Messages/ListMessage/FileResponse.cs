@@ -4,7 +4,7 @@ namespace TgPoster.Domain.UseCases.Messages.ListMessage;
 
 public class FileResponse
 {
-    public ContentTypes ContentType { get; set; }
+    public FileTypes FileType { get; set; }
     public Guid? FileCacheId { get; set; }
     public List<Guid> PreviewCacheIds { get; set; } = [];
 }

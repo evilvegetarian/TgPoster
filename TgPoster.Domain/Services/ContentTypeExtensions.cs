@@ -4,13 +4,19 @@ namespace TgPoster.Domain.Services;
 
 public static class ContentTypeExtensions
 {
-    //TODO: Это не ContentType нужно переделать на что то типа FileType
-    public static ContentTypes GetContentType(this IFormFile file)
+    public static FileTypes GetFileType(this IFormFile file)
     {
-        if (file.ContentType.StartsWith("image"))
-            return ContentTypes.Photo;
-        if (file.ContentType.StartsWith("video"))
-            return ContentTypes.Video;
-        return ContentTypes.NoOne;
+        return file.ContentType.GetFileType();
     }
+    
+    public static FileTypes GetFileType(this string contentType)
+    {
+        if (contentType.StartsWith("image"))
+            return FileTypes.Photo;
+        if (contentType.StartsWith("video"))
+            return FileTypes.Video;
+        return FileTypes.NoOne;
+    }
+    
+    
 }
