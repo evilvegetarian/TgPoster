@@ -36,11 +36,14 @@ internal sealed class ListMessageUseCase(
             {
                 Id = m.Id,
                 TextMessage = m.TextMessage,
-                Files = filesCacheInfos.Select(x => new FileResponse
+                ScheduleId = m.ScheduleId,
+                TimePosting = m.TimePosting,
+                Files = filesCacheInfos.Select(file => new FileResponse
                 {
-                    FileType = x.FileType,
-                    FileCacheId = x.FileCacheId,
-                    PreviewCacheIds = x.PreviewCacheIds
+                    Id = file.Id,
+                    FileType = file.FileType,
+                    FileCacheId = file.FileCacheId,
+                    PreviewCacheIds = file.PreviewCacheIds
                 }).ToList()
             });
         }

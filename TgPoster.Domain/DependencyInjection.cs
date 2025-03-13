@@ -19,6 +19,7 @@ public static class DependencyInjection
         services.AddScoped<VideoService>();
         services.AddScoped<FileService>();
         services.AddScoped<TimePostingService>();
+        services.AddScoped<TelegramTokenService>();
         return services;
     }
 }

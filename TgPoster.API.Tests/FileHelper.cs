@@ -5,11 +5,13 @@ namespace TgPoster.Endpoint.Tests.Endpoint;
 
 public class FileHelper
 {
-    public static List<IFormFile> GetIFormFilesFromDirectory()
-    {
-        var formFiles = new List<IFormFile>();
+    private static readonly string path = AppDomain.CurrentDomain.BaseDirectory + "TestFiles";
 
-        var filePaths = Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory + "TestFiles");
+    public static List<IFormFile> GetTestIFormFiles()
+    {
+        string[] filePaths = Directory.GetFiles(path);
+
+        var formFiles = new List<IFormFile>();
 
         foreach (var filePath in filePaths)
         {
@@ -29,5 +31,25 @@ public class FileHelper
         }
 
         return formFiles;
+    }
+
+    public static IFormFile GetTestIFormFile()
+    {
+        string[] filePaths = Directory.GetFiles(path);
+
+        Random rnd = new Random();
+        var s = rnd.Next(0, filePaths.Length);
+
+        var fileBytes = File.ReadAllBytes(filePaths[s]);
+        var stream = new MemoryStream(fileBytes);
+        var fileInfo = new FileInfo(filePaths[s]);
+
+        var provider = new FileExtensionContentTypeProvider();
+        provider.TryGetContentType(fileInfo.Name, out var contentType);
+        return new FormFile(stream, 0, stream.Length, "file", fileInfo.Name)
+        {
+            Headers = new HeaderDictionary(),
+            ContentType = contentType
+        };
     }
 }

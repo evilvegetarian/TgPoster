@@ -29,6 +29,7 @@ internal sealed class FileService(IMemoryCache memoryCache, FileExtensionContent
         {
             var cacheInfo = new FilesCacheInfo
             {
+                Id = fileDto.Id,
                 FileType = fileDto.ContentType.GetFileType()
             };
 
@@ -129,7 +130,8 @@ internal sealed class FileService(IMemoryCache memoryCache, FileExtensionContent
 
 public class FilesCacheInfo
 {
-    public FileTypes FileType { get; set; }
+    public required Guid Id { get; set; }
+    public required FileTypes FileType { get; set; }
     public Guid? FileCacheId { get; set; }
     public List<Guid> PreviewCacheIds { get; set; } = [];
 }

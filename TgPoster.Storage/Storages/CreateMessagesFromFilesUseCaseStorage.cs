@@ -61,7 +61,7 @@ internal sealed class CreateMessagesFromFilesUseCaseStorage(PosterContext contex
                     Id = guidFactory.New(),
                     MessageId = messageId,
                     TgFileId = file.FileId,
-                    ContentType = file.ContentType,
+                    ContentType = file.ContentType
                 }
                 : new VideoMessageFile
                 {

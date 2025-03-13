@@ -3,7 +3,9 @@ using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using TgPoster.API.Common;
 using TgPoster.API.Models;
+using TgPoster.Domain.UseCases.Messages.CreateMessage;
 using TgPoster.Domain.UseCases.Messages.CreateMessagesFromFiles;
+using TgPoster.Domain.UseCases.Messages.GetMessageById;
 using TgPoster.Domain.UseCases.Messages.ListMessage;
 
 namespace TgPoster.API.Controllers;
@@ -13,7 +15,7 @@ namespace TgPoster.API.Controllers;
 public class MessageController(ISender sender) : ControllerBase
 {
     /// <summary>
-    /// Создает сообщения из файлов, один файл = одно сообщение.
+    ///     Создает сообщения из файлов, один файл = одно сообщение.
     /// </summary>
     /// <param name="request"></param>
     /// <param name="cancellationToken"></param>
@@ -33,7 +35,7 @@ public class MessageController(ISender sender) : ControllerBase
     }
 
     /// <summary>
-    /// Получение списка сообщений
+    ///     Получение списка сообщений
     /// </summary>
     /// <param name="scheduleId"></param>
     /// <param name="cancellationToken"></param>
@@ -47,4 +49,39 @@ public class MessageController(ISender sender) : ControllerBase
         var response = await sender.Send(new ListMessageQuery(scheduleId), cancellationToken);
         return Ok(response);
     }
-}
+
+    /// <summary>
+    /// Получение сообщения по Id
+    /// </summary>
+    /// <param name="id"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    [HttpGet(Routes.Message.GetById)]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(MessageResponse))]
+    [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
+    public async Task<IActionResult> Get([Required] Guid id, CancellationToken cancellationToken)
+    {
+        var response = await sender.Send(new GetMessageQuery(id), cancellationToken);
+        return Ok(response);
+    }
+
+    /// <summary>
+    /// Создание сообщения 
+    /// </summary>
+    /// <param name="request"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    [HttpPost(Routes.Message.Create)]
+    [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(CreateMessageResponse))]
+    [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
+    [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
+    public async Task<IActionResult> Create(CreateMessageRequest request, CancellationToken cancellationToken)
+    {
+        var response = await sender.Send(
+            new CreateMessageCommand(request.ScheduleId, request.TimePosting, request.TextMessage, request.Files),
+            cancellationToken);
+        return Created(Routes.Message.Create, response);
+    }
+} 

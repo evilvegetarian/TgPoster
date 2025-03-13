@@ -19,7 +19,6 @@
 
     <ItemGroup>
         <Folder Include="UseCases\Accounts\"/>
-        <Folder Include="UseCases\Messages\CreateMessage\"/>
     </ItemGroup>
 
 </Project>

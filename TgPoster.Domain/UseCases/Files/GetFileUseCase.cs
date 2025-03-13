@@ -4,9 +4,9 @@ using TgPoster.Domain.Services;
 
 namespace TgPoster.Domain.UseCases.Files;
 
-internal sealed class GetFileUseCase(FileService fileService) : IRequestHandler<GetFileCommand, FileResponse>
+internal sealed class GetFileUseCase(FileService fileService) : IRequestHandler<GetFileCommand, GetFileResponse>
 {
-    public Task<FileResponse> Handle(GetFileCommand request, CancellationToken cancellationToken)
+    public Task<GetFileResponse> Handle(GetFileCommand request, CancellationToken cancellationToken)
     {
         var file = fileService.RetrieveFileFromCache(request.FileId);
         if (file is null)
@@ -14,7 +14,7 @@ internal sealed class GetFileUseCase(FileService fileService) : IRequestHandler<
             throw new FileNotFoundException();
         }
 
-        return Task.FromResult(new FileResponse(file.Data,
+        return Task.FromResult(new GetFileResponse(file.Data,
             file.ContentType,
             DateTime.UtcNow.ToString(CultureInfo.CurrentCulture)));
     }

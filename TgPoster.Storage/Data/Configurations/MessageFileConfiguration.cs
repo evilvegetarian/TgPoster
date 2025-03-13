@@ -14,7 +14,7 @@ internal class MessageFileConfiguration : BaseEntityConfig<MessageFile>
 
         builder.Property(x => x.ContentType)
             .HasMaxLength(100);
-        
+
         builder.HasIndex(x => x.MessageId);
 
         builder.Property(x => x.TgFileId)

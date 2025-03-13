@@ -1,5 +1,3 @@
-using TgPoster.Storage.Data.Enum;
-
 namespace TgPoster.Storage.Data.Entities;
 
 public class MessageFile : BaseEntity
@@ -18,7 +16,7 @@ public class MessageFile : BaseEntity
     ///     Подпись к фото
     /// </summary>
     public string? Caption { get; set; }
-    
+
     /// <summary>
     ///     Тип файла
     /// </summary>

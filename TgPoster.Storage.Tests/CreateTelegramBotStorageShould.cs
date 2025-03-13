@@ -24,6 +24,6 @@ public class CreateTelegramBotStorageShould(StorageTestFixture fixture) : IClass
 
         var bot = await context.TelegramBots.FindAsync(botId);
         botId.ShouldBe(bot!.Id);
-        botName.ShouldBe(bot!.Name);
+        botName.ShouldBe(bot.Name);
     }
 }

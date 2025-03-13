@@ -4,7 +4,7 @@ using TgPoster.Storage.Data.Entities;
 
 namespace TgPoster.Storage.Storages;
 
-internal sealed  class CreateScheduleStorage(PosterContext context, GuidFactory guidFactory) : ICreateScheduleStorage
+internal sealed class CreateScheduleStorage(PosterContext context, GuidFactory guidFactory) : ICreateScheduleStorage
 {
     public async Task<Guid> CreateSchedule(string name, Guid userId, Guid telegramBot, CancellationToken cancellationToken)
     {

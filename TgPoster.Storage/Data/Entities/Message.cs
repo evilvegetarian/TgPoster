@@ -40,3 +40,11 @@ public class Message : BaseEntity
     /// </summary>
     public ICollection<MessageFile> MessageFiles { get; set; } = [];
 }
+
+public static class MessageExtenstion
+{
+    public static bool IsTextMessage(this string? text)
+    {
+        return text?.Length >= 1024;
+    }
+}

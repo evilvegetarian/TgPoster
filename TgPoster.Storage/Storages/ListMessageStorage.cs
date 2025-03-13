@@ -27,11 +27,13 @@ internal sealed class ListMessageStorage(PosterContext context) : IListMessageSt
             .Include(message => message.MessageFiles)
             .ToListAsync(cancellationToken);
 
-        return messages.Select(x => new MessageDto
+        return messages.Select(message => new MessageDto
         {
-            Id = x.Id,
-            TextMessage = x.TextMessage,
-            Files = x.MessageFiles.Select(file => new FileDto
+            Id = message.Id,
+            TextMessage = message.TextMessage,
+            ScheduleId = message.ScheduleId,
+            TimePosting = message.TimePosting,
+            Files = message.MessageFiles.Select(file => new FileDto
             {
                 Id = file.Id,
                 ContentType = file.ContentType,

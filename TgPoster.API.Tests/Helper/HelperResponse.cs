@@ -29,9 +29,8 @@ public static class HttpContentHelper
     {
         if (data == null)
             throw new ArgumentNullException(nameof(data));
-
         var content = new MultipartFormDataContent();
-        var properties = typeof(T).GetProperties(BindingFlags.Public | BindingFlags.Instance);
+        var properties = data.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance);
 
         foreach (var property in properties)
         {
