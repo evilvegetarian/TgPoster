@@ -12,7 +12,7 @@ internal sealed class CreateMessagesFromFilesUseCase(
     ICreateMessagesFromFilesUseCaseStorage storage,
     IIdentityProvider identity,
     ICryptoAES cryptoAes,
-    IOptions<TelegramOptions> options,
+    TelegramOptions options,
     TelegramService telegramService,
     TimePostingService timePostingService
 ) : IRequestHandler<CreateMessagesFromFilesCommand>
@@ -24,7 +24,7 @@ internal sealed class CreateMessagesFromFilesUseCase(
         if (telegramBot == null)
             throw new TelegramNotFoundException();
 
-        var token = cryptoAes.Decrypt(options, telegramBot.ApiTelegram);
+        var token = cryptoAes.Decrypt(options.SecretKey, telegramBot.ApiTelegram);
         var bot = new TelegramBotClient(token);
         var files = await telegramService.GetFileMessageInTelegramByFile(
             bot,

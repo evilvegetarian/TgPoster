@@ -10,7 +10,7 @@ namespace TgPoster.Domain.UseCases.Messages.ListMessage;
 
 internal sealed class ListMessageUseCase(
     IListMessageStorage storage,
-    IOptions<TelegramOptions> options,
+    TelegramOptions options,
     ICryptoAES aes,
     FileService fileService
 ) : IRequestHandler<ListMessageQuery, List<MessageResponse>>
@@ -24,7 +24,7 @@ internal sealed class ListMessageUseCase(
         if (encryptedToken == null)
             throw new TelegramNotFoundException();
 
-        var token = aes.Decrypt(options, encryptedToken);
+        var token = aes.Decrypt(options.SecretKey, encryptedToken);
 
         var bot = new TelegramBotClient(token);
         var message = await storage.GetMessagesAsync(request.ScheduleId, cancellationToken);

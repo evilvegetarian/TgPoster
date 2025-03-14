@@ -4,6 +4,6 @@ namespace Security.Interfaces;
 
 public interface ICryptoAES
 {
-    string Encrypt(IOptions<BaseOptions> options, string plainText);
-    string Decrypt(IOptions<BaseOptions> options, string cipherText);
+    string Encrypt(string secretKey, string plainText);
+    string Decrypt(string secretKey, string cipherText);
 }

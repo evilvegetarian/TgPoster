@@ -9,10 +9,8 @@ using Security.Models;
 
 namespace Security;
 
-internal class JwtProvider(IOptions<JwtOptions> options) : IJwtProvider
+internal class JwtProvider(JwtOptions options) : IJwtProvider
 {
-    private readonly JwtOptions _options = options.Value;
-
     public string GenerateToken(TokenServiceBuildTokenPayload tokenPayload)
     {
         Claim[] claims =
@@ -21,10 +19,10 @@ internal class JwtProvider(IOptions<JwtOptions> options) : IJwtProvider
         ];
 
         var signingCredentials = new SigningCredentials(
-            new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_options.SecretKey)),
+            new SymmetricSecurityKey(Encoding.UTF8.GetBytes(options.SecretKey)),
             SecurityAlgorithms.HmacSha256);
 
-        var expireTime = DateTime.UtcNow.AddHours(_options.AccessExpiresHours);
+        var expireTime = DateTime.UtcNow.AddHours(options.AccessExpiresHours);
         var token = new JwtSecurityToken(
             claims: claims,
             expires: expireTime,
@@ -34,7 +32,7 @@ internal class JwtProvider(IOptions<JwtOptions> options) : IJwtProvider
     }
 
     public (Guid RefreshToken, DateTimeOffset RefreshExpireTime) GenerateRefreshToken() => (Guid.NewGuid(),
-        DateTime.UtcNow.AddHours(_options.RefreshTokenExpiresHours));
+        DateTime.UtcNow.AddHours(options.RefreshTokenExpiresHours));
 
     public void AddTokenToCookie(HttpContext httpContext, string accessToken)
     {
@@ -44,7 +42,7 @@ internal class JwtProvider(IOptions<JwtOptions> options) : IJwtProvider
             Secure = true,
             SameSite = SameSiteMode.Strict
         };
-        httpContext.Response.Cookies.Append(_options.NameCookie, accessToken, cookieOptions);
+        httpContext.Response.Cookies.Append(options.NameCookie, accessToken, cookieOptions);
     }
 
     public ClaimsPrincipal GetPrincipalFromExpiredToken(string token)
@@ -54,7 +52,7 @@ internal class JwtProvider(IOptions<JwtOptions> options) : IJwtProvider
             ValidateAudience = false,
             ValidateIssuer = false,
             ValidateIssuerSigningKey = true,
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_options.SecretKey)),
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(options.SecretKey)),
             ValidateLifetime = false
         };
 

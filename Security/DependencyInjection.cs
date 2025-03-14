@@ -12,7 +12,8 @@ public static class DependencyInjection
 {
     public static IServiceCollection AddAuth(this IServiceCollection services, IConfiguration configuration)
     {
-        var jwtOptions = configuration.GetSection(nameof(JwtOptions)).Get<JwtOptions>();
+        var jwtOptions = configuration.GetSection(nameof(JwtOptions)).Get<JwtOptions>()!;
+        services.AddSingleton(jwtOptions);
         services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme,
                 opt =>
@@ -23,7 +24,7 @@ public static class DependencyInjection
                         ValidateAudience = false,
                         ValidateLifetime = true,
                         ValidateIssuerSigningKey = true,
-                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions!.SecretKey))
+                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.SecretKey))
                     };
                     opt.Events = new JwtBearerEvents
                     {
@@ -40,7 +41,6 @@ public static class DependencyInjection
         services.AddScoped<IJwtProvider, JwtProvider>();
         services.AddScoped<IIdentityProvider, IdentityProvider>();
         services.AddScoped<ICryptoAES, CryptoAES>();
-        services.Configure<JwtOptions>(configuration.GetSection(nameof(JwtOptions)));
         return services;
     }
 }

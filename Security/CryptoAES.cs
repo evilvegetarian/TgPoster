@@ -15,9 +15,9 @@ public class CryptoAES : ICryptoAES
         aes.IV = new byte[16];
     }
 
-    public string Encrypt(IOptions<BaseOptions> options, string plainText)
+    public string Encrypt(string secretKey, string plainText)
     {
-        aes.Key = Encoding.UTF8.GetBytes(options.Value.SecretKey);
+        aes.Key = Encoding.UTF8.GetBytes(secretKey);
         byte[] encrypted;
         using (var memoryStream = new MemoryStream())
         {
@@ -35,9 +35,9 @@ public class CryptoAES : ICryptoAES
         return Convert.ToBase64String(encrypted);
     }
 
-    public string Decrypt(IOptions<BaseOptions> options, string cipherText)
+    public string Decrypt(string secretKey, string cipherText)
     {
-        aes.Key = Encoding.UTF8.GetBytes(options.Value.SecretKey);
+        aes.Key = Encoding.UTF8.GetBytes(secretKey);
         var cipherBytes = Convert.FromBase64String(cipherText);
         using var memoryStream = new MemoryStream(cipherBytes);
         using var cryptoStream = new CryptoStream(memoryStream, aes.CreateDecryptor(), CryptoStreamMode.Read);
@@ -46,9 +46,4 @@ public class CryptoAES : ICryptoAES
 
         return plaintext;
     }
-}
-
-public abstract class BaseOptions
-{
-    public abstract string SecretKey { get; set; }
 }

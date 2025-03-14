@@ -14,7 +14,9 @@ public static class DependencyInjection
             .AddMediatR(cfg => cfg
                 .RegisterServicesFromAssembly(Assembly.GetAssembly(typeof(DependencyInjection))!));
 
-        services.Configure<TelegramOptions>(configuration.GetSection(nameof(TelegramOptions)));
+        var telegramOptions = configuration.GetSection(nameof(TelegramOptions)).Get<TelegramOptions>()!;
+        services.AddSingleton(telegramOptions);
+
         services.AddScoped<TelegramService>();
         services.AddScoped<VideoService>();
         services.AddScoped<FileService>();

@@ -2,7 +2,7 @@ using Security;
 
 namespace TgPoster.Domain.ConfigModels;
 
-public class TelegramOptions : BaseOptions
+public class TelegramOptions
 {
-    public override required string SecretKey { get; set; }
+    public required string SecretKey { get; set; }
 }
