@@ -22,7 +22,7 @@ internal sealed class GetMessageUseCase(
         if (message == null)
             throw new MessageNotFoundException();
 
-        var token = await tokenService.GetDecryptToken(message.ScheduleId, cancellationToken);
+        var token = await tokenService.GetTokenByScheduleIdAsync(message.ScheduleId, cancellationToken);
 
         var bot = new TelegramBotClient(token);
 

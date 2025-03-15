@@ -15,7 +15,8 @@ public class CreateHelper(HttpClient client)
         var request = new CreateScheduleRequest
         {
             Name = "Test Schedule",
-            TelegramBotId = GlobalConst.TelegramBotId
+            TelegramBotId = GlobalConst.Worked.TelegramBotId,
+            Channel = GlobalConst.Worked.Channel
         };
         var response = await client.PostAsync<CreateScheduleResponse>(Routes.Schedule.Create, request);
         return response.Id;

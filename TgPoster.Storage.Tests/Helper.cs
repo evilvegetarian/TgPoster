@@ -31,14 +31,15 @@ public class Helper(PosterContext context)
             Id = Guid.NewGuid(),
             Name = faker.Company.CompanyName(),
             UserId = user.Id,
-            TelegramBotId = telegramBot.Id
+            TelegramBotId = telegramBot.Id,
+            ChannelId = faker.Random.Long(-100000000000000, -199999999999999)
         };
         await context.Schedules.AddAsync(schedule);
         await context.SaveChangesAsync();
         return schedule;
     }
 
-    public async Task<TelegramBot> CreateTelegramBotAsync(Guid? userId)
+    private async Task<TelegramBot> CreateTelegramBotAsync(Guid? userId)
     {
         var user = userId ?? (await CreateUserAsync()).Id;
         var telegramBot = new TelegramBot

@@ -36,10 +36,11 @@ public class ScheduleController(ISender sender) : ControllerBase
     [HttpPost(Routes.Schedule.Create)]
     [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(CreateScheduleResponse))]
     [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
+    [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
     [ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
     public async Task<IActionResult> Create([FromBody] CreateScheduleRequest request, CancellationToken cancellationToken)
     {
-        var response = await sender.Send(new CreateScheduleCommand(request.Name, request.TelegramBotId), cancellationToken);
+        var response = await sender.Send(new CreateScheduleCommand(request.Name, request.TelegramBotId,request.Channel), cancellationToken);
         return Created(Routes.Schedule.Create, response);
     }
 

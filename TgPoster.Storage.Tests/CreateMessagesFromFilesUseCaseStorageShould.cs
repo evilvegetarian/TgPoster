@@ -32,7 +32,8 @@ public class CreateMessagesFromFilesUseCaseStorageShould(StorageTestFixture fixt
             Id = Guid.Parse("94e4b510-ab21-48c1-9f57-4f77865cb59b"),
             Name = "schedule",
             UserId = user.Id,
-            TelegramBotId = telegramBot.Id
+            TelegramBotId = telegramBot.Id,
+            ChannelId = -102044234502040
         };
 
         await _context.TelegramBots.AddAsync(telegramBot);
@@ -65,6 +66,7 @@ public class CreateMessagesFromFilesUseCaseStorageShould(StorageTestFixture fixt
             Id = Guid.Parse("94e4b510-ab21-48c1-9f57-4f77865cb593"),
             Name = "schedule",
             UserId = user.Id,
+            ChannelId = -102044234502052,
             TelegramBotId = telegramBot.Id
         };
 
@@ -206,7 +208,7 @@ public class CreateMessagesFromFilesUseCaseStorageShould(StorageTestFixture fixt
 
         messages.Count.ShouldBe(2);
 
-        messages.SelectMany(x => x.MessageFiles.Select(x => x.TgFileId)).ShouldContain(file1.FileId);
-        messages.SelectMany(x => x.MessageFiles.Select(x => x.TgFileId)).ShouldContain(file2.FileId);
+        messages.SelectMany(x => x.MessageFiles.Select(file => file.TgFileId)).ShouldContain(file1.FileId);
+        messages.SelectMany(x => x.MessageFiles.Select(file => file.TgFileId)).ShouldContain(file2.FileId);
     }
 }

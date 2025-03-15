@@ -16,6 +16,10 @@ internal class ScheduleConfiguration : BaseEntityConfig<Schedule>
             .HasMaxLength(100)
             .IsRequired();
 
+        builder.Property(x => x.ChannelId)
+            .HasMaxLength(15)
+            .IsRequired();
+
         builder.HasOne(x => x.User)
             .WithMany(x => x.Schedules)
             .HasForeignKey(x => x.UserId);

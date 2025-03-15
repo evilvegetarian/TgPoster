@@ -15,12 +15,13 @@ public class ScheduleEndpointTest(EndpointTestFixture fixture) : IClassFixture<E
     private readonly CreateHelper create = new(fixture.CreateClient());
 
     [Fact]
-    public async Task Create_ShouldReturnOk_WithCreatedSchedule()
+    public async Task Create_WithValidData_ShouldReturnCreated()
     {
         var request = new CreateScheduleRequest
         {
             Name = "Test Schedule",
-            TelegramBotId = GlobalConst.TelegramBotId
+            TelegramBotId = GlobalConst.Worked.TelegramBotId,
+            Channel = GlobalConst.Worked.Channel
         };
 
         var createdSchedule = await client.PostAsync<CreateScheduleResponse>(Url, request);
@@ -32,20 +33,43 @@ public class ScheduleEndpointTest(EndpointTestFixture fixture) : IClassFixture<E
     }
 
     [Fact]
-    public async Task List_ShouldReturnOk_WithSchedules()
+    public async Task Create_WithInvalidTelegramBotId_ShouldReturnNotFound()
     {
-        for (var i = 0; i < 5; i++)
+        var request = new CreateScheduleRequest
         {
-            await create.CreateSchedule();
-        }
+            Name = "Test Schedule",
+            TelegramBotId = Guid.NewGuid(),
+            Channel = GlobalConst.Worked.Channel
+        };
 
+        var createdSchedule = await client.PostAsync(Url, request.ToStringContent());
+        createdSchedule.StatusCode.ShouldBe(HttpStatusCode.NotFound);
+    }
+
+    [Fact]
+    public async Task Create_WithNonExistChannel_ShouldReturnBadRequest()
+    {
+        var request = new CreateScheduleRequest
+        {
+            Name = "Test Schedule",
+            TelegramBotId = GlobalConst.Worked.TelegramBotId,
+            Channel = Guid.NewGuid().ToString()
+        };
+
+        var createdSchedule = await client.PostAsync(Url, request.ToStringContent());
+        createdSchedule.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+    }  
+
+    [Fact]
+    public async Task List_ShouldReturnList()
+    {
         var schedules = await client.GetAsync<List<ScheduleResponse>>(Url);
         schedules.ShouldNotBeNull();
         schedules.ShouldNotBeEmpty();
     }
 
     [Fact]
-    public async Task Get_ShouldReturnNotFound_ForNonExistentSchedule()
+    public async Task Get_WithNonExistingId_ShouldReturnNotFound()
     {
         var nonExistentId = Guid.NewGuid();
         var response = await client.GetAsync(Url + "/" + nonExistentId);
@@ -53,12 +77,13 @@ public class ScheduleEndpointTest(EndpointTestFixture fixture) : IClassFixture<E
     }
 
     [Fact]
-    public async Task Delete_ShouldReturnOk_WhenScheduleExists()
+    public async Task Delete_WithValidId_ShouldReturnOK()
     {
         var request = new CreateScheduleRequest
         {
             Name = "Schedule to Delete",
-            TelegramBotId = GlobalConst.TelegramBotId
+            TelegramBotId = GlobalConst.Worked.TelegramBotId,
+            Channel = GlobalConst.Worked.Channel
         };
         var createSchedule = await client.PostAsync<CreateScheduleResponse>(Url, request);
 
@@ -70,12 +95,10 @@ public class ScheduleEndpointTest(EndpointTestFixture fixture) : IClassFixture<E
     }
 
     [Fact]
-    public async Task Delete_ShouldReturnNotFound_WhenScheduleDoesNotExist()
+    public async Task Delete_WithNonExistingId_ShouldReturnNotFound()
     {
         var nonExistentId = Guid.NewGuid();
-
         var response = await client.DeleteAsync($"{Url}/{nonExistentId}");
-
         response.StatusCode.ShouldBe(HttpStatusCode.NotFound);
     }
 }

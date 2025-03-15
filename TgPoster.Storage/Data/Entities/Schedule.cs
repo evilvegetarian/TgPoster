@@ -18,7 +18,14 @@ public sealed class Schedule : BaseEntity
     public required Guid TelegramBotId { get; set; }
 
     /// <summary>
-    ///     телеграм бот.
+    /// Канал на который будет отправляться сообщения
+    /// </summary>
+    public required long ChannelId { get; set; }
+
+    #region Навигация
+
+    /// <summary>
+    ///     Телеграм бот.
     /// </summary>
     public TelegramBot TelegramBot { get; set; } = null!;
 
@@ -34,4 +41,6 @@ public sealed class Schedule : BaseEntity
     public ICollection<Day> Days { get; set; } = [];
 
     public ICollection<Message> Messages { get; set; } = [];
+
+    #endregion
 }

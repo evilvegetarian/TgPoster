@@ -12,7 +12,10 @@ public class TelegramTokenService(
     TelegramOptions options
 )
 {
-    public async Task<string> GetDecryptToken(Guid scheduleId, CancellationToken cancellationToken)
+    public async Task<string> GetTokenByScheduleIdAsync(
+        Guid scheduleId,
+        CancellationToken cancellationToken
+    )
     {
         var userId = identity.Current.UserId;
         var encryptedToken = await storage.GetApiToken(scheduleId, userId, cancellationToken);

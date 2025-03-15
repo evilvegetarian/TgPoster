@@ -8,7 +8,7 @@ public static class ContentTypeExtensions
     {
         return file.ContentType.GetFileType();
     }
-    
+
     public static FileTypes GetFileType(this string contentType)
     {
         if (contentType.StartsWith("image"))
@@ -17,6 +17,4 @@ public static class ContentTypeExtensions
             return FileTypes.Video;
         return FileTypes.NoOne;
     }
-    
-    
 }
