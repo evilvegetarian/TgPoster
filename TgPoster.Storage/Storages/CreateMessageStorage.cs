@@ -19,7 +19,7 @@ internal sealed class CreateMessageStorage(PosterContext context, GuidFactory gu
             .Select(x => new TelegramBotDto
             {
                 ApiTelegram = x.TelegramBot.ApiTelegram,
-                ChatId = x.TelegramBot.ChatId,
+                ChatId = x.TelegramBot.ChatId
             }).FirstOrDefaultAsync(ct);
 
     public async Task<Guid> CreateMessages(
@@ -39,14 +39,13 @@ internal sealed class CreateMessageStorage(PosterContext context, GuidFactory gu
             TimePosting = time,
             TextMessage = text,
             IsTextMessage = text.IsTextMessage()
-            
         };
         var messageFiles = files.Select(file => new MessageFile
         {
             Id = guidFactory.New(),
             ContentType = file.ContentType,
             MessageId = messageId,
-            TgFileId = file.FileId,
+            TgFileId = file.FileId
         });
         await context.Messages.AddAsync(message, ct);
         await context.MessageFiles.AddRangeAsync(messageFiles, ct);

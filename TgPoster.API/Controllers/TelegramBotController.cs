@@ -1,6 +1,5 @@
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Options;
 using TgPoster.API.Common;
 using TgPoster.API.Models;
 using TgPoster.Domain.UseCases.TelegramBots.CreateTelegramBot;

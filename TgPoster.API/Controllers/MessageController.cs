@@ -51,7 +51,7 @@ public class MessageController(ISender sender) : ControllerBase
     }
 
     /// <summary>
-    /// Получение сообщения по Id
+    ///     Получение сообщения по Id
     /// </summary>
     /// <param name="id"></param>
     /// <param name="cancellationToken"></param>
@@ -67,7 +67,7 @@ public class MessageController(ISender sender) : ControllerBase
     }
 
     /// <summary>
-    /// Создание сообщения 
+    ///     Создание сообщения
     /// </summary>
     /// <param name="request"></param>
     /// <param name="cancellationToken"></param>
@@ -84,4 +84,4 @@ public class MessageController(ISender sender) : ControllerBase
             cancellationToken);
         return Created(Routes.Message.Create, response);
     }
-} 
+}

@@ -1,5 +1,4 @@
 using MediatR;
-using Microsoft.Extensions.Options;
 using Security.Interfaces;
 using Telegram.Bot;
 using TgPoster.Domain.ConfigModels;

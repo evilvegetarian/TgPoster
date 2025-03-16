@@ -9,6 +9,6 @@ public interface ICreateScheduleStorage
         long channelId,
         CancellationToken cancellationToken
     );
-    
+
     Task<string?> GetApiToken(Guid telegramBotId, Guid userId, CancellationToken cancellationToken);
 }

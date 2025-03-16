@@ -18,7 +18,7 @@ public sealed class Schedule : BaseEntity
     public required Guid TelegramBotId { get; set; }
 
     /// <summary>
-    /// Канал на который будет отправляться сообщения
+    ///     Канал на который будет отправляться сообщения
     /// </summary>
     public required long ChannelId { get; set; }
 

@@ -1,4 +1,3 @@
-using Microsoft.Extensions.Options;
 using Security.Interfaces;
 using TgPoster.Domain.ConfigModels;
 using TgPoster.Domain.Exceptions;

@@ -33,7 +33,7 @@ public class SenderMessageStorage(PosterContext context) : ISenderMessageStorage
                         {
                             TgFileId = f.TgFileId,
                             Caption = f.Caption,
-                            ContentType = f.ContentType,
+                            ContentType = f.ContentType
                         }).ToList()
                     }).ToList()
             })
@@ -54,8 +54,8 @@ public class SenderMessageStorage(PosterContext context) : ISenderMessageStorage
 
     public async Task UpdateStatusMessage(Guid id)
     {
-       await context.Messages
-            .Where(m =>m.Id==id)
+        await context.Messages
+            .Where(m => m.Id == id)
             .ExecuteUpdateAsync(m => m.SetProperty(msg => msg.Status, MessageStatus.Send));
     }
 }

@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.StaticFiles;
 using Security;
-using TgPoster.API.Controllers;
 using TgPoster.API.Middlewares;
 using TgPoster.Domain;
 using TgPoster.Storage;

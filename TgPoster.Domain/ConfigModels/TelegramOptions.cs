@@ -1,5 +1,3 @@
-using Security;
-
 namespace TgPoster.Domain.ConfigModels;
 
 public class TelegramOptions

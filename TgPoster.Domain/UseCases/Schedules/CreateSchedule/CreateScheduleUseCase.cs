@@ -2,7 +2,6 @@ using MediatR;
 using Security.Interfaces;
 using Telegram.Bot;
 using Telegram.Bot.Types;
-using Telegram.Bot.Types.Enums;
 using TgPoster.Domain.ConfigModels;
 using TgPoster.Domain.Exceptions;
 
@@ -27,7 +26,7 @@ internal sealed class CreateScheduleUseCase(
         var bot = new TelegramBotClient(token);
         var userNameChat = request.Channel.ConvertToTelegramHandle();
         var channel = await bot.GetChat(userNameChat, cancellationToken);
-        var botMember = await bot.GetChatMember(userNameChat,bot.BotId, cancellationToken);
+        var botMember = await bot.GetChatMember(userNameChat, bot.BotId, cancellationToken);
         if (botMember is not ChatMemberAdministrator botAdminMember || !botAdminMember.CanPostMessages)
             throw new TelegramBotNotPermission();
 

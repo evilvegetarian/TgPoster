@@ -46,7 +46,7 @@ public class SenderMessageWorker(
             {
                 medias.Add(new InputMediaPhoto(file.TgFileId)
                 {
-                    Caption = file.Caption,
+                    Caption = file.Caption
                 });
             }
 
@@ -54,7 +54,7 @@ public class SenderMessageWorker(
             {
                 medias.Add(new InputMediaVideo(file.TgFileId)
                 {
-                    Caption = file.Caption,
+                    Caption = file.Caption
                 });
             }
         }

@@ -10,7 +10,7 @@ public sealed class TelegramBot : BaseEntity
     /// <summary>
     ///     Название телеграм бота.
     /// </summary>
-    public required string Name { get; set; } 
+    public required string Name { get; set; }
 
     /// <summary>
     ///     Чат с самим собой, нужен для сохранения файлов.

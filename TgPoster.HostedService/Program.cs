@@ -2,7 +2,6 @@ using Hangfire;
 using Hangfire.MemoryStorage;
 using Security;
 using Security.Interfaces;
-using TgPoster.Domain;
 using TgPoster.Domain.ConfigModels;
 using TgPoster.Domain.UseCases.BackGround.SenderMessageWorker;
 using TgPoster.Storage;

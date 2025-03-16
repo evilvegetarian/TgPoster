@@ -24,20 +24,20 @@ internal sealed class VideoService
                 throw new ArgumentException("Не удалось открыть видео файл");
 
             // Получаем ключевые параметры видео.
-            double fps = capture.Fps;
-            int frameCount = capture.FrameCount;
+            var fps = capture.Fps;
+            var frameCount = capture.FrameCount;
             if (frameCount <= 0)
                 throw new ArgumentException("Не удалось определить количество кадров");
 
             // Определяем длительность видео в секундах.
-            double duration = frameCount / fps;
+            var duration = frameCount / fps;
 
             // Для равномерного выбора кадров (без крайних), делим видео на screenshotCount+1 частей.
             // Вычисляем номера кадров для извлечения: для каждого скриншота определяем время, переводим в номер кадра.
-            for (int i = 1; i <= screenshotCount; i++)
+            for (var i = 1; i <= screenshotCount; i++)
             {
-                double snapshotTime = (duration * i) / (screenshotCount + 1); // в секундах
-                int targetFrame = (int)(snapshotTime * fps);
+                var snapshotTime = duration * i / (screenshotCount + 1); // в секундах
+                var targetFrame = (int)(snapshotTime * fps);
 
                 capture.Set(VideoCaptureProperties.PosFrames, targetFrame);
 
@@ -47,12 +47,12 @@ internal sealed class VideoService
 
                 if (outputWidth > 0)
                 {
-                    int newWidth = outputWidth;
-                    int newHeight = (int)(frame.Height * (outputWidth / (double)frame.Width));
+                    var newWidth = outputWidth;
+                    var newHeight = (int)(frame.Height * (outputWidth / (double)frame.Width));
                     Cv2.Resize(frame, frame, new Size(newWidth, newHeight));
                 }
 
-                Cv2.ImEncode(".jpg", frame, out byte[] imageBytes);
+                Cv2.ImEncode(".jpg", frame, out var imageBytes);
 
                 var screenshotStream = new MemoryStream(imageBytes);
                 screenshots.Add(screenshotStream);

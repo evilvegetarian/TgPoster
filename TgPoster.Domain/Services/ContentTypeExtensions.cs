@@ -4,10 +4,7 @@ namespace TgPoster.Domain.Services;
 
 public static class ContentTypeExtensions
 {
-    public static FileTypes GetFileType(this IFormFile file)
-    {
-        return file.ContentType.GetFileType();
-    }
+    public static FileTypes GetFileType(this IFormFile file) => file.ContentType.GetFileType();
 
     public static FileTypes GetFileType(this string contentType)
     {
