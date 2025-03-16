@@ -36,7 +36,7 @@ internal sealed class FileService(IMemoryCache memoryCache, FileExtensionContent
             var fileType = fileDto.ContentType.GetFileType();
             switch (fileType)
             {
-                case FileTypes.Photo:
+                case FileTypes.Image:
                 {
                     var cacheIdentifier = await DownloadAndCacheFileAsync(
                         botClient,

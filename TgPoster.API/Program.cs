@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.StaticFiles;
 using Security;
+using TgPoster.API.Controllers;
 using TgPoster.API.Middlewares;
 using TgPoster.Domain;
 using TgPoster.Storage;
@@ -14,7 +15,7 @@ builder.Services.AddSingleton<FileExtensionContentTypeProvider>();
 builder.Services
     .AddStorage(builder.Configuration)
     .AddDomain(builder.Configuration)
-    .AddAuth(builder.Configuration);
+    .AddSecurity(builder.Configuration);
 
 var app = builder.Build();
 

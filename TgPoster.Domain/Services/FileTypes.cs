@@ -3,7 +3,7 @@ namespace TgPoster.Domain.Services;
 public enum FileTypes
 {
     NoOne = 0,
-    Photo = 1,
+    Image = 1,
     Video = 2
 }
 
@@ -15,7 +15,7 @@ public static class ContentTypesExtentions
         {
             case FileTypes.NoOne:
                 break;
-            case FileTypes.Photo:
+            case FileTypes.Image:
                 return "image/jpeg";
             case FileTypes.Video:
                 break;

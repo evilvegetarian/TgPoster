@@ -21,6 +21,7 @@ internal sealed class CreateTelegramBotUseCase(
         var bot = new TelegramBotClient(request.ApiToken);
         var updates = await bot.GetUpdates(cancellationToken: cancellationToken);
         var chatId = updates
+                         .Where(x=>x.Message!=null)
                          .Select(u => u.Message?.Chat.Id)
                          .FirstOrDefault()
                      ?? throw new ChatIdNotFoundException();

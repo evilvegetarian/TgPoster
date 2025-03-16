@@ -35,7 +35,7 @@ internal class ScheduleSeeder(PosterContext context) : BaseSeeder
                 Name = "Schedule For Test",
                 UserId = GlobalConst.Worked.UserId,
                 TelegramBotId = GlobalConst.Worked.TelegramBotId,
-                ChannelId = GlobalConst.Worked.ChannelId,
+                ChannelId = GlobalConst.Worked.ChannelId
             }
         };
 

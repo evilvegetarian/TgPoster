@@ -1,9 +1,7 @@
 using System.Net;
-using Microsoft.AspNetCore.Mvc;
 using Shouldly;
 using TgPoster.API.Common;
 using TgPoster.API.Models;
-using TgPoster.Domain.Services;
 using TgPoster.Domain.UseCases.Messages.CreateMessage;
 using TgPoster.Domain.UseCases.Messages.ListMessage;
 using TgPoster.Endpoint.Tests.Helper;

@@ -37,7 +37,7 @@ public class FileHelper
     {
         string[] filePaths = Directory.GetFiles(path);
 
-        Random rnd = new Random();
+        var rnd = new Random();
         var s = rnd.Next(0, filePaths.Length);
 
         var fileBytes = File.ReadAllBytes(filePaths[s]);

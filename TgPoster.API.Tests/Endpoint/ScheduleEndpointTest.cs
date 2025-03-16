@@ -58,7 +58,7 @@ public class ScheduleEndpointTest(EndpointTestFixture fixture) : IClassFixture<E
 
         var createdSchedule = await client.PostAsync(Url, request.ToStringContent());
         createdSchedule.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
-    }  
+    }
 
     [Fact]
     public async Task List_ShouldReturnList()

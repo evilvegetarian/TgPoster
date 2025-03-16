@@ -60,7 +60,7 @@ internal sealed class TelegramService(VideoService videoService)
                     });
                     break;
 
-                case FileTypes.Photo:
+                case FileTypes.Image:
                     var message = await botClient.SendPhoto(
                         chat.Id,
                         inputFile,

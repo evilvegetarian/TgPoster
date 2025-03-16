@@ -1,5 +1,3 @@
-using Microsoft.Extensions.Options;
-
 namespace Security.Interfaces;
 
 public interface ICryptoAES
