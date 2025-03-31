@@ -10,7 +10,7 @@ public class SenderMessageStorage(PosterContext context) : ISenderMessageStorage
     public async Task<List<MessageDetail>> GetMessagesAsync()
     {
         var time = DateTimeOffset.UtcNow;
-        var plusMinute = time.AddMinutes(1);
+        var plusMinute = time.AddMinutes(5);
 
         var messages = await context.Schedules
             .Where(x => x.Messages.Any(m => m.TimePosting > time

@@ -5,7 +5,7 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <IsPackable>false</IsPackable>
-        <RootNamespace>TgPoster.Domain.Tests</RootNamespace>
+        <RootNamespace>TgPoster.API.Domain.Tests</RootNamespace>
     </PropertyGroup>
 
     <ItemGroup>
@@ -30,7 +30,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\TgPoster.API.Domain\TgPoster.API.Domain.csproj" />
+        <ProjectReference Include="..\TgPoster.API.Domain\TgPoster.API.Domain.csproj"/>
     </ItemGroup>
 
     <ItemGroup>

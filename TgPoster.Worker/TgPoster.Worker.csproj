@@ -19,6 +19,6 @@
     <ItemGroup>
         <ProjectReference Include="..\Security\Security.csproj"/>
         <ProjectReference Include="..\TgPoster.Storage\TgPoster.Storage.csproj"/>
-        <ProjectReference Include="..\TgPoster.Worker.Domain\TgPoster.Worker.Domain.csproj" />
+        <ProjectReference Include="..\TgPoster.Worker.Domain\TgPoster.Worker.Domain.csproj"/>
     </ItemGroup>
 </Project>

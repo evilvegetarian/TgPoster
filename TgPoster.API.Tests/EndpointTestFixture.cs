@@ -13,7 +13,7 @@ using TgPoster.Storage.Data;
 
 namespace TgPoster.Endpoint.Tests;
 
-public class EndpointTestFixture : WebApplicationFactory<API.Program>, IAsyncLifetime
+public class EndpointTestFixture : WebApplicationFactory<Program>, IAsyncLifetime
 {
     private readonly PostgreSqlContainer dbContainer = new PostgreSqlBuilder().Build();
     private Mock<IIdentityProvider> mockIdentityProvider;
