@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
-using TgPoster.Domain.UseCases.Schedules.GetSchedule;
-using TgPoster.Domain.UseCases.Schedules.ListSchedule;
+using TgPoster.API.Domain.UseCases.Schedules.GetSchedule;
+using TgPoster.API.Domain.UseCases.Schedules.ListSchedule;
 using TgPoster.Storage.Data;
 
 namespace TgPoster.Storage.Storages;

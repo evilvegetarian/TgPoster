@@ -19,7 +19,7 @@
         <PackageReference Include="Swashbuckle.AspNetCore.Filters" Version="8.0.2"/>
     </ItemGroup>
     <ItemGroup>
-        <ProjectReference Include="..\TgPoster.Domain\TgPoster.Domain.csproj"/>
+        <ProjectReference Include="..\TgPoster.API.Domain\TgPoster.API.Domain.csproj" />
         <ProjectReference Include="..\TgPoster.Storage\TgPoster.Storage.csproj"/>
     </ItemGroup>
 </Project>

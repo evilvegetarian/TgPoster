@@ -1,5 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-using TgPoster.Domain.UseCases.Accounts.SignOn;
+using TgPoster.API.Domain.UseCases.Accounts.SignOn;
 using TgPoster.Storage.Data;
 using TgPoster.Storage.Data.Entities;
 using TgPoster.Storage.Data.VO;

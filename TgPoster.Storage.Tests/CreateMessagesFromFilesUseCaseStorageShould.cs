@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Shouldly;
-using TgPoster.Domain.Services;
+using TgPoster.API.Domain.Services;
 using TgPoster.Storage.Data;
 using TgPoster.Storage.Data.Entities;
 using TgPoster.Storage.Data.Enum;

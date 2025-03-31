@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
-using TgPoster.Domain.UseCases.BackGround.SenderMessageWorker;
 using TgPoster.Storage.Data;
 using TgPoster.Storage.Data.Enum;
+using TgPoster.Worker.Domain.UseCases.SenderMessageWorker;
 
 namespace TgPoster.Storage.Storages;
 

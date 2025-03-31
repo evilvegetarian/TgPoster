@@ -1,8 +1,8 @@
 using System.Net;
 using Shouldly;
 using TgPoster.API.Common;
+using TgPoster.API.Domain.UseCases.Schedules.CreateSchedule;
 using TgPoster.API.Models;
-using TgPoster.Domain.UseCases.Schedules.CreateSchedule;
 
 namespace TgPoster.Endpoint.Tests.Helper;
 

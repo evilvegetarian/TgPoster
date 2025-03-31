@@ -1,5 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-using TgPoster.Domain.Services;
+using TgPoster.API.Domain.Services;
 using TgPoster.Storage.Data;
 
 namespace TgPoster.Storage.Storages;

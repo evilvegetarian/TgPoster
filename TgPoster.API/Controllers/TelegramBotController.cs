@@ -1,9 +1,9 @@
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using TgPoster.API.Common;
+using TgPoster.API.Domain.UseCases.TelegramBots.CreateTelegramBot;
+using TgPoster.API.Domain.UseCases.TelegramBots.ListTelegramBot;
 using TgPoster.API.Models;
-using TgPoster.Domain.UseCases.TelegramBots.CreateTelegramBot;
-using TgPoster.Domain.UseCases.TelegramBots.ListTelegramBot;
 
 namespace TgPoster.API.Controllers;
 

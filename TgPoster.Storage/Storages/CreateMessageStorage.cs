@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
-using TgPoster.Domain.Services;
-using TgPoster.Domain.UseCases.Messages.CreateMessage;
-using TgPoster.Domain.UseCases.Messages.CreateMessagesFromFiles;
+using TgPoster.API.Domain.Services;
+using TgPoster.API.Domain.UseCases.Messages.CreateMessage;
+using TgPoster.API.Domain.UseCases.Messages.CreateMessagesFromFiles;
 using TgPoster.Storage.Data;
 using TgPoster.Storage.Data.Entities;
 

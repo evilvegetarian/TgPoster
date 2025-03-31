@@ -1,7 +1,7 @@
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using TgPoster.API.Common;
-using TgPoster.Domain.UseCases.Files;
+using TgPoster.API.Domain.UseCases.Files;
 
 namespace TgPoster.API.Controllers;
 

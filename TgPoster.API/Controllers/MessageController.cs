@@ -2,11 +2,11 @@ using System.ComponentModel.DataAnnotations;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using TgPoster.API.Common;
+using TgPoster.API.Domain.UseCases.Messages.CreateMessage;
+using TgPoster.API.Domain.UseCases.Messages.CreateMessagesFromFiles;
+using TgPoster.API.Domain.UseCases.Messages.GetMessageById;
+using TgPoster.API.Domain.UseCases.Messages.ListMessage;
 using TgPoster.API.Models;
-using TgPoster.Domain.UseCases.Messages.CreateMessage;
-using TgPoster.Domain.UseCases.Messages.CreateMessagesFromFiles;
-using TgPoster.Domain.UseCases.Messages.GetMessageById;
-using TgPoster.Domain.UseCases.Messages.ListMessage;
 
 namespace TgPoster.API.Controllers;
 

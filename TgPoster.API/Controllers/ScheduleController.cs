@@ -1,11 +1,11 @@
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using TgPoster.API.Common;
+using TgPoster.API.Domain.UseCases.Schedules.CreateSchedule;
+using TgPoster.API.Domain.UseCases.Schedules.DeleteSchedule;
+using TgPoster.API.Domain.UseCases.Schedules.GetSchedule;
+using TgPoster.API.Domain.UseCases.Schedules.ListSchedule;
 using TgPoster.API.Models;
-using TgPoster.Domain.UseCases.Schedules.CreateSchedule;
-using TgPoster.Domain.UseCases.Schedules.DeleteSchedule;
-using TgPoster.Domain.UseCases.Schedules.GetSchedule;
-using TgPoster.Domain.UseCases.Schedules.ListSchedule;
 
 namespace TgPoster.API.Controllers;
 

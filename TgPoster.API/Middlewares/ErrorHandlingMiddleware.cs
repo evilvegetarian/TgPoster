@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Telegram.Bot.Exceptions;
-using TgPoster.Domain.Exceptions;
+using TgPoster.API.Domain.Exceptions;
 
 namespace TgPoster.API.Middlewares;
 

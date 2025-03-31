@@ -2,11 +2,11 @@ using System.ComponentModel.DataAnnotations;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using TgPoster.API.Common;
+using TgPoster.API.Domain.UseCases.Days.CreateDays;
+using TgPoster.API.Domain.UseCases.Days.GetDayOfWeek;
+using TgPoster.API.Domain.UseCases.Days.GetDays;
+using TgPoster.API.Domain.UseCases.Days.UpdateTimeDay;
 using TgPoster.API.Models;
-using TgPoster.Domain.UseCases.Days.CreateDays;
-using TgPoster.Domain.UseCases.Days.GetDayOfWeek;
-using TgPoster.Domain.UseCases.Days.GetDays;
-using TgPoster.Domain.UseCases.Days.UpdateTimeDay;
 
 namespace TgPoster.API.Controllers;
 

@@ -1,5 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-using TgPoster.Domain.UseCases.Schedules.CreateSchedule;
+using TgPoster.API.Domain.UseCases.Schedules.CreateSchedule;
 using TgPoster.Storage.Data;
 using TgPoster.Storage.Data.Entities;
 

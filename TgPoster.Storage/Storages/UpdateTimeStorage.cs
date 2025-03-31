@@ -1,5 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-using TgPoster.Domain.UseCases.Days.UpdateTimeDay;
+using TgPoster.API.Domain.UseCases.Days.UpdateTimeDay;
 using TgPoster.Storage.Data;
 
 namespace TgPoster.Storage.Storages;

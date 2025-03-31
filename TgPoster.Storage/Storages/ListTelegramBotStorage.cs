@@ -1,5 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-using TgPoster.Domain.UseCases.TelegramBots.ListTelegramBot;
+using TgPoster.API.Domain.UseCases.TelegramBots.ListTelegramBot;
 using TgPoster.Storage.Data;
 
 namespace TgPoster.Storage.Storages;

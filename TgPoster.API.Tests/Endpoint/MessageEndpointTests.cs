@@ -1,9 +1,9 @@
 using System.Net;
 using Shouldly;
 using TgPoster.API.Common;
+using TgPoster.API.Domain.UseCases.Messages.CreateMessage;
+using TgPoster.API.Domain.UseCases.Messages.ListMessage;
 using TgPoster.API.Models;
-using TgPoster.Domain.UseCases.Messages.CreateMessage;
-using TgPoster.Domain.UseCases.Messages.ListMessage;
 using TgPoster.Endpoint.Tests.Helper;
 
 namespace TgPoster.Endpoint.Tests.Endpoint;

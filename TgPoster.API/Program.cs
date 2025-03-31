@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.StaticFiles;
 using Security;
+using TgPoster.API.Domain;
 using TgPoster.API.Middlewares;
-using TgPoster.Domain;
 using TgPoster.Storage;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -27,4 +27,7 @@ app.MapControllers();
 
 app.Run();
 
-public partial class Program { }
+namespace TgPoster.API
+{
+    public partial class Program { }
+}

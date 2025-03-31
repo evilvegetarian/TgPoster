@@ -1,5 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-using TgPoster.Domain.UseCases.Schedules.DeleteSchedule;
+using TgPoster.API.Domain.UseCases.Schedules.DeleteSchedule;
 using TgPoster.Storage.Data;
 
 namespace TgPoster.Storage.Storages;

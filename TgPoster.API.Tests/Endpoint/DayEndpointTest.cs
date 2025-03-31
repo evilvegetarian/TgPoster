@@ -1,8 +1,8 @@
 using System.Net;
 using Shouldly;
 using TgPoster.API.Common;
+using TgPoster.API.Domain.UseCases.Days.GetDays;
 using TgPoster.API.Models;
-using TgPoster.Domain.UseCases.Days.GetDays;
 using TgPoster.Endpoint.Tests.Helper;
 
 namespace TgPoster.Endpoint.Tests.Endpoint;

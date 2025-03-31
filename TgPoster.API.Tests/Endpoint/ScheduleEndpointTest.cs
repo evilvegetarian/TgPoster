@@ -1,9 +1,9 @@
 using System.Net;
 using Shouldly;
 using TgPoster.API.Common;
+using TgPoster.API.Domain.UseCases.Schedules.CreateSchedule;
+using TgPoster.API.Domain.UseCases.Schedules.ListSchedule;
 using TgPoster.API.Models;
-using TgPoster.Domain.UseCases.Schedules.CreateSchedule;
-using TgPoster.Domain.UseCases.Schedules.ListSchedule;
 using TgPoster.Endpoint.Tests.Helper;
 
 namespace TgPoster.Endpoint.Tests.Endpoint;

@@ -1,6 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TgPoster.Domain", "TgPoster.Domain\TgPoster.Domain.csproj", "{E935461C-ABEA-4ABD-964A-14989512247A}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TgPoster.API.Domain", "TgPoster.API.Domain\TgPoster.API.Domain.csproj", "{E935461C-ABEA-4ABD-964A-14989512247A}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TgPoster.Storage", "TgPoster.Storage\TgPoster.Storage.csproj", "{0DDA73A7-1932-4AFE-A175-21E4C04C28E7}"
 EndProject
@@ -8,7 +8,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{C08103D3
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TgPoster.E2E", "TgPoster.E2E\TgPoster.E2E.csproj", "{A545D866-70C5-47B0-A45A-295ED4B60D79}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TgPoster.Domain.Tests", "TgPoster.Domain.Tests\TgPoster.Domain.Tests.csproj", "{AF0E0C93-9DB7-4FE0-A978-151D85EDA5C2}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TgPoster.API.Domain.Tests", "TgPoster.API.Domain.Tests\TgPoster.API.Domain.Tests.csproj", "{AF0E0C93-9DB7-4FE0-A978-151D85EDA5C2}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TgPoster.Storage.Tests", "TgPoster.Storage.Tests\TgPoster.Storage.Tests.csproj", "{2171F941-1354-4D55-A6D0-E649830CD2D0}"
 EndProject
@@ -20,7 +20,11 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Security", "Security\Securi
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TgPoster.API.Tests", "TgPoster.API.Tests\TgPoster.API.Tests.csproj", "{278AAD4A-6541-4D10-A2A6-2E1F7DE5E9CE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TgPoster.HostedService", "TgPoster.HostedService\TgPoster.HostedService.csproj", "{07D007C7-753B-4045-A6BC-730E0A2B1F19}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TgPoster.Worker", "TgPoster.Worker\TgPoster.Worker.csproj", "{07D007C7-753B-4045-A6BC-730E0A2B1F19}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TgPoster.Worker.Domain", "TgPoster.Worker.Domain\TgPoster.Worker.Domain.csproj", "{03F79A8D-14DA-4358-9676-630698BBA5E0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shared", "Shared\Shared.csproj", "{F3C1ED31-C537-4BD9-80B3-0E932A14B3A7}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -64,6 +68,14 @@ Global
 		{07D007C7-753B-4045-A6BC-730E0A2B1F19}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{07D007C7-753B-4045-A6BC-730E0A2B1F19}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{07D007C7-753B-4045-A6BC-730E0A2B1F19}.Release|Any CPU.Build.0 = Release|Any CPU
+		{03F79A8D-14DA-4358-9676-630698BBA5E0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{03F79A8D-14DA-4358-9676-630698BBA5E0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{03F79A8D-14DA-4358-9676-630698BBA5E0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{03F79A8D-14DA-4358-9676-630698BBA5E0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F3C1ED31-C537-4BD9-80B3-0E932A14B3A7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F3C1ED31-C537-4BD9-80B3-0E932A14B3A7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F3C1ED31-C537-4BD9-80B3-0E932A14B3A7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F3C1ED31-C537-4BD9-80B3-0E932A14B3A7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{A545D866-70C5-47B0-A45A-295ED4B60D79} = {C08103D3-FE72-44CE-B6F4-D8583B4A725C}
@@ -71,5 +83,6 @@ Global
 		{2171F941-1354-4D55-A6D0-E649830CD2D0} = {C08103D3-FE72-44CE-B6F4-D8583B4A725C}
 		{8F275DF3-9F2F-41B3-B48B-83B498D3E443} = {0675C506-2113-48C0-BE9D-7245F6627261}
 		{278AAD4A-6541-4D10-A2A6-2E1F7DE5E9CE} = {C08103D3-FE72-44CE-B6F4-D8583B4A725C}
+		{F3C1ED31-C537-4BD9-80B3-0E932A14B3A7} = {0675C506-2113-48C0-BE9D-7245F6627261}
 	EndGlobalSection
 EndGlobal
