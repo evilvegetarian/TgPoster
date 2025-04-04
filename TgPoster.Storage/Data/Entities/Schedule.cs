@@ -41,6 +41,7 @@ public sealed class Schedule : BaseEntity
     public ICollection<Day> Days { get; set; } = [];
 
     public ICollection<Message> Messages { get; set; } = [];
+    public ICollection<ChannelParsingParameters> Parameters { get; set; } = [];
 
     #endregion
 }

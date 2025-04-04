@@ -27,6 +27,7 @@ public class DayController(ISender sender) : ControllerBase
     }
 
     /// <summary>
+    /// Создание дней недели
     /// </summary>
     /// <param name="request"></param>
     /// <param name="cancellationToken"></param>
