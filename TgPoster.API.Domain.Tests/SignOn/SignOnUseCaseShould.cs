@@ -4,7 +4,7 @@ using Security.Interfaces;
 using Shouldly;
 using TgPoster.API.Domain.UseCases.Accounts.SignOn;
 
-namespace TgPoster.Domain.Tests.SignOn;
+namespace TgPoster.API.Domain.Tests.SignOn;
 
 public class SignOnUseCaseShould
 {

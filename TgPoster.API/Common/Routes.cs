@@ -55,4 +55,10 @@ public static class Routes
         public const string Root = Base + "/file";
         public const string GetById = Root + "/{id:guid}";
     }
+
+    public static class Parse
+    {
+        public const string Root = Base + "/parse";
+        public const string ParseChannel = Root + "/";
+    }
 }

@@ -8,7 +8,7 @@ using TgPoster.API.Domain.Exceptions;
 using TgPoster.API.Domain.Models;
 using TgPoster.API.Domain.UseCases.Accounts.SignIn;
 
-namespace TgPoster.Domain.Tests.SignIn;
+namespace TgPoster.API.Domain.Tests.SignIn;
 
 public class SignInUseCaseShould
 {
