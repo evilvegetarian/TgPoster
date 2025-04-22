@@ -10,7 +10,6 @@ public class ParseEndpointTest(EndpointTestFixture fixture) : IClassFixture<Endp
 {
     private const string Url = Routes.Parse.Root;
     private readonly HttpClient client = fixture.CreateClient();
-    private readonly CreateHelper create = new(fixture.CreateClient());
 
     [Fact]
     public async Task Create_WithInValidChannel_ShouldBadRequest()
@@ -82,6 +81,7 @@ public class ParseEndpointTest(EndpointTestFixture fixture) : IClassFixture<Endp
         };
 
         var createdSchedule = await client.PostAsync(Url, request.ToStringContent());
+ var ss=        await createdSchedule.Content.ReadAsStringAsync();
         createdSchedule.StatusCode.ShouldBe(HttpStatusCode.Created);
     }
 
@@ -100,7 +100,7 @@ public class ParseEndpointTest(EndpointTestFixture fixture) : IClassFixture<Endp
     }
 
     [Fact]
-    public async Task Create_WithNotExistSchedule_ShouldReturnBadRequest()
+    public async Task Create_WithNotExistSchedule_ShouldReturnNotFound()
     {
         var request = new ParseChannelRequest
         {

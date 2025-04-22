@@ -8,12 +8,14 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <ProjectReference Include="..\Contracts\Contracts.csproj" />
         <ProjectReference Include="..\Security\Security.csproj"/>
         <ProjectReference Include="..\Shared\Shared.csproj"/>
     </ItemGroup>
 
     <ItemGroup>
         <PackageReference Include="Hangfire.Core" Version="1.8.18"/>
+        <PackageReference Include="MassTransit.SqlTransport.PostgreSQL" Version="8.3.7" />
         <PackageReference Include="MediatR" Version="12.4.1"/>
         <PackageReference Include="OpenCvSharp4" Version="4.10.0.20241108"/>
         <PackageReference Include="OpenCvSharp4.runtime.win" Version="4.10.0.20241108"/>

@@ -5,13 +5,14 @@
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
         <UserSecretsId>dotnet-TgPoster.HostedService-e3a3b0a4-b042-450d-b2b4-e1f98d72e484</UserSecretsId>
-        <RootNamespace>TgPoster.HostedService</RootNamespace>
     </PropertyGroup>
 
     <ItemGroup>
         <PackageReference Include="Hangfire" Version="1.8.18"/>
         <PackageReference Include="Hangfire.AspNetCore" Version="1.8.18"/>
         <PackageReference Include="Hangfire.MemoryStorage" Version="1.8.1.1"/>
+        <PackageReference Include="MassTransit" Version="8.3.7" />
+        <PackageReference Include="MassTransit.SqlTransport.PostgreSQL" Version="8.3.7" />
         <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.0"/>
         <PackageReference Include="Telegram.Bot" Version="22.3.0"/>
     </ItemGroup>

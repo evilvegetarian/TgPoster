@@ -4,5 +4,7 @@ public enum ParsingStatus
 {
     Register = 0,
     InHandle = 1,
-    Error = 10
+    Canceled = 2,
+    Completed = 3,
+    Error = 100
 }

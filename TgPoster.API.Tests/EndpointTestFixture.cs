@@ -15,7 +15,12 @@ namespace TgPoster.Endpoint.Tests;
 
 public class EndpointTestFixture : WebApplicationFactory<Program>, IAsyncLifetime
 {
-    private readonly PostgreSqlContainer dbContainer = new PostgreSqlBuilder().Build();
+    private readonly PostgreSqlContainer dbContainer = new PostgreSqlBuilder()
+        .WithUsername("postgres")
+        .WithPassword("postgres")
+        .WithDatabase("testdb")
+        .Build();
+
     private Mock<IIdentityProvider> mockIdentityProvider;
 
     public async Task InitializeAsync()
@@ -25,7 +30,9 @@ public class EndpointTestFixture : WebApplicationFactory<Program>, IAsyncLifetim
             .UseNpgsql(dbContainer.GetConnectionString()).Options);
         await context.Database.MigrateAsync();
         await InsertSeed(context);
-        await Mocked(context);
+        mockIdentityProvider = new Mock<IIdentityProvider>();
+        mockIdentityProvider.Setup(ip => ip.Current)
+            .Returns(new Identity(GlobalConst.Worked.UserId));
     }
 
     public new async Task DisposeAsync()
@@ -36,23 +43,18 @@ public class EndpointTestFixture : WebApplicationFactory<Program>, IAsyncLifetim
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         var configuration = new ConfigurationBuilder()
-            .AddInMemoryCollection(new[]
+            .AddInMemoryCollection(new Dictionary<string, string?>
             {
-                new KeyValuePair<string, string>("DataBase:ConnectionString",
-                    dbContainer.GetConnectionString())
-            }!)
+                ["DataBase:ConnectionString"] = dbContainer.GetConnectionString()
+            })
             .Build();
         builder.UseConfiguration(configuration);
         builder.ConfigureLogging(cfg => cfg.ClearProviders());
-        builder.ConfigureServices(services => { services.AddSingleton(mockIdentityProvider.Object); });
+        builder.ConfigureServices(services =>
+        {
+            services.AddSingleton(mockIdentityProvider.Object);
+        });
         base.ConfigureWebHost(builder);
-    }
-
-    private async Task Mocked(PosterContext context)
-    {
-        mockIdentityProvider = new Mock<IIdentityProvider>();
-        mockIdentityProvider.Setup(ip => ip.Current)
-            .Returns(new Identity(GlobalConst.Worked.UserId));
     }
 
     private async Task InsertSeed(PosterContext context)
@@ -61,7 +63,7 @@ public class EndpointTestFixture : WebApplicationFactory<Program>, IAsyncLifetim
             .SetBasePath(AppContext.BaseDirectory)
             .AddJsonFile("appsettingsTest.json", false, true)
             .Build();
-        var apiValue = configuration["Api"];
+        var apiValue = configuration["Api"]!;
 
         var seeders = new BaseSeeder[]
         {

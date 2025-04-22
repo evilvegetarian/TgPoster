@@ -1,3 +1,5 @@
+using Contracts;
+using MassTransit;
 using Microsoft.AspNetCore.StaticFiles;
 using Security;
 using TgPoster.API.Domain;
@@ -16,6 +18,13 @@ builder.Services
     .AddDomain(builder.Configuration)
     .AddSecurity(builder.Configuration);
 
+var dataBase = builder.Configuration.GetSection(nameof(DataBase)).Get<DataBase>()!;
+
+builder.Services.AddMassTransit(x =>
+{
+    x.UsingPostgres();
+    x.ConfigureMassTransient(dataBase.ConnectionString);
+});
 var app = builder.Build();
 
 app.UseMiddleware<ErrorHandlingMiddleware>();
@@ -27,4 +36,11 @@ app.MapControllers();
 
 app.Run();
 
-public partial class Program { }
+public partial class Program
+{
+}
+
+internal class DataBase
+{
+    public required string ConnectionString { get; init; }
+}
