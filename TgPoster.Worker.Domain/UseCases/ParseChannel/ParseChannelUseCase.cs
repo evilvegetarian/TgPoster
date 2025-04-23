@@ -3,7 +3,7 @@ using WTelegram;
 
 namespace TgPoster.Worker.Domain.UseCases.ParseChannel;
 
-public class ParseChannelUseCase(IParseChannelUseCaseStorage storage)
+public class ParseChannelUseCase(IParseChannelUseCaseStorage storage, TelegramSettings settings)
 {
     public async Task Handle(Guid id, CancellationToken cancellationToken = default)
     {
@@ -89,10 +89,13 @@ public class ParseChannelUseCase(IParseChannelUseCaseStorage storage)
             }
         }
 
-        static string? Settings(string key)
+        string? Settings(string key)
         {
             return key switch
             {
+                nameof(settings.api_id) => settings.api_id,
+                nameof(settings.api_hash) => settings.api_hash,
+                nameof(settings.phone_number) => settings.phone_number,
                 _ => null
             };
         }

@@ -9,6 +9,9 @@ var builder = Host.CreateApplicationBuilder(args);
 var telegramOptions = builder.Configuration.GetSection(nameof(TelegramOptions)).Get<TelegramOptions>()!;
 builder.Services.AddSingleton(telegramOptions);
 
+builder.Configuration.AddJsonFile("settingsTelegram.json", optional: true, reloadOnChange: true);
+
+
 builder.Services.AddScoped<ICryptoAES, CryptoAES>();
 builder.Services
     .AddDomain(builder.Configuration)

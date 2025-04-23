@@ -5,6 +5,7 @@ using MassTransit;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using TgPoster.Worker.Domain.UseCases.ParseChannel;
 using TgPoster.Worker.Domain.UseCases.ParseChannelConsumer;
 using TgPoster.Worker.Domain.UseCases.ParseChannelWorker;
 using TgPoster.Worker.Domain.UseCases.SenderMessageWorker;
@@ -15,8 +16,11 @@ public static class DependencyInjection
 {
     public static IServiceCollection AddDomain(this IServiceCollection services, IConfiguration configuration)
     {
+        var telegramOptions = configuration.GetSection(nameof(TelegramSettings)).Get<TelegramSettings>()!;
+        services.AddSingleton(telegramOptions);
+
         services.AddMassTransient(configuration);
-        
+
         services.AddHangfire(configuration =>
         {
             configuration.SetDataCompatibilityLevel(CompatibilityLevel.Version_170)
@@ -27,7 +31,7 @@ public static class DependencyInjection
         services.AddHangfireServer();
         services.AddScoped<SenderMessageWorker>();
         services.AddScoped<ParseChannelWorker>();
-        
+
         return services;
     }
 
@@ -63,10 +67,4 @@ public static class DependencyInjection
             Cron.Daily());
         return host;
     }
-    
-}
-
-internal class DataBase
-{
-    public required string ConnectionString { get; init; }
 }
