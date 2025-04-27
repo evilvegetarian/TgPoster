@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using TgPoster.Storage.Data.Entities;
 
@@ -11,6 +12,9 @@ internal class MessageConfiguration : BaseEntityConfig<Message>
 
         builder.Property(x => x.TextMessage)
             .HasMaxLength(4096);
+
+        builder.Property(x => x.IsVerified)
+            .HasDefaultValue(true);
 
         builder.HasIndex(x => x.ScheduleId);
 
