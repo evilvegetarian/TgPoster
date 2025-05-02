@@ -5,6 +5,7 @@ using MassTransit;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using TgPoster.Worker.Domain.ConfigModels;
 using TgPoster.Worker.Domain.UseCases.ParseChannel;
 using TgPoster.Worker.Domain.UseCases.ParseChannelConsumer;
 using TgPoster.Worker.Domain.UseCases.ParseChannelWorker;
@@ -16,9 +17,12 @@ public static class DependencyInjection
 {
     public static IServiceCollection AddDomain(this IServiceCollection services, IConfiguration configuration)
     {
-        var telegramOptions = configuration.GetSection(nameof(TelegramSettings)).Get<TelegramSettings>()!;
+        var telegramSettings = configuration.GetSection(nameof(TelegramSettings)).Get<TelegramSettings>()!;
+        services.AddSingleton(telegramSettings);
+        
+        var telegramOptions = configuration.GetSection(nameof(TelegramOptions)).Get<TelegramOptions>()!;
         services.AddSingleton(telegramOptions);
-
+        
         services.AddMassTransient(configuration);
 
         services.AddHangfire(configuration =>
@@ -31,6 +35,8 @@ public static class DependencyInjection
         services.AddHangfireServer();
         services.AddScoped<SenderMessageWorker>();
         services.AddScoped<ParseChannelWorker>();
+        services.AddScoped<ParseChannelUseCase>();
+        services.AddScoped<VideoService>();
 
         return services;
     }
@@ -56,10 +62,13 @@ public static class DependencyInjection
     {
         using var scope = host.Services.CreateScope();
         var recurringJobManager = scope.ServiceProvider.GetRequiredService<IRecurringJobManager>();
-        recurringJobManager.AddOrUpdate<SenderMessageWorker>(
-            "process-sender-message-job",
-            worker => worker.ProcessMessagesAsync(),
-            Cron.Minutely());
+        
+        BackgroundJob.Enqueue<ExampleClasssWOrker>(worker => worker.ProcessMessagesAsync());
+        
+        //recurringJobManager.AddOrUpdate<SenderMessageWorker>(
+        //    "process-sender-message-job",
+        //    worker => worker.ProcessMessagesAsync(),
+        //    Cron.Minutely());
 
         recurringJobManager.AddOrUpdate<ParseChannelWorker>(
             "process-parse-channel-job",

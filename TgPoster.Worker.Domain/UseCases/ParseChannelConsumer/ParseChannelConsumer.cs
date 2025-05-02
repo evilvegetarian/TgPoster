@@ -5,7 +5,9 @@ using TgPoster.Worker.Domain.UseCases.ParseChannel;
 
 namespace TgPoster.Worker.Domain.UseCases.ParseChannelConsumer;
 
-public class ParseChannelConsumer(ILogger<ParseChannelWorker.ParseChannelWorker> logger, ParseChannelUseCase parseChannelUseCase)
+internal class ParseChannelConsumer(
+    ILogger<ParseChannelConsumer> logger,
+    ParseChannelUseCase parseChannelUseCase)
     : IConsumer<ParseChannelContract>
 {
     public async Task Consume(ConsumeContext<ParseChannelContract> context)

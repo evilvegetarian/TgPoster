@@ -184,12 +184,12 @@ public class CreateMessagesFromFilesUseCaseStorageShould(StorageTestFixture fixt
         var file1 = new MediaFileResult
         {
             FileId = "photo1",
-            ContentType = "image/jpeg"
+            MimeType = "image/jpeg"
         };
         var file2 = new MediaFileResult
         {
             FileId = "video1",
-            ContentType = "video/mp4",
+            MimeType = "video/mp4",
             PreviewPhotoIds = ["thumb1", "thumb2"]
         };
 

@@ -30,7 +30,7 @@ internal class ParseChannelStorage(PosterContext context, GuidFactory factory) :
             CheckNewPosts = alwaysCheckNewPosts,
             NeedVerifiedPosts = needVerifiedPosts,
             Channel = channel,
-            Status = ParsingStatus.Register
+            Status = ParsingStatus.New
         };
         await context.AddAsync(param, cancellationToken);
         await context.SaveChangesAsync(cancellationToken);

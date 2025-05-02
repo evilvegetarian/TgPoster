@@ -3,24 +3,34 @@ using TgPoster.Worker.Domain.UseCases.ParseChannel;
 
 namespace TgPoster.Worker.Domain.UseCases.ParseChannelWorker;
 
-public class ParseChannelWorker(
+internal class ParseChannelWorker(
     IParseChannelWorkerStorage storage,
     ParseChannelUseCase parseChannelUseCase,
-    Logger<ParseChannelWorker> logger)
+    ILogger<ParseChannelWorker> logger)
 {
     public async Task ProcessMessagesAsync()
     {
-        var parametrs = await storage.GetParameters();
-        foreach (var pr in parametrs)
+        var ids = await storage.GetParameters();
+        if (ids.Count == 0)
         {
-            await parseChannelUseCase.Handle(pr, CancellationToken.None);
-            logger.LogInformation($"Partis: {pr}");
+            logger.LogInformation("Нет каналов которые нужно парсить");
+            return;
+        }
+
+        await storage.SetInHandleStatus(ids);
+        
+        foreach (var id in ids)
+        {
+            try
+            {
+                await parseChannelUseCase.Handle(id, CancellationToken.None);
+                await storage.SetWaitingStatus(id);
+            }
+            catch (Exception e)
+            {
+                logger.LogError("Во время парсинга произошла ошибка. Id настроек парсинга-{Id}. Ошибка - {error}", id,
+                    e.Message);
+            }
         }
     }
-}
-
-public interface IParseChannelWorkerStorage
-{
-    //TODO: Нужно статус обновлять
-    public Task<List<Guid>> GetParameters();
 }

@@ -17,6 +17,7 @@ public class PosterContext(DbContextOptions<PosterContext> options) : DbContext(
     public DbSet<VideoMessageFile> VideoMessageFiles { get; set; }
 
     public DbSet<PhotoMessageFile> PhotoMessageFiles { get; set; }
+    public DbSet<ChannelParsingParameters> ChannelParsingParameters { get; set; }
 
     public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = new())
     {

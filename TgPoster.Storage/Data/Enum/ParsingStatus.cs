@@ -2,9 +2,10 @@ namespace TgPoster.Storage.Data.Enum;
 
 public enum ParsingStatus
 {
-    Register = 0,
+    New = 0,
     InHandle = 1,
     Canceled = 2,
-    Completed = 3,
-    Error = 100
+    Waiting = 3,
+    Finished = 4,
+    Failed = 100
 }

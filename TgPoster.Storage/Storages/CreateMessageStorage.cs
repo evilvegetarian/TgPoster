@@ -43,7 +43,7 @@ internal sealed class CreateMessageStorage(PosterContext context, GuidFactory gu
         var messageFiles = files.Select(file => new MessageFile
         {
             Id = guidFactory.New(),
-            ContentType = file.ContentType,
+            ContentType = file.MimeType,
             MessageId = messageId,
             TgFileId = file.FileId
         });

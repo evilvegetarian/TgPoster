@@ -42,18 +42,18 @@ public class ChannelParsingParameters : BaseEntity
     /// <summary>
     /// Дата откуда парсить
     /// </summary>
-    public DateOnly? DateFrom { get; set; }
+    public DateTime? DateFrom { get; set; }
 
     /// <summary>
     /// До какой даты парсить
     /// </summary>
-    public DateOnly? DateTo { get; set; }
+    public DateTime? DateTo { get; set; }
 
     /// <summary>
-    /// Последний id поста, который парсили
+    /// Самый последний пост который парсили
     /// </summary>
-    public long? LastParseId { get; set; }
-    
+    public int? LastParseId { get; set; }
+
     /// <summary>
     /// Статус парсинга
     /// </summary>

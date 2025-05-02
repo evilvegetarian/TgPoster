@@ -55,7 +55,7 @@ internal sealed class TelegramService(VideoService videoService)
 
                     media.Add(new MediaFileResult
                     {
-                        ContentType = file.ContentType,
+                        MimeType = file.ContentType,
                         FileId = fileVideoId!,
                         PreviewPhotoIds = previewPhotoIds.ToList()
                     });
@@ -73,7 +73,7 @@ internal sealed class TelegramService(VideoService videoService)
                         .FirstOrDefault();
                     media.Add(new MediaFileResult
                     {
-                        ContentType = file.ContentType,
+                        MimeType = file.ContentType,
                         FileId = photoId!
                     });
                     await botClient.DeleteMessage(chat.Id, message.MessageId, cancellationToken);
@@ -93,7 +93,7 @@ internal sealed class TelegramService(VideoService videoService)
 
 public class MediaFileResult
 {
-    public required string ContentType { get; set; }
+    public required string MimeType { get; set; }
     public required string FileId { get; set; }
     public List<string> PreviewPhotoIds { get; set; } = [];
 }
