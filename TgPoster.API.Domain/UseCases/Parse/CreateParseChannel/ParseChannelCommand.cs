@@ -10,5 +10,7 @@ public sealed record ParseChannelCommand(
     bool DeleteText,
     bool DeleteMedia,
     string[] AvoidWords,
-    bool NeedVerifiedPosts
+    bool NeedVerifiedPosts,
+    DateTime? DateFrom,
+    DateTime? DateTo
 ) : IRequest;

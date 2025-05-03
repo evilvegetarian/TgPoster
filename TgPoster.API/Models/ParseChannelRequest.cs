@@ -44,12 +44,12 @@ public class ParseChannelRequest : IValidatableObject
     /// <summary>
     /// Дата откуда парсить
     /// </summary>
-    public DateOnly? DateFrom { get; set; }
+    public DateTime? DateFrom { get; set; }
 
     /// <summary>
     /// До какой даты парсить
     /// </summary>
-    public DateOnly? DateTo { get; set; }
+    public DateTime? DateTo { get; set; }
 
     public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
     {
@@ -61,7 +61,7 @@ public class ParseChannelRequest : IValidatableObject
                 [nameof(DeleteText), nameof(DeleteMedia)]));
         }
 
-        var today = DateOnly.FromDateTime(DateTime.UtcNow.Date);
+        var today = DateTime.UtcNow.Date;
 
         if (DateFrom.HasValue && DateFrom.Value > today)
         {

@@ -14,6 +14,8 @@ public static class ParsingMapping
             request.DeleteText,
             request.DeleteMedia,
             request.AvoidWords,
-            request.NeedVerifiedPosts);
+            request.NeedVerifiedPosts,
+            request.DateFrom,
+            request.DateTo);
     }
 }

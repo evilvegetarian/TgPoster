@@ -1,21 +1,42 @@
 namespace TgPoster.API.Domain.Extensions;
 
-public static class TelegramChanelExtension
+public static class TelegramChannelExtension
 {
     public static string ConvertToTelegramHandle(this string name)
     {
-        var prefix = "https://t.me/";
+        name = name.Trim();
 
-        if (name.StartsWith(prefix))
+        if (string.IsNullOrWhiteSpace(name))
         {
-            return string.Concat("@", name.AsSpan(prefix.Length));
+            throw new ArgumentException("Channel cannot be empty");
+        }
+        
+        var prefixes = new List<string>
+        {
+            "https://t.me/",
+            "https://t.me"
+        };
+        
+        if (name.StartsWith('@'))
+        {
+            return name;
+        }
+        
+        foreach (var prefix in prefixes)
+        {
+            if (name.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+            {
+                var channel = name.Substring(prefix.Length).TrimStart('/').Trim();
+
+                if (string.IsNullOrWhiteSpace(channel))
+                {
+                    throw new ArgumentException("Channel cannot be empty");
+                }
+
+                return channel.StartsWith('@') ? channel : '@' + channel;
+            }
         }
 
-        if (!name.StartsWith('@'))
-        {
-            return string.Concat("@", name.AsSpan(prefix.Length));
-        }
-
-        return name;
+        return '@' + name;
     }
 }

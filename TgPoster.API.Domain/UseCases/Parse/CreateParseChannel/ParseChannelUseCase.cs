@@ -27,8 +27,9 @@ internal class ParseChannelUseCase(
         var channel = request.Channel.ConvertToTelegramHandle();
         var chat = await bot.GetChat(channel, cancellationToken: cancellationToken);
 
-        var id = await storage.AddParseChannelParameters(channel, request.AlwaysCheckNewPosts, request.ScheduleId,
-            request.DeleteText, request.DeleteMedia, request.AvoidWords, request.NeedVerifiedPosts, cancellationToken);
+        var id = await storage.AddParseChannelParameters(chat.Username, request.AlwaysCheckNewPosts, request.ScheduleId,
+            request.DeleteText, request.DeleteMedia, request.AvoidWords, request.NeedVerifiedPosts, request.DateFrom,
+            request.DateTo, cancellationToken);
         await bus.Publish(new ParseChannelContract { Id = id }, cancellationToken);
     }
 }

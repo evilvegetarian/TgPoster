@@ -24,7 +24,7 @@ internal class ParseChannelUseCaseStorage(PosterContext context, GuidFactory gui
                 LastParsedId = ch.LastParseId,
                 ToDate = ch.DateTo,
                 IsNeedVerified = ch.NeedVerifiedPosts,
-                ScheduleId = ch.ScheduleId
+                ScheduleId = ch.ScheduleId,
             })
             .FirstOrDefaultAsync(cancellationToken);
     }
@@ -80,6 +80,16 @@ internal class ParseChannelUseCaseStorage(PosterContext context, GuidFactory gui
                     updater
                         .SetProperty(x => x.Status, ParsingStatus.Waiting)
                         .SetProperty(x => x.LastParseId, offsetId),
+                cancellationToken);
+    }
+
+    public Task UpdateInHandleStatus(Guid id, CancellationToken cancellationToken)
+    {
+        return context.ChannelParsingParameters
+            .Where(x => x.Id == id)
+            .ExecuteUpdateAsync(updater =>
+                    updater
+                        .SetProperty(x => x.Status, ParsingStatus.InHandle),
                 cancellationToken);
     }
 }

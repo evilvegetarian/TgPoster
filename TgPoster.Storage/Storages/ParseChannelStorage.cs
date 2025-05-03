@@ -16,6 +16,8 @@ internal class ParseChannelStorage(PosterContext context, GuidFactory factory) :
         bool deleteMedia,
         string[] avoidWords,
         bool needVerifiedPosts,
+        DateTime? dateFrom,
+        DateTime? dateTo,
         CancellationToken cancellationToken
     )
     {
@@ -30,7 +32,9 @@ internal class ParseChannelStorage(PosterContext context, GuidFactory factory) :
             CheckNewPosts = alwaysCheckNewPosts,
             NeedVerifiedPosts = needVerifiedPosts,
             Channel = channel,
-            Status = ParsingStatus.New
+            Status = ParsingStatus.New,
+            DateFrom = dateFrom,
+            DateTo = dateTo
         };
         await context.AddAsync(param, cancellationToken);
         await context.SaveChangesAsync(cancellationToken);
@@ -42,4 +46,5 @@ internal class ParseChannelStorage(PosterContext context, GuidFactory factory) :
         return context.Schedules.Where(x => x.Id == scheduleId)
             .Select(x => x.TelegramBot.ApiTelegram).FirstOrDefaultAsync(cancellationToken);
     }
+
 }

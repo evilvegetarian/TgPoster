@@ -10,6 +10,8 @@ public interface IParseChannelStorage
         bool deleteMedia,
         string[] avoidWords,
         bool needVerifiedPosts,
+        DateTime? dateFrom,
+        DateTime? dateTo,
         CancellationToken cancellationToken
     );
 
