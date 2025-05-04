@@ -19,11 +19,15 @@ internal sealed class CreateMessageUseCase(
     {
         var userId = identityProvider.Current.UserId;
         if (!await storage.ExistScheduleAsync(userId, request.ScheduleId, ct))
+        {
             throw new ScheduleNotFoundException();
+        }
 
         var telegramBot = await storage.GetTelegramBotAsync(request.ScheduleId, userId, ct);
         if (telegramBot == null)
+        {
             throw new TelegramNotFoundException();
+        }
 
         var token = cryptoAes.Decrypt(options.SecretKey, telegramBot.ApiTelegram);
         var bot = new TelegramBotClient(token);

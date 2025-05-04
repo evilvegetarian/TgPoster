@@ -8,8 +8,6 @@ namespace TgPoster.Endpoint.Tests.Helper;
 
 public class CreateHelper(HttpClient client)
 {
-    private readonly string testTgApi = "8168097685:AAEWcQ8t9H0ser5L-5L1l5Lhu2ym2PFp_Sg";
-
     public async Task<Guid> CreateSchedule()
     {
         var request = new CreateScheduleRequest

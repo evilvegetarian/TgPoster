@@ -11,8 +11,8 @@
         <PackageReference Include="Hangfire" Version="1.8.18"/>
         <PackageReference Include="Hangfire.AspNetCore" Version="1.8.18"/>
         <PackageReference Include="Hangfire.MemoryStorage" Version="1.8.1.1"/>
-        <PackageReference Include="MassTransit" Version="8.3.7" />
-        <PackageReference Include="MassTransit.SqlTransport.PostgreSQL" Version="8.3.7" />
+        <PackageReference Include="MassTransit" Version="8.3.7"/>
+        <PackageReference Include="MassTransit.SqlTransport.PostgreSQL" Version="8.3.7"/>
         <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.0"/>
         <PackageReference Include="Telegram.Bot" Version="22.3.0"/>
     </ItemGroup>

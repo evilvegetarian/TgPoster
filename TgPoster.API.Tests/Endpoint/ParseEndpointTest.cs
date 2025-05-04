@@ -33,7 +33,7 @@ public class ParseEndpointTest(EndpointTestFixture fixture) : IClassFixture<Endp
             Channel = "superChannel",
             AlwaysCheckNewPosts = false,
             ScheduleId = Guid.NewGuid(),
-            DateFrom = DateTime.Now.AddDays(5),
+            DateFrom = DateTime.Now.AddDays(5)
         };
 
         var createdSchedule = await client.PostAsync(Url, request.ToStringContent());
@@ -49,7 +49,7 @@ public class ParseEndpointTest(EndpointTestFixture fixture) : IClassFixture<Endp
             AlwaysCheckNewPosts = false,
             ScheduleId = Guid.NewGuid(),
             DeleteMedia = true,
-            DeleteText = true,
+            DeleteText = true
         };
 
         var createdSchedule = await client.PostAsync(Url, request.ToStringContent());
@@ -63,7 +63,7 @@ public class ParseEndpointTest(EndpointTestFixture fixture) : IClassFixture<Endp
         {
             Channel = "superChannel",
             AlwaysCheckNewPosts = false,
-            ScheduleId = Guid.Empty,
+            ScheduleId = Guid.Empty
         };
 
         var createdSchedule = await client.PostAsync(Url, request.ToStringContent());
@@ -77,11 +77,11 @@ public class ParseEndpointTest(EndpointTestFixture fixture) : IClassFixture<Endp
         {
             Channel = GlobalConst.Worked.Channel,
             AlwaysCheckNewPosts = false,
-            ScheduleId = GlobalConst.Worked.ScheduleId,
+            ScheduleId = GlobalConst.Worked.ScheduleId
         };
 
         var createdSchedule = await client.PostAsync(Url, request.ToStringContent());
- var ss=        await createdSchedule.Content.ReadAsStringAsync();
+        var ss = await createdSchedule.Content.ReadAsStringAsync();
         createdSchedule.StatusCode.ShouldBe(HttpStatusCode.Created);
     }
 
@@ -92,7 +92,7 @@ public class ParseEndpointTest(EndpointTestFixture fixture) : IClassFixture<Endp
         {
             Channel = "GlobalConst.Worked.Channel",
             AlwaysCheckNewPosts = false,
-            ScheduleId = GlobalConst.Worked.ScheduleId,
+            ScheduleId = GlobalConst.Worked.ScheduleId
         };
 
         var createdSchedule = await client.PostAsync(Url, request.ToStringContent());
@@ -106,7 +106,7 @@ public class ParseEndpointTest(EndpointTestFixture fixture) : IClassFixture<Endp
         {
             Channel = GlobalConst.Worked.Channel,
             AlwaysCheckNewPosts = false,
-            ScheduleId = Guid.Parse("78d09b44-2000-4579-89e7-def043aeab09"),
+            ScheduleId = Guid.Parse("78d09b44-2000-4579-89e7-def043aeab09")
         };
 
         var createdSchedule = await client.PostAsync(Url, request.ToStringContent());

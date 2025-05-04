@@ -54,7 +54,7 @@ public class SenderMessageStorage(PosterContext context) : ISenderMessageStorage
 
     public Task UpdateStatusMessageAsync(Guid id)
     {
-       return context.Messages
+        return context.Messages
             .Where(m => m.Id == id)
             .ExecuteUpdateAsync(m => m.SetProperty(msg => msg.Status, MessageStatus.Send));
     }

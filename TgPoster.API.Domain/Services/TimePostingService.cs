@@ -9,7 +9,10 @@ internal sealed class TimePostingService
     )
     {
         if (!scheduleTime.Any())
+        {
             throw new ArgumentNullException("Расписание не заполнено!");
+        }
+
         var currentDateValue = DateTimeOffset.UtcNow;
 
         var currentDayOfWeek = currentDateValue.DayOfWeek;
@@ -33,7 +36,9 @@ internal sealed class TimePostingService
                         dateTimes.Add(potentialNewDateTime);
                         index++;
                         if (index >= mediaCount)
+                        {
                             break;
+                        }
                     }
                 }
             }

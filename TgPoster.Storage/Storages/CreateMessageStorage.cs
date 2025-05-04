@@ -10,10 +10,13 @@ namespace TgPoster.Storage.Storages;
 internal sealed class CreateMessageStorage(PosterContext context, GuidFactory guidFactory) : ICreateMessageStorage
 {
     public Task<bool> ExistScheduleAsync(Guid userId, Guid scheduleId, CancellationToken ct)
-        => context.Schedules.AnyAsync(x => x.UserId == userId && x.Id == scheduleId, ct);
+    {
+        return context.Schedules.AnyAsync(x => x.UserId == userId && x.Id == scheduleId, ct);
+    }
 
     public Task<TelegramBotDto?> GetTelegramBotAsync(Guid scheduleId, Guid userId, CancellationToken ct)
-        => context.Schedules
+    {
+        return context.Schedules
             .Include(x => x.TelegramBot)
             .Where(x => x.UserId == userId && x.Id == scheduleId)
             .Select(x => new TelegramBotDto
@@ -21,6 +24,7 @@ internal sealed class CreateMessageStorage(PosterContext context, GuidFactory gu
                 ApiTelegram = x.TelegramBot.ApiTelegram,
                 ChatId = x.TelegramBot.ChatId
             }).FirstOrDefaultAsync(ct);
+    }
 
     public async Task<Guid> CreateMessagesAsync(
         Guid scheduleId,

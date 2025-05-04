@@ -20,10 +20,10 @@ public static class DependencyInjection
     {
         var telegramSettings = configuration.GetSection(nameof(TelegramSettings)).Get<TelegramSettings>()!;
         services.AddSingleton(telegramSettings);
-        
+
         var telegramOptions = configuration.GetSection(nameof(TelegramOptions)).Get<TelegramOptions>()!;
         services.AddSingleton(telegramOptions);
-        
+
         services.AddMassTransient(configuration);
 
         services.AddHangfire(configuration =>
@@ -63,9 +63,9 @@ public static class DependencyInjection
     {
         using var scope = host.Services.CreateScope();
         var recurringJobManager = scope.ServiceProvider.GetRequiredService<IRecurringJobManager>();
-        
+
         //BackgroundJob.Enqueue<ExampleClasssWOrker>(worker => worker.ProcessMessagesAsync());
-        
+
         //recurringJobManager.AddOrUpdate<SenderMessageWorker>(
         //    "process-sender-message-job",
         //    worker => worker.ProcessMessagesAsync(),

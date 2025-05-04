@@ -8,5 +8,4 @@ internal class ExampleClasssWOrker(ParseChannelUseCase useCase)
     {
         await useCase.Handle(Guid.Parse("019694f9-9b58-730b-8373-26c8d80b57d4"));
     }
-
 }

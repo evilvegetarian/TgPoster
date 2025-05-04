@@ -9,5 +9,7 @@ internal class UserNameConverter : ValueConverter<UserName, string>
         : base(
             name => name.Value,
             str => new UserName(str),
-            mappingHints) { }
+            mappingHints)
+    {
+    }
 }

@@ -5,7 +5,7 @@ namespace TgPoster.API.Models;
 public sealed class UpdateTimeRequest : IValidatableObject
 {
     public required Guid Id { get; set; }
-    public List<TimeOnly> Times { get; set; }
+    public List<TimeOnly> Times { get; set; } = [];
 
     public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
     {

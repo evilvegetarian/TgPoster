@@ -23,6 +23,8 @@ internal sealed class SignOnStorage(PosterContext context, GuidFactory guidFacto
         return user.Id;
     }
 
-    public Task<bool> HaveUserNameAsync(string userName, CancellationToken token) =>
-        context.Users.AnyAsync(x => x.UserName == new UserName(userName), token);
+    public Task<bool> HaveUserNameAsync(string userName, CancellationToken token)
+    {
+        return context.Users.AnyAsync(x => x.UserName == new UserName(userName), token);
+    }
 }

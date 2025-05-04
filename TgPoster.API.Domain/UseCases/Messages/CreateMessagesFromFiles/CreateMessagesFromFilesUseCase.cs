@@ -21,7 +21,9 @@ internal sealed class CreateMessagesFromFilesUseCase(
         var userId = identity.Current.UserId;
         var telegramBot = await storage.GetTelegramBotAsync(request.ScheduleId, userId, cancellationToken);
         if (telegramBot == null)
+        {
             throw new TelegramNotFoundException();
+        }
 
         var token = cryptoAes.Decrypt(options.SecretKey, telegramBot.ApiTelegram);
         var bot = new TelegramBotClient(token);

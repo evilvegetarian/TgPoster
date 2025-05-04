@@ -18,7 +18,7 @@ internal class ParseChannelWorker(
         }
 
         await storage.SetInHandleStatusAsync(ids);
-        
+
         foreach (var id in ids)
         {
             try

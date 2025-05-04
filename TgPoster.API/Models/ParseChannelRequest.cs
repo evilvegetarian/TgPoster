@@ -5,49 +5,49 @@ namespace TgPoster.API.Models;
 public class ParseChannelRequest : IValidatableObject
 {
     /// <summary>
-    /// Канал который парсят.
+    ///     Канал который парсят.
     /// </summary>
     public required string Channel { get; set; }
 
     /// <summary>
-    /// Раз в день будет проверять новые посты.
+    ///     Раз в день будет проверять новые посты.
     /// </summary>
     public required bool AlwaysCheckNewPosts { get; set; }
 
     /// <summary>
-    /// Расписание для которого парсят канал.
+    ///     Расписание для которого парсят канал.
     /// </summary>
     public required Guid ScheduleId { get; set; }
 
     /// <summary>
-    /// Нужно ли удалять текст, и оставлять только картинку.
+    ///     Нужно ли удалять текст, и оставлять только картинку.
     /// </summary>
     public bool DeleteText { get; set; }
 
     /// <summary>
-    /// Нужно ли удалять медиа, и оставлять только текст.
+    ///     Нужно ли удалять медиа, и оставлять только текст.
     /// </summary>
     public bool DeleteMedia { get; set; }
 
     /// <summary>
-    /// Избегать постов с данными словами, предложениями, словосочетаниями.
+    ///     Избегать постов с данными словами, предложениями, словосочетаниями.
     /// </summary>
     public string[] AvoidWords { get; set; } = [];
 
     /// <summary>
-    /// Нужно ли подтверждать пост перед тем как его запостить в вашем канале.
-    /// Если не нужно, он будет автоматически поставлен в свободные даты {ScheduleId}.
-    /// Если расписание пусто, то нужно будет дополнительно подтверждать все равно.
+    ///     Нужно ли подтверждать пост перед тем как его запостить в вашем канале.
+    ///     Если не нужно, он будет автоматически поставлен в свободные даты {ScheduleId}.
+    ///     Если расписание пусто, то нужно будет дополнительно подтверждать все равно.
     /// </summary>
     public bool NeedVerifiedPosts { get; set; }
 
     /// <summary>
-    /// Дата откуда парсить
+    ///     Дата откуда парсить
     /// </summary>
     public DateTime? DateFrom { get; set; }
 
     /// <summary>
-    /// До какой даты парсить
+    ///     До какой даты парсить
     /// </summary>
     public DateTime? DateTo { get; set; }
 

@@ -21,7 +21,7 @@ public class EndpointTestFixture : WebApplicationFactory<Program>, IAsyncLifetim
         .WithDatabase("testdb")
         .Build();
 
-    private Mock<IIdentityProvider> mockIdentityProvider;
+    private Mock<IIdentityProvider>? mockIdentityProvider;
 
     public async Task InitializeAsync()
     {
@@ -52,7 +52,7 @@ public class EndpointTestFixture : WebApplicationFactory<Program>, IAsyncLifetim
         builder.ConfigureLogging(cfg => cfg.ClearProviders());
         builder.ConfigureServices(services =>
         {
-            services.AddSingleton(mockIdentityProvider.Object);
+            services.AddSingleton(mockIdentityProvider!.Object);
         });
         base.ConfigureWebHost(builder);
     }
@@ -76,7 +76,9 @@ public class EndpointTestFixture : WebApplicationFactory<Program>, IAsyncLifetim
         };
 
         foreach (var seeder in seeders)
+        {
             await seeder.Seed();
+        }
 
         await context.SaveChangesAsync();
     }

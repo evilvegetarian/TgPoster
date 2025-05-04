@@ -8,13 +8,17 @@ namespace TgPoster.Storage.Storages;
 internal sealed class ListMessageStorage(PosterContext context) : IListMessageStorage
 {
     public Task<bool> ExistScheduleAsync(Guid scheduleId, CancellationToken cancellationToken)
-        => context.Schedules.AnyAsync(x => x.Id == scheduleId, cancellationToken);
+    {
+        return context.Schedules.AnyAsync(x => x.Id == scheduleId, cancellationToken);
+    }
 
     public Task<string?> GetApiTokenAsync(Guid scheduleId, CancellationToken cancellationToken)
-        => context.Schedules
+    {
+        return context.Schedules
             .Where(x => x.Id == scheduleId)
             .Select(x => x.TelegramBot.ApiTelegram)
             .FirstOrDefaultAsync(cancellationToken);
+    }
 
     public async Task<List<MessageDto>> GetMessagesAsync(Guid scheduleId, CancellationToken cancellationToken)
     {

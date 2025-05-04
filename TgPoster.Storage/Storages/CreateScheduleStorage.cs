@@ -29,8 +29,10 @@ internal sealed class CreateScheduleStorage(PosterContext context, GuidFactory g
     }
 
     public Task<string?> GetApiTokenAsync(Guid telegramBotId, Guid userId, CancellationToken ct)
-        => context.TelegramBots.Where(x => x.Id == telegramBotId)
+    {
+        return context.TelegramBots.Where(x => x.Id == telegramBotId)
             .Where(x => x.OwnerId == userId)
             .Select(x => x.ApiTelegram)
             .FirstOrDefaultAsync(ct);
+    }
 }

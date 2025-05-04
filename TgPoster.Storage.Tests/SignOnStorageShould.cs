@@ -46,10 +46,10 @@ public class SignOnStorageShould(StorageTestFixture fixture) : IClassFixture<Sto
 
     [Theory]
     [InlineData("NewUser", null)]
-    public async Task CreateUserAsync_WithInvalidInputs_ShouldThrowDbUpdateException(string username, string password)
+    public async Task CreateUserAsync_WithInvalidInputs_ShouldThrowDbUpdateException(string username, string? password)
     {
         await Should.ThrowAsync<DbUpdateException>(() =>
-            sut.CreateUserAsync(username, password, CancellationToken.None)
+            sut.CreateUserAsync(username, password!, CancellationToken.None)
         );
     }
 
@@ -58,10 +58,10 @@ public class SignOnStorageShould(StorageTestFixture fixture) : IClassFixture<Sto
     [InlineData("", "password")]
     [InlineData("n", "password")]
     [InlineData("   ", "password")]
-    public async Task CreateUserAsync_WithInvalidInputs_ShouldThrowArgumentException(string username, string password)
+    public async Task CreateUserAsync_WithInvalidInputs_ShouldThrowArgumentException(string? username, string password)
     {
         await Should.ThrowAsync<ArgumentException>(() =>
-            sut.CreateUserAsync(username, password, CancellationToken.None)
+            sut.CreateUserAsync(username!, password, CancellationToken.None)
         );
     }
 

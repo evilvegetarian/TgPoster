@@ -11,7 +11,8 @@ internal sealed class CreateMessagesFromFilesUseCaseStorage(PosterContext contex
     : ICreateMessagesFromFilesUseCaseStorage
 {
     public Task<TelegramBotDto?> GetTelegramBotAsync(Guid scheduleId, Guid userId, CancellationToken ct)
-        => context.Schedules
+    {
+        return context.Schedules
             .Include(x => x.TelegramBot)
             .Where(x => x.Id == scheduleId)
             .Where(x => x.TelegramBot.OwnerId == userId)
@@ -20,19 +21,24 @@ internal sealed class CreateMessagesFromFilesUseCaseStorage(PosterContext contex
                 ApiTelegram = x.TelegramBot.ApiTelegram,
                 ChatId = x.TelegramBot.ChatId
             }).FirstOrDefaultAsync(ct);
+    }
 
     public Task<List<DateTimeOffset>> GetExistMessageTimePostingAsync(Guid scheduleId, CancellationToken ct)
-        => context.Messages
+    {
+        return context.Messages
             .Where(x => x.ScheduleId == scheduleId)
             .Where(x => x.TimePosting > DateTimeOffset.UtcNow)
             .Where(x => x.Status == MessageStatus.Register)
             .Select(x => x.TimePosting)
             .ToListAsync(ct);
+    }
 
     public Task<Dictionary<DayOfWeek, List<TimeOnly>>> GetScheduleTimeAsync(Guid scheduleId, CancellationToken ct)
-        => context.Days
+    {
+        return context.Days
             .Where(x => x.ScheduleId == scheduleId)
             .ToDictionaryAsync(x => x.DayOfWeek, x => x.TimePostings.ToList(), ct);
+    }
 
     public async Task CreateMessagesAsync(
         Guid scheduleId,

@@ -24,7 +24,7 @@ public class FileHelper
             var formFile = new FormFile(stream, 0, stream.Length, "file", fileInfo.Name)
             {
                 Headers = new HeaderDictionary(),
-                ContentType = contentType
+                ContentType = contentType!
             };
 
             formFiles.Add(formFile);
@@ -49,7 +49,7 @@ public class FileHelper
         return new FormFile(stream, 0, stream.Length, "file", fileInfo.Name)
         {
             Headers = new HeaderDictionary(),
-            ContentType = contentType
+            ContentType = contentType!
         };
     }
 }

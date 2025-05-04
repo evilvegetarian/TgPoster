@@ -1,10 +1,10 @@
 using Security.Interfaces;
+using Shared;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using TgPoster.Worker.Domain.ConfigModels;
 using TL;
 using WTelegram;
-using Shared;
 using Document = TL.Document;
 using InputMediaPhoto = Telegram.Bot.Types.InputMediaPhoto;
 using Message = TL.Message;
@@ -13,9 +13,9 @@ namespace TgPoster.Worker.Domain.UseCases.ParseChannel;
 
 public class Parameters
 {
-    public string ChannelName { get; set; }
+    public required string ChannelName { get; set; }
     public bool IsNeedVerified { get; set; }
-    public string Token { get; set; }
+    public required string Token { get; set; }
     public long ChatId { get; set; }
     public bool DeleteText { get; set; }
     public bool DeleteMedia { get; set; }
@@ -31,7 +31,7 @@ internal class ParseChannelUseCase(
     IParseChannelUseCaseStorage storage,
     TelegramSettings settings,
     TelegramOptions telegramOptions,
-    ICryptoAES cryptoAES)
+    ICryptoAES cryptoAes)
 {
     public async Task Handle(Guid id, CancellationToken cancellationToken = default)
     {
@@ -45,7 +45,7 @@ internal class ParseChannelUseCase(
 
         var channelName = parametrs.ChannelName;
         var isNeedVerified = parametrs.IsNeedVerified;
-        var token = cryptoAES.Decrypt(telegramOptions.SecretKey, parametrs.Token);
+        var token = cryptoAes.Decrypt(telegramOptions.SecretKey, parametrs.Token);
         var chatId = parametrs.ChatId;
         var fromDate = parametrs.FromDate;
         var toDate = parametrs.ToDate;
@@ -64,11 +64,11 @@ internal class ParseChannelUseCase(
         List<Message> allMessages = [];
         var tempLastParseId = 0;
         const int limit = 100;
-        int offset = 0;
+        var offset = 0;
         while (true)
         {
             var history = await client.Messages_GetHistory(
-                new InputPeerChannel(channel.ID, channel.access_hash),
+                new InputPeerChannel(channel!.ID, channel.access_hash),
                 limit: limit,
                 offset_date: toDate ?? DateTime.Now,
                 offset_id: offset
@@ -88,11 +88,19 @@ internal class ParseChannelUseCase(
 
             offset = history.Messages.Last().ID;
             if (history.Messages.Length is 0)
+            {
                 break;
+            }
+
             if (history.Messages.Any(x => x.ID < lastParseId))
+            {
                 break;
+            }
+
             if (history.Messages.Any(x => x.Date < fromDate))
+            {
                 break;
+            }
         }
 
         var groupedMessages = new Dictionary<long, List<Message>>();
@@ -103,7 +111,9 @@ internal class ParseChannelUseCase(
             if (message.grouped_id != 0)
             {
                 if (!groupedMessages.ContainsKey(message.grouped_id))
+                {
                     groupedMessages[message.grouped_id] = [];
+                }
 
                 groupedMessages[message.grouped_id].Add(message);
             }
@@ -141,12 +151,12 @@ internal class ParseChannelUseCase(
                         var photoId = photoMessage.Photo?
                             .OrderByDescending(x => x.FileSize)
                             .Select(x => x.FileId)
-                            .FirstOrDefault();
+                            .FirstOrDefault()!;
                         await telegramBot.DeleteMessage(chatId, photoMessage.MessageId, cancellationToken);
                         messagedto.Media.Add(new MediaDto
                         {
                             FileId = photoId,
-                            MimeType = fileType,
+                            MimeType = fileType
                         });
                     }
                     else if (message.media is MessageMediaDocument { document: Document doc })
@@ -180,7 +190,8 @@ internal class ParseChannelUseCase(
                                     .Select(x => x.FileId)
                                     .FirstOrDefault())
                                 .Where(x => x != null)
-                                .Distinct();
+                                .Distinct()
+                                .ToList();
                             var fileVideoId = messages
                                 .Select(m => m.Video?.FileId).FirstOrDefault();
                             foreach (var mess in messages)
@@ -192,7 +203,7 @@ internal class ParseChannelUseCase(
                             {
                                 MimeType = doc.mime_type,
                                 FileId = fileVideoId!,
-                                PreviewPhotoIds = previewPhotoIds.ToList()
+                                PreviewPhotoIds = previewPhotoIds!
                             });
                         }
                     }
@@ -217,7 +228,7 @@ internal class ParseChannelUseCase(
         await storage.UpdateChannelParsingParametersAsync(id, tempLastParseId, cancellationToken);
     }
 
-    string? Settings(string key)
+    private string? Settings(string key)
     {
         return key switch
         {
@@ -239,7 +250,7 @@ public interface IParseChannelUseCaseStorage
 
 public class MessageDto
 {
-    public string Text { get; set; }
+    public string? Text { get; set; }
     public Guid ScheduleId { get; set; }
     public bool IsNeedVerified { get; set; }
     public List<MediaDto> Media { get; set; } = [];
@@ -251,4 +262,3 @@ public class MediaDto
     public required string FileId { get; set; }
     public List<string> PreviewPhotoIds { get; set; } = [];
 }
-

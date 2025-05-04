@@ -4,7 +4,8 @@ using TgPoster.Storage.Data.Entities;
 
 namespace TgPoster.Storage.Storages;
 
-internal sealed class CreateTelegramBotStorage(PosterContext context, GuidFactory guidFactory) : ICreateTelegramBotStorage
+internal sealed class CreateTelegramBotStorage(PosterContext context, GuidFactory guidFactory)
+    : ICreateTelegramBotStorage
 {
     public async Task<Guid> CreateTelegramBotAsync(
         string apiToken,

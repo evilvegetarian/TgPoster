@@ -57,7 +57,9 @@ public sealed class TimePostingServiceShould
         var pastTime = TimeOnly.FromDateTime(now.UtcDateTime).Add(-TimeSpan.FromMinutes(1));
         // Если уменьшение даёт отрицательный TimeSpan, используем 00:00.
         if (pastTime.Minute < 0 || pastTime.Hour < 0)
+        {
             pastTime = new TimeOnly(0, 0);
+        }
 
         // Для следующего дня выберем два времени.
         var postingTime1 = new TimeOnly(10, 0);

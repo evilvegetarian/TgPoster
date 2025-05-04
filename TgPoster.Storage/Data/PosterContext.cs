@@ -25,8 +25,8 @@ public class PosterContext(DbContextOptions<PosterContext> options) : DbContext(
             .Where(e => e.State is EntityState.Added or EntityState.Modified or EntityState.Deleted);
 
         foreach (var entityEntry in entries)
-        {
             //TODO: Когда сделаю определение пользователя добавить пользователя сюда
+        {
             if (entityEntry.State == EntityState.Added)
             {
                 entityEntry.Entity.Created = DateTime.UtcNow;

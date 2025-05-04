@@ -7,11 +7,13 @@ namespace TgPoster.Storage.Storages;
 internal sealed class ListTelegramBotStorage(PosterContext context) : IListTelegramBotStorage
 {
     public Task<List<TelegramBotResponse>> GetTelegramBotListAsync(Guid userId, CancellationToken cancellationToken)
-        => context.TelegramBots
+    {
+        return context.TelegramBots
             .Where(x => x.OwnerId == userId)
             .Select(x => new TelegramBotResponse
             {
                 Id = x.Id,
                 Name = x.Name
             }).ToListAsync(cancellationToken);
+    }
 }

@@ -1,13 +1,13 @@
 using OpenCvSharp;
 using Shared;
 using Shouldly;
-using TgPoster.API.Domain.Services;
 
 namespace TgPoster.API.Domain.Tests;
 
 public sealed class VideoServiceTestsShould
 {
-    private readonly string filePath = Directory.GetFiles(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "TestFiles"))
+    private readonly string filePath = Directory
+        .GetFiles(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "TestFiles"))
         .First(x => x.EndsWith(".mp4", StringComparison.OrdinalIgnoreCase));
 
     private readonly VideoService sut = new();
@@ -55,7 +55,7 @@ public sealed class VideoServiceTestsShould
     [Fact]
     public void ExtractScreenshots_NullStream_ThrowsArgumentNullException()
     {
-        var exception = Record.Exception(() => sut.ExtractScreenshots(null, 1));
+        var exception = Record.Exception(() => sut.ExtractScreenshots(null!, 1));
         exception.ShouldBeOfType<ArgumentNullException>();
     }
 

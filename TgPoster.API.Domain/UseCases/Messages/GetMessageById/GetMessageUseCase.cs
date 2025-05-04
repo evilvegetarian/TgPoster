@@ -20,7 +20,9 @@ internal sealed class GetMessageUseCase(
         var message = await storage.GetMessagesAsync(request.Id, userId, cancellationToken);
 
         if (message == null)
+        {
             throw new MessageNotFoundException();
+        }
 
         var token = await tokenService.GetTokenByScheduleIdAsync(message.ScheduleId, cancellationToken);
 

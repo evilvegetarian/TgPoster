@@ -11,5 +11,7 @@ internal class StringListJsonConverter : ValueConverter<ICollection<string>, str
             json => JsonSerializer.Deserialize<ICollection<string>>(json, (JsonSerializerOptions?)null)
                     ?? new List<string>(),
             mappingHints
-        ) { }
+        )
+    {
+    }
 }

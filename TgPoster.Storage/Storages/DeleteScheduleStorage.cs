@@ -14,5 +14,7 @@ internal sealed class DeleteScheduleStorage(PosterContext context) : IDeleteSche
     }
 
     public Task<bool> ScheduleExistAsync(Guid id, Guid userId)
-        => context.Schedules.AnyAsync(x => x.UserId == userId && x.Id == id);
+    {
+        return context.Schedules.AnyAsync(x => x.UserId == userId && x.Id == id);
+    }
 }

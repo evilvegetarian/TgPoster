@@ -17,11 +17,15 @@ internal sealed class ListMessageUseCase(
     public async Task<List<MessageResponse>> Handle(ListMessageQuery request, CancellationToken cancellationToken)
     {
         if (!await storage.ExistScheduleAsync(request.ScheduleId, cancellationToken))
+        {
             throw new ScheduleNotFoundException();
+        }
 
         var encryptedToken = await storage.GetApiTokenAsync(request.ScheduleId, cancellationToken);
         if (encryptedToken == null)
+        {
             throw new TelegramNotFoundException();
+        }
 
         var token = aes.Decrypt(options.SecretKey, encryptedToken);
 

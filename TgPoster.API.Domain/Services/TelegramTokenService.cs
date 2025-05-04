@@ -19,7 +19,9 @@ public class TelegramTokenService(
         var userId = identity.Current.UserId;
         var encryptedToken = await storage.GetApiTokenAsync(scheduleId, userId, cancellationToken);
         if (encryptedToken == null)
+        {
             throw new TelegramNotFoundException();
+        }
 
         var token = aes.Decrypt(options.SecretKey, encryptedToken);
         return token;

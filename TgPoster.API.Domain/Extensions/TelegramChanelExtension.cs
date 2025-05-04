@@ -10,18 +10,18 @@ public static class TelegramChannelExtension
         {
             throw new ArgumentException("Channel cannot be empty");
         }
-        
+
         var prefixes = new List<string>
         {
             "https://t.me/",
             "https://t.me"
         };
-        
+
         if (name.StartsWith('@'))
         {
             return name;
         }
-        
+
         foreach (var prefix in prefixes)
         {
             if (name.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))

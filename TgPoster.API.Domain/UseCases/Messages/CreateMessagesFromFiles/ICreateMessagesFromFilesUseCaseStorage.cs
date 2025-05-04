@@ -6,6 +6,16 @@ public interface ICreateMessagesFromFilesUseCaseStorage
 {
     Task<TelegramBotDto?> GetTelegramBotAsync(Guid scheduleId, Guid userId, CancellationToken ct);
     Task<List<DateTimeOffset>> GetExistMessageTimePostingAsync(Guid scheduleId, CancellationToken ct);
-    Task<Dictionary<DayOfWeek, List<TimeOnly>>> GetScheduleTimeAsync(Guid scheduleId, CancellationToken cancellationToken);
-    Task CreateMessagesAsync(Guid requestScheduleId, List<MediaFileResult> files, List<DateTimeOffset> postingTime, CancellationToken cancellationToken);
+
+    Task<Dictionary<DayOfWeek, List<TimeOnly>>> GetScheduleTimeAsync(
+        Guid scheduleId,
+        CancellationToken cancellationToken
+    );
+
+    Task CreateMessagesAsync(
+        Guid requestScheduleId,
+        List<MediaFileResult> files,
+        List<DateTimeOffset> postingTime,
+        CancellationToken cancellationToken
+    );
 }

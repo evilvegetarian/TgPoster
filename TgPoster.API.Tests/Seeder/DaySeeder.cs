@@ -9,7 +9,9 @@ internal class DaySeeder(PosterContext context) : BaseSeeder
     public override async Task Seed()
     {
         if (await context.Days.AnyAsync())
+        {
             return;
+        }
 
         var days = new List<Day>
         {

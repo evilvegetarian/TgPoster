@@ -9,7 +9,9 @@ internal class ScheduleSeeder(PosterContext context) : BaseSeeder
     public override async Task Seed()
     {
         if (await context.Schedules.AnyAsync())
+        {
             return;
+        }
 
         var schedules = new List<Schedule>
         {

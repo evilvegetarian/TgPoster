@@ -42,6 +42,8 @@ internal class ParseChannelStorage(PosterContext context, GuidFactory factory) :
     }
 
     public Task<string?> GetTelegramTokenAsync(Guid scheduleId, CancellationToken cancellationToken)
-        => context.Schedules.Where(x => x.Id == scheduleId)
+    {
+        return context.Schedules.Where(x => x.Id == scheduleId)
             .Select(x => x.TelegramBot.ApiTelegram).FirstOrDefaultAsync(cancellationToken);
+    }
 }

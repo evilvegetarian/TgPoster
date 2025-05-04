@@ -20,16 +20,18 @@ internal class ParseChannelUseCase(
     {
         var cryptoToken = await storage.GetTelegramTokenAsync(request.ScheduleId, cancellationToken);
         if (cryptoToken is null)
+        {
             throw new ScheduleNotFoundException();
+        }
 
         var token = cryptoAes.Decrypt(telegramOptions.SecretKey, cryptoToken);
         var bot = new TelegramBotClient(token);
         var channel = request.Channel.ConvertToTelegramHandle();
-        var chat = await bot.GetChat(channel, cancellationToken: cancellationToken);
+        var chat = await bot.GetChat(channel, cancellationToken);
 
-        var id = await storage.AddParseChannelParametersAsync(chat.Username, request.AlwaysCheckNewPosts, request.ScheduleId,
-            request.DeleteText, request.DeleteMedia, request.AvoidWords, request.NeedVerifiedPosts, request.DateFrom,
-            request.DateTo, cancellationToken);
+        var id = await storage.AddParseChannelParametersAsync(chat.Username!, request.AlwaysCheckNewPosts,
+            request.ScheduleId, request.DeleteText, request.DeleteMedia, request.AvoidWords, request.NeedVerifiedPosts,
+            request.DateFrom, request.DateTo, cancellationToken);
         await bus.Publish(new ParseChannelContract { Id = id }, cancellationToken);
     }
 }

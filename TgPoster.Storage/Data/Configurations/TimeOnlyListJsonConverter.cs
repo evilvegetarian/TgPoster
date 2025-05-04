@@ -11,5 +11,7 @@ internal class TimeOnlyListJsonConverter : ValueConverter<ICollection<TimeOnly>,
             json => JsonSerializer.Deserialize<ICollection<TimeOnly>>(json, (JsonSerializerOptions?)null)
                     ?? new List<TimeOnly>(),
             mappingHints
-        ) { }
+        )
+    {
+    }
 }

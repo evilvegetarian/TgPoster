@@ -10,7 +10,10 @@ internal class UserSeeder(PosterContext context) : BaseSeeder
     public override async Task Seed()
     {
         if (await context.Users.AnyAsync())
+        {
             return;
+        }
+
         var user = new User
         {
             Id = GlobalConst.UserId,

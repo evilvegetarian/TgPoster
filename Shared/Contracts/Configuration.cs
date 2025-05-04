@@ -6,8 +6,10 @@ namespace Shared.Contracts;
 
 public static class Configuration
 {
-    public static void ConfigureMassTransient(this IBusRegistrationConfigurator busRegistrationConfigurator,
-        string connectionString)
+    public static void ConfigureMassTransient(
+        this IBusRegistrationConfigurator busRegistrationConfigurator,
+        string connectionString
+    )
     {
         var connectionBuilder = new NpgsqlConnectionStringBuilder(connectionString);
 
@@ -23,5 +25,4 @@ public static class Configuration
             options.AdminPassword = connectionBuilder.Password;
         });
     }
-
 }

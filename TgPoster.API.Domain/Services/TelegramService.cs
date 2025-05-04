@@ -40,12 +40,13 @@ internal sealed class TelegramService(VideoService videoService)
                         disableNotification: true,
                         cancellationToken: cancellationToken);
                     var previewPhotoIds = messages
-                        .Select(m => m.Photo?
-                            .OrderByDescending(x => x.FileSize)
+                        .Where(m => m.Photo != null && m.Photo.Length != 0)
+                        .Select(m => m.Photo!.OrderByDescending(x => x.FileSize)
                             .Select(x => x.FileId)
                             .FirstOrDefault())
                         .Where(x => x != null)
-                        .Distinct();
+                        .Distinct()
+                        .ToList();
                     var fileVideoId = messages
                         .Select(m => m.Video?.FileId).FirstOrDefault();
                     foreach (var mess in messages)
@@ -57,7 +58,7 @@ internal sealed class TelegramService(VideoService videoService)
                     {
                         MimeType = file.ContentType,
                         FileId = fileVideoId!,
-                        PreviewPhotoIds = previewPhotoIds.ToList()
+                        PreviewPhotoIds = previewPhotoIds!
                     });
                     break;
 

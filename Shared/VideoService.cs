@@ -7,27 +7,36 @@ public sealed class VideoService
     public List<MemoryStream> ExtractScreenshots(MemoryStream videoStream, int screenshotCount, int outputWidth = 0)
     {
         if (videoStream == null)
+        {
             throw new ArgumentNullException(nameof(videoStream));
+        }
+
         if (screenshotCount < 1)
+        {
             throw new ArgumentException("Количество скриншотов должно быть не меньше 1", nameof(screenshotCount));
+        }
 
         var tempVideoPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid() + ".mp4");
         File.WriteAllBytes(tempVideoPath, videoStream.ToArray());
 
         var screenshots = new List<MemoryStream>();
 
-        VideoCapture capture = null;
+        VideoCapture? capture = null;
         try
         {
             capture = new VideoCapture(tempVideoPath);
             if (!capture.IsOpened())
+            {
                 throw new ArgumentException("Не удалось открыть видео файл");
+            }
 
             // Получаем ключевые параметры видео.
             var fps = capture.Fps;
             var frameCount = capture.FrameCount;
             if (frameCount <= 0)
+            {
                 throw new ArgumentException("Не удалось определить количество кадров");
+            }
 
             // Определяем длительность видео в секундах.
             var duration = frameCount / fps;
@@ -40,7 +49,9 @@ public sealed class VideoService
                 var targetFrame = (int)(snapshotTime * fps);
 
                 if (targetFrame >= frameCount)
-                    targetFrame = (int)frameCount - 1;
+                {
+                    targetFrame = frameCount - 1;
+                }
 
                 capture.Set(VideoCaptureProperties.PosFrames, targetFrame);
 
@@ -48,11 +59,15 @@ public sealed class VideoService
                 if (!capture.Read(frame) || frame.Empty())
                 {
                     // Можно попробовать ближайший предыдущий кадр
-                    bool frameFound = false;
-                    for (int offset = -1; offset >= -5; offset--) // проверить до 5 предыдущих кадров
+                    var frameFound = false;
+                    for (var offset = -1; offset >= -5; offset--) // проверить до 5 предыдущих кадров
                     {
-                        int tryFrame = targetFrame + offset;
-                        if (tryFrame < 0) break;
+                        var tryFrame = targetFrame + offset;
+                        if (tryFrame < 0)
+                        {
+                            break;
+                        }
+
                         capture.Set(VideoCaptureProperties.PosFrames, tryFrame);
                         if (capture.Read(frame) && !frame.Empty())
                         {
@@ -60,13 +75,14 @@ public sealed class VideoService
                             break;
                         }
                     }
+
                     if (!frameFound)
-                    {
                         // Логируем и продолжаем, вместо throw
+                    {
                         continue;
-                        // или если хотите бросить исключение:
-                        // throw new ArgumentException($"Не удалось считать кадр под номером {targetFrame}");
                     }
+                    // или если хотите бросить исключение:
+                    // throw new ArgumentException($"Не удалось считать кадр под номером {targetFrame}");
                 }
 
                 if (outputWidth > 0)
@@ -89,7 +105,9 @@ public sealed class VideoService
         {
             capture?.Release();
             if (File.Exists(tempVideoPath))
+            {
                 File.Delete(tempVideoPath);
+            }
         }
     }
 }

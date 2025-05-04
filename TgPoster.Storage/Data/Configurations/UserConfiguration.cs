@@ -10,7 +10,7 @@ internal class UserConfiguration : BaseEntityConfig<User>
         base.Configure(builder);
 
         builder.Property(e => e.Email)
-            .HasConversion(new EmailConverter())
+            .HasConversion(new EmailConverter()!)
             .HasMaxLength(30)
             .IsRequired(false);
 

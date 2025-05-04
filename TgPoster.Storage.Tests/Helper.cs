@@ -95,8 +95,8 @@ public class Helper(PosterContext context)
             LastParseId = 123,
             DateTo = DateTime.UtcNow.AddDays(1),
             NeedVerifiedPosts = true,
-            ScheduleId = schedule.Id,
-            Status = ParsingStatus.New,
+            ScheduleId = schedule!.Id,
+            Status = ParsingStatus.New
         };
 
         await context.ChannelParsingParameters.AddAsync(cpp);

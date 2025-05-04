@@ -24,7 +24,7 @@ internal class ParseChannelUseCaseStorage(PosterContext context, GuidFactory gui
                 LastParsedId = ch.LastParseId,
                 ToDate = ch.DateTo,
                 IsNeedVerified = ch.NeedVerifiedPosts,
-                ScheduleId = ch.ScheduleId,
+                ScheduleId = ch.ScheduleId
             })
             .FirstOrDefaultAsync(cancellationToken);
     }
