@@ -12,7 +12,7 @@ public class UpdateTimeStorageShould(StorageTestFixture fixture) : IClassFixture
     private readonly UpdateTimeStorage sut = new(fixture.GetDbContext());
 
     [Fact]
-    public async Task UpdateTimeDay_WithValid()
+    public async Task UpdateTimeDay_WithValidData_ShouldUpdateTime()
     {
         var day = await create.CreateDayAsync();
         var time = new List<TimeOnly>

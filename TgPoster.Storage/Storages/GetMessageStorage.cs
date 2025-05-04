@@ -8,7 +8,7 @@ namespace TgPoster.Storage.Storages;
 
 public class GetMessageStorage(PosterContext context) : IGetMessageStorage
 {
-    public async Task<MessageDto?> GetMessage(Guid id, Guid userId, CancellationToken cancellationToken)
+    public async Task<MessageDto?> GetMessagesAsync(Guid id, Guid userId, CancellationToken cancellationToken)
     {
         var message = await context.Messages
             .Include(x => x.MessageFiles)

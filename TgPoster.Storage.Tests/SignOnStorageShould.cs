@@ -13,7 +13,7 @@ public class SignOnStorageShould(StorageTestFixture fixture) : IClassFixture<Sto
     private readonly SignOnStorage sut = new(fixture.GetDbContext(), new GuidFactory());
 
     [Fact]
-    public async Task CreateUserAsync_ShouldAddUserAndReturnId()
+    public async Task CreateUserAsync_WithValidData_ShouldAddUserAndReturnId()
     {
         var username = "testuser";
         var password = "password123";
@@ -27,7 +27,7 @@ public class SignOnStorageShould(StorageTestFixture fixture) : IClassFixture<Sto
     }
 
     [Fact]
-    public async Task CreateUserAsync_WithDuplicateUsername_ShouldThrowInvalidOperationException()
+    public async Task CreateUserAsync_WithDuplicateUsername_ShouldThrowDbUpdateException()
     {
         var username = "duplicateUser";
         var password1 = "password1";
@@ -66,7 +66,7 @@ public class SignOnStorageShould(StorageTestFixture fixture) : IClassFixture<Sto
     }
 
     [Fact]
-    public async Task HaveUserNameAsync_ShouldReturnTrueIfUserExists()
+    public async Task HaveUserNameAsync_WithExistingUsername_ShouldReturnTrue()
     {
         var user = new User
         {
@@ -76,14 +76,14 @@ public class SignOnStorageShould(StorageTestFixture fixture) : IClassFixture<Sto
         };
         await _context.Users.AddAsync(user);
         await _context.SaveChangesAsync();
-        var haveUser = await sut.HaveUserNameAsync("Mickle");
+        var haveUser = await sut.HaveUserNameAsync("Mickle", CancellationToken.None);
         haveUser.ShouldBeTrue();
     }
 
     [Fact]
-    public async Task HaveUserNameAsync_ShouldReturnFalseIfUserNotExists()
+    public async Task HaveUserNameAsync_WithNonExistingUsername_ShouldReturnFalse()
     {
-        var haveUser = await sut.HaveUserNameAsync("FIlimon");
+        var haveUser = await sut.HaveUserNameAsync("FIlimon", CancellationToken.None);
         haveUser.ShouldBeFalse();
     }
 }

@@ -11,7 +11,7 @@ internal sealed class CreateTelegramBotStorage(PosterContext context, GuidFactor
         long chatId,
         Guid ownerId,
         string name,
-        CancellationToken cancellationToken
+        CancellationToken ct
     )
     {
         var bot = new TelegramBot
@@ -22,8 +22,8 @@ internal sealed class CreateTelegramBotStorage(PosterContext context, GuidFactor
             OwnerId = ownerId,
             Name = name
         };
-        await context.TelegramBots.AddAsync(bot, cancellationToken);
-        await context.SaveChangesAsync(cancellationToken);
+        await context.TelegramBots.AddAsync(bot, ct);
+        await context.SaveChangesAsync(ct);
         return bot.Id;
     }
 }

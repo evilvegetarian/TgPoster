@@ -10,21 +10,21 @@ internal class ParseChannelWorker(
 {
     public async Task ProcessMessagesAsync()
     {
-        var ids = await storage.GetParameters();
+        var ids = await storage.GetChannelParsingParametersAsync();
         if (ids.Count == 0)
         {
             logger.LogInformation("Нет каналов которые нужно парсить");
             return;
         }
 
-        await storage.SetInHandleStatus(ids);
+        await storage.SetInHandleStatusAsync(ids);
         
         foreach (var id in ids)
         {
             try
             {
                 await parseChannelUseCase.Handle(id, CancellationToken.None);
-                await storage.SetWaitingStatus(id);
+                await storage.SetWaitingStatusAsync(id);
             }
             catch (Exception e)
             {

@@ -10,7 +10,7 @@ internal sealed class GetScheduleUseCase(IGetScheduleStorage storage, IIdentityP
 {
     public async Task<ScheduleResponse> Handle(GetScheduleCommand request, CancellationToken cancellationToken)
     {
-        var schedule = await storage.GetSchedule(request.Id, identity.Current.UserId, cancellationToken);
+        var schedule = await storage.GetScheduleAsync(request.Id, identity.Current.UserId, cancellationToken);
         if (schedule is null)
         {
             throw new ScheduleNotFoundException();

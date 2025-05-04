@@ -68,7 +68,7 @@ public class SenderMessageWorker(
             await bot.SendMessage(chatId, message.Message!);
         }
 
-        await storage.UpdateStatusMessage(messageId);
+        await storage.UpdateStatusMessageAsync(messageId);
         logger.LogInformation($"Отправлено сообщение в чат {chatId}");
     }
 }

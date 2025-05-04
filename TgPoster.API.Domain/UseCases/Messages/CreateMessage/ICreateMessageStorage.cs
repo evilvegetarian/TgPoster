@@ -5,10 +5,10 @@ namespace TgPoster.API.Domain.UseCases.Messages.CreateMessage;
 
 public interface ICreateMessageStorage
 {
-    Task<bool> ExistSchedule(Guid userId, Guid scheduleId, CancellationToken ct);
-    Task<TelegramBotDto?> GetTelegramBot(Guid scheduleId, Guid userId, CancellationToken ct);
+    Task<bool> ExistScheduleAsync(Guid userId, Guid scheduleId, CancellationToken ct);
+    Task<TelegramBotDto?> GetTelegramBotAsync(Guid scheduleId, Guid userId, CancellationToken ct);
 
-    Task<Guid> CreateMessages(
+    Task<Guid> CreateMessagesAsync(
         Guid scheduleId,
         string? text,
         DateTimeOffset time,

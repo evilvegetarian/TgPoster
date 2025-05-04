@@ -1,6 +1,7 @@
 using Bogus;
 using TgPoster.Storage.Data;
 using TgPoster.Storage.Data.Entities;
+using TgPoster.Storage.Data.Enum;
 using TgPoster.Storage.Data.VO;
 
 namespace TgPoster.Storage.Tests;
@@ -46,7 +47,7 @@ public class Helper(PosterContext context)
         {
             Id = Guid.NewGuid(),
             Name = faker.Company.CompanyName(),
-            ApiTelegram = "api",
+            ApiTelegram = "api-26203bf7-31a4-4f9d-b262-bb48b45b24c5",
             ChatId = faker.Random.Long(),
             OwnerId = user
         };
@@ -73,5 +74,33 @@ public class Helper(PosterContext context)
         await context.Days.AddAsync(day);
         await context.SaveChangesAsync();
         return day;
+    }
+
+
+    public async Task<ChannelParsingParameters> CreateChannelParsingParametersAsync(Guid? scheduleId = null)
+    {
+        var id = Guid.NewGuid();
+        var schedule = scheduleId.HasValue
+            ? await context.Schedules.FindAsync(scheduleId.Value)
+            : await CreateScheduleAsync();
+
+        var cpp = new ChannelParsingParameters
+        {
+            Id = id,
+            AvoidWords = ["spam", "ban"],
+            Channel = "TestChannel",
+            DeleteMedia = true,
+            DeleteText = false,
+            DateFrom = DateTime.UtcNow.AddDays(-1),
+            LastParseId = 123,
+            DateTo = DateTime.UtcNow.AddDays(1),
+            NeedVerifiedPosts = true,
+            ScheduleId = schedule.Id,
+            Status = ParsingStatus.New,
+        };
+
+        await context.ChannelParsingParameters.AddAsync(cpp);
+        await context.SaveChangesAsync();
+        return cpp;
     }
 }

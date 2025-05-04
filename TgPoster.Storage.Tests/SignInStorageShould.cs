@@ -14,7 +14,7 @@ public class SignInStorageShould(StorageTestFixture fixture) : IClassFixture<Sto
     private readonly SignInStorage sut = new(fixture.GetDbContext());
 
     [Fact]
-    public async Task GetUserAsync_ShouldReturnUser()
+    public async Task GetUserAsync_WithExistingUser_ShouldReturnUser()
     {
         var newUser = new User
         {
@@ -31,18 +31,18 @@ public class SignInStorageShould(StorageTestFixture fixture) : IClassFixture<Sto
     }
 
     [Fact]
-    public async Task GetUserAsync_NotExist_ShouldReturnNull()
+    public async Task GetUserAsync_WithNonExistingUser_ShouldReturnNull()
     {
         var user = await sut.GetUserAsync("not-exist", CancellationToken.None);
         user.ShouldBeNull();
     }
 
     [Fact]
-    public async Task CreateRefreshSessionAsync_ShouldExistRefreshSession()
+    public async Task CreateRefreshSessionAsync_WithValidData_ShouldCreateRefreshSession()
     {
         var user = await helper.CreateUserAsync();
         var refreshToken = Guid.NewGuid();
-        await sut.CreateRefreshSession(user.Id, refreshToken, DateTimeOffset.UtcNow.AddDays(5), CancellationToken.None);
+        await sut.CreateRefreshSessionAsync(user.Id, refreshToken, DateTimeOffset.UtcNow.AddDays(5), CancellationToken.None);
 
         var refreshSession =
             await context.RefreshSessions.Where(x => x.RefreshToken == refreshToken).FirstOrDefaultAsync();

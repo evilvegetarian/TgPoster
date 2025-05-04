@@ -82,7 +82,7 @@ public class SignInUseCaseShould
         jwt.Verify(j => j.AddTokenToCookie(It.IsAny<HttpContext>(), accessToken), Times.Once);
 
         storage.Verify(
-            s => s.CreateRefreshSession(user.Id, refreshToken, refreshExpireTime, It.IsAny<CancellationToken>()),
+            s => s.CreateRefreshSessionAsync(user.Id, refreshToken, refreshExpireTime, It.IsAny<CancellationToken>()),
             Times.Once);
     }
 }

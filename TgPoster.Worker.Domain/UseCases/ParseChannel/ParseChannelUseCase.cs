@@ -35,13 +35,13 @@ internal class ParseChannelUseCase(
 {
     public async Task Handle(Guid id, CancellationToken cancellationToken = default)
     {
-        var parametrs = await storage.GetChannelParsingParameters(id, cancellationToken);
+        var parametrs = await storage.GetChannelParsingParametersAsync(id, cancellationToken);
         if (parametrs is null)
         {
             throw new Exception();
         }
 
-        await storage.UpdateInHandleStatus(id, cancellationToken);
+        await storage.UpdateInHandleStatusAsync(id, cancellationToken);
 
         var channelName = parametrs.ChannelName;
         var isNeedVerified = parametrs.IsNeedVerified;
@@ -213,8 +213,8 @@ internal class ParseChannelUseCase(
             }
         }
 
-        await storage.CreateMessages(result, cancellationToken);
-        await storage.UpdateChannelParsingParameters(id, tempLastParseId, cancellationToken);
+        await storage.CreateMessagesAsync(result, cancellationToken);
+        await storage.UpdateChannelParsingParametersAsync(id, tempLastParseId, cancellationToken);
     }
 
     string? Settings(string key)
@@ -231,10 +231,10 @@ internal class ParseChannelUseCase(
 
 public interface IParseChannelUseCaseStorage
 {
-    Task<Parameters?> GetChannelParsingParameters(Guid id, CancellationToken cancellationToken);
-    Task CreateMessages(List<MessageDto> messages, CancellationToken cancellationToken);
-    Task UpdateChannelParsingParameters(Guid id, int offsetId, CancellationToken cancellationToken);
-    Task UpdateInHandleStatus(Guid id, CancellationToken cancellationToken);
+    Task<Parameters?> GetChannelParsingParametersAsync(Guid id, CancellationToken cancellationToken);
+    Task CreateMessagesAsync(List<MessageDto> messages, CancellationToken cancellationToken);
+    Task UpdateChannelParsingParametersAsync(Guid id, int offsetId, CancellationToken cancellationToken);
+    Task UpdateInHandleStatusAsync(Guid id, CancellationToken cancellationToken);
 }
 
 public class MessageDto

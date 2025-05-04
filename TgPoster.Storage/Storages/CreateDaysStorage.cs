@@ -27,9 +27,11 @@ internal sealed class CreateDaysStorage(PosterContext context, GuidFactory guidF
         await context.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task<List<DayOfWeek>> GetDayOfWeek(Guid scheduleId, CancellationToken cancellationToken)
+    public async Task<List<DayOfWeek>> GetDayOfWeekAsync(Guid scheduleId, CancellationToken cancellationToken)
     {
-        return await context.Days.Where(x => x.ScheduleId == scheduleId)
-            .Select(x => x.DayOfWeek).ToListAsync(cancellationToken);
+        return await context.Days
+            .Where(x => x.ScheduleId == scheduleId)
+            .Select(x => x.DayOfWeek)
+            .ToListAsync(cancellationToken);
     }
 }

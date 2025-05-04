@@ -18,10 +18,10 @@ internal sealed class CreateMessageUseCase(
     public async Task<CreateMessageResponse> Handle(CreateMessageCommand request, CancellationToken ct)
     {
         var userId = identityProvider.Current.UserId;
-        if (!await storage.ExistSchedule(userId, request.ScheduleId, ct))
+        if (!await storage.ExistScheduleAsync(userId, request.ScheduleId, ct))
             throw new ScheduleNotFoundException();
 
-        var telegramBot = await storage.GetTelegramBot(request.ScheduleId, userId, ct);
+        var telegramBot = await storage.GetTelegramBotAsync(request.ScheduleId, userId, ct);
         if (telegramBot == null)
             throw new TelegramNotFoundException();
 
@@ -33,7 +33,7 @@ internal sealed class CreateMessageUseCase(
             telegramBot.ChatId,
             ct);
 
-        var id = await storage.CreateMessages(request.ScheduleId, request.Text, request.TimePosting, files, ct);
+        var id = await storage.CreateMessagesAsync(request.ScheduleId, request.Text, request.TimePosting, files, ct);
         return new CreateMessageResponse
         {
             Id = id

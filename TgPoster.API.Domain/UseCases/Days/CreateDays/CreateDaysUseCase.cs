@@ -14,7 +14,7 @@ internal class CreateDaysUseCase(ICreateDaysStorage storage, IIdentityProvider i
             throw new ScheduleNotFoundException();
         }
 
-        var days = await storage.GetDayOfWeek(command.ScheduleId, cancellationToken);
+        var days = await storage.GetDayOfWeekAsync(command.ScheduleId, cancellationToken);
         if (command.DayOfWeekForms.Any(x => days.Contains(x.DayOfWeekPosting)))
         {
             throw new ArgumentException();

@@ -9,11 +9,11 @@ internal sealed class DeleteScheduleUseCase(IDeleteScheduleStorage storage, IIde
 {
     public async Task Handle(DeleteScheduleCommand request, CancellationToken cancellationToken)
     {
-        if (!await storage.ScheduleExist(request.Id, identity.Current.UserId))
+        if (!await storage.ScheduleExistAsync(request.Id, identity.Current.UserId))
         {
             throw new ScheduleNotFoundException();
         }
 
-        await storage.DeleteSchedule(request.Id);
+        await storage.DeleteScheduleAsync(request.Id);
     }
 }

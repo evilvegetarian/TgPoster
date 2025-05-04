@@ -11,12 +11,12 @@ internal sealed class GetDaysUseCases(IGetDaysStorage storage, IIdentityProvider
 {
     public async Task<List<GetDaysResponse>> Handle(GetDaysQuery request, CancellationToken cancellationToken)
     {
-        var existDays = await storage.ScheduleExist(request.ScheduleId, identity.Current.UserId, cancellationToken);
+        var existDays = await storage.ScheduleExistAsync(request.ScheduleId, identity.Current.UserId, cancellationToken);
         if (!existDays)
         {
             throw new ScheduleNotFoundException();
         }
 
-        return await storage.GetDays(request.ScheduleId, cancellationToken);
+        return await storage.GetDaysAsync(request.ScheduleId, cancellationToken);
     }
 }

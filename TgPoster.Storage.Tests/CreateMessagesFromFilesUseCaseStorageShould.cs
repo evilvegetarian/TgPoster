@@ -15,7 +15,7 @@ public class CreateMessagesFromFilesUseCaseStorageShould(StorageTestFixture fixt
     private readonly CreateMessagesFromFilesUseCaseStorage _sut = new(fixture.GetDbContext(), new GuidFactory());
 
     [Fact]
-    public async Task GetTelegramBot_ShouldReturnTelegramBotDto_WhenScheduleAndUserMatch()
+    public async Task GetTelegramBot_WithMatchingScheduleAndUser_ShouldReturnTelegramBotDto()
     {
         var user = await _helper.CreateUserAsync();
         var telegramBot = new TelegramBot
@@ -40,7 +40,7 @@ public class CreateMessagesFromFilesUseCaseStorageShould(StorageTestFixture fixt
         await _context.Schedules.AddAsync(schedule);
         await _context.SaveChangesAsync();
 
-        var result = await _sut.GetTelegramBot(schedule.Id, user.Id, CancellationToken.None);
+        var result = await _sut.GetTelegramBotAsync(schedule.Id, user.Id, CancellationToken.None);
 
         result.ShouldNotBeNull();
         result.ApiTelegram.ShouldBe(telegramBot.ApiTelegram);
@@ -48,7 +48,7 @@ public class CreateMessagesFromFilesUseCaseStorageShould(StorageTestFixture fixt
     }
 
     [Fact]
-    public async Task GetTelegramBot_ShouldReturnNull_WhenScheduleNotFoundOrUserMismatch()
+    public async Task GetTelegramBot_WithScheduleNotFoundOrUserMismatch_ShouldReturnNull()
     {
         var user = await _helper.CreateUserAsync();
 
@@ -74,13 +74,13 @@ public class CreateMessagesFromFilesUseCaseStorageShould(StorageTestFixture fixt
         await _context.Schedules.AddAsync(schedule);
         await _context.SaveChangesAsync();
         var anotherUser = Guid.Parse("b498cffb-ec28-4c27-a757-3192e2064e38");
-        var result = await _sut.GetTelegramBot(schedule.Id, anotherUser, CancellationToken.None);
+        var result = await _sut.GetTelegramBotAsync(schedule.Id, anotherUser, CancellationToken.None);
 
         result.ShouldBeNull();
     }
 
     [Fact]
-    public async Task GetExistMessageTimePosting_ShouldReturnOnlyFutureRegisterMessages()
+    public async Task GetExistMessageTimePosting_WithFutureAndPastMessages_ShouldReturnOnlyFutureRegisterMessages()
     {
         var schedule = await _helper.CreateScheduleAsync();
         var futureTime1 = DateTimeOffset.UtcNow.AddHours(1);
@@ -139,13 +139,13 @@ public class CreateMessagesFromFilesUseCaseStorageShould(StorageTestFixture fixt
         await _context.Messages.AddRangeAsync(messages);
         await _context.SaveChangesAsync();
 
-        var result = await _sut.GetExistMessageTimePosting(schedule.Id, CancellationToken.None);
+        var result = await _sut.GetExistMessageTimePostingAsync(schedule.Id, CancellationToken.None);
         var ss = result.Select(x => x.DateTime).ToList();
         ss.Count().ShouldBe(2);
     }
 
     [Fact]
-    public async Task GetScheduleTime_ShouldReturnDictionaryOfDayAndTimePostings()
+    public async Task GetScheduleTime_WithValidScheduleId_ShouldReturnDictionaryOfDayAndTimePostings()
     {
         var schedule = await _helper.CreateScheduleAsync();
         var day1 = new Day
@@ -167,7 +167,7 @@ public class CreateMessagesFromFilesUseCaseStorageShould(StorageTestFixture fixt
         await _context.Days.AddRangeAsync(day1, day2);
         await _context.SaveChangesAsync();
 
-        var result = await _sut.GetScheduleTime(schedule.Id, CancellationToken.None);
+        var result = await _sut.GetScheduleTimeAsync(schedule.Id, CancellationToken.None);
 
         result.Count.ShouldBe(2);
         result.ShouldContainKey(day1.DayOfWeek);
@@ -177,7 +177,7 @@ public class CreateMessagesFromFilesUseCaseStorageShould(StorageTestFixture fixt
     }
 
     [Fact]
-    public async Task CreateMessages_ShouldCreateMessagesWithProperFiles()
+    public async Task CreateMessages_WithValidData_ShouldCreateMessagesWithProperFiles()
     {
         var schedule = await _helper.CreateScheduleAsync();
 
@@ -199,7 +199,7 @@ public class CreateMessagesFromFilesUseCaseStorageShould(StorageTestFixture fixt
             DateTimeOffset.UtcNow.AddHours(4)
         };
 
-        await _sut.CreateMessages(schedule.Id, [file1, file2], postingTimes, CancellationToken.None);
+        await _sut.CreateMessagesAsync(schedule.Id, [file1, file2], postingTimes, CancellationToken.None);
 
         var messages = await _context.Messages
             .Include(x => x.MessageFiles)

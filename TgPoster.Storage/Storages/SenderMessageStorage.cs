@@ -52,9 +52,9 @@ public class SenderMessageStorage(PosterContext context) : ISenderMessageStorage
         return messages;
     }
 
-    public async Task UpdateStatusMessage(Guid id)
+    public Task UpdateStatusMessageAsync(Guid id)
     {
-        await context.Messages
+       return context.Messages
             .Where(m => m.Id == id)
             .ExecuteUpdateAsync(m => m.SetProperty(msg => msg.Status, MessageStatus.Send));
     }

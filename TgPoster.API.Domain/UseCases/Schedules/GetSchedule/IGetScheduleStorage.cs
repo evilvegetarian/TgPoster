@@ -4,5 +4,5 @@ namespace TgPoster.API.Domain.UseCases.Schedules.GetSchedule;
 
 public interface IGetScheduleStorage
 {
-    Task<ScheduleResponse?> GetSchedule(Guid id, Guid userId, CancellationToken cancellationToken);
+    Task<ScheduleResponse?> GetScheduleAsync(Guid id, Guid userId, CancellationToken cancellationToken);
 }

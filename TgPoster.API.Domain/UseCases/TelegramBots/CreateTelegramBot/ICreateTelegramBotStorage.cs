@@ -7,6 +7,6 @@ public interface ICreateTelegramBotStorage
         long chatId,
         Guid ownerId,
         string name,
-        CancellationToken cancellationToken
+        CancellationToken ct
     );
 }

@@ -2,13 +2,13 @@ namespace TgPoster.API.Domain.UseCases.Schedules.CreateSchedule;
 
 public interface ICreateScheduleStorage
 {
-    Task<Guid> CreateSchedule(
+    Task<Guid> CreateScheduleAsync(
         string name,
         Guid userId,
         Guid telegramBot,
         long channelId,
-        CancellationToken cancellationToken
+        CancellationToken ct
     );
 
-    Task<string?> GetApiToken(Guid telegramBotId, Guid userId, CancellationToken cancellationToken);
+    Task<string?> GetApiTokenAsync(Guid telegramBotId, Guid userId, CancellationToken ct);
 }

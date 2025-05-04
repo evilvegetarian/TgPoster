@@ -7,12 +7,12 @@ namespace TgPoster.Storage.Storages;
 
 internal sealed class CreateScheduleStorage(PosterContext context, GuidFactory guidFactory) : ICreateScheduleStorage
 {
-    public async Task<Guid> CreateSchedule(
+    public async Task<Guid> CreateScheduleAsync(
         string name,
         Guid userId,
         Guid telegramBot,
         long channelId,
-        CancellationToken cancellationToken
+        CancellationToken ct
     )
     {
         var schedule = new Schedule
@@ -23,16 +23,14 @@ internal sealed class CreateScheduleStorage(PosterContext context, GuidFactory g
             TelegramBotId = telegramBot,
             ChannelId = channelId
         };
-        await context.Schedules.AddAsync(schedule, cancellationToken);
-        await context.SaveChangesAsync(cancellationToken);
+        await context.Schedules.AddAsync(schedule, ct);
+        await context.SaveChangesAsync(ct);
         return schedule.Id;
     }
 
-    public Task<string?> GetApiToken(Guid telegramBotId, Guid userId, CancellationToken cancellationToken)
-    {
-        return context.TelegramBots.Where(x => x.Id == telegramBotId)
+    public Task<string?> GetApiTokenAsync(Guid telegramBotId, Guid userId, CancellationToken ct)
+        => context.TelegramBots.Where(x => x.Id == telegramBotId)
             .Where(x => x.OwnerId == userId)
             .Select(x => x.ApiTelegram)
-            .FirstOrDefaultAsync(cancellationToken);
-    }
+            .FirstOrDefaultAsync(ct);
 }

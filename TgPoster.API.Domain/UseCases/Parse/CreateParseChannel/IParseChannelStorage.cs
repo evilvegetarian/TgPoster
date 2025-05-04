@@ -2,7 +2,7 @@ namespace TgPoster.API.Domain.UseCases.Parse.CreateParseChannel;
 
 public interface IParseChannelStorage
 {
-    Task<Guid> AddParseChannelParameters(
+    Task<Guid> AddParseChannelParametersAsync(
         string channel,
         bool alwaysCheckNewPosts,
         Guid scheduleId,
@@ -15,5 +15,5 @@ public interface IParseChannelStorage
         CancellationToken cancellationToken
     );
 
-    Task<string?> GetTelegramToken(Guid scheduleId, CancellationToken cancellationToken);
+    Task<string?> GetTelegramTokenAsync(Guid scheduleId, CancellationToken cancellationToken);
 }

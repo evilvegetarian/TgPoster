@@ -17,7 +17,7 @@ internal sealed class GetMessageUseCase(
     public async Task<MessageResponse> Handle(GetMessageQuery request, CancellationToken cancellationToken)
     {
         var userId = identity.Current.UserId;
-        var message = await storage.GetMessage(request.Id, userId, cancellationToken);
+        var message = await storage.GetMessagesAsync(request.Id, userId, cancellationToken);
 
         if (message == null)
             throw new MessageNotFoundException();

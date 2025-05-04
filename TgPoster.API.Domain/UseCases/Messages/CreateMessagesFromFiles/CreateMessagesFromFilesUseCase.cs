@@ -19,7 +19,7 @@ internal sealed class CreateMessagesFromFilesUseCase(
     public async Task Handle(CreateMessagesFromFilesCommand request, CancellationToken cancellationToken)
     {
         var userId = identity.Current.UserId;
-        var telegramBot = await storage.GetTelegramBot(request.ScheduleId, userId, cancellationToken);
+        var telegramBot = await storage.GetTelegramBotAsync(request.ScheduleId, userId, cancellationToken);
         if (telegramBot == null)
             throw new TelegramNotFoundException();
 
@@ -30,11 +30,11 @@ internal sealed class CreateMessagesFromFilesUseCase(
             request.Files,
             telegramBot.ChatId,
             cancellationToken);
-        var existTime = await storage.GetExistMessageTimePosting(request.ScheduleId, cancellationToken);
-        var scheduleTime = await storage.GetScheduleTime(request.ScheduleId, cancellationToken);
+        var existTime = await storage.GetExistMessageTimePostingAsync(request.ScheduleId, cancellationToken);
+        var scheduleTime = await storage.GetScheduleTimeAsync(request.ScheduleId, cancellationToken);
 
         var postingTime = timePostingService.GetTimeForPosting(request.Files.Count, scheduleTime, existTime);
 
-        await storage.CreateMessages(request.ScheduleId, files, postingTime, cancellationToken);
+        await storage.CreateMessagesAsync(request.ScheduleId, files, postingTime, cancellationToken);
     }
 }

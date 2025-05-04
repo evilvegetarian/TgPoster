@@ -4,8 +4,8 @@ namespace TgPoster.API.Domain.UseCases.Messages.CreateMessagesFromFiles;
 
 public interface ICreateMessagesFromFilesUseCaseStorage
 {
-    Task<TelegramBotDto?> GetTelegramBot(Guid scheduleId, Guid userId, CancellationToken cancellationToken);
-    Task<List<DateTimeOffset>> GetExistMessageTimePosting(Guid scheduleId, CancellationToken cancellationToken);
-    Task<Dictionary<DayOfWeek, List<TimeOnly>>> GetScheduleTime(Guid scheduleId, CancellationToken cancellationToken);
-    Task CreateMessages(Guid requestScheduleId, List<MediaFileResult> files, List<DateTimeOffset> postingTime, CancellationToken cancellationToken);
+    Task<TelegramBotDto?> GetTelegramBotAsync(Guid scheduleId, Guid userId, CancellationToken ct);
+    Task<List<DateTimeOffset>> GetExistMessageTimePostingAsync(Guid scheduleId, CancellationToken ct);
+    Task<Dictionary<DayOfWeek, List<TimeOnly>>> GetScheduleTimeAsync(Guid scheduleId, CancellationToken cancellationToken);
+    Task CreateMessagesAsync(Guid requestScheduleId, List<MediaFileResult> files, List<DateTimeOffset> postingTime, CancellationToken cancellationToken);
 }

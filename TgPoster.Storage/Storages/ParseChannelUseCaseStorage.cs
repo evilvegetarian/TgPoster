@@ -8,7 +8,7 @@ namespace TgPoster.Storage.Storages;
 
 internal class ParseChannelUseCaseStorage(PosterContext context, GuidFactory guidFactory) : IParseChannelUseCaseStorage
 {
-    public Task<Parameters?> GetChannelParsingParameters(Guid id, CancellationToken cancellationToken)
+    public Task<Parameters?> GetChannelParsingParametersAsync(Guid id, CancellationToken cancellationToken)
     {
         return context.ChannelParsingParameters
             .Where(x => x.Id == id)
@@ -29,7 +29,7 @@ internal class ParseChannelUseCaseStorage(PosterContext context, GuidFactory gui
             .FirstOrDefaultAsync(cancellationToken);
     }
 
-    public Task CreateMessages(List<MessageDto> messages, CancellationToken cancellationToken)
+    public Task CreateMessagesAsync(List<MessageDto> messages, CancellationToken cancellationToken)
     {
         var message = messages.Select(x =>
         {
@@ -72,7 +72,7 @@ internal class ParseChannelUseCaseStorage(PosterContext context, GuidFactory gui
         return context.SaveChangesAsync(cancellationToken);
     }
 
-    public Task UpdateChannelParsingParameters(Guid id, int offsetId, CancellationToken cancellationToken)
+    public Task UpdateChannelParsingParametersAsync(Guid id, int offsetId, CancellationToken cancellationToken)
     {
         return context.ChannelParsingParameters
             .Where(x => x.Id == id)
@@ -83,7 +83,7 @@ internal class ParseChannelUseCaseStorage(PosterContext context, GuidFactory gui
                 cancellationToken);
     }
 
-    public Task UpdateInHandleStatus(Guid id, CancellationToken cancellationToken)
+    public Task UpdateInHandleStatusAsync(Guid id, CancellationToken cancellationToken)
     {
         return context.ChannelParsingParameters
             .Where(x => x.Id == id)

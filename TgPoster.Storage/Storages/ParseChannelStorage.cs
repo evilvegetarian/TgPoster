@@ -8,7 +8,7 @@ namespace TgPoster.Storage.Storages;
 
 internal class ParseChannelStorage(PosterContext context, GuidFactory factory) : IParseChannelStorage
 {
-    public async Task<Guid> AddParseChannelParameters(
+    public async Task<Guid> AddParseChannelParametersAsync(
         string channel,
         bool alwaysCheckNewPosts,
         Guid scheduleId,
@@ -41,10 +41,7 @@ internal class ParseChannelStorage(PosterContext context, GuidFactory factory) :
         return id;
     }
 
-    public Task<string?> GetTelegramToken(Guid scheduleId, CancellationToken cancellationToken)
-    {
-        return context.Schedules.Where(x => x.Id == scheduleId)
+    public Task<string?> GetTelegramTokenAsync(Guid scheduleId, CancellationToken cancellationToken)
+        => context.Schedules.Where(x => x.Id == scheduleId)
             .Select(x => x.TelegramBot.ApiTelegram).FirstOrDefaultAsync(cancellationToken);
-    }
-
 }

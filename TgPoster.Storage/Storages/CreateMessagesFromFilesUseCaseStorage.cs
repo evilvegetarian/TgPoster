@@ -10,9 +10,8 @@ namespace TgPoster.Storage.Storages;
 internal sealed class CreateMessagesFromFilesUseCaseStorage(PosterContext context, GuidFactory guidFactory)
     : ICreateMessagesFromFilesUseCaseStorage
 {
-    public Task<TelegramBotDto?> GetTelegramBot(Guid scheduleId, Guid userId, CancellationToken cancellationToken)
-    {
-        return context.Schedules
+    public Task<TelegramBotDto?> GetTelegramBotAsync(Guid scheduleId, Guid userId, CancellationToken ct)
+        => context.Schedules
             .Include(x => x.TelegramBot)
             .Where(x => x.Id == scheduleId)
             .Where(x => x.TelegramBot.OwnerId == userId)
@@ -20,30 +19,22 @@ internal sealed class CreateMessagesFromFilesUseCaseStorage(PosterContext contex
             {
                 ApiTelegram = x.TelegramBot.ApiTelegram,
                 ChatId = x.TelegramBot.ChatId
-            }).FirstOrDefaultAsync(cancellationToken);
-    }
+            }).FirstOrDefaultAsync(ct);
 
-    public Task<List<DateTimeOffset>> GetExistMessageTimePosting(Guid scheduleId, CancellationToken cancellationToken)
-    {
-        return context.Messages
+    public Task<List<DateTimeOffset>> GetExistMessageTimePostingAsync(Guid scheduleId, CancellationToken ct)
+        => context.Messages
             .Where(x => x.ScheduleId == scheduleId)
             .Where(x => x.TimePosting > DateTimeOffset.UtcNow)
             .Where(x => x.Status == MessageStatus.Register)
             .Select(x => x.TimePosting)
-            .ToListAsync(cancellationToken);
-    }
+            .ToListAsync(ct);
 
-    public Task<Dictionary<DayOfWeek, List<TimeOnly>>> GetScheduleTime(
-        Guid scheduleId,
-        CancellationToken cancellationToken
-    )
-    {
-        return context.Days
+    public Task<Dictionary<DayOfWeek, List<TimeOnly>>> GetScheduleTimeAsync(Guid scheduleId, CancellationToken ct)
+        => context.Days
             .Where(x => x.ScheduleId == scheduleId)
-            .ToDictionaryAsync(x => x.DayOfWeek, x => x.TimePostings.ToList(), cancellationToken);
-    }
+            .ToDictionaryAsync(x => x.DayOfWeek, x => x.TimePostings.ToList(), ct);
 
-    public async Task CreateMessages(
+    public async Task CreateMessagesAsync(
         Guid scheduleId,
         List<MediaFileResult> files,
         List<DateTimeOffset> postingTime,

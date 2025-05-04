@@ -11,7 +11,7 @@ public class CreateTelegramBotStorageShould(StorageTestFixture fixture) : IClass
     private readonly CreateTelegramBotStorage sut = new(fixture.GetDbContext(), new GuidFactory());
 
     [Fact]
-    public async Task CreateTelegramBot_ShouldExist()
+    public async Task CreateTelegramBotAsync_WithValidData_ShouldCreateBot()
     {
         var botName = "nameBot";
         var user = await helper.CreateUserAsync();

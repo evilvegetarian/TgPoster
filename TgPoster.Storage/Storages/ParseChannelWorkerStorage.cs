@@ -7,7 +7,7 @@ namespace TgPoster.Storage.Storages;
 
 public class ParseChannelWorkerStorage(PosterContext context) : IParseChannelWorkerStorage
 {
-    public Task<List<Guid>> GetParameters()
+    public Task<List<Guid>> GetChannelParsingParametersAsync()
     {
         return context.ChannelParsingParameters
             .Where(x =>
@@ -18,7 +18,7 @@ public class ParseChannelWorkerStorage(PosterContext context) : IParseChannelWor
             .ToListAsync();
     }
 
-    public Task SetInHandleStatus(List<Guid> ids)
+    public Task SetInHandleStatusAsync(List<Guid> ids)
     {
         return context.ChannelParsingParameters
             .Where(x => ids.Contains(x.Id))
@@ -28,10 +28,10 @@ public class ParseChannelWorkerStorage(PosterContext context) : IParseChannelWor
     }
 
 
-    public Task SetWaitingStatus(Guid id)
+    public async Task SetWaitingStatusAsync(Guid id)
     {
-        var channelParsingParameters = context.ChannelParsingParameters.FirstOrDefault(x => x.Id == id);
+        var channelParsingParameters = await context.ChannelParsingParameters.FirstOrDefaultAsync(x => x.Id == id);
         channelParsingParameters!.Status = ParsingStatus.Waiting;
-        return context.SaveChangesAsync();
+        await context.SaveChangesAsync();
     }
 }

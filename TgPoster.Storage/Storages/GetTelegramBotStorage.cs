@@ -6,12 +6,10 @@ namespace TgPoster.Storage.Storages;
 
 public class GetTelegramBotStorage(PosterContext context) : IGetTelegramBotStorage
 {
-    public Task<string?> GetApiToken(Guid scheduleId, Guid userId, CancellationToken cancellationToken)
-    {
-        return context.Schedules
+    public Task<string?> GetApiTokenAsync(Guid scheduleId, Guid userId, CancellationToken cancellationToken) =>
+        context.Schedules
             .Where(x => x.Id == scheduleId)
             .Where(x => x.UserId == userId)
             .Select(x => x.TelegramBot.ApiTelegram)
             .FirstOrDefaultAsync(cancellationToken);
-    }
 }
