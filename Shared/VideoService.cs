@@ -1,8 +1,8 @@
 using OpenCvSharp;
 
-namespace TgPoster.API.Domain.Services;
+namespace Shared;
 
-internal sealed class VideoService
+public sealed class VideoService
 {
     public List<MemoryStream> ExtractScreenshots(MemoryStream videoStream, int screenshotCount, int outputWidth = 0)
     {
@@ -39,11 +39,35 @@ internal sealed class VideoService
                 var snapshotTime = duration * i / (screenshotCount + 1); // в секундах
                 var targetFrame = (int)(snapshotTime * fps);
 
+                if (targetFrame >= frameCount)
+                    targetFrame = (int)frameCount - 1;
+
                 capture.Set(VideoCaptureProperties.PosFrames, targetFrame);
 
                 using var frame = new Mat();
                 if (!capture.Read(frame) || frame.Empty())
-                    throw new ArgumentException($"Не удалось считать кадр под номером {targetFrame}");
+                {
+                    // Можно попробовать ближайший предыдущий кадр
+                    bool frameFound = false;
+                    for (int offset = -1; offset >= -5; offset--) // проверить до 5 предыдущих кадров
+                    {
+                        int tryFrame = targetFrame + offset;
+                        if (tryFrame < 0) break;
+                        capture.Set(VideoCaptureProperties.PosFrames, tryFrame);
+                        if (capture.Read(frame) && !frame.Empty())
+                        {
+                            frameFound = true;
+                            break;
+                        }
+                    }
+                    if (!frameFound)
+                    {
+                        // Логируем и продолжаем, вместо throw
+                        continue;
+                        // или если хотите бросить исключение:
+                        // throw new ArgumentException($"Не удалось считать кадр под номером {targetFrame}");
+                    }
+                }
 
                 if (outputWidth > 0)
                 {
@@ -57,6 +81,7 @@ internal sealed class VideoService
                 var screenshotStream = new MemoryStream(imageBytes);
                 screenshots.Add(screenshotStream);
             }
+
 
             return screenshots;
         }

@@ -33,7 +33,7 @@ public class ParseEndpointTest(EndpointTestFixture fixture) : IClassFixture<Endp
             Channel = "superChannel",
             AlwaysCheckNewPosts = false,
             ScheduleId = Guid.NewGuid(),
-            DateFrom = DateOnly.FromDateTime(DateTime.Now.AddDays(5)),
+            DateFrom = DateTime.Now.AddDays(5),
         };
 
         var createdSchedule = await client.PostAsync(Url, request.ToStringContent());

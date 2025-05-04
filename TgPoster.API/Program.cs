@@ -1,7 +1,7 @@
-using Contracts;
 using MassTransit;
 using Microsoft.AspNetCore.StaticFiles;
 using Security;
+using Shared.Contracts;
 using TgPoster.API.Domain;
 using TgPoster.API.Middlewares;
 using TgPoster.Storage;

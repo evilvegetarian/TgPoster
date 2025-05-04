@@ -1,4 +1,3 @@
-using Contracts;
 using MediatR;
 
 namespace TgPoster.API.Domain.UseCases.Parse.CreateParseChannel;

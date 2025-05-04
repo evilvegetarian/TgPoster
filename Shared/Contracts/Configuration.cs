@@ -2,7 +2,7 @@ using MassTransit;
 using Microsoft.Extensions.DependencyInjection;
 using Npgsql;
 
-namespace Contracts;
+namespace Shared.Contracts;
 
 public static class Configuration
 {

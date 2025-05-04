@@ -1,4 +1,5 @@
 using OpenCvSharp;
+using Shared;
 using Shouldly;
 using TgPoster.API.Domain.Services;
 

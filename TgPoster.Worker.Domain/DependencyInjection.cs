@@ -1,10 +1,11 @@
-using Contracts;
 using Hangfire;
 using Hangfire.MemoryStorage;
 using MassTransit;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Shared;
+using Shared.Contracts;
 using TgPoster.Worker.Domain.ConfigModels;
 using TgPoster.Worker.Domain.UseCases.ParseChannel;
 using TgPoster.Worker.Domain.UseCases.ParseChannelConsumer;
@@ -63,7 +64,7 @@ public static class DependencyInjection
         using var scope = host.Services.CreateScope();
         var recurringJobManager = scope.ServiceProvider.GetRequiredService<IRecurringJobManager>();
         
-        BackgroundJob.Enqueue<ExampleClasssWOrker>(worker => worker.ProcessMessagesAsync());
+        //BackgroundJob.Enqueue<ExampleClasssWOrker>(worker => worker.ProcessMessagesAsync());
         
         //recurringJobManager.AddOrUpdate<SenderMessageWorker>(
         //    "process-sender-message-job",

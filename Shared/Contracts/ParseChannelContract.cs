@@ -1,4 +1,4 @@
-namespace Contracts;
+namespace Shared.Contracts;
 
 public class ParseChannelContract
 {

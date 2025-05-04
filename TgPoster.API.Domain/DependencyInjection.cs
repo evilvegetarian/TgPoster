@@ -1,6 +1,7 @@
 using System.Reflection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Shared;
 using TgPoster.API.Domain.ConfigModels;
 using TgPoster.API.Domain.Services;
 
