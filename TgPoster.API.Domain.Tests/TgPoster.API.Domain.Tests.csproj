@@ -33,13 +33,4 @@
         <ProjectReference Include="..\TgPoster.API.Domain\TgPoster.API.Domain.csproj"/>
     </ItemGroup>
 
-    <ItemGroup>
-        <None Update="TestFiles\video_2025-03-06_21-26-53.mp4">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="TestFiles\video_2025-03-06_21-26-46.mp4">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-    </ItemGroup>
-
 </Project>

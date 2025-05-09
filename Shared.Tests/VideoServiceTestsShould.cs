@@ -1,8 +1,7 @@
 using OpenCvSharp;
-using Shared;
 using Shouldly;
 
-namespace TgPoster.API.Domain.Tests;
+namespace Shared.Tests;
 
 public sealed class VideoServiceTestsShould
 {

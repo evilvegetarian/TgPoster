@@ -31,7 +31,8 @@ internal class ParseChannelUseCase(
     IParseChannelUseCaseStorage storage,
     TelegramSettings settings,
     TelegramOptions telegramOptions,
-    ICryptoAES cryptoAes)
+    ICryptoAES cryptoAes,
+    TimePostingService timePostingService)
 {
     public async Task Handle(Guid id, CancellationToken cancellationToken = default)
     {
@@ -54,6 +55,8 @@ internal class ParseChannelUseCase(
         var deleteMedia = parametrs.DeleteMedia;
         var scheduleId = parametrs.ScheduleId;
         var lastParseId = parametrs.LastParsedId;
+        //TODO: Добавить параметр перемешивания постов
+
 
         var telegramBot = new TelegramBotClient(token);
         await using var client = new Client(Settings);
@@ -162,7 +165,6 @@ internal class ParseChannelUseCase(
                     else if (message.media is MessageMediaDocument { document: Document doc })
                     {
                         var fileType = doc.mime_type.Split('/')[0];
-                        Console.WriteLine($"Документ: {doc.id}, Тип: {doc.mime_type}");
 
                         if (fileType == "video")
                         {
@@ -223,6 +225,11 @@ internal class ParseChannelUseCase(
                 result.Add(messagedto);
             }
         }
+
+        if (!isNeedVerified)
+        {
+        }
+
 
         await storage.CreateMessagesAsync(result, cancellationToken);
         await storage.UpdateChannelParsingParametersAsync(id, tempLastParseId, cancellationToken);

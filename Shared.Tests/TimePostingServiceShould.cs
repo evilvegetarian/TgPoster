@@ -1,7 +1,6 @@
 using Shouldly;
-using TgPoster.API.Domain.Services;
 
-namespace TgPoster.API.Domain.Tests;
+namespace Shared.Tests;
 
 public sealed class TimePostingServiceShould
 {

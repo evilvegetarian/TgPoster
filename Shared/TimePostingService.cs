@@ -1,6 +1,6 @@
-namespace TgPoster.API.Domain.Services;
+namespace Shared;
 
-internal sealed class TimePostingService
+public sealed class TimePostingService
 {
     public List<DateTimeOffset> GetTimeForPosting(
         int mediaCount,
