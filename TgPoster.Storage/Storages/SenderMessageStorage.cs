@@ -7,12 +7,12 @@ namespace TgPoster.Storage.Storages;
 
 public class SenderMessageStorage(PosterContext context) : ISenderMessageStorage
 {
-    public async Task<List<MessageDetail>> GetMessagesAsync()
+    public Task<List<MessageDetail>> GetMessagesAsync()
     {
         var time = DateTimeOffset.UtcNow;
         var plusMinute = time.AddMinutes(5);
 
-        var messages = await context.Schedules
+        return context.Schedules
             .Where(x => x.Messages.Any(m => m.TimePosting > time
                                             && m.TimePosting <= plusMinute
                                             && m.Status == MessageStatus.Register))
@@ -21,9 +21,6 @@ public class SenderMessageStorage(PosterContext context) : ISenderMessageStorage
                 ChannelId = x.ChannelId,
                 Api = x.TelegramBot.ApiTelegram,
                 MessageDto = x.Messages
-                    .Where(m => m.TimePosting > time
-                                && m.TimePosting <= plusMinute
-                                && m.Status == MessageStatus.Register)
                     .Select(m => new MessageDto
                     {
                         Id = m.Id,
@@ -38,24 +35,23 @@ public class SenderMessageStorage(PosterContext context) : ISenderMessageStorage
                     }).ToList()
             })
             .ToListAsync();
-        var messageIds = messages
-            .SelectMany(x => x.MessageDto
-                .Select(m => m.Id))
-            .ToList();
-        if (messageIds.Any())
-        {
-            await context.Messages
-                .Where(m => messageIds.Contains(m.Id))
-                .ExecuteUpdateAsync(m => m.SetProperty(msg => msg.Status, MessageStatus.InHandle));
-        }
+    }
 
-        return messages;
+    public Task UpdateStatusInHandleMessageAsync(List<Guid> ids)
+    {
+        return context.Messages
+            .Where(m => ids.Contains(m.Id))
+            .ExecuteUpdateAsync(m =>
+                m.SetProperty(msg => msg.Status, MessageStatus.InHandle)
+            );
     }
 
     public Task UpdateStatusMessageAsync(Guid id)
     {
         return context.Messages
             .Where(m => m.Id == id)
-            .ExecuteUpdateAsync(m => m.SetProperty(msg => msg.Status, MessageStatus.Send));
+            .ExecuteUpdateAsync(m =>
+                m.SetProperty(msg => msg.Status, MessageStatus.Send)
+            );
     }
 }

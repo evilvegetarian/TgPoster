@@ -14,13 +14,13 @@ internal class ParseChannelConsumer(
     {
         try
         {
-            logger.LogInformation($"Parse channel consumed: {context.Message.Id}");
+            logger.LogInformation("Получил запрос на парсинг канала: {Id}", context.Message.Id);
             await parseChannelUseCase.Handle(context.Message.Id, CancellationToken.None);
-            logger.LogInformation($"Parse channel consumed2 {context.Message.Id}");
+            logger.LogInformation("Спарсил канал: {Id}", context.Message.Id);
         }
         catch (Exception e)
         {
-            Console.WriteLine(e);
+            logger.LogError("Ошибка во время попытки спарсить канал: {Id} Ошибка: {ex}", context.Message.Id, e.Message);
         }
     }
 }

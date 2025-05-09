@@ -8,11 +8,11 @@ namespace TgPoster.Storage.Storages;
 
 internal class ParseChannelUseCaseStorage(PosterContext context, GuidFactory guidFactory) : IParseChannelUseCaseStorage
 {
-    public Task<Parameters?> GetChannelParsingParametersAsync(Guid id, CancellationToken cancellationToken)
+    public Task<ParametersDto?> GetChannelParsingParametersAsync(Guid id, CancellationToken ct)
     {
         return context.ChannelParsingParameters
             .Where(x => x.Id == id)
-            .Select(ch => new Parameters
+            .Select(ch => new ParametersDto
             {
                 Token = ch.Schedule.TelegramBot.ApiTelegram,
                 ChatId = ch.Schedule.TelegramBot.ChatId,
@@ -24,12 +24,13 @@ internal class ParseChannelUseCaseStorage(PosterContext context, GuidFactory gui
                 LastParsedId = ch.LastParseId,
                 ToDate = ch.DateTo,
                 IsNeedVerified = ch.NeedVerifiedPosts,
-                ScheduleId = ch.ScheduleId
+                ScheduleId = ch.ScheduleId,
+                CheckNewPosts = ch.CheckNewPosts
             })
-            .FirstOrDefaultAsync(cancellationToken);
+            .FirstOrDefaultAsync(ct);
     }
 
-    public Task CreateMessagesAsync(List<MessageDto> messages, CancellationToken cancellationToken)
+    public Task CreateMessagesAsync(List<MessageDto> messages, CancellationToken ct)
     {
         var message = messages.Select(x =>
         {
@@ -41,7 +42,7 @@ internal class ParseChannelUseCaseStorage(PosterContext context, GuidFactory gui
                 ScheduleId = x.ScheduleId,
                 IsVerified = !x.IsNeedVerified,
                 Status = MessageStatus.Register,
-                TimePosting = DateTimeOffset.MinValue,
+                TimePosting = x.TimePosting,
                 IsTextMessage = x.Text.IsTextMessage(),
                 MessageFiles = x.Media.Select<MediaDto, MessageFile>(m =>
                 {
@@ -68,28 +69,58 @@ internal class ParseChannelUseCaseStorage(PosterContext context, GuidFactory gui
             };
         });
 
-        context.Messages.AddRangeAsync(message, cancellationToken);
-        return context.SaveChangesAsync(cancellationToken);
+        context.Messages.AddRangeAsync(message, ct);
+        return context.SaveChangesAsync(ct);
     }
 
-    public Task UpdateChannelParsingParametersAsync(Guid id, int offsetId, CancellationToken cancellationToken)
+    public Task UpdateChannelParsingParametersAsync(Guid id, int offsetId, bool checkNewPosts, CancellationToken ct)
     {
+        var status = checkNewPosts
+            ? ParsingStatus.Waiting
+            : ParsingStatus.Finished;
         return context.ChannelParsingParameters
             .Where(x => x.Id == id)
             .ExecuteUpdateAsync(updater =>
                     updater
-                        .SetProperty(x => x.Status, ParsingStatus.Waiting)
+                        .SetProperty(x => x.Status, status)
                         .SetProperty(x => x.LastParseId, offsetId),
-                cancellationToken);
+                ct);
     }
 
-    public Task UpdateInHandleStatusAsync(Guid id, CancellationToken cancellationToken)
+    public Task UpdateInHandleStatusAsync(Guid id, CancellationToken ct)
     {
         return context.ChannelParsingParameters
             .Where(x => x.Id == id)
             .ExecuteUpdateAsync(updater =>
                     updater
                         .SetProperty(x => x.Status, ParsingStatus.InHandle),
-                cancellationToken);
+                ct);
+    }
+
+    public Task UpdateErrorStatusAsync(Guid id, CancellationToken ct)
+    {
+        return context.ChannelParsingParameters
+            .Where(x => x.Id == id)
+            .ExecuteUpdateAsync(updater =>
+                    updater
+                        .SetProperty(x => x.Status, ParsingStatus.Failed),
+                ct);
+    }
+
+    public Task<Dictionary<DayOfWeek, List<TimeOnly>>> GetScheduleTimeAsync(Guid scheduleId, CancellationToken ct)
+    {
+        return context.Days
+            .Where(x => x.ScheduleId == scheduleId)
+            .ToDictionaryAsync(x => x.DayOfWeek, x => x.TimePostings.ToList(), ct);
+    }
+
+    public Task<List<DateTimeOffset>> GetExistMessageTimePostingAsync(Guid scheduleId, CancellationToken ct)
+    {
+        return context.Messages
+            .Where(x => x.ScheduleId == scheduleId)
+            .Where(x => x.TimePosting > DateTimeOffset.UtcNow)
+            .Where(x => x.Status == MessageStatus.Register)
+            .Select(x => x.TimePosting)
+            .ToListAsync(ct);
     }
 }

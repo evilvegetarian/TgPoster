@@ -89,13 +89,37 @@ public class ParseChannelUseCaseStorageShould(StorageTestFixture fixture) : ICla
     {
         var cpp = await helper.CreateChannelParsingParametersAsync();
         var offsetId = 777;
-        await sut.UpdateChannelParsingParametersAsync(cpp.Id, offsetId, CancellationToken.None);
+        await sut.UpdateChannelParsingParametersAsync(cpp.Id, offsetId, true, CancellationToken.None);
 
         var updated = await context.ChannelParsingParameters
             .AsNoTracking()
             .FirstOrDefaultAsync(x => x.Id == cpp.Id);
         updated!.LastParseId.ShouldBe(offsetId);
         updated.Status.ShouldBe(ParsingStatus.Waiting);
+    }
+    
+    [Fact]
+    public async Task UpdateChannelParsingParameters_WithCheckNewPosts_ShouldParsingWaiting()
+    {
+        var cpp = await helper.CreateChannelParsingParametersAsync();
+        await sut.UpdateChannelParsingParametersAsync(cpp.Id, int.MaxValue, true, CancellationToken.None);
+
+        var updated = await context.ChannelParsingParameters
+            .AsNoTracking()
+            .FirstOrDefaultAsync(x => x.Id == cpp.Id);
+        updated!.Status.ShouldBe(ParsingStatus.Waiting);
+    }
+    
+    [Fact]
+    public async Task UpdateChannelParsingParameters_WithNotCheckNewPosts_ShouldParsingFinished()
+    {
+        var cpp = await helper.CreateChannelParsingParametersAsync();
+        await sut.UpdateChannelParsingParametersAsync(cpp.Id, int.MaxValue, false, CancellationToken.None);
+
+        var updated = await context.ChannelParsingParameters
+            .AsNoTracking()
+            .FirstOrDefaultAsync(x => x.Id == cpp.Id);
+        updated!.Status.ShouldBe(ParsingStatus.Finished);
     }
 
     [Fact]

@@ -31,7 +31,8 @@ public class SenderMessageWorker(
                     x => x.SendMessageAsync(message.Id, token, detail.ChannelId, message),
                     message.TimePosting);
                 logger.LogInformation(
-                    $"Сообщение для чата {detail.ChannelId} запланировано на {message.TimePosting} сек.");
+                    "Сообщение для чата {сhannelId} запланировано на {timePosting} сек.", detail.ChannelId,
+                    message.TimePosting);
             }
         }
     }
@@ -69,6 +70,6 @@ public class SenderMessageWorker(
         }
 
         await storage.UpdateStatusMessageAsync(messageId);
-        logger.LogInformation($"Отправлено сообщение в чат {chatId}");
+        logger.LogInformation("Отправлено сообщение в чат {chatId}", chatId);
     }
 }

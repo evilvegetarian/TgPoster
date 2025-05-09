@@ -26,9 +26,9 @@ public static class DependencyInjection
 
         services.AddMassTransient(configuration);
 
-        services.AddHangfire(configuration =>
+        services.AddHangfire(cfg =>
         {
-            configuration.SetDataCompatibilityLevel(CompatibilityLevel.Version_170)
+            cfg.SetDataCompatibilityLevel(CompatibilityLevel.Version_170)
                 .UseSimpleAssemblyNameTypeSerializer()
                 .UseRecommendedSerializerSettings()
                 .UseMemoryStorage();
@@ -37,13 +37,14 @@ public static class DependencyInjection
         services.AddScoped<SenderMessageWorker>();
         services.AddScoped<ParseChannelWorker>();
         services.AddScoped<ParseChannelUseCase>();
+        services.AddScoped<TimePostingService>();
         services.AddScoped<VideoService>();
 
         return services;
     }
 
 
-    public static void AddMassTransient(this IServiceCollection services, IConfiguration configuration)
+    private static void AddMassTransient(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddMassTransit(x =>
         {
@@ -63,8 +64,6 @@ public static class DependencyInjection
     {
         using var scope = host.Services.CreateScope();
         var recurringJobManager = scope.ServiceProvider.GetRequiredService<IRecurringJobManager>();
-
-        //BackgroundJob.Enqueue<ExampleClasssWOrker>(worker => worker.ProcessMessagesAsync());
 
         //recurringJobManager.AddOrUpdate<SenderMessageWorker>(
         //    "process-sender-message-job",

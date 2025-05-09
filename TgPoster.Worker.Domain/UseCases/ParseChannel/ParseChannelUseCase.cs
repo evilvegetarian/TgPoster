@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Logging;
 using Security.Interfaces;
 using Shared;
 using Telegram.Bot;
@@ -11,38 +12,25 @@ using Message = TL.Message;
 
 namespace TgPoster.Worker.Domain.UseCases.ParseChannel;
 
-public class Parameters
-{
-    public required string ChannelName { get; set; }
-    public bool IsNeedVerified { get; set; }
-    public required string Token { get; set; }
-    public long ChatId { get; set; }
-    public bool DeleteText { get; set; }
-    public bool DeleteMedia { get; set; }
-    public DateTime? FromDate { get; set; }
-    public DateTime? ToDate { get; set; }
-    public string[] AvoidWords { get; set; } = [];
-    public int? LastParsedId { get; set; }
-    public Guid ScheduleId { get; set; }
-}
-
 internal class ParseChannelUseCase(
     VideoService videoService,
     IParseChannelUseCaseStorage storage,
     TelegramSettings settings,
     TelegramOptions telegramOptions,
     ICryptoAES cryptoAes,
-    TimePostingService timePostingService)
+    TimePostingService timePostingService,
+    ILogger<ParseChannelUseCase> logger)
 {
-    public async Task Handle(Guid id, CancellationToken cancellationToken = default)
+    public async Task Handle(Guid id, CancellationToken ct)
     {
-        var parametrs = await storage.GetChannelParsingParametersAsync(id, cancellationToken);
+        var parametrs = await storage.GetChannelParsingParametersAsync(id, ct);
         if (parametrs is null)
         {
-            throw new Exception();
+            logger.LogError("Параметров нет, интересно почему..... Id: {id}", id);
+            return;
         }
 
-        await storage.UpdateInHandleStatusAsync(id, cancellationToken);
+        await storage.UpdateInHandleStatusAsync(id, ct);
 
         var channelName = parametrs.ChannelName;
         var isNeedVerified = parametrs.IsNeedVerified;
@@ -55,8 +43,8 @@ internal class ParseChannelUseCase(
         var deleteMedia = parametrs.DeleteMedia;
         var scheduleId = parametrs.ScheduleId;
         var lastParseId = parametrs.LastParsedId;
+        var checkNewPosts = parametrs.CheckNewPosts;
         //TODO: Добавить параметр перемешивания постов
-
 
         var telegramBot = new TelegramBotClient(token);
         await using var client = new Client(Settings);
@@ -77,23 +65,29 @@ internal class ParseChannelUseCase(
                 offset_id: offset
             );
 
-            var messageFiltred = history.Messages
+            var messageFiltered = history.Messages
                 .Where(x => fromDate is null || x.Date >= fromDate)
                 .OfType<Message>()
                 .Where(x => lastParseId is null || x.ID > lastParseId)
                 .ToList();
 
-            allMessages.AddRange(messageFiltred);
-            if (tempLastParseId < history.Messages.Max(x => x.ID))
+            allMessages.AddRange(messageFiltered);
+
+            if (history.Messages.Length is not 0)
             {
-                tempLastParseId = history.Messages.Max(x => x.ID);
+                var maxId = history.Messages.Max(x => x.ID);
+                if (tempLastParseId < maxId)
+                {
+                    tempLastParseId = maxId;
+                }
             }
 
-            offset = history.Messages.Last().ID;
             if (history.Messages.Length is 0)
             {
                 break;
             }
+
+            offset = history.Messages.Last().ID;
 
             if (history.Messages.Any(x => x.ID < lastParseId))
             {
@@ -129,17 +123,24 @@ internal class ParseChannelUseCase(
             }
         }
 
+        var avoids = groupedMessages
+            .Where(group => !group.Value.Any(
+                msg => msg.message != null
+                       && avoidWords.Any(word => msg.message.Contains(word, StringComparison.OrdinalIgnoreCase))
+            )).ToList();
+
         var result = new List<MessageDto>();
-        foreach (var al in groupedMessages)
+        foreach (var al in avoids)
         {
             var messagedto = new MessageDto
             {
                 IsNeedVerified = isNeedVerified,
                 ScheduleId = scheduleId
             };
+
             foreach (var message in al.Value)
             {
-                await Task.Delay(1000, cancellationToken);
+                await Task.Delay(1000, ct);
                 if (message.media is not null && !deleteMedia)
                 {
                     if (message.media is MessageMediaPhoto { photo: Photo photo })
@@ -150,12 +151,12 @@ internal class ParseChannelUseCase(
                         stream.Position = 0;
                         var photoMessage = await telegramBot.SendPhoto(chatId,
                             new InputFileStream(stream),
-                            cancellationToken: cancellationToken);
+                            cancellationToken: ct);
                         var photoId = photoMessage.Photo?
                             .OrderByDescending(x => x.FileSize)
                             .Select(x => x.FileId)
                             .FirstOrDefault()!;
-                        await telegramBot.DeleteMessage(chatId, photoMessage.MessageId, cancellationToken);
+                        await telegramBot.DeleteMessage(chatId, photoMessage.MessageId, ct);
                         messagedto.Media.Add(new MediaDto
                         {
                             FileId = photoId,
@@ -185,7 +186,7 @@ internal class ParseChannelUseCase(
                                 chatId,
                                 album,
                                 disableNotification: true,
-                                cancellationToken: cancellationToken);
+                                cancellationToken: ct);
                             var previewPhotoIds = messages
                                 .Select(m => m.Photo?
                                     .OrderByDescending(x => x.FileSize)
@@ -198,7 +199,7 @@ internal class ParseChannelUseCase(
                                 .Select(m => m.Video?.FileId).FirstOrDefault();
                             foreach (var mess in messages)
                             {
-                                await telegramBot.DeleteMessage(chatId, mess.MessageId, cancellationToken);
+                                await telegramBot.DeleteMessage(chatId, mess.MessageId, ct);
                             }
 
                             messagedto.Media.Add(new MediaDto
@@ -216,11 +217,7 @@ internal class ParseChannelUseCase(
                 }
             }
 
-            if (messagedto.Media.Count > 0
-                || (messagedto.Text is not null
-                    && !avoidWords
-                        .Any(w => messagedto.Text
-                            .Contains(w, StringComparison.OrdinalIgnoreCase))))
+            if (messagedto.Media.Count > 0 || messagedto.Text is not null)
             {
                 result.Add(messagedto);
             }
@@ -228,11 +225,20 @@ internal class ParseChannelUseCase(
 
         if (!isNeedVerified)
         {
+            var existTime = await storage.GetExistMessageTimePostingAsync(scheduleId, ct);
+            var scheduleTime = await storage.GetScheduleTimeAsync(scheduleId, ct);
+            var postingTime = timePostingService.GetTimeForPosting(result.Count, scheduleTime, existTime);
+            if (postingTime.Count != 0)
+            {
+                for (var t = 0; t < Math.Min(result.Count, postingTime.Count); t++)
+                {
+                    result[t].TimePosting = postingTime[t];
+                }
+            }
         }
 
-
-        await storage.CreateMessagesAsync(result, cancellationToken);
-        await storage.UpdateChannelParsingParametersAsync(id, tempLastParseId, cancellationToken);
+        await storage.CreateMessagesAsync(result, ct);
+        await storage.UpdateChannelParsingParametersAsync(id, tempLastParseId, checkNewPosts, ct);
     }
 
     private string? Settings(string key)
@@ -245,27 +251,4 @@ internal class ParseChannelUseCase(
             _ => null
         };
     }
-}
-
-public interface IParseChannelUseCaseStorage
-{
-    Task<Parameters?> GetChannelParsingParametersAsync(Guid id, CancellationToken cancellationToken);
-    Task CreateMessagesAsync(List<MessageDto> messages, CancellationToken cancellationToken);
-    Task UpdateChannelParsingParametersAsync(Guid id, int offsetId, CancellationToken cancellationToken);
-    Task UpdateInHandleStatusAsync(Guid id, CancellationToken cancellationToken);
-}
-
-public class MessageDto
-{
-    public string? Text { get; set; }
-    public Guid ScheduleId { get; set; }
-    public bool IsNeedVerified { get; set; }
-    public List<MediaDto> Media { get; set; } = [];
-}
-
-public class MediaDto
-{
-    public required string MimeType { get; set; }
-    public required string FileId { get; set; }
-    public List<string> PreviewPhotoIds { get; set; } = [];
 }
