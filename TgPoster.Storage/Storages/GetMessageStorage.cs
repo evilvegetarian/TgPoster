@@ -8,14 +8,14 @@ namespace TgPoster.Storage.Storages;
 
 public class GetMessageStorage(PosterContext context) : IGetMessageStorage
 {
-    public async Task<MessageDto?> GetMessagesAsync(Guid id, Guid userId, CancellationToken cancellationToken)
+    public async Task<MessageDto?> GetMessagesAsync(Guid id, Guid userId, CancellationToken ct)
     {
         var message = await context.Messages
             .Include(x => x.MessageFiles)
             .Include(x => x.Schedule)
             .Where(sch => sch.Schedule.UserId == userId)
             .Where(mess => mess.Id == id)
-            .FirstOrDefaultAsync(cancellationToken);
+            .FirstOrDefaultAsync(ct);
         if (message == null)
         {
             return null;

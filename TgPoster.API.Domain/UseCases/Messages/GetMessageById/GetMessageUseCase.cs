@@ -14,21 +14,21 @@ internal sealed class GetMessageUseCase(
     FileService fileService
 ) : IRequestHandler<GetMessageQuery, MessageResponse>
 {
-    public async Task<MessageResponse> Handle(GetMessageQuery request, CancellationToken cancellationToken)
+    public async Task<MessageResponse> Handle(GetMessageQuery request, CancellationToken ct)
     {
         var userId = identity.Current.UserId;
-        var message = await storage.GetMessagesAsync(request.Id, userId, cancellationToken);
+        var message = await storage.GetMessagesAsync(request.Id, userId, ct);
 
         if (message == null)
         {
             throw new MessageNotFoundException();
         }
 
-        var token = await tokenService.GetTokenByScheduleIdAsync(message.ScheduleId, cancellationToken);
+        var token = await tokenService.GetTokenByScheduleIdAsync(message.ScheduleId, ct);
 
         var bot = new TelegramBotClient(token);
 
-        var filesCacheInfos = await fileService.ProcessFilesAsync(bot, message.Files, cancellationToken);
+        var filesCacheInfos = await fileService.ProcessFilesAsync(bot, message.Files, ct);
         return new MessageResponse
         {
             Id = message.Id,

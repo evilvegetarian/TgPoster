@@ -9,13 +9,13 @@ public interface ICreateMessagesFromFilesUseCaseStorage
 
     Task<Dictionary<DayOfWeek, List<TimeOnly>>> GetScheduleTimeAsync(
         Guid scheduleId,
-        CancellationToken cancellationToken
+        CancellationToken ct
     );
 
     Task CreateMessagesAsync(
         Guid requestScheduleId,
         List<MediaFileResult> files,
         List<DateTimeOffset> postingTime,
-        CancellationToken cancellationToken
+        CancellationToken ct
     );
 }

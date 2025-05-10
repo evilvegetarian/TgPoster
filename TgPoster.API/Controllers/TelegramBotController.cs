@@ -15,30 +15,30 @@ public class TelegramBotController(ISender sender) : ControllerBase
     ///     Добавление бота
     /// </summary>
     /// <param name="botRequest"></param>
-    /// <param name="cancellationToken"></param>
+    /// <param name="ct"></param>
     /// <returns></returns>
     [HttpPost(Routes.TelegramBot.Create)]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(CreateTelegramBotResponse))]
     [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
     [ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
-    public async Task<IActionResult> Create(CreateTelegramBotRequest botRequest, CancellationToken cancellationToken)
+    public async Task<IActionResult> Create(CreateTelegramBotRequest botRequest, CancellationToken ct)
     {
-        var response = await sender.Send(new CreateTelegramBotCommand(botRequest.Token), cancellationToken);
+        var response = await sender.Send(new CreateTelegramBotCommand(botRequest.Token), ct);
         return Ok(response);
     }
 
     /// <summary>
     ///     Получение ботов
     /// </summary>
-    /// <param name="cancellationToken"></param>
+    /// <param name="ct"></param>
     /// <returns></returns>
     [HttpGet(Routes.TelegramBot.List)]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(List<TelegramBotResponse>))]
     [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
     [ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
-    public async Task<IActionResult> List(CancellationToken cancellationToken)
+    public async Task<IActionResult> List(CancellationToken ct)
     {
-        var response = await sender.Send(new ListTelegramBotQuery(), cancellationToken);
+        var response = await sender.Send(new ListTelegramBotQuery(), ct);
         return Ok(response);
     }
 }

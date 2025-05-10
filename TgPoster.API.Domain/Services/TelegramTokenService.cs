@@ -13,11 +13,11 @@ public class TelegramTokenService(
 {
     public async Task<string> GetTokenByScheduleIdAsync(
         Guid scheduleId,
-        CancellationToken cancellationToken
+        CancellationToken ct
     )
     {
         var userId = identity.Current.UserId;
-        var encryptedToken = await storage.GetApiTokenAsync(scheduleId, userId, cancellationToken);
+        var encryptedToken = await storage.GetApiTokenAsync(scheduleId, userId, ct);
         if (encryptedToken == null)
         {
             throw new TelegramNotFoundException();

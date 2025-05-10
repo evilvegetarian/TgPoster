@@ -13,9 +13,9 @@ internal sealed class SignInUseCase(
     IHttpContextAccessor httpContext
 ) : IRequestHandler<SignInCommand, SignInResponse>
 {
-    public async Task<SignInResponse> Handle(SignInCommand request, CancellationToken cancellationToken)
+    public async Task<SignInResponse> Handle(SignInCommand request, CancellationToken ct)
     {
-        var user = await storage.GetUserAsync(request.Login, cancellationToken);
+        var user = await storage.GetUserAsync(request.Login, ct);
         if (user == null)
         {
             throw new UserNotFoundException();
@@ -32,7 +32,7 @@ internal sealed class SignInUseCase(
 
         //Чтобы проще жилось
         jwtProvider.AddTokenToCookie(httpContext.HttpContext!, accessToken);
-        await storage.CreateRefreshSessionAsync(user.Id, refreshToken, refreshExpireTime, cancellationToken);
+        await storage.CreateRefreshSessionAsync(user.Id, refreshToken, refreshExpireTime, ct);
 
         return new SignInResponse
         {

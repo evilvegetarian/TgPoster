@@ -6,15 +6,15 @@ namespace TgPoster.Storage.Storages;
 
 internal sealed class UpdateTimeStorage(PosterContext context) : IUpdateTimeStorage
 {
-    public Task<bool> DayExistAsync(Guid id, CancellationToken cancellationToken)
+    public Task<bool> DayExistAsync(Guid id, CancellationToken ct)
     {
-        return context.Days.AnyAsync(x => x.Id == id, cancellationToken);
+        return context.Days.AnyAsync(x => x.Id == id, ct);
     }
 
-    public async Task UpdateTimeDayAsync(Guid id, List<TimeOnly> times, CancellationToken cancellationToken)
+    public async Task UpdateTimeDayAsync(Guid id, List<TimeOnly> times, CancellationToken ct)
     {
-        var entity = await context.Days.FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
+        var entity = await context.Days.FirstOrDefaultAsync(x => x.Id == id, ct);
         entity!.TimePostings = times;
-        await context.SaveChangesAsync(cancellationToken);
+        await context.SaveChangesAsync(ct);
     }
 }

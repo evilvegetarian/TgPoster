@@ -6,13 +6,13 @@ namespace TgPoster.Storage.Storages;
 
 internal sealed class ListScheduleStorage(PosterContext context) : IListScheduleStorage
 {
-    public Task<List<ScheduleResponse>> GetListScheduleAsync(Guid userId, CancellationToken cancellationToken)
+    public Task<List<ScheduleResponse>> GetListScheduleAsync(Guid userId, CancellationToken ct)
     {
         return context.Schedules.Where(x => x.UserId == userId)
             .Select(x => new ScheduleResponse
             {
                 Id = x.Id,
                 Name = x.Name
-            }).ToListAsync(cancellationToken);
+            }).ToListAsync(ct);
     }
 }

@@ -13,15 +13,15 @@ public class FileController(ISender sender) : ControllerBase
     ///     Получение файла по Id
     /// </summary>
     /// <param name="id"></param>
-    /// <param name="cancellationToken"></param>
+    /// <param name="ct"></param>
     /// <returns></returns>
     [HttpGet(Routes.File.GetById)]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(FileContentResult))]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<IActionResult> Get(Guid id, CancellationToken cancellationToken)
+    public async Task<IActionResult> Get(Guid id, CancellationToken ct)
     {
-        var response = await sender.Send(new GetFileCommand(id), cancellationToken);
+        var response = await sender.Send(new GetFileCommand(id), ct);
         return File(response.Data, response.ContentType);
     }
 }

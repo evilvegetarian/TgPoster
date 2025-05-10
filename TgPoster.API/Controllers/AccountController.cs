@@ -14,7 +14,7 @@ public class AccountController(ISender sender) : ControllerBase
     ///     Регистрация пользователя
     /// </summary>
     /// <param name="request"></param>
-    /// <param name="cancellationToken"></param>
+    /// <param name="ct"></param>
     /// <returns></returns>
     [HttpPost(Routes.Account.SignOn)]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(SignOnResponse))]
@@ -22,10 +22,10 @@ public class AccountController(ISender sender) : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
     public async Task<IActionResult> SignOn(
         [FromBody] SignOnRequest request,
-        CancellationToken cancellationToken
+        CancellationToken ct
     )
     {
-        var response = await sender.Send(new SignOnCommand(request.Login, request.Password), cancellationToken);
+        var response = await sender.Send(new SignOnCommand(request.Login, request.Password), ct);
         return Ok(response);
     }
 
@@ -33,15 +33,15 @@ public class AccountController(ISender sender) : ControllerBase
     ///     Зайти в аккаунт
     /// </summary>
     /// <param name="request"></param>
-    /// <param name="cancellationToken"></param>
+    /// <param name="ct"></param>
     /// <returns></returns>
     [HttpPost(Routes.Account.SignIn)]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(SignInResponse))]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<IActionResult> SignIn([FromBody] SignInRequest request, CancellationToken cancellationToken)
+    public async Task<IActionResult> SignIn([FromBody] SignInRequest request, CancellationToken ct)
     {
-        var response = await sender.Send(new SignInCommand(request.Login, request.Password), cancellationToken);
+        var response = await sender.Send(new SignInCommand(request.Login, request.Password), ct);
         return Ok(response);
     }
 }

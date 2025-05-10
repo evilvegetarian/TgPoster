@@ -7,14 +7,14 @@ namespace TgPoster.API.Domain.UseCases.Days.CreateDays;
 internal class CreateDaysUseCase(ICreateDaysStorage storage, IIdentityProvider identity)
     : IRequestHandler<CreateDaysCommand>
 {
-    public async Task Handle(CreateDaysCommand command, CancellationToken cancellationToken)
+    public async Task Handle(CreateDaysCommand command, CancellationToken ct)
     {
-        if (!await storage.ScheduleExistAsync(command.ScheduleId, identity.Current.UserId, cancellationToken))
+        if (!await storage.ScheduleExistAsync(command.ScheduleId, identity.Current.UserId, ct))
         {
             throw new ScheduleNotFoundException();
         }
 
-        var days = await storage.GetDayOfWeekAsync(command.ScheduleId, cancellationToken);
+        var days = await storage.GetDayOfWeekAsync(command.ScheduleId, ct);
         if (command.DayOfWeekForms.Any(x => days.Contains(x.DayOfWeekPosting)))
         {
             throw new ArgumentException();
@@ -38,6 +38,6 @@ internal class CreateDaysUseCase(ICreateDaysStorage storage, IIdentityProvider i
             daysList.Add(newDay);
         }
 
-        await storage.CreateDaysAsync(daysList, cancellationToken);
+        await storage.CreateDaysAsync(daysList, ct);
     }
 }

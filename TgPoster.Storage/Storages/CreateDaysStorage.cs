@@ -7,14 +7,14 @@ namespace TgPoster.Storage.Storages;
 
 internal sealed class CreateDaysStorage(PosterContext context, GuidFactory guidFactory) : ICreateDaysStorage
 {
-    public async Task<bool> ScheduleExistAsync(Guid scheduleId, Guid userId, CancellationToken cancellationToken)
+    public async Task<bool> ScheduleExistAsync(Guid scheduleId, Guid userId, CancellationToken ct)
     {
         return await context.Schedules.AnyAsync(x =>
                 x.Id == scheduleId && x.UserId == userId,
-            cancellationToken);
+            ct);
     }
 
-    public async Task CreateDaysAsync(List<CreateDayDto> days, CancellationToken cancellationToken)
+    public async Task CreateDaysAsync(List<CreateDayDto> days, CancellationToken ct)
     {
         var daysToAdd = days.Select(x => new Day
         {
@@ -23,15 +23,15 @@ internal sealed class CreateDaysStorage(PosterContext context, GuidFactory guidF
             DayOfWeek = x.DayOfWeek,
             TimePostings = x.TimePostings
         }).ToList();
-        await context.Days.AddRangeAsync(daysToAdd, cancellationToken);
-        await context.SaveChangesAsync(cancellationToken);
+        await context.Days.AddRangeAsync(daysToAdd, ct);
+        await context.SaveChangesAsync(ct);
     }
 
-    public async Task<List<DayOfWeek>> GetDayOfWeekAsync(Guid scheduleId, CancellationToken cancellationToken)
+    public async Task<List<DayOfWeek>> GetDayOfWeekAsync(Guid scheduleId, CancellationToken ct)
     {
         return await context.Days
             .Where(x => x.ScheduleId == scheduleId)
             .Select(x => x.DayOfWeek)
-            .ToListAsync(cancellationToken);
+            .ToListAsync(ct);
     }
 }

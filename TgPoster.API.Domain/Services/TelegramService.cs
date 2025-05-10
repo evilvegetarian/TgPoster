@@ -11,16 +11,16 @@ internal sealed class TelegramService(VideoService videoService)
         TelegramBotClient botClient,
         List<IFormFile> files,
         long chatIdWithBotUser,
-        CancellationToken cancellationToken
+        CancellationToken ct
     )
     {
-        var chat = await botClient.GetChat(chatIdWithBotUser, cancellationToken);
+        var chat = await botClient.GetChat(chatIdWithBotUser, ct);
 
         List<MediaFileResult> media = [];
         foreach (var file in files)
         {
             await using var memoryStream = new MemoryStream();
-            await file.CopyToAsync(memoryStream, cancellationToken);
+            await file.CopyToAsync(memoryStream, ct);
             memoryStream.Position = 0;
             var inputFile = new InputFileStream(memoryStream, file.FileName);
             var type = file.GetFileType();
@@ -38,7 +38,7 @@ internal sealed class TelegramService(VideoService videoService)
                         chat.Id,
                         album,
                         disableNotification: true,
-                        cancellationToken: cancellationToken);
+                        cancellationToken: ct);
                     var previewPhotoIds = messages
                         .Where(m => m.Photo != null && m.Photo.Length != 0)
                         .Select(m => m.Photo!.OrderByDescending(x => x.FileSize)
@@ -51,7 +51,7 @@ internal sealed class TelegramService(VideoService videoService)
                         .Select(m => m.Video?.FileId).FirstOrDefault();
                     foreach (var mess in messages)
                     {
-                        await botClient.DeleteMessage(chat.Id, mess.MessageId, cancellationToken);
+                        await botClient.DeleteMessage(chat.Id, mess.MessageId, ct);
                     }
 
                     media.Add(new MediaFileResult
@@ -67,7 +67,7 @@ internal sealed class TelegramService(VideoService videoService)
                         chat.Id,
                         inputFile,
                         disableNotification: true,
-                        cancellationToken: cancellationToken);
+                        cancellationToken: ct);
                     var photoId = message.Photo?
                         .OrderByDescending(x => x.FileSize)
                         .Select(x => x.FileId)
@@ -77,7 +77,7 @@ internal sealed class TelegramService(VideoService videoService)
                         MimeType = file.ContentType,
                         FileId = photoId!
                     });
-                    await botClient.DeleteMessage(chat.Id, message.MessageId, cancellationToken);
+                    await botClient.DeleteMessage(chat.Id, message.MessageId, ct);
                     break;
 
                 case FileTypes.NoOne:

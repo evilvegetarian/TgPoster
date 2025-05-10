@@ -16,9 +16,9 @@ internal class ParseChannelUseCase(
     IBus bus)
     : IRequestHandler<ParseChannelCommand>
 {
-    public async Task Handle(ParseChannelCommand request, CancellationToken cancellationToken)
+    public async Task Handle(ParseChannelCommand request, CancellationToken ct)
     {
-        var cryptoToken = await storage.GetTelegramTokenAsync(request.ScheduleId, cancellationToken);
+        var cryptoToken = await storage.GetTelegramTokenAsync(request.ScheduleId, ct);
         if (cryptoToken is null)
         {
             throw new ScheduleNotFoundException();
@@ -27,11 +27,11 @@ internal class ParseChannelUseCase(
         var token = cryptoAes.Decrypt(telegramOptions.SecretKey, cryptoToken);
         var bot = new TelegramBotClient(token);
         var channel = request.Channel.ConvertToTelegramHandle();
-        var chat = await bot.GetChat(channel, cancellationToken);
+        var chat = await bot.GetChat(channel, ct);
 
         var id = await storage.AddParseChannelParametersAsync(chat.Username!, request.AlwaysCheckNewPosts,
             request.ScheduleId, request.DeleteText, request.DeleteMedia, request.AvoidWords, request.NeedVerifiedPosts,
-            request.DateFrom, request.DateTo, cancellationToken);
-        await bus.Publish(new ParseChannelContract { Id = id }, cancellationToken);
+            request.DateFrom, request.DateTo, ct);
+        await bus.Publish(new ParseChannelContract { Id = id }, ct);
     }
 }

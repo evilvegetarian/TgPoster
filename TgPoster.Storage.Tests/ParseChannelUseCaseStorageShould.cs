@@ -97,7 +97,7 @@ public class ParseChannelUseCaseStorageShould(StorageTestFixture fixture) : ICla
         updated!.LastParseId.ShouldBe(offsetId);
         updated.Status.ShouldBe(ParsingStatus.Waiting);
     }
-    
+
     [Fact]
     public async Task UpdateChannelParsingParameters_WithCheckNewPosts_ShouldParsingWaiting()
     {
@@ -109,7 +109,7 @@ public class ParseChannelUseCaseStorageShould(StorageTestFixture fixture) : ICla
             .FirstOrDefaultAsync(x => x.Id == cpp.Id);
         updated!.Status.ShouldBe(ParsingStatus.Waiting);
     }
-    
+
     [Fact]
     public async Task UpdateChannelParsingParameters_WithNotCheckNewPosts_ShouldParsingFinished()
     {

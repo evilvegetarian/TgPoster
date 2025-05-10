@@ -12,8 +12,8 @@ public interface IParseChannelStorage
         bool needVerifiedPosts,
         DateTime? dateFrom,
         DateTime? dateTo,
-        CancellationToken cancellationToken
+        CancellationToken ct
     );
 
-    Task<string?> GetTelegramTokenAsync(Guid scheduleId, CancellationToken cancellationToken);
+    Task<string?> GetTelegramTokenAsync(Guid scheduleId, CancellationToken ct);
 }

@@ -14,14 +14,14 @@ internal sealed class ListMessageUseCase(
     FileService fileService
 ) : IRequestHandler<ListMessageQuery, List<MessageResponse>>
 {
-    public async Task<List<MessageResponse>> Handle(ListMessageQuery request, CancellationToken cancellationToken)
+    public async Task<List<MessageResponse>> Handle(ListMessageQuery request, CancellationToken ct)
     {
-        if (!await storage.ExistScheduleAsync(request.ScheduleId, cancellationToken))
+        if (!await storage.ExistScheduleAsync(request.ScheduleId, ct))
         {
             throw new ScheduleNotFoundException();
         }
 
-        var encryptedToken = await storage.GetApiTokenAsync(request.ScheduleId, cancellationToken);
+        var encryptedToken = await storage.GetApiTokenAsync(request.ScheduleId, ct);
         if (encryptedToken == null)
         {
             throw new TelegramNotFoundException();
@@ -30,11 +30,11 @@ internal sealed class ListMessageUseCase(
         var token = aes.Decrypt(options.SecretKey, encryptedToken);
 
         var bot = new TelegramBotClient(token);
-        var message = await storage.GetMessagesAsync(request.ScheduleId, cancellationToken);
+        var message = await storage.GetMessagesAsync(request.ScheduleId, ct);
         var messages = new List<MessageResponse>();
         foreach (var m in message)
         {
-            var filesCacheInfos = await fileService.ProcessFilesAsync(bot, m.Files, cancellationToken);
+            var filesCacheInfos = await fileService.ProcessFilesAsync(bot, m.Files, ct);
             messages.Add(new MessageResponse
             {
                 Id = m.Id,

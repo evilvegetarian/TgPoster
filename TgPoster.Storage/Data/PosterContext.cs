@@ -19,7 +19,7 @@ public class PosterContext(DbContextOptions<PosterContext> options) : DbContext(
     public DbSet<PhotoMessageFile> PhotoMessageFiles { get; set; }
     public DbSet<ChannelParsingParameters> ChannelParsingParameters { get; set; }
 
-    public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = new())
+    public override Task<int> SaveChangesAsync(CancellationToken ct = new())
     {
         var entries = ChangeTracker.Entries<BaseEntity>()
             .Where(e => e.State is EntityState.Added or EntityState.Modified or EntityState.Deleted);
@@ -48,7 +48,7 @@ public class PosterContext(DbContextOptions<PosterContext> options) : DbContext(
             }
         }
 
-        return base.SaveChangesAsync(cancellationToken);
+        return base.SaveChangesAsync(ct);
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

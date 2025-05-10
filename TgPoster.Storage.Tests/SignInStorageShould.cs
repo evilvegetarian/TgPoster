@@ -42,7 +42,8 @@ public class SignInStorageShould(StorageTestFixture fixture) : IClassFixture<Sto
     {
         var user = await helper.CreateUserAsync();
         var refreshToken = Guid.NewGuid();
-        await sut.CreateRefreshSessionAsync(user.Id, refreshToken, DateTimeOffset.UtcNow.AddDays(5), CancellationToken.None);
+        await sut.CreateRefreshSessionAsync(user.Id, refreshToken, DateTimeOffset.UtcNow.AddDays(5),
+            CancellationToken.None);
 
         var refreshSession =
             await context.RefreshSessions.Where(x => x.RefreshToken == refreshToken).FirstOrDefaultAsync();

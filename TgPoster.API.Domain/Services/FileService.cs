@@ -15,13 +15,13 @@ internal sealed class FileService(IMemoryCache memoryCache, FileExtensionContent
     /// </summary>
     /// <param name="botClient">Экземпляр TelegramBotClient для работы со скачиванием файлов.</param>
     /// <param name="fileDtos">Список DTO файлов для обработки.</param>
-    /// <param name="cancellationToken">Токен отмены операции.</param>
+    /// <param name="ct">Токен отмены операции.</param>
     /// <returns>Список объектов FilesCacheInfo с информацией по кешу.</returns>
     /// <exception cref="ArgumentOutOfRangeException">Если встречен неизвестный тип контента.</exception>
     public async Task<List<FilesCacheInfo>> ProcessFilesAsync(
         TelegramBotClient botClient,
         List<FileDto> fileDtos,
-        CancellationToken cancellationToken
+        CancellationToken ct
     )
     {
         var filesCacheInfoList = new List<FilesCacheInfo>();
@@ -42,7 +42,7 @@ internal sealed class FileService(IMemoryCache memoryCache, FileExtensionContent
                     var cacheIdentifier = await DownloadAndCacheFileAsync(
                         botClient,
                         fileDto.TgFileId,
-                        cancellationToken);
+                        ct);
                     cacheInfo.FileCacheId = cacheIdentifier;
                     break;
                 }
@@ -54,7 +54,7 @@ internal sealed class FileService(IMemoryCache memoryCache, FileExtensionContent
                         var previewCacheId = await DownloadAndCacheFileAsync(
                             botClient,
                             previewFileId,
-                            cancellationToken);
+                            ct);
                         cacheInfo.PreviewCacheIds.Add(previewCacheId);
                     }
 
@@ -79,16 +79,16 @@ internal sealed class FileService(IMemoryCache memoryCache, FileExtensionContent
     /// <param name="botClient">Экземпляр TelegramBotClient.</param>
     /// <param name="telegramFileId">Идентификатор файла в Telegram.</param>
     /// <param name="mimeType">MIME-тип файла.</param>
-    /// <param name="cancellationToken">Токен отмены операции.</param>
+    /// <param name="ct">Токен отмены операции.</param>
     /// <returns>Идентификатор файла, сохранённого в кеше.</returns>
     private async Task<Guid> DownloadAndCacheFileAsync(
         TelegramBotClient botClient,
         string telegramFileId,
-        CancellationToken cancellationToken
+        CancellationToken ct
     )
     {
         using var memoryStream = new MemoryStream();
-        var file = await botClient.GetInfoAndDownloadFile(telegramFileId, memoryStream, cancellationToken);
+        var file = await botClient.GetInfoAndDownloadFile(telegramFileId, memoryStream, ct);
         contentTypeProvider.TryGetContentType(file.FilePath, out var contentType);
         return CacheFile(memoryStream.ToArray(), contentType);
     }

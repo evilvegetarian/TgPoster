@@ -44,7 +44,7 @@ internal sealed class CreateMessagesFromFilesUseCaseStorage(PosterContext contex
         Guid scheduleId,
         List<MediaFileResult> files,
         List<DateTimeOffset> postingTime,
-        CancellationToken cancellationToken
+        CancellationToken ct
     )
     {
         for (var i = 0; i < files.Count; i++)
@@ -78,9 +78,9 @@ internal sealed class CreateMessagesFromFilesUseCaseStorage(PosterContext contex
                 MessageFiles = [messageFile]
             };
 
-            await context.Messages.AddAsync(message, cancellationToken);
+            await context.Messages.AddAsync(message, ct);
         }
 
-        await context.SaveChangesAsync(cancellationToken);
+        await context.SaveChangesAsync(ct);
     }
 }

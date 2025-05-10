@@ -7,7 +7,7 @@ namespace TgPoster.API.Domain.UseCases.Schedules.DeleteSchedule;
 internal sealed class DeleteScheduleUseCase(IDeleteScheduleStorage storage, IIdentityProvider identity)
     : IRequestHandler<DeleteScheduleCommand>
 {
-    public async Task Handle(DeleteScheduleCommand request, CancellationToken cancellationToken)
+    public async Task Handle(DeleteScheduleCommand request, CancellationToken ct)
     {
         if (!await storage.ScheduleExistAsync(request.Id, identity.Current.UserId))
         {

@@ -7,7 +7,7 @@ namespace TgPoster.Storage.Storages;
 
 internal sealed class GetScheduleStorage(PosterContext context) : IGetScheduleStorage
 {
-    public Task<ScheduleResponse?> GetScheduleAsync(Guid id, Guid userId, CancellationToken cancellationToken)
+    public Task<ScheduleResponse?> GetScheduleAsync(Guid id, Guid userId, CancellationToken ct)
     {
         return context.Schedules
             .Where(x => x.Id == id && x.UserId == userId)
@@ -16,6 +16,6 @@ internal sealed class GetScheduleStorage(PosterContext context) : IGetScheduleSt
                 Id = x.Id,
                 Name = x.Name
             })
-            .FirstOrDefaultAsync(cancellationToken);
+            .FirstOrDefaultAsync(ct);
     }
 }

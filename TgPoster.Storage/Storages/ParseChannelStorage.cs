@@ -18,7 +18,7 @@ internal class ParseChannelStorage(PosterContext context, GuidFactory factory) :
         bool needVerifiedPosts,
         DateTime? dateFrom,
         DateTime? dateTo,
-        CancellationToken cancellationToken
+        CancellationToken ct
     )
     {
         var id = factory.New();
@@ -36,14 +36,14 @@ internal class ParseChannelStorage(PosterContext context, GuidFactory factory) :
             DateFrom = dateFrom,
             DateTo = dateTo
         };
-        await context.AddAsync(param, cancellationToken);
-        await context.SaveChangesAsync(cancellationToken);
+        await context.AddAsync(param, ct);
+        await context.SaveChangesAsync(ct);
         return id;
     }
 
-    public Task<string?> GetTelegramTokenAsync(Guid scheduleId, CancellationToken cancellationToken)
+    public Task<string?> GetTelegramTokenAsync(Guid scheduleId, CancellationToken ct)
     {
         return context.Schedules.Where(x => x.Id == scheduleId)
-            .Select(x => x.TelegramBot.ApiTelegram).FirstOrDefaultAsync(cancellationToken);
+            .Select(x => x.TelegramBot.ApiTelegram).FirstOrDefaultAsync(ct);
     }
 }

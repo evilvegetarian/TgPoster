@@ -15,25 +15,25 @@ internal sealed class CreateTelegramBotUseCase(
 {
     public async Task<CreateTelegramBotResponse> Handle(
         CreateTelegramBotCommand request,
-        CancellationToken cancellationToken
+        CancellationToken ct
     )
     {
         var bot = new TelegramBotClient(request.ApiToken);
-        var updates = await bot.GetUpdates(cancellationToken: cancellationToken);
+        var updates = await bot.GetUpdates(cancellationToken: ct);
         var chatId = updates
                          .Where(x => x.Message != null)
                          .Select(u => u.Message?.Chat.Id)
                          .FirstOrDefault()
                      ?? throw new ChatIdNotFoundException();
 
-        var botInfo = await bot.GetMe(cancellationToken);
+        var botInfo = await bot.GetMe(ct);
         var tokenEncrypted = cryptoAes.Encrypt(options.SecretKey, request.ApiToken);
         var id = await storage.CreateTelegramBotAsync(
             tokenEncrypted,
             chatId,
             identity.Current.UserId,
             botInfo.Username!,
-            cancellationToken);
+            ct);
 
         return new CreateTelegramBotResponse
         {
