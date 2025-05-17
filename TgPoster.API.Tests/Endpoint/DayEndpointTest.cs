@@ -1,6 +1,9 @@
 using System.Net;
+using System.Net.Http.Json;
 using Shouldly;
 using TgPoster.API.Common;
+using TgPoster.API.Domain.UseCases.Accounts.SignIn;
+using TgPoster.API.Domain.UseCases.Days.GetDayOfWeek;
 using TgPoster.API.Domain.UseCases.Days.GetDays;
 using TgPoster.API.Models;
 using TgPoster.Endpoint.Tests.Helper;
@@ -12,7 +15,18 @@ public class DayEndpointTest(EndpointTestFixture fixture) : IClassFixture<Endpoi
     private const string Url = Routes.Day.Root;
     private readonly HttpClient client = fixture.CreateClient();
     private readonly CreateHelper create = new(fixture.CreateClient());
-
+    
+    [Fact]
+    public async Task GetDayOfWeek_NonExistScheduleId_ShouldReturnOk()
+    {
+        var response = await client.GetAsync(Routes.Day.DayOfWeek);
+        response.StatusCode.ShouldBe(HttpStatusCode.OK);
+        
+        var result = await response.Content.ReadFromJsonAsync<List<DayOfWeekResponse>>();
+        result.ShouldNotBeEmpty();
+        result!.Count.ShouldBe(7);
+    }
+    
     [Fact]
     public async Task CreateDay_NonExistScheduleId_ShouldReturnOk()
     {

@@ -6,6 +6,7 @@ internal static class GlobalConst
     public static Guid ScheduleId = Guid.Parse("6ad3cf92-01bd-4c53-ac26-be2b254b0e3a");
     public static Guid MessageId = Guid.Parse("71aa5579-42cb-43bc-93fd-f9ceba7c562f");
     public static Guid UserId = Guid.Parse("ae35ca81-4a8a-4f8c-a2bb-f4dca7a56876");
+    public static Guid FileId = Guid.Parse("bfddea1f-9110-46a3-bae6-9ee358b7fb99");
     public static long ChannelId = -1001563514057;
 
     public static class Worked

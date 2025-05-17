@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -22,6 +23,7 @@ public class EndpointTestFixture : WebApplicationFactory<Program>, IAsyncLifetim
         .Build();
 
     private Mock<IIdentityProvider>? mockIdentityProvider;
+    private IMemoryCache? memoryCache;
 
     public async Task InitializeAsync()
     {
@@ -29,6 +31,7 @@ public class EndpointTestFixture : WebApplicationFactory<Program>, IAsyncLifetim
         var context = new PosterContext(new DbContextOptionsBuilder<PosterContext>()
             .UseNpgsql(dbContainer.GetConnectionString()).Options);
         await context.Database.MigrateAsync();
+        memoryCache = new MemoryCache(new MemoryCacheOptions());
         await InsertSeed(context);
         mockIdentityProvider = new Mock<IIdentityProvider>();
         mockIdentityProvider.Setup(ip => ip.Current)
@@ -52,6 +55,7 @@ public class EndpointTestFixture : WebApplicationFactory<Program>, IAsyncLifetim
         builder.ConfigureLogging(cfg => cfg.ClearProviders());
         builder.ConfigureServices(services =>
         {
+            services.AddSingleton(memoryCache!);
             services.AddSingleton(mockIdentityProvider!.Object);
         });
         base.ConfigureWebHost(builder);
@@ -72,7 +76,8 @@ public class EndpointTestFixture : WebApplicationFactory<Program>, IAsyncLifetim
             new ScheduleSeeder(context),
             new MessageSeeder(context),
             new UserSeeder(context),
-            new DaySeeder(context)
+            new DaySeeder(context),
+            new MemorySeeder(memoryCache!),
         };
 
         foreach (var seeder in seeders)

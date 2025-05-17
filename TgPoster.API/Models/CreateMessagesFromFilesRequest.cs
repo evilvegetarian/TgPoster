@@ -13,7 +13,7 @@ public class CreateMessagesFromFilesRequest : IValidatableObject
 
         if (!Files.Any())
         {
-            validationErrors.Add(new ValidationResult("Files are required", new[] { nameof(Files) }));
+            validationErrors.Add(new ValidationResult("Files are required", [nameof(Files)]));
         }
 
         return validationErrors;

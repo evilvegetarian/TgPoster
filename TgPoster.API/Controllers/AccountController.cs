@@ -20,10 +20,7 @@ public class AccountController(ISender sender) : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(SignOnResponse))]
     [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
     [ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
-    public async Task<IActionResult> SignOn(
-        [FromBody] SignOnRequest request,
-        CancellationToken ct
-    )
+    public async Task<IActionResult> SignOn([FromBody] SignOnRequest request, CancellationToken ct)
     {
         var response = await sender.Send(new SignOnCommand(request.Login, request.Password), ct);
         return Ok(response);

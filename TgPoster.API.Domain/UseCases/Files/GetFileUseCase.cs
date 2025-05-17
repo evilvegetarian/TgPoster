@@ -1,5 +1,6 @@
 using System.Globalization;
 using MediatR;
+using TgPoster.API.Domain.Exceptions;
 using TgPoster.API.Domain.Services;
 
 namespace TgPoster.API.Domain.UseCases.Files;
@@ -11,7 +12,7 @@ internal sealed class GetFileUseCase(FileService fileService) : IRequestHandler<
         var file = fileService.RetrieveFileFromCache(request.FileId);
         if (file is null)
         {
-            throw new FileNotFoundException();
+            throw new FileNotExistException();
         }
 
         return Task.FromResult(new GetFileResponse(file.Data,

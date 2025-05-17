@@ -1,5 +1,6 @@
 using MediatR;
 using Security.Interfaces;
+using TgPoster.API.Domain.Exceptions;
 
 namespace TgPoster.API.Domain.UseCases.Accounts.SignOn;
 
@@ -12,7 +13,7 @@ internal sealed class SignOnUseCase(IPasswordHasher passwordHasher, ISignOnStora
 
         if (await storage.HaveUserNameAsync(command.Login, ct))
         {
-            throw new Exception("User already exists");
+            throw new UserAlredyHasException();
         }
 
         var userId = await storage.CreateUserAsync(command.Login, passwordHash, ct);
