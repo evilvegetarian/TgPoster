@@ -5,7 +5,7 @@ using TgPoster.Worker.Domain.UseCases.ParseChannelWorker;
 
 namespace TgPoster.Storage.Storages;
 
-public class ParseChannelWorkerStorage(PosterContext context) : IParseChannelWorkerStorage
+internal class ParseChannelWorkerStorage(PosterContext context) : IParseChannelWorkerStorage
 {
     public Task<List<Guid>> GetChannelParsingParametersAsync()
     {

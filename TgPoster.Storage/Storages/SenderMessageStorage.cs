@@ -5,7 +5,7 @@ using TgPoster.Worker.Domain.UseCases.SenderMessageWorker;
 
 namespace TgPoster.Storage.Storages;
 
-public class SenderMessageStorage(PosterContext context) : ISenderMessageStorage
+internal class SenderMessageStorage(PosterContext context) : ISenderMessageStorage
 {
     public Task<List<MessageDetail>> GetMessagesAsync()
     {
@@ -21,6 +21,9 @@ public class SenderMessageStorage(PosterContext context) : ISenderMessageStorage
                 ChannelId = x.ChannelId,
                 Api = x.TelegramBot.ApiTelegram,
                 MessageDto = x.Messages
+                    .Where((m => m.TimePosting > time
+                                 && m.TimePosting <= plusMinute
+                                 && m.Status == MessageStatus.Register))
                     .Select(m => new MessageDto
                     {
                         Id = m.Id,

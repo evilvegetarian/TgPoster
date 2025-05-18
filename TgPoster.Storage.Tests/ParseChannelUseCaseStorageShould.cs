@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Shouldly;
 using TgPoster.Storage.Data;
+using TgPoster.Storage.Data.Entities;
 using TgPoster.Storage.Data.Enum;
 using TgPoster.Storage.Storages;
 using TgPoster.Worker.Domain.UseCases.ParseChannel;
@@ -131,5 +132,83 @@ public class ParseChannelUseCaseStorageShould(StorageTestFixture fixture) : ICla
             .AsNoTracking()
             .FirstOrDefaultAsync(x => x.Id == cpp.Id);
         updated!.Status.ShouldBe(ParsingStatus.InHandle);
+    }
+
+    [Fact]
+    public async Task UpdateErrorStatus_WithValidData_ShouldUpdate()
+    {
+        var cpp = await helper.CreateChannelParsingParametersAsync();
+        await sut.UpdateErrorStatusAsync(cpp.Id, CancellationToken.None);
+        var updated = await context.ChannelParsingParameters
+            .AsNoTracking()
+            .FirstOrDefaultAsync(x => x.Id == cpp.Id);
+        updated!.Status.ShouldBe(ParsingStatus.Failed);
+    }
+
+    [Fact]
+    public async Task GetScheduleTime_WithDays_ShouldReturnDictionary()
+    {
+        var day = await helper.CreateDayAsync();
+        var result = await sut.GetScheduleTimeAsync(day.ScheduleId, CancellationToken.None);
+        result.ShouldContainKey(day.DayOfWeek);
+        day.TimePostings.All(tp => result[day.DayOfWeek].Contains(tp)).ShouldBeTrue();
+    }
+
+    [Fact]
+    public async Task GetScheduleTime_WithNoDays_ShouldReturnEmptyDictionary()
+    {
+        var schedule = await helper.CreateScheduleAsync();
+        var result = await sut.GetScheduleTimeAsync(schedule.Id, CancellationToken.None);
+        result.ShouldBeEmpty();
+    }
+
+    /*[Fact]
+    public async Task GetExistMessageTimePosting_ShouldReturnOnlyFutureRegistered()
+    {
+        var schedule = await helper.CreateScheduleAsync();
+        var now = DateTimeOffset.UtcNow;
+
+        var msgPast = new Message
+        {
+            Id = Guid.NewGuid(),
+            ScheduleId = schedule.Id,
+            TimePosting = now.AddMinutes(-10),
+            Status = MessageStatus.Register,
+            TextMessage = "past",
+            IsTextMessage = false
+        };
+        var msgFuture = new Message
+        {
+            Id = Guid.NewGuid(),
+            ScheduleId = schedule.Id,
+            TimePosting = now.AddMinutes(10),
+            Status = MessageStatus.Register,
+            TextMessage = "future",
+            IsTextMessage = false
+        };
+        var msgFutureNotRegistered = new Message
+        {
+            Id = Guid.NewGuid(),
+            ScheduleId = schedule.Id,
+            TimePosting = now.AddMinutes(20),
+            Status = MessageStatus.Error,
+            TextMessage = "future-failed",
+            IsTextMessage = false
+        };
+        await context.Messages.AddRangeAsync(msgPast, msgFuture, msgFutureNotRegistered);
+        await context.SaveChangesAsync();
+
+        var result = await sut.GetExistMessageTimePostingAsync(schedule.Id, CancellationToken.None);
+        result.ShouldContain(msgFuture.TimePosting);
+        result.ShouldNotContain(msgPast.TimePosting);
+        result.ShouldNotContain(msgFutureNotRegistered.TimePosting);
+    }*/
+
+    [Fact]
+    public async Task GetExistMessageTimePosting_WithNoMessages_ShouldReturnEmptyList()
+    {
+        var schedule = await helper.CreateScheduleAsync();
+        var result = await sut.GetExistMessageTimePostingAsync(schedule.Id, CancellationToken.None);
+        result.ShouldBeEmpty();
     }
 }

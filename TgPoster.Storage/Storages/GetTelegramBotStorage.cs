@@ -4,7 +4,7 @@ using TgPoster.Storage.Data;
 
 namespace TgPoster.Storage.Storages;
 
-public class GetTelegramBotStorage(PosterContext context) : IGetTelegramBotStorage
+internal class GetTelegramBotStorage(PosterContext context) : IGetTelegramBotStorage
 {
     public Task<string?> GetApiTokenAsync(Guid scheduleId, Guid userId, CancellationToken ct)
     {

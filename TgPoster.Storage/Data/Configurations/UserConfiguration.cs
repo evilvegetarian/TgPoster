@@ -26,7 +26,8 @@ internal class UserConfiguration : BaseEntityConfig<User>
             .HasMaxLength(32);
 
         builder.Property(x => x.PasswordHash)
-            .HasMaxLength(1000);
+            .HasMaxLength(1000)
+            .IsRequired();
 
         builder.HasIndex(x => x.TelegramUserName)
             .IsUnique();

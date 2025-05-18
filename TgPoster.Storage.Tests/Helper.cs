@@ -15,7 +15,7 @@ public class Helper(PosterContext context)
         var user = new User
         {
             Id = Guid.NewGuid(),
-            UserName = new UserName(faker.Person.UserName),
+            UserName = new UserName(faker.Internet.UserName()),
             PasswordHash = faker.Internet.Password()
         };
         await context.Users.AddAsync(user);
@@ -59,6 +59,11 @@ public class Helper(PosterContext context)
     public async Task<Day> CreateDayAsync()
     {
         var schedule = await CreateScheduleAsync();
+        return await CreateDayAsync(schedule.Id);
+    }
+
+    public async Task<Day> CreateDayAsync(Guid scheduleId)
+    {
         var randomTimes = Enumerable.Range(0, 10)
             .Select(_ => TimeOnly.FromDateTime(faker.Date.Between(
                 new DateTime(1, 1, 1, 0, 0, 0),
@@ -67,7 +72,7 @@ public class Helper(PosterContext context)
         var day = new Day
         {
             Id = Guid.NewGuid(),
-            ScheduleId = schedule.Id,
+            ScheduleId = scheduleId,
             DayOfWeek = faker.Random.Enum<DayOfWeek>(),
             TimePostings = randomTimes
         };
@@ -77,7 +82,11 @@ public class Helper(PosterContext context)
     }
 
 
-    public async Task<ChannelParsingParameters> CreateChannelParsingParametersAsync(Guid? scheduleId = null)
+    public async Task<ChannelParsingParameters> CreateChannelParsingParametersAsync(
+        Guid? scheduleId = null,
+        ParsingStatus status = ParsingStatus.New,
+        bool checkNewPosts = false
+    )
     {
         var id = Guid.NewGuid();
         var schedule = scheduleId.HasValue
@@ -96,7 +105,8 @@ public class Helper(PosterContext context)
             DateTo = DateTime.UtcNow.AddDays(1),
             NeedVerifiedPosts = true,
             ScheduleId = schedule!.Id,
-            Status = ParsingStatus.New
+            Status = status,
+            CheckNewPosts = checkNewPosts
         };
 
         await context.ChannelParsingParameters.AddAsync(cpp);

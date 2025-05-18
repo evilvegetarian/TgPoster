@@ -86,4 +86,32 @@ public class SignOnStorageShould(StorageTestFixture fixture) : IClassFixture<Sto
         var haveUser = await sut.HaveUserNameAsync("FIlimon", CancellationToken.None);
         haveUser.ShouldBeFalse();
     }
+
+    //[Fact]
+    //public async Task HaveUserNameAsync_ShouldBeCaseInsensitive()
+    //{
+    //    var username = "CaseUser";
+    //    var password = "password";
+    //    await sut.CreateUserAsync(username, password, CancellationToken.None);
+//
+    //    var existsLower = await sut.HaveUserNameAsync("caseuser", CancellationToken.None);
+    //    var existsUpper = await sut.HaveUserNameAsync("CASEUSER", CancellationToken.None);
+    //    var existsMixed = await sut.HaveUserNameAsync("CaSeUsEr", CancellationToken.None);
+//
+    //    existsLower.ShouldBeTrue();
+    //    existsUpper.ShouldBeTrue();
+    //    existsMixed.ShouldBeTrue();
+    //}
+
+    [Fact]
+    public async Task CreateUserAsync_WithSpecialCharactersInUsername_ShouldSucceed()
+    {
+        var username = "user!@#";
+        var password = "password";
+        var id = await sut.CreateUserAsync(username, password, CancellationToken.None);
+
+        var user = await _context.Users.FindAsync(id);
+        user.ShouldNotBeNull();
+        user.UserName.Value.ShouldBe(username);
+    }
 }

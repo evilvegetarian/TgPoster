@@ -111,7 +111,7 @@ internal class ParseChannelUseCaseStorage(PosterContext context, GuidFactory gui
     {
         return context.Days
             .Where(x => x.ScheduleId == scheduleId)
-            .ToDictionaryAsync(x => x.DayOfWeek, x => x.TimePostings.ToList(), ct);
+            .ToDictionaryAsync(x => x.DayOfWeek, x => x.TimePostings.OrderBy(time => time).ToList(), ct);
     }
 
     public Task<List<DateTimeOffset>> GetExistMessageTimePostingAsync(Guid scheduleId, CancellationToken ct)

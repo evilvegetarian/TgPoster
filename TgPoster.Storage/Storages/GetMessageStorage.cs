@@ -6,7 +6,7 @@ using TgPoster.Storage.Data.Entities;
 
 namespace TgPoster.Storage.Storages;
 
-public class GetMessageStorage(PosterContext context) : IGetMessageStorage
+internal class GetMessageStorage(PosterContext context) : IGetMessageStorage
 {
     public async Task<MessageDto?> GetMessagesAsync(Guid id, Guid userId, CancellationToken ct)
     {

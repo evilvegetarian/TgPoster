@@ -27,6 +27,7 @@ public sealed record UserName
                && string.Equals(Value, other.Value, StringComparison.OrdinalIgnoreCase);
     }
 
+
     public override int GetHashCode()
     {
         return StringComparer.OrdinalIgnoreCase.GetHashCode(Value);
