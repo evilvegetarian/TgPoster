@@ -231,9 +231,7 @@ internal class ParseChannelUseCase(
             if (postingTime.Count != 0)
             {
                 for (var t = 0; t < Math.Min(result.Count, postingTime.Count); t++)
-                {
                     result[t].TimePosting = postingTime[t];
-                }
             }
         }
 

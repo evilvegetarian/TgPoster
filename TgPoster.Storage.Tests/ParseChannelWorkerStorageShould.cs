@@ -1,7 +1,5 @@
-using Microsoft.EntityFrameworkCore;
 using Shouldly;
 using TgPoster.Storage.Data;
-using TgPoster.Storage.Data.Entities;
 using TgPoster.Storage.Data.Enum;
 using TgPoster.Storage.Storages;
 
@@ -21,7 +19,7 @@ public class ParseChannelWorkerStorageShould(StorageTestFixture fixture) : IClas
 
         var cpp2 = await helper.CreateChannelParsingParametersAsync(null, ParsingStatus.Finished, true);
 
-        var cpp3 = await helper.CreateChannelParsingParametersAsync(null, ParsingStatus.InHandle, false);
+        var cpp3 = await helper.CreateChannelParsingParametersAsync(null, ParsingStatus.InHandle);
 
         var cpp4 = await helper.CreateChannelParsingParametersAsync(null, ParsingStatus.Waiting, true);
 
@@ -41,7 +39,7 @@ public class ParseChannelWorkerStorageShould(StorageTestFixture fixture) : IClas
     public async Task GetChannelParsingParametersAsync_ShouldReturnEmptyListIfNoMatch()
     {
         // Arrange
-        var cpp = await helper.CreateChannelParsingParametersAsync(null, ParsingStatus.Waiting, false);
+        var cpp = await helper.CreateChannelParsingParametersAsync(null, ParsingStatus.Waiting);
 
         // Act
         var result = await sut.GetChannelParsingParametersAsync();

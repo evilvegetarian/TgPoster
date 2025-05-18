@@ -21,9 +21,9 @@ internal class SenderMessageStorage(PosterContext context) : ISenderMessageStora
                 ChannelId = x.ChannelId,
                 Api = x.TelegramBot.ApiTelegram,
                 MessageDto = x.Messages
-                    .Where((m => m.TimePosting > time
-                                 && m.TimePosting <= plusMinute
-                                 && m.Status == MessageStatus.Register))
+                    .Where(m => m.TimePosting > time
+                                && m.TimePosting <= plusMinute
+                                && m.Status == MessageStatus.Register)
                     .Select(m => new MessageDto
                     {
                         Id = m.Id,

@@ -2,9 +2,9 @@ using System.Net;
 using System.Net.Http.Json;
 using Shouldly;
 using TgPoster.API.Common;
-using TgPoster.API.Models;
-using TgPoster.API.Domain.UseCases.Accounts.SignOn;
 using TgPoster.API.Domain.UseCases.Accounts.SignIn;
+using TgPoster.API.Domain.UseCases.Accounts.SignOn;
+using TgPoster.API.Models;
 
 namespace TgPoster.Endpoint.Tests.Endpoint;
 

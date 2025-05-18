@@ -50,7 +50,7 @@ public class SenderMessageStorageShould(StorageTestFixture fixture) : IClassFixt
 
         var result = await sut.GetMessagesAsync();
 
-        result.ShouldNotBeNull(); 
+        result.ShouldNotBeNull();
         result.Count.ShouldBeGreaterThanOrEqualTo(1);
         result.SelectMany(x => x.MessageDto).Any(m => m.Id == msgInWindow.Id).ShouldBeTrue();
         result.SelectMany(x => x.MessageDto).Any(m => m.Id == msgOutOfWindow.Id).ShouldBeFalse();

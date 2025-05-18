@@ -2,10 +2,8 @@ using System.Net;
 using System.Net.Http.Json;
 using Shouldly;
 using TgPoster.API.Common;
-using TgPoster.API.Models;
-using TgPoster.Endpoint.Tests.Helper;
-using TgPoster.API.Domain.UseCases.TelegramBots.CreateTelegramBot;
 using TgPoster.API.Domain.UseCases.TelegramBots.ListTelegramBot;
+using TgPoster.API.Models;
 
 namespace TgPoster.Endpoint.Tests.Endpoint;
 

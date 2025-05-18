@@ -22,8 +22,9 @@ public class EndpointTestFixture : WebApplicationFactory<Program>, IAsyncLifetim
         .WithDatabase("testdb")
         .Build();
 
-    private Mock<IIdentityProvider>? mockIdentityProvider;
     private IMemoryCache? memoryCache;
+
+    private Mock<IIdentityProvider>? mockIdentityProvider;
 
     public async Task InitializeAsync()
     {
@@ -77,7 +78,7 @@ public class EndpointTestFixture : WebApplicationFactory<Program>, IAsyncLifetim
             new MessageSeeder(context),
             new UserSeeder(context),
             new DaySeeder(context),
-            new MemorySeeder(memoryCache!),
+            new MemorySeeder(memoryCache!)
         };
 
         foreach (var seeder in seeders)

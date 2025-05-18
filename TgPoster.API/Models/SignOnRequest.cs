@@ -20,7 +20,7 @@ public class SignOnRequest : IValidatableObject
             validationResults.Add(new ValidationResult("Логин должен не быть пустым",
                 [nameof(Login)]));
         }
-        
+
         if (string.IsNullOrWhiteSpace(Password))
         {
             validationResults.Add(new ValidationResult("Пароль должен не быть пустым",
