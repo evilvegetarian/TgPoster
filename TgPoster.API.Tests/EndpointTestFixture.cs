@@ -1,3 +1,5 @@
+using System.Net;
+using System.Net.Http.Json;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
@@ -5,10 +7,9 @@ using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Moq;
-using Security.Interfaces;
-using Security.Models;
 using Testcontainers.PostgreSql;
+using TgPoster.API.Common;
+using TgPoster.API.Models;
 using TgPoster.Endpoint.Tests.Seeder;
 using TgPoster.Storage.Data;
 
@@ -23,8 +24,7 @@ public class EndpointTestFixture : WebApplicationFactory<Program>, IAsyncLifetim
         .Build();
 
     private IMemoryCache? memoryCache;
-
-    private Mock<IIdentityProvider>? mockIdentityProvider;
+    public HttpClient AuthClient { get; private set; } = null!;
 
     public async Task InitializeAsync()
     {
@@ -34,10 +34,26 @@ public class EndpointTestFixture : WebApplicationFactory<Program>, IAsyncLifetim
         await context.Database.MigrateAsync();
         memoryCache = new MemoryCache(new MemoryCacheOptions());
         await InsertSeed(context);
-        mockIdentityProvider = new Mock<IIdentityProvider>();
-        mockIdentityProvider.Setup(ip => ip.Current)
-            .Returns(new Identity(GlobalConst.Worked.UserId));
+        await CreateAuthClient();
     }
+
+    private async Task CreateAuthClient()
+    {
+        AuthClient = base.CreateClient();
+        var response = await AuthClient.PostAsJsonAsync(Routes.Account.SignIn, new SignInRequest
+        {
+            Login = GlobalConst.Worked.UserName,
+            Password = "string"
+        });
+        response.EnsureSuccessStatusCode();
+
+        var setCookie = response.Headers.TryGetValues("Set-Cookie", out var values) ? values.FirstOrDefault() : null;
+        if (setCookie != null)
+        {
+            AuthClient.DefaultRequestHeaders.Add("Cookie", setCookie);
+        }
+    }
+
 
     public new async Task DisposeAsync()
     {
@@ -57,7 +73,6 @@ public class EndpointTestFixture : WebApplicationFactory<Program>, IAsyncLifetim
         builder.ConfigureServices(services =>
         {
             services.AddSingleton(memoryCache!);
-            services.AddSingleton(mockIdentityProvider!.Object);
         });
         base.ConfigureWebHost(builder);
     }
@@ -70,13 +85,14 @@ public class EndpointTestFixture : WebApplicationFactory<Program>, IAsyncLifetim
             .Build();
         var apiValue = configuration["Api"]!;
 
+        var hash = configuration["Hash"]!;
         var seeders = new BaseSeeder[]
         {
             new TelegramBotSeeder(context, apiValue),
             new MessageFileSeeder(context),
             new ScheduleSeeder(context),
             new MessageSeeder(context),
-            new UserSeeder(context),
+            new UserSeeder(context, hash),
             new DaySeeder(context),
             new MemorySeeder(memoryCache!)
         };

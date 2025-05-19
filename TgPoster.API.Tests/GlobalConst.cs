@@ -17,5 +17,6 @@ internal static class GlobalConst
         public static Guid UserId = Guid.Parse("b6cbe54a-21d2-44d5-bfcc-a9f93e3fc93c");
         public static string Channel = "https://t.me/kotiksuper";
         public static long ChannelId = -1002233268199;
+        public static string UserName = "Default_User_For_APP";
     }
 }

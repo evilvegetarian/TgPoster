@@ -1,4 +1,5 @@
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TgPoster.API.Common;
 using TgPoster.API.Mapper;
@@ -6,6 +7,7 @@ using TgPoster.API.Models;
 
 namespace TgPoster.API.Controllers;
 
+[Authorize]
 [ApiController]
 public class ParseController(ISender sender) : ControllerBase
 {

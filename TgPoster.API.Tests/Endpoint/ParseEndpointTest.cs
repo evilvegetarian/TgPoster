@@ -9,7 +9,7 @@ namespace TgPoster.Endpoint.Tests.Endpoint;
 public class ParseEndpointTest(EndpointTestFixture fixture) : IClassFixture<EndpointTestFixture>
 {
     private const string Url = Routes.Parse.Root;
-    private readonly HttpClient client = fixture.CreateClient();
+    private readonly HttpClient client = fixture.AuthClient;
 
     [Fact]
     public async Task Create_WithInValidChannel_ShouldBadRequest()

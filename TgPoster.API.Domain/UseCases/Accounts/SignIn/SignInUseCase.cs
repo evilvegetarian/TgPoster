@@ -30,7 +30,7 @@ internal sealed class SignInUseCase(
         var accessToken = jwtProvider.GenerateToken(new TokenServiceBuildTokenPayload(user.Id));
         var (refreshToken, refreshExpireTime) = jwtProvider.GenerateRefreshToken();
 
-        //Чтобы проще жилось
+        //TODO: Чтобы проще жилось, переделать в будущем
         jwtProvider.AddTokenToCookie(httpContext.HttpContext!, accessToken);
         await storage.CreateRefreshSessionAsync(user.Id, refreshToken, refreshExpireTime, ct);
 

@@ -1,4 +1,5 @@
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TgPoster.API.Common;
 using TgPoster.API.Domain.UseCases.TelegramBots.CreateTelegramBot;
@@ -7,7 +8,7 @@ using TgPoster.API.Models;
 
 namespace TgPoster.API.Controllers;
 
-//[Authorize]
+[Authorize]
 [ApiController]
 public class TelegramBotController(ISender sender) : ControllerBase
 {

@@ -11,8 +11,8 @@ namespace TgPoster.Endpoint.Tests.Endpoint;
 public class ScheduleEndpointTest(EndpointTestFixture fixture) : IClassFixture<EndpointTestFixture>
 {
     private const string Url = Routes.Schedule.Root;
-    private readonly HttpClient client = fixture.CreateClient();
-    private readonly CreateHelper create = new(fixture.CreateClient());
+    private readonly HttpClient client = fixture.AuthClient;
+    private readonly CreateHelper create = new(fixture.AuthClient);
 
     [Fact]
     public async Task Create_WithValidData_ShouldReturnCreated()

@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TgPoster.API.Common;
 using TgPoster.API.Domain.UseCases.Days.CreateDays;
@@ -10,6 +11,7 @@ using TgPoster.API.Models;
 
 namespace TgPoster.API.Controllers;
 
+[Authorize]
 [ApiController]
 public class DayController(ISender sender) : ControllerBase
 {

@@ -10,7 +10,7 @@ namespace TgPoster.Endpoint.Tests.Endpoint;
 public class TelegramBotEndpointTest(EndpointTestFixture fixture) : IClassFixture<EndpointTestFixture>
 {
     private const string Url = Routes.TelegramBot.Root;
-    private readonly HttpClient client = fixture.CreateClient();
+    private readonly HttpClient client = fixture.AuthClient;
 
     [Fact]
     public async Task CreateTelegramBot_WithMissingToken_ShouldReturnBadRequest()

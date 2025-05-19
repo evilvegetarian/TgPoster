@@ -12,8 +12,8 @@ namespace TgPoster.Endpoint.Tests.Endpoint;
 public class DayEndpointTest(EndpointTestFixture fixture) : IClassFixture<EndpointTestFixture>
 {
     private const string Url = Routes.Day.Root;
-    private readonly HttpClient client = fixture.CreateClient();
-    private readonly CreateHelper create = new(fixture.CreateClient());
+    private readonly HttpClient client = fixture.AuthClient;
+    private readonly CreateHelper create = new(fixture.AuthClient);
 
     [Fact]
     public async Task GetDayOfWeek_NonExistScheduleId_ShouldReturnOk()
@@ -23,7 +23,7 @@ public class DayEndpointTest(EndpointTestFixture fixture) : IClassFixture<Endpoi
 
         var result = await response.Content.ReadFromJsonAsync<List<DayOfWeekResponse>>();
         result.ShouldNotBeEmpty();
-        result!.Count.ShouldBe(7);
+        result.Count.ShouldBe(7);
     }
 
     [Fact]

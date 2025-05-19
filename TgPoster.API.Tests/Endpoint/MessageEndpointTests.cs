@@ -10,8 +10,8 @@ namespace TgPoster.Endpoint.Tests.Endpoint;
 
 public class MessageEndpointTests(EndpointTestFixture fixture) : IClassFixture<EndpointTestFixture>
 {
-    private readonly HttpClient client = fixture.CreateClient();
-    private readonly CreateHelper create = new(fixture.CreateClient());
+    private readonly HttpClient client = fixture.AuthClient;
+    private readonly CreateHelper create = new(fixture.AuthClient);
     private readonly string Url = Routes.Message.Root;
 
     [Fact]

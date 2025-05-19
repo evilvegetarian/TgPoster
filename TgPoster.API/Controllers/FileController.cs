@@ -1,11 +1,12 @@
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TgPoster.API.Common;
 using TgPoster.API.Domain.UseCases.Files;
 
 namespace TgPoster.API.Controllers;
 
-//[Authorize]
+[Authorize]
 [ApiController]
 public class FileController(ISender sender) : ControllerBase
 {
