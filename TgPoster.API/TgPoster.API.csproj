@@ -4,6 +4,7 @@
         <TargetFramework>net9.0</TargetFramework>
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
+        <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
     </PropertyGroup>
     <ItemGroup>
         <PackageReference Include="MassTransit" Version="8.3.7"/>
@@ -23,5 +24,10 @@
     <ItemGroup>
         <ProjectReference Include="..\TgPoster.API.Domain\TgPoster.API.Domain.csproj"/>
         <ProjectReference Include="..\TgPoster.Storage\TgPoster.Storage.csproj"/>
+    </ItemGroup>
+    <ItemGroup>
+      <Content Include="..\.dockerignore">
+        <Link>.dockerignore</Link>
+      </Content>
     </ItemGroup>
 </Project>
