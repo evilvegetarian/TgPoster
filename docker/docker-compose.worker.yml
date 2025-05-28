@@ -1,0 +1,11 @@
+version: '3.9'
+  
+services:
+  worker:
+    container_name: tgposter-worker
+    image: ${TGPOSTER_WORKER_IMAGE:-ghcr.io/evilvegetarian/tgposter-worker:latest}
+    ports:
+      - '8080:8080'
+    environment:
+      ASPNETCORE_ENVIRONMENT: "Production"
+      DataBase__ConnectionString: ${TGPOSTER_WORKER_CONNECTIONSTRING:-Host=localhost;Username=admin;Password=admin;Database=tg-db}
