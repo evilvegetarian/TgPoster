@@ -3,7 +3,7 @@ version: '3.9'
 services:
   worker:
     volumes:
-      - ./mylogs:/app/logs
+      - ./mylogs:/app/logs/
     container_name: tgposter-worker
     image: ${TGPOSTER_WORKER_IMAGE:-ghcr.io/evilvegetarian/tgposter-worker:latest}
     ports:
