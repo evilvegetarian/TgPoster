@@ -7,6 +7,9 @@
         <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
     </PropertyGroup>
     <ItemGroup>
+        <PackageReference Include="Serilog.AspNetCore" Version="8.0.3" />
+        <PackageReference Include="Serilog.Sinks.Grafana.Loki" Version="8.3.0" />
+        
         <PackageReference Include="MassTransit" Version="8.3.7"/>
         <PackageReference Include="MassTransit.SqlTransport.PostgreSQL" Version="8.3.7"/>
         <PackageReference Include="MediatR" Version="12.4.1"/>

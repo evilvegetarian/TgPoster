@@ -1,12 +1,32 @@
 using MassTransit;
 using Microsoft.AspNetCore.StaticFiles;
 using Security;
+using Serilog;
+using Serilog.Events;
+using Serilog.Filters;
+using Serilog.Sinks.Grafana.Loki;
 using Shared.Contracts;
 using TgPoster.API.Domain;
 using TgPoster.API.Middlewares;
 using TgPoster.Storage;
 
 var builder = WebApplication.CreateBuilder(args);
+
+var logger = builder.Configuration.GetSection(nameof(Logger)).Get<Logger>()!;
+var serilog = new LoggerConfiguration()
+    .MinimumLevel.Information()
+    .Enrich.WithProperty(nameof(logger.Application), logger.Application)
+    .WriteTo.GrafanaLoki(
+        logger.LogsUrl,
+        restrictedToMinimumLevel: LogEventLevel.Verbose,
+        propertiesAsLabels: ["Application", "level"]
+    )
+    .WriteTo.Console()
+    .WriteTo.File("logs/log-.txt", rollingInterval: RollingInterval.Day)
+    .CreateLogger();
+
+builder.Host.UseSerilog(serilog);
+
 builder.Services.AddSwaggerGen();
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
@@ -44,3 +64,5 @@ internal class DataBase
 {
     public required string ConnectionString { get; init; }
 }
+
+public record Logger(string LogsUrl, string Application);

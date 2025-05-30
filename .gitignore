@@ -227,3 +227,4 @@ AppPackages/
 
 TgPoster.API.Tests/appsettingsTest.json
 TgPoster.Worker/settingTelegram.json
+/TgPoster.API/logs
