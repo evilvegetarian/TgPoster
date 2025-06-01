@@ -3,11 +3,11 @@ version: '3.9'
 services:
   worker:
     volumes:
-      - ./mylogs:/app/logs/
+      - ./mylogs:/app/logs
     container_name: tgposter-api
     image: ${TGPOSTER_API_IMAGE:-ghcr.io/evilvegetarian/tgposter-api:latest}
     ports:
-      - '8088:8080'
+      - '8070:8070' 
     environment:
       ASPNETCORE_ENVIRONMENT: "Production"
       DataBase__ConnectionString: ${TGPOSTER_API_CONNECTIONSTRING:-Host=localhost;Username=admin;Password=admin;Database=tg-db}
