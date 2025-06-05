@@ -1,5 +1,3 @@
-version: '3.9'
-
 services:
   worker:
     volumes:
@@ -10,4 +8,5 @@ services:
       - '8070:8070' 
     environment:
       ASPNETCORE_ENVIRONMENT: "Production"
+      ASPNETCORE_URLS: "http://+:8070"
       DataBase__ConnectionString: ${TGPOSTER_API_CONNECTIONSTRING:-Host=localhost;Username=admin;Password=admin;Database=tg-db}
