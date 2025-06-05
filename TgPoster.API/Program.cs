@@ -22,7 +22,7 @@ var serilog = new LoggerConfiguration()
         propertiesAsLabels: ["Application", "level"]
     )
     .WriteTo.Console()
-    .WriteTo.File("logs/log-.txt", rollingInterval: RollingInterval.Day)
+    .WriteTo.File("/app/logs/log-.txt", rollingInterval: RollingInterval.Day)
     .CreateLogger();
 
 builder.Host.UseSerilog(serilog);
