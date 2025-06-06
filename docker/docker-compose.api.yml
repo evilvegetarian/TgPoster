@@ -6,6 +6,7 @@ services:
     image: ${TGPOSTER_API_IMAGE:-ghcr.io/evilvegetarian/tgposter-api:latest}
     ports:
       - '8070:8070' 
+    user: "1654:1654"
     environment:
       ASPNETCORE_ENVIRONMENT: "Production"
       ASPNETCORE_URLS: "http://+:8070"

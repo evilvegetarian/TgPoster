@@ -6,6 +6,7 @@ services:
     image: ${TGPOSTER_WORKER_IMAGE:-ghcr.io/evilvegetarian/tgposter-worker:latest}
     ports:
       - '8090:8090'  
+    user: "1654:1654"
     environment:
       ASPNETCORE_ENVIRONMENT: "Production"
       ASPNETCORE_URLS: "http://+:8090"
