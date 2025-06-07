@@ -6,6 +6,7 @@ using Serilog.Events;
 using Serilog.Filters;
 using Serilog.Sinks.Grafana.Loki;
 using Shared.Contracts;
+using TgPoster.API.ConfigModels;
 using TgPoster.API.Domain;
 using TgPoster.API.Middlewares;
 using TgPoster.Storage;
@@ -59,10 +60,3 @@ app.Run();
 public partial class Program
 {
 }
-
-internal class DataBase
-{
-    public required string ConnectionString { get; init; }
-}
-
-public record Logger(string LogsUrl, string Application);

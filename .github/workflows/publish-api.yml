@@ -66,5 +66,6 @@ jobs:
       - name: Pull latest image and restart container
         run: |
           cd /home/dev/
+          export TGPOSTER_API_CONNECTIONSTRING='${{ secrets.WORKER_CONNECTIONSTRING }}'
           docker compose -f docker-compose.api.yml pull
           docker compose -f docker-compose.api.yml up -d

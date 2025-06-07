@@ -1,3 +1,7 @@
+networks:
+  default:
+    name: tg
+
 services:
   worker:
     volumes:

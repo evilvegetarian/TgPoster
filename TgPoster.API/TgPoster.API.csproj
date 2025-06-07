@@ -5,6 +5,7 @@
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
         <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+        <UserSecretsId>8cad5989-a758-42b6-a3fd-da884daf90bb</UserSecretsId>
     </PropertyGroup>
     <ItemGroup>
         <PackageReference Include="Serilog.AspNetCore" Version="8.0.3" />
