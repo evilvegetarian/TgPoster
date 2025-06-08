@@ -23,6 +23,7 @@ public static class Configuration
             options.Password = connectionBuilder.Password;
             options.AdminUsername = connectionBuilder.Username;
             options.AdminPassword = connectionBuilder.Password;
+            
         });
     }
 }

@@ -1,10 +1,10 @@
 networks:
   default:
     name: tg
-    
+
 volumes:
   tg-pg:
-  
+
 services:
   postgres:
     container_name: tg-pg
@@ -14,5 +14,13 @@ services:
     environment:
       POSTGRES_USER: 'admin'
       POSTGRES_PASSWORD: 'admin'
+      POSTGRES_DB: 'tg-db'
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
     volumes:
       - tg-pg:/var/lib/postgresql/data

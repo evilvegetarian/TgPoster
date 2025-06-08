@@ -4,6 +4,7 @@ using Serilog;
 using Serilog.Events;
 using Serilog.Sinks.Grafana.Loki;
 using TgPoster.Storage;
+using TgPoster.Worker.ConfigModels;
 using TgPoster.Worker.Domain;
 using TgPoster.Worker.Domain.ConfigModels;
 
@@ -34,5 +35,3 @@ builder.Services
 var host = builder.Build();
 host.AddHangfire();
 host.Run();
-
-public record Logger(string LogsUrl, string Application);
