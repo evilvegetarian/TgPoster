@@ -15,3 +15,6 @@ services:
       ASPNETCORE_ENVIRONMENT: "Production"
       ASPNETCORE_URLS: "http://+:8090"
       DataBase__ConnectionString: ${TGPOSTER_WORKER_CONNECTIONSTRING:-Host=localhost;Username=admin;Password=admin;Database=tg-db}
+      TelegramSettings__api_id: ${TELEGRAM_API_ID}
+      TelegramSettings__api_hash: ${TELEGRAM_API_HASH}
+      TelegramSettings__phone_number: ${TELEGRAM_PHONE_NUMBER}

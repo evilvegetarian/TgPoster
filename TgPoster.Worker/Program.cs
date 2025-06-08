@@ -26,7 +26,8 @@ builder.Services.AddSerilog(x =>
 var telegramOptions = builder.Configuration.GetSection(nameof(TelegramOptions)).Get<TelegramOptions>()!;
 builder.Services.AddSingleton(telegramOptions);
 
-builder.Configuration.AddJsonFile("settingTelegram.json", true, true);
+if (builder.Environment.IsDevelopment())
+    builder.Configuration.AddJsonFile("settingTelegram.json", true, true);
 
 builder.Services.AddScoped<ICryptoAES, CryptoAES>();
 builder.Services
