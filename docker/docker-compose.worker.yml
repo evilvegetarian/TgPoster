@@ -18,3 +18,4 @@ services:
       TelegramSettings__api_id: ${TELEGRAM_API_ID}
       TelegramSettings__api_hash: ${TELEGRAM_API_HASH}
       TelegramSettings__phone_number: ${TELEGRAM_PHONE_NUMBER}
+      Logger__LogsUrl: ${TGPOSTER_WORKER_LOGSURL:-localhost:3100}

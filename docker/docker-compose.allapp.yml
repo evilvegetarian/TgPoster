@@ -1,0 +1,49 @@
+networks:
+  default:
+    name: tg
+
+volumes:
+  tg-pg:
+  tg-postgres:
+  tg-grafana:  
+
+services:
+  postgres:
+    container_name: tg-pg
+    image: postgres:16.4
+    ports:
+      - '5432:5432'
+    environment:
+      POSTGRES_USER: 'admin'
+      POSTGRES_PASSWORD: 'admin'
+      POSTGRES_DB: 'tg-db'
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    volumes:
+      - tg-pg:/var/lib/postgresql/data
+      
+  loki:
+    container_name: "tg-loki"
+    hostname: tg-loki
+    image: grafana/loki
+    ports:
+      - "3100:3100"
+    volumes:
+      - /home/dev/loki-config.yml:/etc/loki/local-config.yml
+    command: --config.file=/etc/loki/local-config.yml
+
+  grafana:
+    container_name: "tg-grafana"
+    image: grafana/grafana:9.1.7
+    restart: unless-stopped
+    environment:
+      GF_INSTALL_PLUGINS: 'grafana-clock-panel,grafana-simple-json-datasource'
+    ports:
+      - '3000:3000'
+    volumes:
+      - tg-grafana:/var/lib/grafana

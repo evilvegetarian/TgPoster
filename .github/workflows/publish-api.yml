@@ -67,5 +67,6 @@ jobs:
         run: |
           cd /home/dev/
           export TGPOSTER_API_CONNECTIONSTRING='${{ secrets.WORKER_CONNECTIONSTRING }}'
+          export TGPOSTER_API_LOGSURL='${{ secrets.LOGSURL }}'
           docker compose -f docker-compose.api.yml pull
           docker compose -f docker-compose.api.yml up -d

@@ -15,3 +15,4 @@ services:
       ASPNETCORE_ENVIRONMENT: "Production"
       ASPNETCORE_URLS: "http://+:8070"
       DataBase__ConnectionString: ${TGPOSTER_API_CONNECTIONSTRING:-Host=localhost;Username=admin;Password=admin;Database=tg-db}
+      Logger__LogsUrl: ${TGPOSTER_API_LOGSURL:-localhost:3100}

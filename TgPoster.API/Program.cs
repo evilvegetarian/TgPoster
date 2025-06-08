@@ -54,7 +54,7 @@ app.UseMiddleware<AuthenticationMiddleware>();
 app.UseSwagger();
 app.UseSwaggerUI();
 app.MapControllers();
-
+app.UseHttpsRedirection();
 app.Run();
 
 public partial class Program
