@@ -30,7 +30,16 @@ public static class DependencyInjection
                     {
                         OnMessageReceived = context =>
                         {
-                            context.Token = context.Request.Cookies[jwtOptions.NameCookie];
+                            string authorizationHeader = context.Request.Headers["Authorization"];
+                            if (!string.IsNullOrEmpty(authorizationHeader) && authorizationHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
+                            {
+                                context.Token = authorizationHeader.Substring("Bearer ".Length).Trim();
+                            }
+                            else if (string.IsNullOrEmpty(context.Token))
+                            {
+                                context.Token = context.Request.Cookies[jwtOptions.NameCookie];
+                            }
+
                             return Task.CompletedTask;
                         }
                     };
