@@ -22,7 +22,9 @@ public class UnauthorizedAccessTests : IClassFixture<EndpointTestFixture>
                     d.ServiceType == typeof(IIdentityProvider));
 
                 if (descriptor != null)
+                {
                     services.Remove(descriptor);
+                }
 
                 services.AddScoped<IIdentityProvider, DummyIdentityProvider>();
             });
@@ -43,11 +45,17 @@ public class UnauthorizedAccessTests : IClassFixture<EndpointTestFixture>
     {
         HttpResponseMessage response;
         if (method == "GET")
+        {
             response = await _client.GetAsync(url);
+        }
         else if (method == "POST")
+        {
             response = await _client.PostAsync(url, JsonContent.Create(new { }));
+        }
         else
+        {
             throw new NotSupportedException();
+        }
 
         response.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
     }

@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Builder;
 using Security;
 using Security.Interfaces;
 using Serilog;
@@ -8,7 +9,7 @@ using TgPoster.Worker.ConfigModels;
 using TgPoster.Worker.Domain;
 using TgPoster.Worker.Domain.ConfigModels;
 
-var builder = Host.CreateApplicationBuilder(args);
+var builder = WebApplication.CreateBuilder(args);
 
 var logger = builder.Configuration.GetSection(nameof(Logger)).Get<Logger>()!;
 builder.Services.AddSerilog(x =>
@@ -27,12 +28,16 @@ var telegramOptions = builder.Configuration.GetSection(nameof(TelegramOptions)).
 builder.Services.AddSingleton(telegramOptions);
 
 if (builder.Environment.IsDevelopment())
+{
     builder.Configuration.AddJsonFile("settingTelegram.json", true, true);
+}
 
 builder.Services.AddScoped<ICryptoAES, CryptoAES>();
 builder.Services
     .AddDomain(builder.Configuration)
     .AddStorage(builder.Configuration);
-var host = builder.Build();
-host.AddHangfire();
-host.Run();
+
+var app = builder.Build();
+app.AddHangfire();
+
+app.Run();

@@ -1,9 +1,9 @@
 using Hangfire;
 using Hangfire.MemoryStorage;
 using MassTransit;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using Shared;
 using Shared.Contracts;
 using TgPoster.Worker.Domain.ConfigModels;
@@ -60,9 +60,10 @@ public static class DependencyInjection
         });
     }
 
-    public static IHost AddHangfire(this IHost host)
+    public static void AddHangfire(this WebApplication app)
     {
-        using var scope = host.Services.CreateScope();
+        app.UseHangfireDashboard();
+        using var scope = app.Services.CreateScope();
         var recurringJobManager = scope.ServiceProvider.GetRequiredService<IRecurringJobManager>();
 
         //recurringJobManager.AddOrUpdate<SenderMessageWorker>(
@@ -74,6 +75,5 @@ public static class DependencyInjection
             "process-parse-channel-job",
             worker => worker.ProcessMessagesAsync(),
             Cron.Daily());
-        return host;
     }
 }

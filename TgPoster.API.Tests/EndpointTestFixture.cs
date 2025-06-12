@@ -1,4 +1,3 @@
-using System.Net;
 using System.Net.Http.Json;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -37,9 +36,15 @@ public class EndpointTestFixture : WebApplicationFactory<Program>, IAsyncLifetim
         await CreateAuthClient();
     }
 
+
+    public new async Task DisposeAsync()
+    {
+        await dbContainer.DisposeAsync();
+    }
+
     private async Task CreateAuthClient()
     {
-        AuthClient = base.CreateClient();
+        AuthClient = CreateClient();
         var response = await AuthClient.PostAsJsonAsync(Routes.Account.SignIn, new SignInRequest
         {
             Login = GlobalConst.Worked.UserName,
@@ -52,12 +57,6 @@ public class EndpointTestFixture : WebApplicationFactory<Program>, IAsyncLifetim
         {
             AuthClient.DefaultRequestHeaders.Add("Cookie", setCookie);
         }
-    }
-
-
-    public new async Task DisposeAsync()
-    {
-        await dbContainer.DisposeAsync();
     }
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)

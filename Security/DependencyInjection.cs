@@ -31,7 +31,8 @@ public static class DependencyInjection
                         OnMessageReceived = context =>
                         {
                             string authorizationHeader = context.Request.Headers["Authorization"];
-                            if (!string.IsNullOrEmpty(authorizationHeader) && authorizationHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
+                            if (!string.IsNullOrEmpty(authorizationHeader)
+                                && authorizationHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
                             {
                                 context.Token = authorizationHeader.Substring("Bearer ".Length).Trim();
                             }
