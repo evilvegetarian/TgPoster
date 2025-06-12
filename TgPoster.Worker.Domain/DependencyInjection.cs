@@ -1,4 +1,5 @@
 using Hangfire;
+using Hangfire.Dashboard;
 using Hangfire.MemoryStorage;
 using MassTransit;
 using Microsoft.AspNetCore.Builder;
@@ -60,9 +61,20 @@ public static class DependencyInjection
         });
     }
 
+    public class AllowAllAuthorizationFilter : IDashboardAuthorizationFilter
+    {
+        public bool Authorize(DashboardContext context)
+        {
+            return true;
+        }
+    }
     public static void AddHangfire(this WebApplication app)
     {
-        app.UseHangfireDashboard();
+        app.UseHangfireDashboard("/hangfire", new DashboardOptions
+        {
+            Authorization = [new AllowAllAuthorizationFilter()]
+        });
+        
         using var scope = app.Services.CreateScope();
         var recurringJobManager = scope.ServiceProvider.GetRequiredService<IRecurringJobManager>();
 
