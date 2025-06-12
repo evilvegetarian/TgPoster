@@ -28,8 +28,7 @@ internal class ParseChannelWorker(
             }
             catch (Exception e)
             {
-                logger.LogError("Во время парсинга произошла ошибка. Id настроек парсинга-{Id}. Ошибка - {error}", id,
-                    e.Message);
+                logger.LogError(e, "Во время парсинга произошла ошибка. Id настроек парсинга-{Id}.", id);
             }
         }
     }
