@@ -1,5 +1,4 @@
 ﻿FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS base
-USER $APP_UID
 WORKDIR /app
 EXPOSE 8090
 EXPOSE 8091
@@ -34,6 +33,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 ENV TESSDATA_PREFIX=/usr/share/tesseract-ocr/4.00/tessdata
+USER $APP_UID
 
 COPY --from=publish /app/publish .
 ENTRYPOINT ["dotnet", "TgPoster.Worker.dll"]
