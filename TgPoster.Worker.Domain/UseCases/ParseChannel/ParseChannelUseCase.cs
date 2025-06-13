@@ -30,6 +30,7 @@ internal class ParseChannelUseCase(
             return;
         }
 
+        logger.LogInformation("Начали парсить данный канал с данными настройками: {@parametrs}", parametrs);
         await storage.UpdateInHandleStatusAsync(id, ct);
 
         var channelName = parametrs.ChannelName;

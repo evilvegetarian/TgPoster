@@ -10,6 +10,7 @@ internal class ParseChannelWorker(
 {
     public async Task ProcessMessagesAsync()
     {
+        logger.LogInformation("Начали парсинг каналов");
         var ids = await storage.GetChannelParsingParametersAsync();
         if (ids.Count == 0)
         {
