@@ -24,5 +24,16 @@ RUN dotnet publish "TgPoster.Worker.csproj" -c $BUILD_CONFIGURATION -o /app/publ
 
 FROM base AS final
 WORKDIR /app
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libgl1-mesa-glx \
+    libglib2.0-0 \
+    tesseract-ocr \
+    tesseract-ocr-rus \
+    libgdiplus \
+    && rm -rf /var/lib/apt/lists/*
+
+ENV TESSDATA_PREFIX=/usr/share/tesseract-ocr/4.00/tessdata
+
 COPY --from=publish /app/publish .
 ENTRYPOINT ["dotnet", "TgPoster.Worker.dll"]

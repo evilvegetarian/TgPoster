@@ -20,7 +20,7 @@ internal class ParseChannelConsumer(
         }
         catch (Exception e)
         {
-            logger.LogError("Ошибка во время попытки спарсить канал: {Id} Ошибка: {ex}", context.Message.Id, e.Message);
+            logger.LogError(e,"Ошибка во время попытки спарсить канал: {Id}", context.Message.Id);
         }
     }
 }
