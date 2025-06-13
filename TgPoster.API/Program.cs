@@ -17,6 +17,9 @@ var builder = WebApplication.CreateBuilder(args);
 var logger = builder.Configuration.GetSection(nameof(Logger)).Get<Logger>()!;
 var serilog = new LoggerConfiguration()
     .MinimumLevel.Information()
+    .MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Warning)
+    .MinimumLevel.Override("Microsoft.EntityFrameworkCore.Database.Command", LogEventLevel.Warning)
+    .MinimumLevel.Override("System.Net.Http.HttpClient", LogEventLevel.Warning)
     .Enrich.WithProperty(nameof(logger.Application), logger.Application)
     .WriteTo.GrafanaLoki(
         logger.LogsUrl,
