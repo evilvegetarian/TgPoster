@@ -178,7 +178,7 @@ internal class ParseChannelUseCase(
                             [
                                 new InputMediaVideo { Media = inputFile }
                             ];
-                            var previews = videoService.ExtractScreenshots(stream, 3);
+                            var previews = await videoService.ExtractScreenshotsAsync(stream, 3);
                             album.AddRange(
                                 previews.Select<MemoryStream, InputMediaPhoto>(preview =>
                                     new InputMediaPhoto(preview)));

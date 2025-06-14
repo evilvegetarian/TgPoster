@@ -1,10 +1,23 @@
-using OpenCvSharp;
+
+using System.Drawing;
+using FFMpegCore;
 
 namespace Shared;
 
 public sealed class VideoService
 {
-    public List<MemoryStream> ExtractScreenshots(MemoryStream videoStream, int screenshotCount, int outputWidth = 0)
+    // Рекомендуется настроить путь к ffmpeg глобально при старте приложения, 
+    // если он не находится в PATH или рядом с .exe.
+    // Пример: GlobalFFOptions.Configure(new FFOptions { FfmpegPath = @"C:\ffmpeg\bin\ffmpeg.exe" });
+
+    /// <summary>
+    /// Извлекает указанное количество скриншотов из видеопотока, равномерно распределяя их по длительности.
+    /// </summary>
+    /// <param name="videoStream">Видео в виде MemoryStream.</param>
+    /// <param name="screenshotCount">Количество скриншотов для извлечения.</param>
+    /// <param name="outputWidth">Желаемая ширина скриншотов. Высота будет подобрана с сохранением пропорций. 0 - исходный размер.</param>
+    /// <returns>Список MemoryStream, содержащих изображения в формате JPG.</returns>
+    public async Task<List<MemoryStream>> ExtractScreenshotsAsync(MemoryStream videoStream, int screenshotCount, int outputWidth = 0)
     {
         if (videoStream == null)
         {
@@ -13,97 +26,72 @@ public sealed class VideoService
 
         if (screenshotCount < 1)
         {
-            throw new ArgumentException("Количество скриншотов должно быть не меньше 1", nameof(screenshotCount));
+            throw new ArgumentException("Количество скриншотов должно быть не меньше 1.", nameof(screenshotCount));
         }
 
+        // FFMpeg работает с файлами, поэтому нам все равно нужно сохранить поток на диск временно.
         var tempVideoPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid() + ".mp4");
-        File.WriteAllBytes(tempVideoPath, videoStream.ToArray());
+        await File.WriteAllBytesAsync(tempVideoPath, videoStream.ToArray());
 
         var screenshots = new List<MemoryStream>();
 
-        VideoCapture? capture = null;
         try
         {
-            capture = new VideoCapture(tempVideoPath);
-            if (!capture.IsOpened())
+            // Получаем информацию о видео (включая длительность и разрешение) с помощью ffprobe.
+            // Это гораздо надежнее, чем расчет через FPS и количество кадров.
+            var mediaInfo = await FFProbe.AnalyseAsync(tempVideoPath);
+            var duration = mediaInfo.Duration;
+
+            Size? size = null;
+            if (outputWidth > 0 && mediaInfo.PrimaryVideoStream != null)
             {
-                throw new ArgumentException("Не удалось открыть видео файл");
+                var originalWidth = mediaInfo.PrimaryVideoStream.Width;
+                var originalHeight = mediaInfo.PrimaryVideoStream.Height;
+                if (originalWidth > 0 && originalHeight > 0)
+                {
+                    var newHeight = (int)Math.Round(originalHeight * (outputWidth / (double)originalWidth));
+                    size = new Size(outputWidth, newHeight);
+                }
             }
 
-            // Получаем ключевые параметры видео.
-            var fps = capture.Fps;
-            var frameCount = capture.FrameCount;
-            if (frameCount <= 0)
-            {
-                throw new ArgumentException("Не удалось определить количество кадров");
-            }
-
-            // Определяем длительность видео в секундах.
-            var duration = frameCount / fps;
-
-            // Для равномерного выбора кадров (без крайних), делим видео на screenshotCount+1 частей.
-            // Вычисляем номера кадров для извлечения: для каждого скриншота определяем время, переводим в номер кадра.
+            // Равномерно вычисляем моменты времени для создания скриншотов.
             for (var i = 1; i <= screenshotCount; i++)
             {
-                var snapshotTime = duration * i / (screenshotCount + 1); // в секундах
-                var targetFrame = (int)(snapshotTime * fps);
+                var snapshotTime = TimeSpan.FromSeconds(duration.TotalSeconds * i / (screenshotCount + 1));
+                
+                // Создаем скриншот во временный файл изображения
+                var tempScreenshotPath = Path.ChangeExtension(Path.GetTempFileName(), ".jpg");
 
-                if (targetFrame >= frameCount)
+                try
                 {
-                    targetFrame = frameCount - 1;
+                    // FFmpeg сам найдет ближайший кадр, изменит размер и сохранит в файл.
+                    await FFMpeg.SnapshotAsync(tempVideoPath, tempScreenshotPath, size, snapshotTime);
+                    
+                    // Читаем результат из временного файла в MemoryStream
+                    var imageBytes = await File.ReadAllBytesAsync(tempScreenshotPath);
+                    var screenshotStream = new MemoryStream(imageBytes);
+                    screenshots.Add(screenshotStream);
                 }
-
-                capture.Set(VideoCaptureProperties.PosFrames, targetFrame);
-
-                using var frame = new Mat();
-                if (!capture.Read(frame) || frame.Empty())
+                finally
                 {
-                    // Можно попробовать ближайший предыдущий кадр
-                    var frameFound = false;
-                    for (var offset = -1; offset >= -5; offset--) // проверить до 5 предыдущих кадров
+                    // Удаляем временный файл скриншота
+                    if(File.Exists(tempScreenshotPath))
                     {
-                        var tryFrame = targetFrame + offset;
-                        if (tryFrame < 0)
-                        {
-                            break;
-                        }
-
-                        capture.Set(VideoCaptureProperties.PosFrames, tryFrame);
-                        if (capture.Read(frame) && !frame.Empty())
-                        {
-                            frameFound = true;
-                            break;
-                        }
+                        File.Delete(tempScreenshotPath);
                     }
-
-                    if (!frameFound)
-                        // Логируем и продолжаем, вместо throw
-                    {
-                        continue;
-                    }
-                    // или если хотите бросить исключение:
-                    // throw new ArgumentException($"Не удалось считать кадр под номером {targetFrame}");
                 }
-
-                if (outputWidth > 0)
-                {
-                    var newWidth = outputWidth;
-                    var newHeight = (int)(frame.Height * (outputWidth / (double)frame.Width));
-                    Cv2.Resize(frame, frame, new Size(newWidth, newHeight));
-                }
-
-                Cv2.ImEncode(".jpg", frame, out var imageBytes);
-
-                var screenshotStream = new MemoryStream(imageBytes);
-                screenshots.Add(screenshotStream);
             }
-
 
             return screenshots;
         }
+        catch (Exception ex)
+        {
+            // Здесь можно добавить логирование ошибки
+            throw new InvalidOperationException("Не удалось обработать видео с помощью FFMpeg.", ex);
+        }
         finally
         {
-            capture?.Release();
+            // Обязательно удаляем временный видеофайл
             if (File.Exists(tempVideoPath))
             {
                 File.Delete(tempVideoPath);

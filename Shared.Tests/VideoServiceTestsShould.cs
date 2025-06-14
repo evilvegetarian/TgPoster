@@ -12,13 +12,13 @@ public sealed class VideoServiceTestsShould
     private readonly VideoService sut = new();
 
     [Fact]
-    public void ExtractScreenshots_WithValidVideo_ReturnsExpectedNumberOfScreenshots()
+    public async Task ExtractScreenshots_WithValidVideo_ReturnsExpectedNumberOfScreenshots()
     {
-        var fileBytes = File.ReadAllBytes(filePath);
+        var fileBytes = await File.ReadAllBytesAsync(filePath);
         using var videoStream = new MemoryStream(fileBytes);
-        var screenshotCount = 2;
+        var screenshotCount = 3;
 
-        var screenshots = sut.ExtractScreenshots(videoStream, screenshotCount);
+        var screenshots = await sut.ExtractScreenshotsAsync(videoStream, screenshotCount);
 
         screenshots.ShouldNotBeNull();
         screenshots.Count.ShouldBe(screenshotCount);
@@ -26,19 +26,21 @@ public sealed class VideoServiceTestsShould
         foreach (var imageBytes in screenshots.Select(screenshot => screenshot.ToArray()))
         {
             using var img = Cv2.ImDecode(imageBytes, ImreadModes.Color);
-            img.Empty().ShouldBeFalse("Изображение не должно быть пустым");
+            img.Empty().ShouldBeFalse("Изображение не должно быть пустым.");
         }
     }
 
     [Fact]
-    public void ExtractScreenshots_WithOutputWidth_ResizesScreenshots()
+    public async Task ExtractScreenshots_WithOutputWidth_ResizesScreenshots()
     {
-        var fileBytes = File.ReadAllBytes(filePath);
+        var fileBytes = await File.ReadAllBytesAsync(filePath);
         using var videoStream = new MemoryStream(fileBytes);
-        var screenshotCount = 5;
-        var outputWidth = 300;
-        var screenshots = sut.ExtractScreenshots(videoStream, screenshotCount, outputWidth);
+        var screenshotCount = 2;
+        var outputWidth = 320;
 
+        var screenshots = await sut.ExtractScreenshotsAsync(videoStream, screenshotCount, outputWidth);
+
+        // Assert
         screenshots.ShouldNotBeNull();
         screenshots.Count.ShouldBe(screenshotCount);
 
@@ -52,28 +54,32 @@ public sealed class VideoServiceTestsShould
     }
 
     [Fact]
-    public void ExtractScreenshots_NullStream_ThrowsArgumentNullException()
+    public async Task ExtractScreenshots_NullStream_ThrowsArgumentNullException()
     {
-        var exception = Record.Exception(() => sut.ExtractScreenshots(null!, 1));
-        exception.ShouldBeOfType<ArgumentNullException>();
+        await Should.ThrowAsync<ArgumentNullException>(
+            () => sut.ExtractScreenshotsAsync(null!, 1)
+        );
     }
 
     [Fact]
-    public void ExtractScreenshots_InvalidScreenshotCount_ThrowsArgumentException()
+    public async Task ExtractScreenshots_InvalidScreenshotCount_ThrowsArgumentException()
     {
         using var stream = new MemoryStream([1, 2, 3]);
-        var exception = Record.Exception(() => sut.ExtractScreenshots(stream, 0));
-        exception.ShouldBeOfType<ArgumentException>();
+
+        await Should.ThrowAsync<ArgumentException>(
+            () => sut.ExtractScreenshotsAsync(stream, 0)
+        );
     }
 
     [Fact]
-    public void ExtractScreenshots_InvalidVideoStream_ThrowsException()
+    public async Task ExtractScreenshots_InvalidVideoStream_ThrowsInvalidOperationException()
     {
-        using var invalidVideoStream = new MemoryStream([0, 1, 2, 3, 4, 5]);
+        using var invalidVideoStream = new MemoryStream([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
 
-        var exception = Should.Throw<ArgumentException>(() => sut.ExtractScreenshots(invalidVideoStream, 1));
-
-        exception.ShouldNotBeNull();
-        exception.Message.ShouldContain("Не удалось открыть видео файл");
+        var exception = await Should.ThrowAsync<InvalidOperationException>(
+            () => sut.ExtractScreenshotsAsync(invalidVideoStream, 1)
+        );
+        
+        exception.Message.ShouldBe("Не удалось обработать видео с помощью FFMpeg.");
     }
 }

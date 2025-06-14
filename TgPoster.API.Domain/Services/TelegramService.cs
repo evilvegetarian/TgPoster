@@ -31,7 +31,7 @@ internal sealed class TelegramService(VideoService videoService)
                     [
                         new InputMediaVideo { Media = inputFile }
                     ];
-                    var previews = videoService.ExtractScreenshots(memoryStream, 3);
+                    var previews =await videoService.ExtractScreenshotsAsync(memoryStream, 3);
                     album.AddRange(previews.Select(preview => new InputMediaPhoto(preview)));
 
                     var messages = await botClient.SendMediaGroup(
