@@ -1,4 +1,3 @@
-
 using System.Drawing;
 using FFMpegCore;
 
@@ -11,13 +10,20 @@ public sealed class VideoService
     // Пример: GlobalFFOptions.Configure(new FFOptions { FfmpegPath = @"C:\ffmpeg\bin\ffmpeg.exe" });
 
     /// <summary>
-    /// Извлекает указанное количество скриншотов из видеопотока, равномерно распределяя их по длительности.
+    ///     Извлекает указанное количество скриншотов из видеопотока, равномерно распределяя их по длительности.
     /// </summary>
     /// <param name="videoStream">Видео в виде MemoryStream.</param>
     /// <param name="screenshotCount">Количество скриншотов для извлечения.</param>
-    /// <param name="outputWidth">Желаемая ширина скриншотов. Высота будет подобрана с сохранением пропорций. 0 - исходный размер.</param>
+    /// <param name="outputWidth">
+    ///     Желаемая ширина скриншотов. Высота будет подобрана с сохранением пропорций. 0 - исходный
+    ///     размер.
+    /// </param>
     /// <returns>Список MemoryStream, содержащих изображения в формате JPG.</returns>
-    public async Task<List<MemoryStream>> ExtractScreenshotsAsync(MemoryStream videoStream, int screenshotCount, int outputWidth = 0)
+    public async Task<List<MemoryStream>> ExtractScreenshotsAsync(
+        MemoryStream videoStream,
+        int screenshotCount,
+        int outputWidth = 0
+    )
     {
         if (videoStream == null)
         {
@@ -58,15 +64,27 @@ public sealed class VideoService
             for (var i = 1; i <= screenshotCount; i++)
             {
                 var snapshotTime = TimeSpan.FromSeconds(duration.TotalSeconds * i / (screenshotCount + 1));
-                
+
                 // Создаем скриншот во временный файл изображения
                 var tempScreenshotPath = Path.ChangeExtension(Path.GetTempFileName(), ".jpg");
 
                 try
                 {
-                    // FFmpeg сам найдет ближайший кадр, изменит размер и сохранит в файл.
-                    await FFMpeg.SnapshotAsync(tempVideoPath, tempScreenshotPath, size, snapshotTime);
-                    
+                    var arguments = FFMpegArguments
+                        .FromFileInput(tempVideoPath)
+                        .OutputToFile(tempScreenshotPath, true, options => options
+                            .WithFrameOutputCount(1)        // Take only one frame
+                            .Seek(snapshotTime)   // At the specified time
+                            .Resize(size)             // With the specified size (if any)
+                            // Add the CRUCIAL argument for modern FFMpeg versions
+                            .WithCustomArgument("-update 1"));
+
+                    await arguments.ProcessAsynchronously();
+
+                    if (!File.Exists(tempScreenshotPath))
+                    {
+                        throw new InvalidOperationException("FFMpeg не смог создать скриншот. Проверьте, что FFMpeg доступен и видеофайл не поврежден.");
+                    }
                     // Читаем результат из временного файла в MemoryStream
                     var imageBytes = await File.ReadAllBytesAsync(tempScreenshotPath);
                     var screenshotStream = new MemoryStream(imageBytes);
@@ -75,7 +93,7 @@ public sealed class VideoService
                 finally
                 {
                     // Удаляем временный файл скриншота
-                    if(File.Exists(tempScreenshotPath))
+                    if (File.Exists(tempScreenshotPath))
                     {
                         File.Delete(tempScreenshotPath);
                     }

@@ -61,20 +61,13 @@ public static class DependencyInjection
         });
     }
 
-    public class AllowAllAuthorizationFilter : IDashboardAuthorizationFilter
-    {
-        public bool Authorize(DashboardContext context)
-        {
-            return true;
-        }
-    }
     public static void AddHangfire(this WebApplication app)
     {
         app.UseHangfireDashboard("/hangfire", new DashboardOptions
         {
             Authorization = [new AllowAllAuthorizationFilter()]
         });
-        
+
         using var scope = app.Services.CreateScope();
         var recurringJobManager = scope.ServiceProvider.GetRequiredService<IRecurringJobManager>();
 
@@ -87,5 +80,13 @@ public static class DependencyInjection
             "process-parse-channel-job",
             worker => worker.ProcessMessagesAsync(),
             Cron.Daily());
+    }
+
+    public class AllowAllAuthorizationFilter : IDashboardAuthorizationFilter
+    {
+        public bool Authorize(DashboardContext context)
+        {
+            return true;
+        }
     }
 }

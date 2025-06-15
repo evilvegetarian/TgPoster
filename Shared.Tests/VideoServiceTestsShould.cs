@@ -79,7 +79,7 @@ public sealed class VideoServiceTestsShould
         var exception = await Should.ThrowAsync<InvalidOperationException>(
             () => sut.ExtractScreenshotsAsync(invalidVideoStream, 1)
         );
-        
+
         exception.Message.ShouldBe("Не удалось обработать видео с помощью FFMpeg.");
     }
 }

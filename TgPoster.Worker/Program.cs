@@ -1,3 +1,5 @@
+using FFMpegCore;
+using FFMpegCore.Enums;
 using Microsoft.AspNetCore.Builder;
 using Security;
 using Security.Interfaces;
@@ -17,7 +19,6 @@ builder.Services.AddSerilog(x =>
         .MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Warning)
         .MinimumLevel.Override("Microsoft.EntityFrameworkCore.Database.Command", LogEventLevel.Warning)
         .MinimumLevel.Override("System.Net.Http.HttpClient", LogEventLevel.Warning)
-
         .Enrich.WithProperty(nameof(logger.Application), logger.Application)
         .WriteTo.GrafanaLoki(
             logger.LogsUrl,
@@ -27,10 +28,12 @@ builder.Services.AddSerilog(x =>
         .WriteTo.Console()
         .WriteTo.File("logs/log-.txt", rollingInterval: RollingInterval.Day)
 );
-
 var telegramOptions = builder.Configuration.GetSection(nameof(TelegramOptions)).Get<TelegramOptions>()!;
 builder.Services.AddSingleton(telegramOptions);
-
+GlobalFFOptions.Configure(options => 
+{
+    options.LogLevel = FFMpegLogLevel.Debug; 
+});
 if (builder.Environment.IsDevelopment())
 {
     builder.Configuration.AddJsonFile("settingTelegram.json", true, true);
