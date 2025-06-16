@@ -24,5 +24,10 @@ RUN dotnet publish "TgPoster.API.csproj" -c $BUILD_CONFIGURATION -o /app/publish
 
 FROM base AS final
 WORKDIR /app
+USER root
+RUN apt-get update && apt-get install -y --no-install-recommends ffmpeg
+
+USER $APP_UID
+
 COPY --from=publish /app/publish .
 ENTRYPOINT ["dotnet", "TgPoster.API.dll"]
