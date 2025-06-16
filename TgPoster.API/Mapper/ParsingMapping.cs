@@ -5,9 +5,9 @@ namespace TgPoster.API.Mapper;
 
 public static class ParsingMapping
 {
-    public static ParseChannelCommand ToCommand(this ParseChannelRequest request)
+    public static CreateParseChannelCommand ToCommand(this ParseChannelRequest request)
     {
-        return new ParseChannelCommand(
+        return new CreateParseChannelCommand(
             request.Channel,
             request.AlwaysCheckNewPosts,
             request.ScheduleId,

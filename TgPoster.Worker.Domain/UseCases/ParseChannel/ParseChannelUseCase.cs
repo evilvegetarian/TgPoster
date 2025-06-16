@@ -139,83 +139,90 @@ internal class ParseChannelUseCase(
                 ScheduleId = scheduleId
             };
 
-            foreach (var message in al.Value)
+            try
             {
-                await Task.Delay(1000, ct);
-                if (message.media is not null && !deleteMedia)
+                foreach (var message in al.Value)
                 {
-                    if (message.media is MessageMediaPhoto { photo: Photo photo })
+                    await Task.Delay(1000, ct);
+                    if (message.media is not null && !deleteMedia)
                     {
-                        var fileType = "image/jpeg";
-                        using var stream = new MemoryStream();
-                        await client.DownloadFileAsync(photo, stream);
-                        stream.Position = 0;
-                        var photoMessage = await telegramBot.SendPhoto(chatId,
-                            new InputFileStream(stream),
-                            cancellationToken: ct);
-                        var photoId = photoMessage.Photo?
-                            .OrderByDescending(x => x.FileSize)
-                            .Select(x => x.FileId)
-                            .FirstOrDefault()!;
-                        await telegramBot.DeleteMessage(chatId, photoMessage.MessageId, ct);
-                        messagedto.Media.Add(new MediaDto
+                        if (message.media is MessageMediaPhoto { photo: Photo photo })
                         {
-                            FileId = photoId,
-                            MimeType = fileType
-                        });
-                    }
-                    else if (message.media is MessageMediaDocument { document: Document doc })
-                    {
-                        var fileType = doc.mime_type.Split('/')[0];
-
-                        if (fileType == "video")
-                        {
+                            var fileType = "image/jpeg";
                             using var stream = new MemoryStream();
-                            await client.DownloadFileAsync(doc, stream);
+                            await client.DownloadFileAsync(photo, stream);
                             stream.Position = 0;
-                            var inputFile = new InputFileStream(stream, "file.FileName");
-                            List<IAlbumInputMedia> album =
-                            [
-                                new InputMediaVideo { Media = inputFile }
-                            ];
-                            var previews = await videoService.ExtractScreenshotsAsync(stream, 3);
-                            album.AddRange(
-                                previews.Select<MemoryStream, InputMediaPhoto>(preview =>
-                                    new InputMediaPhoto(preview)));
-
-                            var messages = await telegramBot.SendMediaGroup(
-                                chatId,
-                                album,
-                                disableNotification: true,
+                            var photoMessage = await telegramBot.SendPhoto(chatId,
+                                new InputFileStream(stream),
                                 cancellationToken: ct);
-                            var previewPhotoIds = messages
-                                .Select(m => m.Photo?
-                                    .OrderByDescending(x => x.FileSize)
-                                    .Select(x => x.FileId)
-                                    .FirstOrDefault())
-                                .Where(x => x != null)
-                                .Distinct()
-                                .ToList();
-                            var fileVideoId = messages
-                                .Select(m => m.Video?.FileId).FirstOrDefault();
-                            foreach (var mess in messages)
-                            {
-                                await telegramBot.DeleteMessage(chatId, mess.MessageId, ct);
-                            }
-
+                            var photoId = photoMessage.Photo?
+                                .OrderByDescending(x => x.FileSize)
+                                .Select(x => x.FileId)
+                                .FirstOrDefault()!;
+                            await telegramBot.DeleteMessage(chatId, photoMessage.MessageId, ct);
                             messagedto.Media.Add(new MediaDto
                             {
-                                MimeType = doc.mime_type,
-                                FileId = fileVideoId!,
-                                PreviewPhotoIds = previewPhotoIds!
+                                FileId = photoId,
+                                MimeType = fileType
                             });
                         }
+                        else if (message.media is MessageMediaDocument { document: Document doc })
+                        {
+                            var fileType = doc.mime_type.Split('/')[0];
+
+                            if (fileType == "video")
+                            {
+                                using var stream = new MemoryStream();
+                                await client.DownloadFileAsync(doc, stream);
+                                stream.Position = 0;
+                                var inputFile = new InputFileStream(stream, "file.FileName");
+                                List<IAlbumInputMedia> album =
+                                [
+                                    new InputMediaVideo { Media = inputFile }
+                                ];
+                                var previews = await videoService.ExtractScreenshotsAsync(stream, 3);
+                                album.AddRange(
+                                    previews.Select<MemoryStream, InputMediaPhoto>(preview =>
+                                        new InputMediaPhoto(preview)));
+
+                                var messages = await telegramBot.SendMediaGroup(
+                                    chatId,
+                                    album,
+                                    disableNotification: true,
+                                    cancellationToken: ct);
+                                var previewPhotoIds = messages
+                                    .Select(m => m.Photo?
+                                        .OrderByDescending(x => x.FileSize)
+                                        .Select(x => x.FileId)
+                                        .FirstOrDefault())
+                                    .Where(x => x != null)
+                                    .Distinct()
+                                    .ToList();
+                                var fileVideoId = messages
+                                    .Select(m => m.Video?.FileId).FirstOrDefault();
+                                foreach (var mess in messages)
+                                {
+                                    await telegramBot.DeleteMessage(chatId, mess.MessageId, ct);
+                                }
+
+                                messagedto.Media.Add(new MediaDto
+                                {
+                                    MimeType = doc.mime_type,
+                                    FileId = fileVideoId!,
+                                    PreviewPhotoIds = previewPhotoIds!
+                                });
+                            }
+                        }
+                    }
+                    else if (!deleteText)
+                    {
+                        messagedto.Text = message.message;
                     }
                 }
-                else if (!deleteText)
-                {
-                    messagedto.Text = message.message;
-                }
+            }
+            catch (Exception e)
+            {
+                logger.LogError(e, "Ошибка во время парсинга медиа. Разберись что ли в будущем");
             }
 
             if (messagedto.Media.Count > 0 || messagedto.Text is not null)

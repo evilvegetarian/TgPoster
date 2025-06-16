@@ -2,7 +2,7 @@ using MediatR;
 
 namespace TgPoster.API.Domain.UseCases.Parse.CreateParseChannel;
 
-public sealed record ParseChannelCommand(
+public sealed record CreateParseChannelCommand(
     string Channel,
     bool AlwaysCheckNewPosts,
     Guid ScheduleId,

@@ -11,8 +11,8 @@ internal class ParseChannelWorkerStorage(PosterContext context) : IParseChannelW
     {
         return context.ChannelParsingParameters
             .Where(x =>
-                x.Status == ParsingStatus.InHandle
-                || x.Status == ParsingStatus.Finished)
+                x.Status == ParsingStatus.New
+                || x.Status == ParsingStatus.Waiting)
             .Where(x => x.CheckNewPosts)
             .Select(x => x.Id)
             .ToListAsync();

@@ -9,14 +9,14 @@ using TgPoster.API.Domain.Extensions;
 
 namespace TgPoster.API.Domain.UseCases.Parse.CreateParseChannel;
 
-internal class ParseChannelUseCase(
+internal class CreateParseChannelUseCase(
     IParseChannelStorage storage,
     ICryptoAES cryptoAes,
     TelegramOptions telegramOptions,
     IBus bus)
-    : IRequestHandler<ParseChannelCommand>
+    : IRequestHandler<CreateParseChannelCommand>
 {
-    public async Task Handle(ParseChannelCommand request, CancellationToken ct)
+    public async Task Handle(CreateParseChannelCommand request, CancellationToken ct)
     {
         var cryptoToken = await storage.GetTelegramTokenAsync(request.ScheduleId, ct);
         if (cryptoToken is null)
