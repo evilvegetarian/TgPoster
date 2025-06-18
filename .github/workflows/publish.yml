@@ -90,6 +90,13 @@ jobs:
         docker compose -f docker-compose.worker.yml pull
         docker compose -f docker-compose.worker.yml up -d
 
+    - name: Login to GitHub Container Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+        
     - name: Pull latest image and restart container
       run: |
         cd /home/dev/
