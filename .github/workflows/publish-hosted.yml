@@ -1,4 +1,4 @@
-name: Build and deploy api and hosted
+name: Build and deploy hosted
 
 on:
   push:
@@ -35,25 +35,11 @@ jobs:
           push: true
           tags: ghcr.io/evilvegetarian/tgposter-worker:latest
 
-      - name: Build and push tgposter-api
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          file: TgPoster.API/Dockerfile
-          push: true
-          tags: ghcr.io/evilvegetarian/tgposter-api:latest
-
       - name: Upload docker-compose.worker.yml
         uses: actions/upload-artifact@v4
         with:
           name: docker-compose-worker
           path: docker/docker-compose.worker.yml
-
-      - name: Upload docker-compose.api.yml
-        uses: actions/upload-artifact@v4
-        with:
-          name: docker-compose-api
-          path: docker/docker-compose.api.yml
   
   deploy-hosted:
     needs: [build-and-push]
@@ -66,12 +52,6 @@ jobs:
         name: docker-compose-worker
         path: /home/dev/
           
-    - name: Download docker-compose.api.yml
-      uses: actions/download-artifact@v4
-      with:
-        name: docker-compose-api
-        path: /home/dev/
-
     - name: Login to GitHub Container Registry
       uses: docker/login-action@v3
       with:
@@ -90,23 +70,9 @@ jobs:
         docker compose -f docker-compose.worker.yml pull
         docker compose -f docker-compose.worker.yml up -d
 
-    - name: Login to GitHub Container Registry
-      uses: docker/login-action@v3
-      with:
-        registry: ghcr.io
-        username: ${{ github.actor }}
-        password: ${{ secrets.GITHUB_TOKEN }}
-        
-    - name: Pull latest image and restart container
-      run: |
-        cd /home/dev/
-        export TGPOSTER_API_CONNECTIONSTRING='${{ secrets.WORKER_CONNECTIONSTRING }}'
-        export TGPOSTER_API_LOGSURL='${{ secrets.LOGSURL }}'
-        docker compose -f docker-compose.api.yml pull
-        docker compose -f docker-compose.api.yml up -d
-
     - name: Clean up old docker images and containers
       if: always() 
       run: |
         docker container prune -f
         docker image prune -a -f
+
