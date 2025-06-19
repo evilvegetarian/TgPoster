@@ -20,6 +20,7 @@ public class SenderMessageWorker(
         logger.LogInformation("Начат процесс проверки новых сообщений.");
 
         var messageDetails = await storage.GetMessagesAsync();
+        await storage.UpdateStatusInHandleMessageAsync(messageDetails.Select(x => x.Id).ToList());
 
         foreach (var detail in messageDetails)
         {
@@ -27,27 +28,38 @@ public class SenderMessageWorker(
 
             foreach (var message in detail.MessageDto.OrderBy(x => x.TimePosting))
             {
-                BackgroundJob.Schedule<SenderMessageWorker>(
-                    x => x.SendMessageAsync(message.Id, token, detail.ChannelId, message),
-                    message.TimePosting);
-                logger.LogInformation(
-                    "Сообщение для чата {сhannelId} запланировано на {timePosting} сек.", detail.ChannelId,
-                    message.TimePosting);
+                try
+                {
+                    BackgroundJob.Schedule<SenderMessageWorker>(
+                        x => x.SendMessageAsync(message.Id, token, detail.ChannelId, message, detail.Id, message.TimePosting),
+                        message.TimePosting);
+                    logger.LogInformation(
+                        "Сообщение для чата {сhannelId} запланировано на {timePosting} сек.", detail.ChannelId,
+                        message.TimePosting);
+                }
+                catch (Exception e)
+                {
+                    logger.LogError(e,"Ошибка во время отправки сообщения");
+                    await storage.UpdateSendStatusMessageAsync(detail.Id);
+
+                }
             }
         }
     }
 
-    public async Task SendMessageAsync(Guid messageId, string token, long chatId, MessageDto message)
+
+    private async Task SendMessageAsync(Guid messageId, string token, long chatId, MessageDto message, Guid detailId, DateTimeOffset timePosting)
     {
         var bot = new TelegramBotClient(token);
         var medias = new List<IAlbumInputMedia>();
+        var text = detailId + timePosting.ToString();
         foreach (var file in message.File)
         {
             if (file.ContentType.GetFileType() == FileTypes.Image)
             {
                 medias.Add(new InputMediaPhoto(file.TgFileId)
                 {
-                    Caption = file.Caption
+                    Caption = file.Caption + text
                 });
             }
 
@@ -55,7 +67,7 @@ public class SenderMessageWorker(
             {
                 medias.Add(new InputMediaVideo(file.TgFileId)
                 {
-                    Caption = file.Caption
+                    Caption = file.Caption + text
                 });
             }
         }
@@ -69,7 +81,7 @@ public class SenderMessageWorker(
             await bot.SendMessage(chatId, message.Message!);
         }
 
-        await storage.UpdateStatusMessageAsync(messageId);
+        await storage.UpdateSendStatusMessageAsync(messageId);
         logger.LogInformation("Отправлено сообщение в чат {chatId}", chatId);
     }
 }

@@ -116,7 +116,7 @@ public class SenderMessageStorageShould(StorageTestFixture fixture) : IClassFixt
         await context.Messages.AddAsync(msg);
         await context.SaveChangesAsync();
 
-        await sut.UpdateStatusMessageAsync(msg.Id);
+        await sut.UpdateSendStatusMessageAsync(msg.Id);
         await context.Entry(msg).ReloadAsync();
 
         msg.Status.ShouldBe(MessageStatus.Send);
@@ -126,6 +126,6 @@ public class SenderMessageStorageShould(StorageTestFixture fixture) : IClassFixt
     public async Task UpdateStatusMessageAsync_WithNonExistentId_ShouldNotThrow()
     {
         var nonExistentId = Guid.NewGuid();
-        await Should.NotThrowAsync(() => sut.UpdateStatusMessageAsync(nonExistentId));
+        await Should.NotThrowAsync(() => sut.UpdateSendStatusMessageAsync(nonExistentId));
     }
 }

@@ -71,10 +71,10 @@ public static class DependencyInjection
         using var scope = app.Services.CreateScope();
         var recurringJobManager = scope.ServiceProvider.GetRequiredService<IRecurringJobManager>();
 
-        //recurringJobManager.AddOrUpdate<SenderMessageWorker>(
-        //    "process-sender-message-job",
-        //    worker => worker.ProcessMessagesAsync(),
-        //    Cron.Minutely());
+        recurringJobManager.AddOrUpdate<SenderMessageWorker>(
+            "process-sender-message-job",
+            worker => worker.ProcessMessagesAsync(),
+            Cron.Minutely());
 
         recurringJobManager.AddOrUpdate<ParseChannelWorker>(
             "process-parse-channel-job",

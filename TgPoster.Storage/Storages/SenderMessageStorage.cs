@@ -18,6 +18,7 @@ internal class SenderMessageStorage(PosterContext context) : ISenderMessageStora
                                             && m.Status == MessageStatus.Register))
             .Select(x => new MessageDetail
             {
+                Id = x.Id,
                 ChannelId = x.ChannelId,
                 Api = x.TelegramBot.ApiTelegram,
                 MessageDto = x.Messages
@@ -40,6 +41,15 @@ internal class SenderMessageStorage(PosterContext context) : ISenderMessageStora
             .ToListAsync();
     }
 
+    public  Task UpdateErrorStatusMessageAsync(Guid id)
+    {
+        return context.Messages
+            .Where(m => m.Id == id)
+            .ExecuteUpdateAsync(m =>
+                m.SetProperty(msg => msg.Status, MessageStatus.Error)
+            );
+    }
+
     public Task UpdateStatusInHandleMessageAsync(List<Guid> ids)
     {
         return context.Messages
@@ -49,7 +59,7 @@ internal class SenderMessageStorage(PosterContext context) : ISenderMessageStora
             );
     }
 
-    public Task UpdateStatusMessageAsync(Guid id)
+    public Task UpdateSendStatusMessageAsync(Guid id)
     {
         return context.Messages
             .Where(m => m.Id == id)
