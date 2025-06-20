@@ -18,10 +18,13 @@ public class SenderMessageWorker(
 {
     public async Task ProcessMessagesAsync()
     {
-        logger.LogInformation("Начат процесс проверки новых сообщений.");
-
         var messageDetails = await storage.GetMessagesAsync();
         var messages = messageDetails.SelectMany(x => x.MessageDto).ToList();
+        if (messages.Count == 0)
+        {
+            return;
+        }
+
         await storage.UpdateStatusInHandleMessageAsync(messages.Select(x => x.Id).ToList());
         logger.LogInformation("Найдено {count} сообщений", messages.Count);
         foreach (var detail in messageDetails)
@@ -36,12 +39,12 @@ public class SenderMessageWorker(
                         x => x.SendMessageAsync(message.Id, token, detail.ChannelId, message, message.TimePosting),
                         message.TimePosting);
                     logger.LogInformation(
-                        "Сообщение для чата {сhannelId} запланировано на {timePosting} сек.", detail.ChannelId,
+                        "Сообщение для чата {channelId} запланировано на {timePosting} сек.", detail.ChannelId,
                         message.TimePosting);
                 }
                 catch (Exception e)
                 {
-                    logger.LogError(e,"Ошибка во время отправки сообщения");
+                    logger.LogError(e, "Ошибка во время отправки сообщения {id}", message.Id);
                     await storage.UpdateSendStatusMessageAsync(message.Id);
                 }
             }
@@ -50,19 +53,23 @@ public class SenderMessageWorker(
 
 
     [SuppressMessage("ReSharper", "MemberCanBePrivate.Global")]
-    public async Task SendMessageAsync(Guid messageId, string token, long chatId, MessageDto message, DateTimeOffset timePosting)
+    public async Task SendMessageAsync(
+        Guid messageId,
+        string token,
+        long chatId,
+        MessageDto message,
+        DateTimeOffset timePosting
+    )
     {
         var bot = new TelegramBotClient(token);
         var medias = new List<IAlbumInputMedia>();
-        var text = messageId + timePosting.ToString();
-        logger.LogInformation("Отправляю сообщения {id} в {date}", messageId, timePosting);
         foreach (var file in message.File)
         {
             if (file.ContentType.GetFileType() == FileTypes.Image)
             {
                 medias.Add(new InputMediaPhoto(file.TgFileId)
                 {
-                    Caption = file.Caption + text
+                    Caption = file.Caption
                 });
             }
 
@@ -70,7 +77,7 @@ public class SenderMessageWorker(
             {
                 medias.Add(new InputMediaVideo(file.TgFileId)
                 {
-                    Caption = file.Caption + text
+                    Caption = file.Caption
                 });
             }
         }
