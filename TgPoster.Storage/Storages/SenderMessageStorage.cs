@@ -18,7 +18,6 @@ internal class SenderMessageStorage(PosterContext context) : ISenderMessageStora
                                             && m.Status == MessageStatus.Register))
             .Select(x => new MessageDetail
             {
-                Id = x.Id,
                 ChannelId = x.ChannelId,
                 Api = x.TelegramBot.ApiTelegram,
                 MessageDto = x.Messages
