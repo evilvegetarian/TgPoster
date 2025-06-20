@@ -30,9 +30,9 @@ builder.Services.AddSerilog(x =>
 );
 var telegramOptions = builder.Configuration.GetSection(nameof(TelegramOptions)).Get<TelegramOptions>()!;
 builder.Services.AddSingleton(telegramOptions);
-GlobalFFOptions.Configure(options => 
+GlobalFFOptions.Configure(options =>
 {
-    options.LogLevel = FFMpegLogLevel.Debug; 
+    options.LogLevel = FFMpegLogLevel.Debug;
 });
 if (builder.Environment.IsDevelopment())
 {

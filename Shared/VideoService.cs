@@ -73,9 +73,9 @@ public sealed class VideoService
                     var arguments = FFMpegArguments
                         .FromFileInput(tempVideoPath)
                         .OutputToFile(tempScreenshotPath, true, options => options
-                            .WithFrameOutputCount(1)        // Take only one frame
-                            .Seek(snapshotTime)   // At the specified time
-                            .Resize(size)             // With the specified size (if any)
+                            .WithFrameOutputCount(1) // Take only one frame
+                            .Seek(snapshotTime) // At the specified time
+                            .Resize(size) // With the specified size (if any)
                             // Add the CRUCIAL argument for modern FFMpeg versions
                             .WithCustomArgument("-update 1"));
 
@@ -83,8 +83,10 @@ public sealed class VideoService
 
                     if (!File.Exists(tempScreenshotPath))
                     {
-                        throw new InvalidOperationException("FFMpeg не смог создать скриншот. Проверьте, что FFMpeg доступен и видеофайл не поврежден.");
+                        throw new InvalidOperationException(
+                            "FFMpeg не смог создать скриншот. Проверьте, что FFMpeg доступен и видеофайл не поврежден.");
                     }
+
                     // Читаем результат из временного файла в MemoryStream
                     var imageBytes = await File.ReadAllBytesAsync(tempScreenshotPath);
                     var screenshotStream = new MemoryStream(imageBytes);

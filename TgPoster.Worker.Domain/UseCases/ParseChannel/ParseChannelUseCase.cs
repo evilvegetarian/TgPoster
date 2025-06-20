@@ -23,28 +23,28 @@ internal class ParseChannelUseCase(
 {
     public async Task Handle(Guid id, CancellationToken ct)
     {
-        var parametrs = await storage.GetChannelParsingParametersAsync(id, ct);
-        if (parametrs is null)
+        var parameters = await storage.GetChannelParsingParametersAsync(id, ct);
+        if (parameters is null)
         {
             logger.LogError("Параметров нет, интересно почему..... Id: {id}", id);
             return;
         }
 
-        logger.LogInformation("Начали парсить данный канал с данными настройками: {@parametrs}", parametrs);
+        logger.LogInformation("Начали парсить данный канал с данными настройками: {@parameters}", parameters);
         await storage.UpdateInHandleStatusAsync(id, ct);
 
-        var channelName = parametrs.ChannelName;
-        var isNeedVerified = parametrs.IsNeedVerified;
-        var token = cryptoAes.Decrypt(telegramOptions.SecretKey, parametrs.Token);
-        var chatId = parametrs.ChatId;
-        var fromDate = parametrs.FromDate;
-        var toDate = parametrs.ToDate;
-        var avoidWords = parametrs.AvoidWords;
-        var deleteText = parametrs.DeleteText;
-        var deleteMedia = parametrs.DeleteMedia;
-        var scheduleId = parametrs.ScheduleId;
-        var lastParseId = parametrs.LastParsedId;
-        var checkNewPosts = parametrs.CheckNewPosts;
+        var channelName = parameters.ChannelName;
+        var isNeedVerified = parameters.IsNeedVerified;
+        var token = cryptoAes.Decrypt(telegramOptions.SecretKey, parameters.Token);
+        var chatId = parameters.ChatId;
+        var fromDate = parameters.FromDate;
+        var toDate = parameters.ToDate;
+        var avoidWords = parameters.AvoidWords;
+        var deleteText = parameters.DeleteText;
+        var deleteMedia = parameters.DeleteMedia;
+        var scheduleId = parameters.ScheduleId;
+        var lastParseId = parameters.LastParsedId;
+        var checkNewPosts = parameters.CheckNewPosts;
         //TODO: Добавить параметр перемешивания постов
 
         var telegramBot = new TelegramBotClient(token);
@@ -245,6 +245,7 @@ internal class ParseChannelUseCase(
 
         await storage.CreateMessagesAsync(result, ct);
         await storage.UpdateChannelParsingParametersAsync(id, tempLastParseId, checkNewPosts, ct);
+        logger.LogInformation("Спарсили канал, новых сообщений: {count}", result.Count);
     }
 
     private string? Settings(string key)
