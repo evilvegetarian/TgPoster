@@ -24,6 +24,8 @@ axiosInstance.interceptors.response.use(
             console.error('Unauthorized! Redirecting to login...');
             // window.location.href = '/login';
         }
+        console.error(error)
+        console.error(error.response.data.title);
         return Promise.reject(error);
     }
 );

@@ -29,10 +29,6 @@ export function LoginPage() {
             onSuccess: (data) => {
                 console.log("Login successful!", data);
                 localStorage.setItem("authToken", data.accessToken!);
-                 //router.push('/'); // Используйте Next.js router для навигации
-            },
-            onError: (error) => {
-                console.log("Login failed!", error);
             }
         }
     });
