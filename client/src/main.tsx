@@ -1,28 +1,49 @@
-import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
-import './index.css'
-import {createBrowserRouter, RouterProvider} from "react-router-dom";
+import { StrictMode } from 'react';
+import { createRoot } from 'react-dom/client';
+import './index.css';
+import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import {SignPage} from "@/pages/signOnPage.tsx";
+
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
+import ErrorPage from "@/pages/errorPage.tsx";
+import {Layout} from "@/layout.tsx";
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 1,
+      staleTime: 1000 * 60 * 5,
+    },
+  },
+});
 
 const router = createBrowserRouter([
   {
     path: "/",
-    //element: <Layout />,
+    element: <Layout />,
     children: [
       {
         index: true,
-        //element: <SignOnPage />,
+        element: <SignPage />,
       },
       {
-        path: "posts/schedule",
-        //element: <TelegramChannelSchedulePage />,
+        path: "login",
+        element: <SignPage />,
       },
     ],
-    errorElement: <div>Page not found</div>,
+    errorElement: <ErrorPage/>
   },
-])
+]);
 
-createRoot(document.getElementById('root')!).render(
+const rootElement = document.getElementById('root')!;
+const root = createRoot(rootElement);
+
+root.render(
     <StrictMode>
-      <RouterProvider router={router} />
+      <QueryClientProvider client={queryClient}>
+        <RouterProvider router={router} />
+        <ReactQueryDevtools initialIsOpen={false} />
+      </QueryClientProvider>
     </StrictMode>,
-)
+);
