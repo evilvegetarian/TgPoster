@@ -2,12 +2,13 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import './index.css';
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
-import {SignPage} from "@/pages/signOnPage.tsx";
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import ErrorPage from "@/pages/errorPage.tsx";
 import {Layout} from "@/layout.tsx";
+import {RegisterPage} from "@/pages/registerPage.tsx";
+import {LoginPage} from "@/pages/loginPage.tsx";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -25,11 +26,15 @@ const router = createBrowserRouter([
     children: [
       {
         index: true,
-        element: <SignPage />,
+        element: <RegisterPage />,
       },
       {
         path: "login",
-        element: <SignPage />,
+        element: <LoginPage />,
+      },
+      {
+        path: "register",
+        element: <RegisterPage />,
       },
     ],
     errorElement: <ErrorPage/>

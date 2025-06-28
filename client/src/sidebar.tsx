@@ -25,7 +25,7 @@ export function SideBar() {
             icon: Home,
         },
         {
-            title: "Логин",
+            title: "Войти в аккаунт",
             path: "/login",
             icon: Apple
         }
