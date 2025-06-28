@@ -13,24 +13,10 @@ using TgPoster.API.Middlewares;
 using TgPoster.Storage;
 
 var builder = WebApplication.CreateBuilder(args);
+const string MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
 
-var logger = builder.Configuration.GetSection(nameof(Logger)).Get<Logger>()!;
-var serilog = new LoggerConfiguration()
-    .MinimumLevel.Information()
-    .MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Warning)
-    .MinimumLevel.Override("Microsoft.EntityFrameworkCore.Database.Command", LogEventLevel.Warning)
-    .MinimumLevel.Override("System.Net.Http.HttpClient", LogEventLevel.Warning)
-    .Enrich.WithProperty(nameof(logger.Application), logger.Application)
-    .WriteTo.GrafanaLoki(
-        logger.LogsUrl,
-        restrictedToMinimumLevel: LogEventLevel.Verbose,
-        propertiesAsLabels: ["Application", "level"]
-    )
-    .WriteTo.Console()
-    .WriteTo.File("/app/logs/log-.txt", rollingInterval: RollingInterval.Day)
-    .CreateLogger();
-
-builder.Host.UseSerilog(serilog);
+builder.AddLogging();
+builder.AddCors(MyAllowSpecificOrigins);
 
 builder.Services.AddSwaggerGen(options =>
 {
@@ -88,7 +74,7 @@ var app = builder.Build();
 
 app.UseMiddleware<ErrorHandlingMiddleware>();
 app.UseMiddleware<AuthenticationMiddleware>();
-
+app.UseCors(MyAllowSpecificOrigins);
 app.UseSwagger();
 app.UseSwaggerUI();
 app.MapControllers();
