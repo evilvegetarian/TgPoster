@@ -1,5 +1,4 @@
-﻿
-function ErrorPage() {
+﻿function ErrorPage() {
 
     return (
         <div>
@@ -8,6 +7,6 @@ function ErrorPage() {
             </ul>
         </div>
     );
-};
+}
 
 export default ErrorPage;

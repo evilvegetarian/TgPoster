@@ -1,13 +1,13 @@
-﻿import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+﻿import {useForm} from "react-hook-form";
+import {zodResolver} from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { CardFooter } from "@/components/ui/card";
-import { Loader2 } from "lucide-react";
-import { usePostApiV1AccountSignIn } from "@/api/endpoints/account/account";
-import { AuthLayout } from "./authLayout";
-import { FormControl, FormField, FormItem, FormLabel, FormMessage, Form} from "@/components/ui/form.tsx";
+import {Button} from "@/components/ui/button";
+import {Input} from "@/components/ui/input";
+import {CardFooter} from "@/components/ui/card";
+import {Loader2} from "lucide-react";
+import {usePostApiV1AccountSignIn} from "@/api/endpoints/account/account";
+import {AuthLayout} from "./authLayout";
+import {Form, FormControl, FormField, FormItem, FormLabel, FormMessage} from "@/components/ui/form.tsx";
 
 const formSchema = z.object({
     login: z.string().min(5, "Логин должен быть не менее 5 символов"),
@@ -24,17 +24,16 @@ export function LoginPage() {
         },
     });
 
-    const { mutate, isPending} = usePostApiV1AccountSignIn({
+    const {mutate, isPending} = usePostApiV1AccountSignIn({
         mutation: {
             onSuccess: (data) => {
-                console.log("Login successful!", data);
                 localStorage.setItem("authToken", data.accessToken!);
             }
         }
     });
 
     function onSubmit(values: LoginFormValues) {
-        mutate({ data: values });
+        mutate({data: values});
     }
 
     return (
@@ -47,38 +46,39 @@ export function LoginPage() {
                     <FormField
                         control={form.control}
                         name="login"
-                        render={({ field }) => (
+                        render={({field}) => (
                             <FormItem>
                                 <FormLabel>Логин или Email</FormLabel>
                                 <FormControl>
-                                    <Input placeholder="m@example.com" {...field} disabled={isPending} />
+                                    <Input placeholder="m@example.com" {...field} disabled={isPending}/>
                                 </FormControl>
-                                <FormMessage /> 
+                                <FormMessage/>
                             </FormItem>
                         )}
                     />
                     <FormField
                         control={form.control}
                         name="password"
-                        render={({ field }) => (
+                        render={({field}) => (
                             <FormItem>
                                 <div className="flex items-center">
                                     <FormLabel>Пароль</FormLabel>
-                                    <a href="/forgot-password" className="ml-auto inline-block text-sm underline-offset-4 hover:underline">
+                                    <a href="/forgot-password"
+                                       className="ml-auto inline-block text-sm underline-offset-4 hover:underline">
                                         Забыли пароль?
                                     </a>
                                 </div>
                                 <FormControl>
-                                    <Input type="password" {...field} disabled={isPending} />
+                                    <Input type="password" {...field} disabled={isPending}/>
                                 </FormControl>
-                                <FormMessage />
+                                <FormMessage/>
                             </FormItem>
                         )}
                     />
 
                     <CardFooter className="flex-col gap-4 p-0 pt-2">
                         <Button type="submit" className="w-full" disabled={isPending}>
-                            {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                            {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin"/>}
                             Войти
                         </Button>
                         <Button variant="outline" className="w-full" disabled={isPending}>
