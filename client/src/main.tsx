@@ -2,7 +2,6 @@ import {StrictMode} from 'react';
 import {createRoot} from 'react-dom/client';
 import './index.css';
 import {createBrowserRouter, RouterProvider} from "react-router-dom";
-import ErrorPage from "@/pages/errorPage.tsx";
 import {Layout} from "@/layout.tsx";
 import {RegisterPage} from "@/pages/registerPage.tsx";
 import {LoginPage} from "@/pages/loginPage.tsx";
@@ -11,6 +10,11 @@ import {ProtectedRoute} from "@/protectedRoute.tsx";
 import {HomePage} from "@/pages/homePage.tsx";
 import {App} from "@/app.tsx";
 import {PublicRoute} from "@/publicRoute.tsx";
+import {SchedulePage} from "@/pages/schedulePage.tsx";
+import {TelegramBotPage} from "@/pages/telegramBotPage.tsx";
+import {ErrorPage} from "@/pages/errorPage.tsx";
+import {ApproveMessagesPage} from "@/pages/approveMessagesPage.tsx";
+import {MessagesPage} from "@/pages/messagesPage.tsx";
 
 const router = createBrowserRouter([
     {
@@ -31,7 +35,7 @@ const router = createBrowserRouter([
                     {
                         path: "/register/success",
                         element: <RegistrationSuccessPage/>,
-                    },
+                    }
                 ]
             },
             {
@@ -45,6 +49,22 @@ const router = createBrowserRouter([
                                 index: true,
                                 element: <HomePage/>,
                             },
+                            {
+                                path: "/schedule",
+                                element: <SchedulePage/>,
+                            },
+                            {
+                                path: "/telegram-bot",
+                                element: <TelegramBotPage/>
+                            },
+                            {
+                                path: "/approve-messages",
+                                element: <ApproveMessagesPage/>
+                            },
+                            {
+                                path: "/messages",
+                                element: <MessagesPage/>
+                            }
                         ]
                     }
                 ]

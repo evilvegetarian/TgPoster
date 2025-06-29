@@ -18,7 +18,7 @@ const formSchema = z.object({
 type LoginFormValues = z.infer<typeof formSchema>;
 
 export function LoginPage() {
-    const { login } = useAuth();
+    const {login} = useAuth();
 
     const form = useForm<LoginFormValues>({
         resolver: zodResolver(formSchema),

@@ -1,5 +1,5 @@
 ﻿import {AuthLayout} from "@/pages/authLayout.tsx";
-import { Link } from "react-router-dom";
+import {Link} from "react-router-dom";
 import {Button} from "@/components/ui/button.tsx";
 import {CheckCircle2} from "lucide-react";
 
@@ -10,7 +10,7 @@ export function RegistrationSuccessPage() {
             description="Ваш аккаунт был создан. Теперь вы можете войти в систему."
         >
             <div className="flex flex-col items-center justify-center space-y-6 text-center">
-                <CheckCircle2 className="h-16 w-16 text-green-500" />
+                <CheckCircle2 className="h-16 w-16 text-green-500"/>
                 <p className="text-muted-foreground">
                     Вы можете войти, используя логин и пароль, которые вы только что указали.
                 </p>

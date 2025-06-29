@@ -1,5 +1,5 @@
-﻿import { Link, useLocation } from "react-router-dom"
-import {Home, Bot, LogIn, UserPlus} from "lucide-react"
+﻿import {Link, useLocation} from "react-router-dom"
+import {Bot, BotIcon, CalendarDays, Home, LogIn, MessageCircleMore, SignatureIcon, UserPlus} from "lucide-react"
 
 import {
     Sidebar,
@@ -17,15 +17,34 @@ import {useAuth} from "@/authContext.tsx";
 
 export function SideBar() {
     const location = useLocation()
-    const { isAuthenticated } = useAuth()
+    const {isAuthenticated} = useAuth()
 
-    // 3. Формируем список навигации динамически
     const navItems = isAuthenticated
         ? [
             {
                 title: "Главная",
                 path: "/",
                 icon: Home,
+            },
+            {
+                title: "Расписание",
+                path: "/schedule",
+                icon: CalendarDays
+            },
+            {
+                title: "Телеграм бот",
+                path: "/telegram-bot",
+                icon: BotIcon
+            },
+            {
+                title: "Подтверждение постов",
+                path: "/approve-messages",
+                icon: SignatureIcon
+            },
+            {
+                title: "Посты",
+                path: "/messages",
+                icon: MessageCircleMore
             }
         ]
         : [
@@ -38,14 +57,14 @@ export function SideBar() {
                 title: "Регистрация",
                 path: "/register",
                 icon: UserPlus,
-            },
+            }
         ];
 
     return (
         <Sidebar>
             <SidebarHeader className="flex items-center justify-between p-4">
                 <div className="flex items-center gap-2">
-                    <Bot className="h-6 w-6 text-primary" />
+                    <Bot className="h-6 w-6 text-primary"/>
                     <span className="font-semibold text-lg">Telegram</span>
                 </div>
             </SidebarHeader>
@@ -64,7 +83,7 @@ export function SideBar() {
                                         }
                                     >
                                         <Link to={item.path}>
-                                            <item.icon className="h-4 w-4" />
+                                            <item.icon className="h-4 w-4"/>
                                             <span>{item.title}</span>
                                         </Link>
                                     </SidebarMenuButton>
@@ -74,7 +93,7 @@ export function SideBar() {
                     </SidebarGroupContent>
                 </SidebarGroup>
             </SidebarContent>
-            <SidebarRail />
+            <SidebarRail/>
         </Sidebar>
     )
 }
