@@ -9,6 +9,7 @@ import {usePostApiV1AccountSignIn} from "@/api/endpoints/account/account";
 import {AuthLayout} from "./authLayout";
 import {Form, FormControl, FormField, FormItem, FormLabel, FormMessage} from "@/components/ui/form.tsx";
 import {Link} from "react-router-dom";
+import {useAuth} from "@/authContext.tsx";
 
 const formSchema = z.object({
     login: z.string().min(5, "Логин должен быть не менее 5 символов"),
@@ -17,6 +18,8 @@ const formSchema = z.object({
 type LoginFormValues = z.infer<typeof formSchema>;
 
 export function LoginPage() {
+    const { login } = useAuth();
+
     const form = useForm<LoginFormValues>({
         resolver: zodResolver(formSchema),
         defaultValues: {
@@ -28,7 +31,7 @@ export function LoginPage() {
     const {mutate, isPending} = usePostApiV1AccountSignIn({
         mutation: {
             onSuccess: (data) => {
-                localStorage.setItem("authToken", data.accessToken!);
+                login(data.accessToken!);
             }
         }
     });

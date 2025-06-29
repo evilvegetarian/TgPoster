@@ -1,5 +1,5 @@
 ﻿import { Link, useLocation } from "react-router-dom"
-import { Home, Bot, Apple } from "lucide-react"
+import {Home, Bot, LogIn, UserPlus} from "lucide-react"
 
 import {
     Sidebar,
@@ -13,23 +13,33 @@ import {
     SidebarMenuItem,
     SidebarRail,
 } from "@/components/ui/sidebar"
+import {useAuth} from "@/authContext.tsx";
 
 export function SideBar() {
     const location = useLocation()
+    const { isAuthenticated } = useAuth()
 
-    // Define navigation items based on your router paths
-    const navItems = [
-        {
-            title: "Главная",
-            path: "/",
-            icon: Home,
-        },
-        {
-            title: "Войти в аккаунт",
-            path: "/login",
-            icon: Apple
-        }
-    ]
+    // 3. Формируем список навигации динамически
+    const navItems = isAuthenticated
+        ? [
+            {
+                title: "Главная",
+                path: "/",
+                icon: Home,
+            }
+        ]
+        : [
+            {
+                title: "Войти",
+                path: "/login",
+                icon: LogIn,
+            },
+            {
+                title: "Регистрация",
+                path: "/register",
+                icon: UserPlus,
+            },
+        ];
 
     return (
         <Sidebar>
