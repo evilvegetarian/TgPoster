@@ -8,6 +8,7 @@ import {zodResolver} from "@hookform/resolvers/zod";
 import {useForm} from "react-hook-form";
 import {Form, FormControl, FormField, FormItem, FormLabel, FormMessage} from "@/components/ui/form.tsx";
 import {Loader2} from "lucide-react";
+import {Link, useNavigate} from "react-router-dom";
 
 const formSchema = z.object({
     login: z.string().min(5, "Логин должен быть не менее 5 символов").max(30, "Логин должен быть не более 30 символов"),
@@ -16,6 +17,7 @@ const formSchema = z.object({
 type RegisterForm = z.infer<typeof formSchema>;
 
 export function RegisterPage() {
+    const navigate = useNavigate();
     const form = useForm<RegisterForm>({
         resolver: zodResolver(formSchema),
         defaultValues: {
@@ -29,6 +31,7 @@ export function RegisterPage() {
             mutation: {
                 onSuccess: (data) => {
                     console.log(data)
+                    navigate("/register/success");
                 }
             }
         }
@@ -96,9 +99,9 @@ export function RegisterPage() {
                         </Button>
                         <div className="mt-4 text-center text-sm">
                             Уже есть аккаунт?{" "}
-                            <a href="/login" className="underline">
+                            <Link to="/login" className="underline">
                                 Войти
-                            </a>
+                            </Link>
                         </div>
                     </CardFooter>
                 </form>

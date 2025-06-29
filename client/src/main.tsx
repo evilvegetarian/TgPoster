@@ -9,6 +9,7 @@ import ErrorPage from "@/pages/errorPage.tsx";
 import {Layout} from "@/layout.tsx";
 import {RegisterPage} from "@/pages/registerPage.tsx";
 import {LoginPage} from "@/pages/loginPage.tsx";
+import {RegistrationSuccessPage} from "@/pages/registrationSuccessPage.tsx";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -35,6 +36,10 @@ const router = createBrowserRouter([
       {
         path: "register",
         element: <RegisterPage />,
+      },
+      {
+        path: "register/success",
+        element: <RegistrationSuccessPage />,
       },
     ],
     errorElement: <ErrorPage/>

@@ -8,6 +8,7 @@ import {Loader2} from "lucide-react";
 import {usePostApiV1AccountSignIn} from "@/api/endpoints/account/account";
 import {AuthLayout} from "./authLayout";
 import {Form, FormControl, FormField, FormItem, FormLabel, FormMessage} from "@/components/ui/form.tsx";
+import {Link} from "react-router-dom";
 
 const formSchema = z.object({
     login: z.string().min(5, "Логин должен быть не менее 5 символов"),
@@ -86,9 +87,9 @@ export function LoginPage() {
                         </Button>
                         <div className="mt-4 text-center text-sm">
                             Нет аккаунта?{" "}
-                            <a href="/register" className="underline">
+                            <Link to="/register" className="underline">
                                 Регистрация
-                            </a>
+                            </Link>
                         </div>
                     </CardFooter>
                 </form>
