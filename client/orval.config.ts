@@ -19,7 +19,7 @@ export default defineConfig({
             },
         },
         input: {
-            target: 'http://45.153.68.167:8070/swagger/v1/swagger.json',
+            target: 'http://localhost:5059/swagger/v1/swagger.json',
         },
     },
 });
