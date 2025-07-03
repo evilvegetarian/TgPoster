@@ -186,3 +186,65 @@ export function useGetApiV1TelegramBot<TData = Awaited<ReturnType<typeof getApiV
 
 
 
+/**
+ * @summary Удаление бота
+ */
+export const deleteApiV1TelegramBotId = (
+    id: string,
+ ) => {
+      
+      
+      return customInstance<void>(
+      {url: `/api/v1/telegram-bot/${id}`, method: 'DELETE'
+    },
+      );
+    }
+  
+
+
+export const getDeleteApiV1TelegramBotIdMutationOptions = <TError = ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteApiV1TelegramBotId>>, TError,{id: string}, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof deleteApiV1TelegramBotId>>, TError,{id: string}, TContext> => {
+
+const mutationKey = ['deleteApiV1TelegramBotId'];
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteApiV1TelegramBotId>>, {id: string}> = (props) => {
+          const {id} = props ?? {};
+
+          return  deleteApiV1TelegramBotId(id,)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteApiV1TelegramBotIdMutationResult = NonNullable<Awaited<ReturnType<typeof deleteApiV1TelegramBotId>>>
+    
+    export type DeleteApiV1TelegramBotIdMutationError = ProblemDetails
+
+    /**
+ * @summary Удаление бота
+ */
+export const useDeleteApiV1TelegramBotId = <TError = ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteApiV1TelegramBotId>>, TError,{id: string}, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof deleteApiV1TelegramBotId>>,
+        TError,
+        {id: string},
+        TContext
+      > => {
+
+      const mutationOptions = getDeleteApiV1TelegramBotIdMutationOptions(options);
+
+      return useMutation(mutationOptions , queryClient);
+    }
+    
