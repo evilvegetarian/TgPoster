@@ -32,4 +32,22 @@ public class TelegramBotEndpointTest(EndpointTestFixture fixture) : IClassFixtur
         bots.ShouldNotBeNull();
         bots.Count.ShouldBeGreaterThan(0);
     }
+    
+    [Fact]
+    public async Task DeleteTelegramBot_WithNonExistingId_ShouldReturnNotFound()
+    {
+        var nonExistentId = Guid.NewGuid();
+        var response = await client.DeleteAsync($"{Url}/{nonExistentId}");
+        response.StatusCode.ShouldBe(HttpStatusCode.NotFound);
+    }
+    
+    [Fact]
+    public async Task DeleteTelegramBot_WithValidId_ShouldReturnOK()
+    {
+        var deleteResponse = await client.DeleteAsync(Url + "/" + GlobalConst.TelegramBotId);
+        deleteResponse.StatusCode.ShouldBe(HttpStatusCode.OK);
+        
+        var repeatDeleteResponse = await client.DeleteAsync(Url + "/" + GlobalConst.TelegramBotId);
+        repeatDeleteResponse.StatusCode.ShouldBe(HttpStatusCode.NotFound);
+    }
 }

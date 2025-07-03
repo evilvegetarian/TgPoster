@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TgPoster.API.Common;
 using TgPoster.API.Domain.UseCases.TelegramBots.CreateTelegramBot;
+using TgPoster.API.Domain.UseCases.TelegramBots.DeleteTelegramBot;
 using TgPoster.API.Domain.UseCases.TelegramBots.ListTelegramBot;
 using TgPoster.API.Models;
 
@@ -41,5 +42,21 @@ public class TelegramBotController(ISender sender) : ControllerBase
     {
         var response = await sender.Send(new ListTelegramBotQuery(), ct);
         return Ok(response);
+    }
+
+    /// <summary>
+    ///     Удаление бота
+    /// </summary>
+    /// <param name="id"></param>
+    /// <param name="ct"></param>
+    /// <returns></returns>
+    [HttpDelete(Routes.TelegramBot.Delete)]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
+    public async Task<IActionResult> Delete(Guid id, CancellationToken ct)
+    {
+        await sender.Send(new DeleteTelegramCommand(id), ct);
+        return Ok();
     }
 }
