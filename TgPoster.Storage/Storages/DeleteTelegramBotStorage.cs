@@ -15,6 +15,6 @@ public class DeleteTelegramBotStorage(PosterContext context) : IDeleteTelegramBo
     {
         return context.TelegramBots
             .Where(x => x.Id == id && x.OwnerId == userId)
-            .ExecuteDeleteAsync(ct);
+            .ExecuteUpdateAsync(b => b.SetProperty(x => x.Deleted, DateTime.UtcNow), ct);
     }
 }

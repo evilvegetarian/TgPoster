@@ -1,5 +1,5 @@
 ﻿import {useState} from "react";
-import {usePostApiV1TelegramBot} from "@/api/endpoints/telegram-bot/telegram-bot.ts";
+import {getGetApiV1TelegramBotQueryKey, usePostApiV1TelegramBot} from "@/api/endpoints/telegram-bot/telegram-bot.ts";
 import type {CreateTelegramBotRequest} from "@/api/endpoints/tgPosterAPI.schemas.ts";
 import {z} from "zod";
 import {useForm} from "react-hook-form";
@@ -18,18 +18,16 @@ import {
 } from "@/components/ui/dialog.tsx";
 import {Loader2, Plus, Bot} from "lucide-react";
 import {toast} from "sonner";
+import {useQueryClient} from "@tanstack/react-query";
 
 const formSchema = z.object({
     token: z.string().min(5, "Токен не может быть меньше 5 символов"),
 })
 type CreateTelegramBotForm = z.infer<typeof formSchema>;
 
-interface TelegramBotCreateDialogProps {
-    onSuccess?: () => void;
-}
-
-export function TelegramBotCreateDialog({ onSuccess }: TelegramBotCreateDialogProps) {
+export function TelegramBotCreateDialog() {
     const [open, setOpen] = useState(false);
+    const queryClient = useQueryClient();
 
     const form = useForm<CreateTelegramBotForm>({
         resolver: zodResolver(formSchema),
@@ -38,22 +36,20 @@ export function TelegramBotCreateDialog({ onSuccess }: TelegramBotCreateDialogPr
         }
     })
 
-    const {mutate, isPending, error} = usePostApiV1TelegramBot(
-        {
-            mutation: {
-                onSuccess: (data) => {
-                    console.log(data)
-                    toast.success("Telegram бот успешно добавлен!")
-                    form.reset()
-                    setOpen(false)
-                    onSuccess?.()
-                },
-                onError: () => {
-                    toast.error("Ошибка при добавлении бота")
-                }
+    const {mutate, isPending, error} = usePostApiV1TelegramBot({
+        mutation: {
+            onSuccess: () => {
+                toast.success(`Бот  успешно добавлен!`);
+                form.reset();
+                setOpen(false);
+                queryClient.invalidateQueries({ queryKey: getGetApiV1TelegramBotQueryKey() });
+            },
+            onError: (error) => {
+                const errorMessage = error?.title || "Ошибка при добавлении бота";
+                toast.error(errorMessage);
             }
         }
-    );
+    });
 
     function onSubmit(values: CreateTelegramBotRequest) {
         mutate({data: values})
