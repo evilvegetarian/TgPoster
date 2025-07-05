@@ -29,10 +29,10 @@ public class ParseChannelWorkerStorageShould(StorageTestFixture fixture) : IClas
         var result = await sut.GetChannelParsingParametersAsync();
 
         // Assert
-        result.ShouldContain(cpp1.Id);
-        result.ShouldContain(cpp2.Id);
+        result.ShouldContain(cpp4.Id);
+        result.ShouldNotContain(cpp2.Id);
         result.ShouldNotContain(cpp3.Id);
-        result.ShouldNotContain(cpp4.Id);
+        result.ShouldNotContain(cpp1.Id);
     }
 
     [Fact]

@@ -4,7 +4,19 @@ namespace TgPoster.API.Models;
 
 public sealed class UpdateTimeRequest : IValidatableObject
 {
-    public required Guid Id { get; set; }
+    /// <summary>
+    /// Id расписания
+    /// </summary>
+    public required Guid ScheduleId { get; set; }
+
+    /// <summary>
+    /// День недели
+    /// </summary>
+    public required DayOfWeek DayOfWeek { get; set; }
+
+    /// <summary>
+    /// Время постов
+    /// </summary>
     public List<TimeOnly> Times { get; set; } = [];
 
     public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)

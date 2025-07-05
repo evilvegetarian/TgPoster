@@ -217,8 +217,13 @@ export interface TelegramBotResponse {
 }
 
 export interface UpdateTimeRequest {
-  id: string;
-  /** @nullable */
+  /** Id расписания */
+  scheduleId: string;
+  dayOfWeek: DayOfWeek;
+  /**
+   * Время постов
+   * @nullable
+   */
   times?: string[] | null;
 }
 

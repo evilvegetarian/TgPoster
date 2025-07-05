@@ -190,12 +190,13 @@ public class DayEndpointTest(EndpointTestFixture fixture) : IClassFixture<Endpoi
     }
 
     [Fact]
-    public async Task UpdateTimeDay_WithNonExistDayId_ShouldReturnNotFound()
+    public async Task UpdateTimeDay_WithNonExisScheduleId_ShouldReturnNotFound()
     {
-        var nonExistDayId = Guid.NewGuid();
+        var nonExistScheduleId = Guid.NewGuid();
         var upd = new UpdateTimeRequest
         {
-            Id = nonExistDayId,
+            ScheduleId = nonExistScheduleId,
+            DayOfWeek = DayOfWeek.Monday,
             Times =
             [
                 new TimeOnly(10, 15),
@@ -212,7 +213,8 @@ public class DayEndpointTest(EndpointTestFixture fixture) : IClassFixture<Endpoi
     {
         var upd = new UpdateTimeRequest
         {
-            Id = Guid.NewGuid(),
+            ScheduleId = Guid.NewGuid(),
+            DayOfWeek = DayOfWeek.Monday,
             Times =
             [
                 new TimeOnly(10, 15),

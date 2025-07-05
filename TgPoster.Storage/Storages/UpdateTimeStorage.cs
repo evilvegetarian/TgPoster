@@ -1,14 +1,19 @@
 using Microsoft.EntityFrameworkCore;
 using TgPoster.API.Domain.UseCases.Days.UpdateTimeDay;
 using TgPoster.Storage.Data;
+using TgPoster.Storage.Data.Entities;
 
 namespace TgPoster.Storage.Storages;
 
 internal sealed class UpdateTimeStorage(PosterContext context) : IUpdateTimeStorage
 {
-    public Task<bool> DayExistAsync(Guid id, CancellationToken ct)
+    public Task<Guid> DayIdAsync(Guid scheduleId, DayOfWeek dayOfWeek, CancellationToken ct)
     {
-        return context.Days.AnyAsync(x => x.Id == id, ct);
+        return context.Days
+            .Where(x => x.ScheduleId == scheduleId
+                        && x.DayOfWeek == dayOfWeek)
+            .Select(x => x.Id)
+            .FirstOrDefaultAsync(ct);
     }
 
     public async Task UpdateTimeDayAsync(Guid id, List<TimeOnly> times, CancellationToken ct)

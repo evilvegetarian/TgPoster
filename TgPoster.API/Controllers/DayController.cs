@@ -83,7 +83,7 @@ public class DayController(ISender sender) : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> UpdateTime(UpdateTimeRequest request, CancellationToken ct)
     {
-        await sender.Send(new UpdateTimeCommand(request.Id, request.Times), ct);
+        await sender.Send(new UpdateTimeCommand(request.ScheduleId, request.DayOfWeek, request.Times), ct);
         return Ok();
     }
 }

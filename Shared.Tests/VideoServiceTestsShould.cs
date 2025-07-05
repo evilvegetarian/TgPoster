@@ -40,7 +40,6 @@ public sealed class VideoServiceTestsShould
 
         var screenshots = await sut.ExtractScreenshotsAsync(videoStream, screenshotCount, outputWidth);
 
-        // Assert
         screenshots.ShouldNotBeNull();
         screenshots.Count.ShouldBe(screenshotCount);
 
