@@ -1,4 +1,4 @@
-﻿import {useForm} from "react-hook-form";
+import {useForm} from "react-hook-form";
 import {zodResolver} from "@hookform/resolvers/zod";
 import * as z from "zod";
 import {Button} from "@/components/ui/button";
@@ -31,7 +31,14 @@ export function LoginPage() {
     const {mutate, isPending} = usePostApiV1AccountSignIn({
         mutation: {
             onSuccess: (data) => {
-                login(data.accessToken!);
+                if (data.accessToken && data.refreshToken) {
+                    login(data.accessToken, data.refreshToken);
+                } else {
+                    console.error('Missing tokens in response');
+                }
+            },
+            onError: (error) => {
+                console.error('Login failed:', error);
             }
         }
     });

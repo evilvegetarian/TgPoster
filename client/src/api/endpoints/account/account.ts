@@ -16,6 +16,8 @@ import type {
 
 import type {
   ProblemDetails,
+  RefreshTokenRequest,
+  RefreshTokenResponse,
   SignInRequest,
   SignInResponse,
   SignOnRequest,
@@ -110,7 +112,7 @@ export const postApiV1AccountSignIn = (
   
 
 
-export const getPostApiV1AccountSignInMutationOptions = <TError = ProblemDetails | void,
+export const getPostApiV1AccountSignInMutationOptions = <TError = ProblemDetails,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postApiV1AccountSignIn>>, TError,{data: SignInRequest}, TContext>, }
 ): UseMutationOptions<Awaited<ReturnType<typeof postApiV1AccountSignIn>>, TError,{data: SignInRequest}, TContext> => {
 
@@ -137,12 +139,12 @@ const {mutation: mutationOptions} = options ?
 
     export type PostApiV1AccountSignInMutationResult = NonNullable<Awaited<ReturnType<typeof postApiV1AccountSignIn>>>
     export type PostApiV1AccountSignInMutationBody = SignInRequest
-    export type PostApiV1AccountSignInMutationError = ProblemDetails | void
+    export type PostApiV1AccountSignInMutationError = ProblemDetails
 
     /**
  * @summary Зайти в аккаунт
  */
-export const usePostApiV1AccountSignIn = <TError = ProblemDetails | void,
+export const usePostApiV1AccountSignIn = <TError = ProblemDetails,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postApiV1AccountSignIn>>, TError,{data: SignInRequest}, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof postApiV1AccountSignIn>>,
@@ -152,6 +154,70 @@ export const usePostApiV1AccountSignIn = <TError = ProblemDetails | void,
       > => {
 
       const mutationOptions = getPostApiV1AccountSignInMutationOptions(options);
+
+      return useMutation(mutationOptions , queryClient);
+    }
+    /**
+ * @summary Обновить токен
+ */
+export const postApiV1AccountRefreshToken = (
+    refreshTokenRequest: RefreshTokenRequest,
+ signal?: AbortSignal
+) => {
+      
+      
+      return customInstance<RefreshTokenResponse>(
+      {url: `/api/v1/account/refresh-token`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: refreshTokenRequest, signal
+    },
+      );
+    }
+  
+
+
+export const getPostApiV1AccountRefreshTokenMutationOptions = <TError = ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postApiV1AccountRefreshToken>>, TError,{data: RefreshTokenRequest}, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof postApiV1AccountRefreshToken>>, TError,{data: RefreshTokenRequest}, TContext> => {
+
+const mutationKey = ['postApiV1AccountRefreshToken'];
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof postApiV1AccountRefreshToken>>, {data: RefreshTokenRequest}> = (props) => {
+          const {data} = props ?? {};
+
+          return  postApiV1AccountRefreshToken(data,)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type PostApiV1AccountRefreshTokenMutationResult = NonNullable<Awaited<ReturnType<typeof postApiV1AccountRefreshToken>>>
+    export type PostApiV1AccountRefreshTokenMutationBody = RefreshTokenRequest
+    export type PostApiV1AccountRefreshTokenMutationError = ProblemDetails
+
+    /**
+ * @summary Обновить токен
+ */
+export const usePostApiV1AccountRefreshToken = <TError = ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postApiV1AccountRefreshToken>>, TError,{data: RefreshTokenRequest}, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof postApiV1AccountRefreshToken>>,
+        TError,
+        {data: RefreshTokenRequest},
+        TContext
+      > => {
+
+      const mutationOptions = getPostApiV1AccountRefreshTokenMutationOptions(options);
 
       return useMutation(mutationOptions , queryClient);
     }

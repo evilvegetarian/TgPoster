@@ -165,6 +165,17 @@ export interface ProblemDetails {
   [key: string]: unknown;
 }
 
+export interface RefreshTokenRequest {
+  refreshToken: string;
+}
+
+export interface RefreshTokenResponse {
+  /** @nullable */
+  accessToken: string | null;
+  refreshToken?: string;
+  refreshTokenExpiration?: string;
+}
+
 export interface ScheduleResponse {
   id: string;
   /** @nullable */

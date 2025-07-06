@@ -1,6 +1,7 @@
-﻿import Axios, {type AxiosRequestConfig} from 'axios';
+import Axios, {type AxiosRequestConfig} from 'axios';
 
 const API_URL = import.meta.env.VITE_API_URL;
+
 export const axiosInstance = Axios.create({
     baseURL: API_URL,
     headers: {
@@ -8,9 +9,26 @@ export const axiosInstance = Axios.create({
     },
 });
 
-// токен авторизации
+let isRefreshing = false;
+let failedQueue: Array<{
+    resolve: (value?: any) => void;
+    reject: (reason?: any) => void;
+}> = [];
+
+const processQueue = (error: any, token: string | null = null) => {
+    failedQueue.forEach(prom => {
+        if (error) {
+            prom.reject(error);
+        } else {
+            prom.resolve(token);
+        }
+    });
+
+    failedQueue = [];
+};
+
 axiosInstance.interceptors.request.use((config) => {
-    const token = localStorage.getItem('authToken');
+    const token = localStorage.getItem('accessToken');
     if (token) {
         config.headers.Authorization = `Bearer ${token}`;
     }
@@ -18,14 +36,71 @@ axiosInstance.interceptors.request.use((config) => {
 });
 
 axiosInstance.interceptors.response.use(
-    (response) => response, // Просто возвращаем успешный ответ
-    (error) => {
-        if (error.response?.status === 401) {
-            console.error('Unauthorized! Redirecting to login...');
-            // window.location.href = '/login';
+    (response) => response,
+    async (error) => {
+        const originalRequest = error.config;
+
+        if (error.response?.status === 401 && !originalRequest._retry) {
+            if (isRefreshing) {
+                return new Promise((resolve, reject) => {
+                    failedQueue.push({ resolve, reject });
+                }).then(token => {
+                    originalRequest.headers.Authorization = `Bearer ${token}`;
+                    return axiosInstance(originalRequest);
+                }).catch(err => {
+                    return Promise.reject(err);
+                });
+            }
+
+            originalRequest._retry = true;
+            isRefreshing = true;
+
+            const refreshToken = localStorage.getItem('refreshToken');
+
+            if (!refreshToken) {
+                processQueue(error, null);
+                localStorage.removeItem('accessToken');
+                localStorage.removeItem('refreshToken');
+                window.location.href = '/login';
+                return Promise.reject(error);
+            }
+
+            try {
+                const { postApiV1AccountRefreshToken } = await import('@/api/endpoints/account/account');
+
+                const response = await postApiV1AccountRefreshToken({
+                    refreshToken: refreshToken
+                });
+
+                if (response.accessToken && response.refreshToken) {
+                    localStorage.setItem('accessToken', response.accessToken);
+                    localStorage.setItem('refreshToken', response.refreshToken);
+
+                    processQueue(null, response.accessToken);
+
+                    originalRequest.headers.Authorization = `Bearer ${response.accessToken}`;
+                    return axiosInstance(originalRequest);
+                } else {
+                    throw new Error('Invalid refresh response');
+                }
+            } catch (refreshError) {
+                processQueue(refreshError, null);
+
+                localStorage.removeItem('accessToken');
+                localStorage.removeItem('refreshToken');
+                window.location.href = '/login';
+
+                return Promise.reject(refreshError);
+            } finally {
+                isRefreshing = false;
+            }
         }
-        console.error(error)
-        console.error(error.response.data.title);
+
+        console.error('API Error:', error);
+        if (error.response?.data?.title) {
+            console.error('Error details:', error.response.data.title);
+        }
+
         return Promise.reject(error);
     }
 );
@@ -42,6 +117,4 @@ export const fileInstance = <T>(
     return axiosInstance({...config, responseType: 'blob'})
         .then((response) => response.data);
 };
-
-export default customInstance;
 

@@ -3,9 +3,9 @@ import {Loader2} from "lucide-react";
 import {useAuth} from "@/authContext.tsx";
 
 export function ProtectedRoute() {
-    const {isAuthenticated, token} = useAuth();
+    const {isAuthenticated, accessToken} = useAuth();
 
-    if (token === undefined) {
+    if (accessToken === undefined) {
         return (
             <div className="flex h-screen items-center justify-center">
                 <Loader2 className="h-8 w-8 animate-spin"/>
