@@ -11,6 +11,7 @@ public static class Routes
         public const string Root = Base + "/account";
         public const string SignOn = Root + "/sign-on";
         public const string SignIn = Root + "/sign-in";
+        public const string RefreshToken = Root + "/refresh-token";
     }
 
     public static class Schedule

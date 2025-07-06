@@ -84,7 +84,19 @@ public class AccountEndpointTest(EndpointTestFixture fixture) : IClassFixture<En
     }
 
     [Fact]
-    public async Task SignIn_WithNonExistentUser_ShouldReturnBadRequest()
+    public async Task SignIn_WithNonExistentUser_ShouldReturnNotFound()
+    {
+        var signInRequest = new SignInRequest
+        {
+            Login = "nonexistentuser",
+            Password = "anyPassword"
+        };
+        var signInResponse = await client.PostAsJsonAsync(Routes.Account.SignIn, signInRequest);
+        signInResponse.StatusCode.ShouldBe(HttpStatusCode.NotFound);
+    }
+    
+    [Fact]
+    public async Task RefreshToken_WithNonExistentUser_ShouldReturnNotFound()
     {
         var signInRequest = new SignInRequest
         {

@@ -33,7 +33,6 @@ internal sealed class SignInUseCase(
         //TODO: Чтобы проще жилось, переделать в будущем
         jwtProvider.AddTokenToCookie(httpContext.HttpContext!, accessToken);
         await storage.CreateRefreshSessionAsync(user.Id, refreshToken, refreshExpireTime, ct);
-
         return new SignInResponse
         {
             RefreshToken = refreshToken,
