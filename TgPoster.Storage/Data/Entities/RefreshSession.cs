@@ -1,6 +1,6 @@
 namespace TgPoster.Storage.Data.Entities;
 
-public sealed class RefreshSession
+public sealed class RefreshSession: BaseEntity
 {
     public required Guid RefreshToken { get; set; }
     public required Guid UserId { get; set; }

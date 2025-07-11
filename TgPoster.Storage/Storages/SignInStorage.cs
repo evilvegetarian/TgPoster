@@ -7,7 +7,7 @@ using TgPoster.Storage.Data.VO;
 
 namespace TgPoster.Storage.Storages;
 
-internal sealed class SignInStorage(PosterContext context) : ISignInStorage
+internal sealed class SignInStorage(PosterContext context, GuidFactory guidFactory) : ISignInStorage
 {
     public Task<UserDto?> GetUserAsync(string login, CancellationToken token)
     {
@@ -30,6 +30,7 @@ internal sealed class SignInStorage(PosterContext context) : ISignInStorage
     {
         var refresh = new RefreshSession
         {
+            Id = guidFactory.New(),
             UserId = userId,
             RefreshToken = refreshToken,
             ExpiresAt = refreshDate

@@ -1,4 +1,4 @@
-import Axios, {type AxiosRequestConfig} from 'axios';
+import Axios, {type AxiosRequestConfig, HttpStatusCode} from 'axios';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -11,11 +11,11 @@ export const axiosInstance = Axios.create({
 
 let isRefreshing = false;
 let failedQueue: Array<{
-    resolve: (value?: any) => void;
-    reject: (reason?: any) => void;
+    resolve: (value?: string|null) => void;
+    reject: (reason?: unknown) => void;
 }> = [];
 
-const processQueue = (error: any, token: string | null = null) => {
+const processQueue = (error: unknown, token: string | null = null) => {
     failedQueue.forEach(prom => {
         if (error) {
             prom.reject(error);
@@ -38,16 +38,19 @@ axiosInstance.interceptors.request.use((config) => {
 axiosInstance.interceptors.response.use(
     (response) => response,
     async (error) => {
-        const originalRequest = error.config;
+        const originalRequest= error.config;
 
-        if (error.response?.status === 401 && !originalRequest._retry) {
+
+        if (error.response?.status === HttpStatusCode.Unauthorized ) {
             if (isRefreshing) {
                 return new Promise((resolve, reject) => {
                     failedQueue.push({ resolve, reject });
-                }).then(token => {
+                })
+                    .then(token => {
                     originalRequest.headers.Authorization = `Bearer ${token}`;
                     return axiosInstance(originalRequest);
-                }).catch(err => {
+                })
+                    .catch(err => {
                     return Promise.reject(err);
                 });
             }

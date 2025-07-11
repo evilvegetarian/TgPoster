@@ -4,12 +4,17 @@ using TgPoster.Storage.Data.Entities;
 
 namespace TgPoster.Storage.Data.Configurations;
 
-internal class SessionConfiguration : IEntityTypeConfiguration<RefreshSession>
+internal class SessionConfiguration : BaseEntityConfig<RefreshSession>
 {
-    public void Configure(EntityTypeBuilder<RefreshSession> builder)
+    public override void Configure(EntityTypeBuilder<RefreshSession> builder)
     {
-        builder.HasKey(x => x.RefreshToken);
-
+        base.Configure(builder);
+        builder.HasIndex(x => x.RefreshToken)
+            .IsUnique();
+        
+        builder.Property(x => x.RefreshToken)
+            .IsRequired();
+        
         builder.Property(x => x.UserId)
             .IsRequired();
 

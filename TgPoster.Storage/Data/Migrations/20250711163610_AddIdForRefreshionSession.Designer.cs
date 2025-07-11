@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using TgPoster.Storage.Data;
@@ -11,9 +12,11 @@ using TgPoster.Storage.Data;
 namespace TgPoster.Storage.Data.Migrations
 {
     [DbContext(typeof(PosterContext))]
-    partial class PosterContextModelSnapshot : ModelSnapshot
+    [Migration("20250711163610_AddIdForRefreshionSession")]
+    partial class AddIdForRefreshionSession
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -92,7 +95,7 @@ namespace TgPoster.Storage.Data.Migrations
 
                     b.HasIndex("UpdatedById");
 
-                    b.ToTable("ChannelParsingParameters", (string)null);
+                    b.ToTable("ChannelParsingParameters");
                 });
 
             modelBuilder.Entity("TgPoster.Storage.Data.Entities.Day", b =>
@@ -136,7 +139,7 @@ namespace TgPoster.Storage.Data.Migrations
 
                     b.HasIndex("UpdatedById");
 
-                    b.ToTable("Days", (string)null);
+                    b.ToTable("Days");
                 });
 
             modelBuilder.Entity("TgPoster.Storage.Data.Entities.Message", b =>
@@ -194,7 +197,7 @@ namespace TgPoster.Storage.Data.Migrations
 
                     b.HasIndex("UpdatedById");
 
-                    b.ToTable("Messages", (string)null);
+                    b.ToTable("Messages");
                 });
 
             modelBuilder.Entity("TgPoster.Storage.Data.Entities.MessageFile", b =>
@@ -253,7 +256,7 @@ namespace TgPoster.Storage.Data.Migrations
 
                     b.HasIndex("UpdatedById");
 
-                    b.ToTable("MessageFiles", (string)null);
+                    b.ToTable("MessageFiles");
 
                     b.HasDiscriminator().HasValue("MessageFile");
 
@@ -306,7 +309,7 @@ namespace TgPoster.Storage.Data.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("RefreshSessions", (string)null);
+                    b.ToTable("RefreshSessions");
                 });
 
             modelBuilder.Entity("TgPoster.Storage.Data.Entities.Schedule", b =>
@@ -360,7 +363,7 @@ namespace TgPoster.Storage.Data.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Schedules", (string)null);
+                    b.ToTable("Schedules");
                 });
 
             modelBuilder.Entity("TgPoster.Storage.Data.Entities.TelegramBot", b =>
@@ -413,7 +416,7 @@ namespace TgPoster.Storage.Data.Migrations
 
                     b.HasIndex("UpdatedById");
 
-                    b.ToTable("TelegramBots", (string)null);
+                    b.ToTable("TelegramBots");
                 });
 
             modelBuilder.Entity("TgPoster.Storage.Data.Entities.User", b =>
@@ -472,7 +475,7 @@ namespace TgPoster.Storage.Data.Migrations
                     b.HasIndex("UserName")
                         .IsUnique();
 
-                    b.ToTable("Users", (string)null);
+                    b.ToTable("Users");
                 });
 
             modelBuilder.Entity("TgPoster.Storage.Data.Entities.PhotoMessageFile", b =>

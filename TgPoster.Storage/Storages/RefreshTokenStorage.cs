@@ -23,7 +23,7 @@ internal class RefreshTokenStorage(PosterContext context) : IRefreshTokenStorage
         CancellationToken ct
     )
     {
-        var refresh = await context.RefreshSessions.FindAsync(refreshTokenOld, ct);
+        var refresh = await context.RefreshSessions.FirstOrDefaultAsync(x=>x.RefreshToken==refreshTokenOld, ct);
         refresh!.RefreshToken = refreshToken;
         refresh.ExpiresAt = refreshDate;
         await context.SaveChangesAsync(ct);

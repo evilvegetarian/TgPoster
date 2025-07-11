@@ -11,7 +11,7 @@ public class SignInStorageShould(StorageTestFixture fixture) : IClassFixture<Sto
 {
     private readonly PosterContext context = fixture.GetDbContext();
     private readonly Helper helper = new(fixture.GetDbContext());
-    private readonly SignInStorage sut = new(fixture.GetDbContext());
+    private readonly SignInStorage sut = new(fixture.GetDbContext(), new GuidFactory());
 
     [Fact]
     public async Task GetUserAsync_WithExistingUser_ShouldReturnUser()
