@@ -22,6 +22,7 @@ public class DayController(ISender sender) : ControllerBase
     /// <returns></returns>
     [HttpGet(Routes.Day.DayOfWeek)]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(List<DayOfWeekResponse>))]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
     public async Task<IActionResult> GetDayOfWeek(CancellationToken ct)
     {
         var response = await sender.Send(new DayOfWeekQuery(), ct);
@@ -36,9 +37,9 @@ public class DayController(ISender sender) : ControllerBase
     /// <returns></returns>
     [HttpPost(Routes.Day.Create)]
     [ProducesResponseType(StatusCodes.Status201Created)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
+    [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
     public async Task<IActionResult> CreateDay(CreateDaysRequest request, CancellationToken ct)
     {
         var command = new CreateDaysCommand(
@@ -63,8 +64,8 @@ public class DayController(ISender sender) : ControllerBase
     /// <returns></returns>
     [HttpGet(Routes.Day.Get)]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(List<GetDaysResponse>))]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
     public async Task<IActionResult> GetDays([FromQuery] [Required] Guid scheduleId, CancellationToken ct)
     {
         var response = await sender.Send(new GetDaysQuery(scheduleId), ct);
@@ -79,8 +80,8 @@ public class DayController(ISender sender) : ControllerBase
     /// <returns></returns>
     [HttpPatch(Routes.Day.UpdateTime)]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
     public async Task<IActionResult> UpdateTime(UpdateTimeRequest request, CancellationToken ct)
     {
         await sender.Send(new UpdateTimeCommand(request.ScheduleId, request.DayOfWeek, request.Times), ct);

@@ -71,10 +71,11 @@ builder.Services.AddMassTransit(x =>
     x.ConfigureMassTransient(dataBase.ConnectionString);
 });
 var app = builder.Build();
-
 app.UseMiddleware<ErrorHandlingMiddleware>();
-app.UseMiddleware<AuthenticationMiddleware>();
 app.UseCors(MyAllowSpecificOrigins);
+app.UseMiddleware<AuthenticationMiddleware>();
+app.UseAuthentication();
+app.UseAuthorization();
 app.UseSwagger();
 app.UseSwaggerUI();
 app.MapControllers();
