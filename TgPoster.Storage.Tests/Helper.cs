@@ -40,22 +40,6 @@ public class Helper(PosterContext context)
         return schedule;
     }
 
-    private async Task<TelegramBot> CreateTelegramBotAsync(Guid? userId)
-    {
-        var user = userId ?? (await CreateUserAsync()).Id;
-        var telegramBot = new TelegramBot
-        {
-            Id = Guid.NewGuid(),
-            Name = faker.Company.CompanyName(),
-            ApiTelegram = "api-26203bf7-31a4-4f9d-b262-bb48b45b24c5",
-            ChatId = faker.Random.Long(),
-            OwnerId = user
-        };
-        await context.TelegramBots.AddAsync(telegramBot);
-        await context.SaveChangesAsync();
-        return telegramBot;
-    }
-
     public async Task<Day> CreateDayAsync()
     {
         var schedule = await CreateScheduleAsync();
@@ -81,6 +65,26 @@ public class Helper(PosterContext context)
         return day;
     }
 
+    public async Task<TelegramBot> CreateTelegramBotAsync(Guid userId)
+    {
+        var bot = new TelegramBot
+        {
+            Id = Guid.NewGuid(),
+            ApiTelegram = faker.Company.CompanyName(),
+            ChatId = faker.Random.Long(),
+            OwnerId = userId,
+            Name = faker.Internet.UserName()
+        };
+        await context.TelegramBots.AddAsync(bot);
+        await context.SaveChangesAsync();
+        return bot;
+    }
+    
+    public async Task<TelegramBot> CreateTelegramBotAsync()
+    {
+        var user = await CreateUserAsync();
+        return await CreateTelegramBotAsync(user.Id);
+    }
 
     public async Task<ChannelParsingParameters> CreateChannelParsingParametersAsync(
         Guid? scheduleId = null,

@@ -15,6 +15,7 @@ public static class LoggingMiddleware
             .MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Warning)
             .MinimumLevel.Override("Microsoft.EntityFrameworkCore.Database.Command", LogEventLevel.Warning)
             .MinimumLevel.Override("System.Net.Http.HttpClient", LogEventLevel.Warning)
+            .MinimumLevel.Override("Microsoft.AspNetCore.Authentication", LogEventLevel.Verbose)
             .Enrich.WithProperty(nameof(logger.Application), logger.Application)
             .WriteTo.GrafanaLoki(
                 logger.LogsUrl,

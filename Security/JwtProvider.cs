@@ -47,7 +47,7 @@ internal class JwtProvider(JwtOptions options) : IJwtProvider
         httpContext.Response.Cookies.Append(options.NameCookie, accessToken, cookieOptions);
     }
 
-    public ClaimsPrincipal GetPrincipalFromExpiredToken(string token)
+    public ClaimsPrincipal GetPrincipalFromToken(string token)
     {
         var tokenValidationParameters = new TokenValidationParameters
         {

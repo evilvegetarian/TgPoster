@@ -7,7 +7,7 @@ namespace Security.Interfaces;
 public interface IJwtProvider
 {
     string GenerateToken(TokenServiceBuildTokenPayload tokenPayload);
-    ClaimsPrincipal GetPrincipalFromExpiredToken(string token);
+    ClaimsPrincipal GetPrincipalFromToken(string token);
     (Guid RefreshToken, DateTimeOffset RefreshExpireTime) GenerateRefreshToken();
     void AddTokenToCookie(HttpContext httpContext, string accessToken);
 }

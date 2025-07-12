@@ -6,15 +6,17 @@ namespace Security;
 
 public class AuthenticationMiddleware(RequestDelegate next)
 {
-    public async Task InvokeAsync(
-        HttpContext context,
-        IHttpContextAccessor httpContextAccessor,
-        IIdentityProvider identityProvider
-    )
+    public async Task InvokeAsync(HttpContext context, IIdentityProvider identityProvider)
     {
-        var stringId = httpContextAccessor.HttpContext?.User.FindFirst(JwtClaimTypes.UserId)?.Value;
-        var canParse = Guid.TryParse(stringId, out var userId);
-        identityProvider.Current = new Identity(canParse ? userId : Guid.Empty);
+        if (context.User.Identity?.IsAuthenticated == true)
+        {
+            var userIdClaim = context.User.FindFirst(JwtClaimTypes.UserId);
+            
+            if (userIdClaim is not null && Guid.TryParse(userIdClaim.Value, out var userId))
+            {
+                (identityProvider as IdentityProvider)?.Set(new Identity(userId));
+            }
+        }
 
         await next(context);
     }

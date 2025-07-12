@@ -72,14 +72,15 @@ builder.Services.AddMassTransit(x =>
 });
 var app = builder.Build();
 app.UseMiddleware<ErrorHandlingMiddleware>();
-app.UseCors(MyAllowSpecificOrigins);
-app.UseMiddleware<AuthenticationMiddleware>();
-app.UseAuthentication();
-app.UseAuthorization();
+app.UseHttpsRedirection();
 app.UseSwagger();
 app.UseSwaggerUI();
+app.UseRouting();
+app.UseCors(MyAllowSpecificOrigins);
+app.UseAuthentication(); 
+app.UseMiddleware<AuthenticationMiddleware>();
+app.UseAuthorization();
 app.MapControllers();
-app.UseHttpsRedirection();
 app.Run();
 
 public partial class Program

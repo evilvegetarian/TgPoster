@@ -40,6 +40,9 @@ axiosInstance.interceptors.response.use(
     async (error) => {
         const originalRequest= error.config;
 
+        if (error.code === "ERR_CANCELED") {
+            return Promise.resolve({status: 499})
+        }
 
         if (error.response?.status === HttpStatusCode.Unauthorized ) {
             if (isRefreshing) {

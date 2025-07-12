@@ -1,6 +1,7 @@
 namespace Security.Models;
 
-public class Identity(Guid userId)
+public record Identity(Guid UserId)
 {
-    public Guid UserId { get; } = userId;
+    public bool IsAuthenticated => UserId != Guid.Empty;
+    public static Identity Anonymous => new(Guid.Empty);
 }
