@@ -7,12 +7,19 @@ internal class UpdateTimeUseCase(IUpdateTimeStorage storage) : IRequestHandler<U
 {
     public async Task Handle(UpdateTimeCommand request, CancellationToken ct)
     {
-        var dayId = await storage.DayIdAsync(request.ScheduleId, request.DayOfWeek, ct);
-        if (dayId==Guid.Empty)
+        if (!await storage.ExistScheduleAsync(request.ScheduleId, ct))
         {
-            throw new DaysNotFoundException();
+            throw new ScheduleNotFoundException();
         }
 
-        await storage.UpdateTimeDayAsync(dayId, request.Times, ct);
+        var dayId = await storage.DayIdAsync(request.ScheduleId, request.DayOfWeek, ct);
+        if (dayId == Guid.Empty)
+        {
+            await storage.CreateDayAsync(request.DayOfWeek, request.ScheduleId, request.Times, ct);
+        }
+        else
+        {
+            await storage.UpdateTimeDayAsync(dayId, request.Times, ct);
+        }
     }
 }
