@@ -40,6 +40,7 @@ internal sealed class CreateScheduleUseCase(
             identity.Current.UserId,
             request.TelegramBotId,
             channel.Id,
+            userNameChat,
             ct);
         return new CreateScheduleResponse
         {

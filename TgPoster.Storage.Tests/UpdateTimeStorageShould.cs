@@ -9,7 +9,7 @@ public class UpdateTimeStorageShould(StorageTestFixture fixture) : IClassFixture
 {
     private readonly PosterContext context = fixture.GetDbContext();
     private readonly Helper create = new(fixture.GetDbContext());
-    private readonly UpdateTimeStorage sut = new(fixture.GetDbContext());
+    private readonly UpdateTimeStorage sut = new(fixture.GetDbContext(), new GuidFactory());
 
     [Fact]
     public async Task UpdateTimeDay_WithValidData_ShouldUpdateTime()

@@ -22,6 +22,16 @@ public sealed class Schedule : BaseEntity
     /// </summary>
     public required long ChannelId { get; set; }
 
+    /// <summary>
+    ///   Название  канала на который будет отправляться сообщения
+    /// </summary>
+    public required string ChannelName { get; set; }
+
+    /// <summary>
+    /// Обозначает активность канала
+    /// </summary>
+    public bool IsActive { get; set; }
+
     #region Навигация
 
     /// <summary>

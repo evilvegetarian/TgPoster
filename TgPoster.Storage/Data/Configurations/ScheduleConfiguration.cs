@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using TgPoster.Storage.Data.Entities;
 
@@ -19,6 +20,10 @@ internal class ScheduleConfiguration : BaseEntityConfig<Schedule>
         builder.Property(x => x.ChannelId)
             .HasMaxLength(15)
             .IsRequired();
+        
+        builder.Property(x => x.ChannelName)
+            .HasMaxLength(50)
+            .IsRequired();
 
         builder.HasOne(x => x.User)
             .WithMany(x => x.Schedules)
@@ -26,6 +31,9 @@ internal class ScheduleConfiguration : BaseEntityConfig<Schedule>
 
         builder.Property(x => x.TelegramBotId)
             .IsRequired();
+
+        builder.Property(x => x.IsActive)
+            .HasDefaultValue(true);
 
         builder.HasOne(x => x.TelegramBot)
             .WithMany(x => x.Schedules)

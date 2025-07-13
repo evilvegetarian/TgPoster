@@ -14,7 +14,9 @@ internal sealed class GetScheduleStorage(PosterContext context) : IGetScheduleSt
             .Select(x => new ScheduleResponse
             {
                 Id = x.Id,
-                Name = x.Name
+                Name = x.Name,
+                ChannelName = x.TelegramBot.Name,
+                IsActive = x.IsActive,
             })
             .FirstOrDefaultAsync(ct);
     }

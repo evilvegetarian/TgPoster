@@ -7,6 +7,7 @@ public interface ICreateScheduleStorage
         Guid userId,
         Guid telegramBot,
         long channelId,
+        string userNameChat,
         CancellationToken ct
     );
 

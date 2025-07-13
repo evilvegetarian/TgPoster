@@ -33,7 +33,8 @@ public class CreateMessagesFromFilesUseCaseStorageShould(StorageTestFixture fixt
             Name = "schedule",
             UserId = user.Id,
             TelegramBotId = telegramBot.Id,
-            ChannelId = -102044234502040
+            ChannelId = -102044234502040,
+            ChannelName = "TestChannel"
         };
 
         await _context.TelegramBots.AddAsync(telegramBot);
@@ -67,7 +68,8 @@ public class CreateMessagesFromFilesUseCaseStorageShould(StorageTestFixture fixt
             Name = "schedule",
             UserId = user.Id,
             ChannelId = -102044234502052,
-            TelegramBotId = telegramBot.Id
+            TelegramBotId = telegramBot.Id,
+            ChannelName = "TestChannel"
         };
 
         await _context.TelegramBots.AddAsync(telegramBot);

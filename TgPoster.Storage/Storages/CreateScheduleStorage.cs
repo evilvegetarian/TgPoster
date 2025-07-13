@@ -12,6 +12,7 @@ internal sealed class CreateScheduleStorage(PosterContext context, GuidFactory g
         Guid userId,
         Guid telegramBot,
         long channelId,
+        string userNameChat,
         CancellationToken ct
     )
     {
@@ -21,7 +22,8 @@ internal sealed class CreateScheduleStorage(PosterContext context, GuidFactory g
             Name = name,
             UserId = userId,
             TelegramBotId = telegramBot,
-            ChannelId = channelId
+            ChannelId = channelId,
+            ChannelName = userNameChat,
         };
         await context.Schedules.AddAsync(schedule, ct);
         await context.SaveChangesAsync(ct);

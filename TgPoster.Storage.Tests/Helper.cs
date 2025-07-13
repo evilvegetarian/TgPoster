@@ -33,7 +33,8 @@ public class Helper(PosterContext context)
             Name = faker.Company.CompanyName(),
             UserId = user.Id,
             TelegramBotId = telegramBot.Id,
-            ChannelId = faker.Random.Long(-100000000000000, -199999999999999)
+            ChannelId = faker.Random.Long(-100000000000000, -199999999999999),
+            ChannelName = faker.Company.CompanyName(),
         };
         await context.Schedules.AddAsync(schedule);
         await context.SaveChangesAsync();
@@ -79,7 +80,7 @@ public class Helper(PosterContext context)
         await context.SaveChangesAsync();
         return bot;
     }
-    
+
     public async Task<TelegramBot> CreateTelegramBotAsync()
     {
         var user = await CreateUserAsync();

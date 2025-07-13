@@ -21,7 +21,8 @@ internal class ScheduleSeeder(PosterContext context) : BaseSeeder
                 Name = "PerfectSchedule",
                 UserId = GlobalConst.UserId,
                 TelegramBotId = GlobalConst.TelegramBotId,
-                ChannelId = GlobalConst.ChannelId
+                ChannelId = GlobalConst.ChannelId,
+                ChannelName = "PerfectChannel",
             },
             new()
             {
@@ -29,7 +30,8 @@ internal class ScheduleSeeder(PosterContext context) : BaseSeeder
                 Name = "SecondSchedule",
                 UserId = GlobalConst.UserId,
                 TelegramBotId = GlobalConst.TelegramBotId,
-                ChannelId = GlobalConst.ChannelId
+                ChannelId = GlobalConst.ChannelId,
+                ChannelName = "Second Channel"
             },
             new()
             {
@@ -37,7 +39,8 @@ internal class ScheduleSeeder(PosterContext context) : BaseSeeder
                 Name = "Schedule For Test",
                 UserId = GlobalConst.Worked.UserId,
                 TelegramBotId = GlobalConst.Worked.TelegramBotId,
-                ChannelId = GlobalConst.Worked.ChannelId
+                ChannelId = GlobalConst.Worked.ChannelId,
+                ChannelName = "Schedule For Test"
             }
         };
 
