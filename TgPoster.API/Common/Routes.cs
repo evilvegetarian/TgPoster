@@ -1,65 +1,66 @@
 namespace TgPoster.API.Common;
 
-public static class Routes
+internal static class Routes
 {
     private const string Root = "api";
     private const string Version = "v1";
     private const string Base = Root + "/" + Version;
 
-    public static class Account
+    internal static class Account
     {
-        public const string Root = Base + "/account";
-        public const string SignOn = Root + "/sign-on";
-        public const string SignIn = Root + "/sign-in";
-        public const string RefreshToken = Root + "/refresh-token";
+        internal const string Root = Base + "/account";
+        internal const string SignOn = Root + "/sign-on";
+        internal const string SignIn = Root + "/sign-in";
+        internal const string RefreshToken = Root + "/refresh-token";
     }
 
-    public static class Schedule
+    internal static class Schedule
     {
-        public const string Root = Base + "/schedule";
-        public const string List = Root;
-        public const string Create = Root;
-        public const string GetById = Root + "/{id:guid}";
-        public const string Delete = Root + "/{id:guid}";
+        internal const string Root = Base + "/schedule";
+        internal const string List = Root;
+        internal const string Create = Root;
+        internal const string GetById = Root + "/{id:guid}";
+        internal const string Delete = Root + "/{id:guid}";
+        internal const string UpdateStatus = Root + "/{id:guid}/status";
     }
 
-    public static class Day
+    internal static class Day
     {
-        public const string Root = Base + "/day";
-        public const string DayOfWeek = Root + "/dayofweek";
-        public const string UpdateTime = Root + "/time";
-        public const string Get = Root;
-        public const string Create = Root;
+        internal const string Root = Base + "/day";
+        internal const string DayOfWeek = Root + "/dayofweek";
+        internal const string UpdateTime = Root + "/time";
+        internal const string Get = Root;
+        internal const string Create = Root;
     }
 
-    public static class TelegramBot
+    internal static class TelegramBot
     {
-        public const string Root = Base + "/telegram-bot";
-        public const string List = Root;
-        public const string Create = Root;
-        public const string GetById = Root + "/{id:guid}";
-        public const string Delete = Root + "/{id:guid}";
+        internal const string Root = Base + "/telegram-bot";
+        internal const string List = Root;
+        internal const string Create = Root;
+        internal const string GetById = Root + "/{id:guid}";
+        internal const string Delete = Root + "/{id:guid}";
     }
 
-    public static class Message
+    internal static class Message
     {
-        public const string Root = Base + "/message";
-        public const string List = Root;
-        public const string CreateMessagesFromFiles = Root + "/batch-from-files";
-        public const string Create = Root;
-        public const string GetById = Root + "/{id:guid}";
-        public const string Delete = Root + "/{id:guid}";
+        internal const string Root = Base + "/message";
+        internal const string List = Root;
+        internal const string CreateMessagesFromFiles = Root + "/batch-from-files";
+        internal const string Create = Root;
+        internal const string GetById = Root + "/{id:guid}";
+        internal const string Delete = Root + "/{id:guid}";
     }
 
-    public static class File
+    internal static class File
     {
-        public const string Root = Base + "/file";
-        public const string GetById = Root + "/{id:guid}";
+        internal const string Root = Base + "/file";
+        internal const string GetById = Root + "/{id:guid}";
     }
 
-    public static class Parse
+    internal static class Parse
     {
-        public const string Root = Base + "/parse";
-        public const string ParseChannel = Root + "/";
+        internal const string Root = Base + "/parse";
+        internal const string ParseChannel = Root + "/";
     }
 }

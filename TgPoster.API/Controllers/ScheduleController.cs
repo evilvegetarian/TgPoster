@@ -6,6 +6,7 @@ using TgPoster.API.Domain.UseCases.Schedules.CreateSchedule;
 using TgPoster.API.Domain.UseCases.Schedules.DeleteSchedule;
 using TgPoster.API.Domain.UseCases.Schedules.GetSchedule;
 using TgPoster.API.Domain.UseCases.Schedules.ListSchedule;
+using TgPoster.API.Domain.UseCases.Schedules.UpdateActiveSchedule;
 using TgPoster.API.Models;
 
 namespace TgPoster.API.Controllers;
@@ -78,4 +79,21 @@ public class ScheduleController(ISender sender) : ControllerBase
         await sender.Send(new DeleteScheduleCommand(id), ct);
         return Ok();
     }
+    
+    /// <summary>
+    ///     Изменить активность расписания
+    /// </summary>
+    /// <param name="id"></param>
+    /// <param name="ct"></param>
+    /// <returns></returns>
+    [HttpPatch(Routes.Schedule.UpdateStatus)]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
+    public async Task<IActionResult> UpdateStatus(Guid id, CancellationToken ct)
+    {
+        await sender.Send(new UpdateStatusScheduleCommand(id), ct);
+        return Ok();
+    }
 }
+
