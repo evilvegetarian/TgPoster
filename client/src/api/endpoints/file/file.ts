@@ -50,7 +50,7 @@ export const getGetApiV1FileIdQueryKey = (id: string,) => {
     }
 
     
-export const getGetApiV1FileIdQueryOptions = <TData = Awaited<ReturnType<typeof getApiV1FileId>>, TError = ProblemDetails | void>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1FileId>>, TError, TData>>, }
+export const getGetApiV1FileIdQueryOptions = <TData = Awaited<ReturnType<typeof getApiV1FileId>>, TError = ProblemDetails>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1FileId>>, TError, TData>>, }
 ) => {
 
 const {query: queryOptions} = options ?? {};
@@ -69,10 +69,10 @@ const {query: queryOptions} = options ?? {};
 }
 
 export type GetApiV1FileIdQueryResult = NonNullable<Awaited<ReturnType<typeof getApiV1FileId>>>
-export type GetApiV1FileIdQueryError = ProblemDetails | void
+export type GetApiV1FileIdQueryError = ProblemDetails
 
 
-export function useGetApiV1FileId<TData = Awaited<ReturnType<typeof getApiV1FileId>>, TError = ProblemDetails | void>(
+export function useGetApiV1FileId<TData = Awaited<ReturnType<typeof getApiV1FileId>>, TError = ProblemDetails>(
  id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1FileId>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof getApiV1FileId>>,
@@ -82,7 +82,7 @@ export function useGetApiV1FileId<TData = Awaited<ReturnType<typeof getApiV1File
       >, }
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetApiV1FileId<TData = Awaited<ReturnType<typeof getApiV1FileId>>, TError = ProblemDetails | void>(
+export function useGetApiV1FileId<TData = Awaited<ReturnType<typeof getApiV1FileId>>, TError = ProblemDetails>(
  id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1FileId>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof getApiV1FileId>>,
@@ -92,7 +92,7 @@ export function useGetApiV1FileId<TData = Awaited<ReturnType<typeof getApiV1File
       >, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetApiV1FileId<TData = Awaited<ReturnType<typeof getApiV1FileId>>, TError = ProblemDetails | void>(
+export function useGetApiV1FileId<TData = Awaited<ReturnType<typeof getApiV1FileId>>, TError = ProblemDetails>(
  id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1FileId>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
@@ -100,7 +100,7 @@ export function useGetApiV1FileId<TData = Awaited<ReturnType<typeof getApiV1File
  * @summary Получение файла по Id
  */
 
-export function useGetApiV1FileId<TData = Awaited<ReturnType<typeof getApiV1FileId>>, TError = ProblemDetails | void>(
+export function useGetApiV1FileId<TData = Awaited<ReturnType<typeof getApiV1FileId>>, TError = ProblemDetails>(
  id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1FileId>>, TError, TData>>, }
  , queryClient?: QueryClient 
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {

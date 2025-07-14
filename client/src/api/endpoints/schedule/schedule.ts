@@ -334,4 +334,65 @@ export const useDeleteApiV1ScheduleId = <TError = ProblemDetails,
 
       return useMutation(mutationOptions , queryClient);
     }
+    /**
+ * @summary Изменить активность расписания
+ */
+export const patchApiV1ScheduleIdStatus = (
+    id: string,
+ ) => {
+      
+      
+      return customInstance<void>(
+      {url: `/api/v1/schedule/${id}/status`, method: 'PATCH'
+    },
+      );
+    }
+  
+
+
+export const getPatchApiV1ScheduleIdStatusMutationOptions = <TError = ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof patchApiV1ScheduleIdStatus>>, TError,{id: string}, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof patchApiV1ScheduleIdStatus>>, TError,{id: string}, TContext> => {
+
+const mutationKey = ['patchApiV1ScheduleIdStatus'];
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof patchApiV1ScheduleIdStatus>>, {id: string}> = (props) => {
+          const {id} = props ?? {};
+
+          return  patchApiV1ScheduleIdStatus(id,)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type PatchApiV1ScheduleIdStatusMutationResult = NonNullable<Awaited<ReturnType<typeof patchApiV1ScheduleIdStatus>>>
+    
+    export type PatchApiV1ScheduleIdStatusMutationError = ProblemDetails
+
+    /**
+ * @summary Изменить активность расписания
+ */
+export const usePatchApiV1ScheduleIdStatus = <TError = ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof patchApiV1ScheduleIdStatus>>, TError,{id: string}, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof patchApiV1ScheduleIdStatus>>,
+        TError,
+        {id: string},
+        TContext
+      > => {
+
+      const mutationOptions = getPatchApiV1ScheduleIdStatusMutationOptions(options);
+
+      return useMutation(mutationOptions , queryClient);
+    }
     

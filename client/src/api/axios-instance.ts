@@ -1,6 +1,6 @@
 import Axios, {type AxiosRequestConfig, HttpStatusCode} from 'axios';
 
-const API_URL = import.meta.env.VITE_API_URL;
+const API_URL = import.meta.env?.VITE_API_URL || process.env.VITE_API_URL || 'http://localhost:5000';
 
 export const axiosInstance = Axios.create({
     baseURL: API_URL,
@@ -38,24 +38,24 @@ axiosInstance.interceptors.request.use((config) => {
 axiosInstance.interceptors.response.use(
     (response) => response,
     async (error) => {
-        const originalRequest= error.config;
+        const originalRequest = error.config;
 
         if (error.code === "ERR_CANCELED") {
-            return Promise.resolve({status: 499})
+            return Promise.resolve({status: 499});
         }
 
-        if (error.response?.status === HttpStatusCode.Unauthorized ) {
+        if (error.response?.status === HttpStatusCode.Unauthorized) {
             if (isRefreshing) {
                 return new Promise((resolve, reject) => {
                     failedQueue.push({ resolve, reject });
                 })
                     .then(token => {
-                    originalRequest.headers.Authorization = `Bearer ${token}`;
-                    return axiosInstance(originalRequest);
-                })
+                        originalRequest.headers.Authorization = `Bearer ${token}`;
+                        return axiosInstance(originalRequest);
+                    })
                     .catch(err => {
-                    return Promise.reject(err);
-                });
+                        return Promise.reject(err);
+                    });
             }
 
             originalRequest._retry = true;
@@ -72,19 +72,18 @@ axiosInstance.interceptors.response.use(
             }
 
             try {
-                const { postApiV1AccountRefreshToken } = await import('@/api/endpoints/account/account');
+                const response = await Axios.post<{ accessToken: string; refreshToken: string; }>(
+                    `${API_URL}/api/v1/account/refresh-token`, // Use the full URL
+                    { refreshToken: refreshToken }
+                );
 
-                const response = await postApiV1AccountRefreshToken({
-                    refreshToken: refreshToken
-                });
+                if (response.data.accessToken && response.data.refreshToken) {
+                    localStorage.setItem('accessToken', response.data.accessToken);
+                    localStorage.setItem('refreshToken', response.data.refreshToken);
 
-                if (response.accessToken && response.refreshToken) {
-                    localStorage.setItem('accessToken', response.accessToken);
-                    localStorage.setItem('refreshToken', response.refreshToken);
+                    processQueue(null, response.data.accessToken);
 
-                    processQueue(null, response.accessToken);
-
-                    originalRequest.headers.Authorization = `Bearer ${response.accessToken}`;
+                    originalRequest.headers.Authorization = `Bearer ${response.data.accessToken}`;
                     return axiosInstance(originalRequest);
                 } else {
                     throw new Error('Invalid refresh response');
@@ -123,4 +122,3 @@ export const fileInstance = <T>(
     return axiosInstance({...config, responseType: 'blob'})
         .then((response) => response.data);
 };
-

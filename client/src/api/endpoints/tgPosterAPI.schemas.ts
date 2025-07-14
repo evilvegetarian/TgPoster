@@ -180,6 +180,9 @@ export interface ScheduleResponse {
   id: string;
   /** @nullable */
   name: string | null;
+  isActive: boolean;
+  /** @nullable */
+  channelName: string | null;
 }
 
 export interface SignInRequest {

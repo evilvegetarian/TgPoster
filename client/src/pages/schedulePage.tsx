@@ -1,7 +1,9 @@
-﻿
+﻿import ScheduleManager from "@/components/schedule-manager.tsx";
+
 export function SchedulePage() {
     return (
-        <div>
-        </div>
+        <main className="container mx-auto py-8">
+            <ScheduleManager />
+        </main>
     );
 }

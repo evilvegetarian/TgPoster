@@ -58,7 +58,7 @@ export const getGetApiV1DayDayofweekQueryKey = () => {
     }
 
     
-export const getGetApiV1DayDayofweekQueryOptions = <TData = Awaited<ReturnType<typeof getApiV1DayDayofweek>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1DayDayofweek>>, TError, TData>>, }
+export const getGetApiV1DayDayofweekQueryOptions = <TData = Awaited<ReturnType<typeof getApiV1DayDayofweek>>, TError = ProblemDetails>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1DayDayofweek>>, TError, TData>>, }
 ) => {
 
 const {query: queryOptions} = options ?? {};
@@ -77,10 +77,10 @@ const {query: queryOptions} = options ?? {};
 }
 
 export type GetApiV1DayDayofweekQueryResult = NonNullable<Awaited<ReturnType<typeof getApiV1DayDayofweek>>>
-export type GetApiV1DayDayofweekQueryError = unknown
+export type GetApiV1DayDayofweekQueryError = ProblemDetails
 
 
-export function useGetApiV1DayDayofweek<TData = Awaited<ReturnType<typeof getApiV1DayDayofweek>>, TError = unknown>(
+export function useGetApiV1DayDayofweek<TData = Awaited<ReturnType<typeof getApiV1DayDayofweek>>, TError = ProblemDetails>(
   options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1DayDayofweek>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof getApiV1DayDayofweek>>,
@@ -90,7 +90,7 @@ export function useGetApiV1DayDayofweek<TData = Awaited<ReturnType<typeof getApi
       >, }
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetApiV1DayDayofweek<TData = Awaited<ReturnType<typeof getApiV1DayDayofweek>>, TError = unknown>(
+export function useGetApiV1DayDayofweek<TData = Awaited<ReturnType<typeof getApiV1DayDayofweek>>, TError = ProblemDetails>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1DayDayofweek>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof getApiV1DayDayofweek>>,
@@ -100,7 +100,7 @@ export function useGetApiV1DayDayofweek<TData = Awaited<ReturnType<typeof getApi
       >, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetApiV1DayDayofweek<TData = Awaited<ReturnType<typeof getApiV1DayDayofweek>>, TError = unknown>(
+export function useGetApiV1DayDayofweek<TData = Awaited<ReturnType<typeof getApiV1DayDayofweek>>, TError = ProblemDetails>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1DayDayofweek>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
@@ -108,7 +108,7 @@ export function useGetApiV1DayDayofweek<TData = Awaited<ReturnType<typeof getApi
  * @summary Получение дней недели
  */
 
-export function useGetApiV1DayDayofweek<TData = Awaited<ReturnType<typeof getApiV1DayDayofweek>>, TError = unknown>(
+export function useGetApiV1DayDayofweek<TData = Awaited<ReturnType<typeof getApiV1DayDayofweek>>, TError = ProblemDetails>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1DayDayofweek>>, TError, TData>>, }
  , queryClient?: QueryClient 
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
@@ -143,7 +143,7 @@ export const postApiV1Day = (
   
 
 
-export const getPostApiV1DayMutationOptions = <TError = ProblemDetails | void,
+export const getPostApiV1DayMutationOptions = <TError = ProblemDetails,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postApiV1Day>>, TError,{data: CreateDaysRequest}, TContext>, }
 ): UseMutationOptions<Awaited<ReturnType<typeof postApiV1Day>>, TError,{data: CreateDaysRequest}, TContext> => {
 
@@ -170,12 +170,12 @@ const {mutation: mutationOptions} = options ?
 
     export type PostApiV1DayMutationResult = NonNullable<Awaited<ReturnType<typeof postApiV1Day>>>
     export type PostApiV1DayMutationBody = CreateDaysRequest
-    export type PostApiV1DayMutationError = ProblemDetails | void
+    export type PostApiV1DayMutationError = ProblemDetails
 
     /**
  * @summary Создание дней недели
  */
-export const usePostApiV1Day = <TError = ProblemDetails | void,
+export const usePostApiV1Day = <TError = ProblemDetails,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postApiV1Day>>, TError,{data: CreateDaysRequest}, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof postApiV1Day>>,
@@ -210,7 +210,7 @@ export const getGetApiV1DayQueryKey = (params: GetApiV1DayParams,) => {
     }
 
     
-export const getGetApiV1DayQueryOptions = <TData = Awaited<ReturnType<typeof getApiV1Day>>, TError = ProblemDetails | void>(params: GetApiV1DayParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1Day>>, TError, TData>>, }
+export const getGetApiV1DayQueryOptions = <TData = Awaited<ReturnType<typeof getApiV1Day>>, TError = ProblemDetails>(params: GetApiV1DayParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1Day>>, TError, TData>>, }
 ) => {
 
 const {query: queryOptions} = options ?? {};
@@ -229,10 +229,10 @@ const {query: queryOptions} = options ?? {};
 }
 
 export type GetApiV1DayQueryResult = NonNullable<Awaited<ReturnType<typeof getApiV1Day>>>
-export type GetApiV1DayQueryError = ProblemDetails | void
+export type GetApiV1DayQueryError = ProblemDetails
 
 
-export function useGetApiV1Day<TData = Awaited<ReturnType<typeof getApiV1Day>>, TError = ProblemDetails | void>(
+export function useGetApiV1Day<TData = Awaited<ReturnType<typeof getApiV1Day>>, TError = ProblemDetails>(
  params: GetApiV1DayParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1Day>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof getApiV1Day>>,
@@ -242,7 +242,7 @@ export function useGetApiV1Day<TData = Awaited<ReturnType<typeof getApiV1Day>>, 
       >, }
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetApiV1Day<TData = Awaited<ReturnType<typeof getApiV1Day>>, TError = ProblemDetails | void>(
+export function useGetApiV1Day<TData = Awaited<ReturnType<typeof getApiV1Day>>, TError = ProblemDetails>(
  params: GetApiV1DayParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1Day>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof getApiV1Day>>,
@@ -252,7 +252,7 @@ export function useGetApiV1Day<TData = Awaited<ReturnType<typeof getApiV1Day>>, 
       >, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetApiV1Day<TData = Awaited<ReturnType<typeof getApiV1Day>>, TError = ProblemDetails | void>(
+export function useGetApiV1Day<TData = Awaited<ReturnType<typeof getApiV1Day>>, TError = ProblemDetails>(
  params: GetApiV1DayParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1Day>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
@@ -260,7 +260,7 @@ export function useGetApiV1Day<TData = Awaited<ReturnType<typeof getApiV1Day>>, 
  * @summary Получение дней
  */
 
-export function useGetApiV1Day<TData = Awaited<ReturnType<typeof getApiV1Day>>, TError = ProblemDetails | void>(
+export function useGetApiV1Day<TData = Awaited<ReturnType<typeof getApiV1Day>>, TError = ProblemDetails>(
  params: GetApiV1DayParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1Day>>, TError, TData>>, }
  , queryClient?: QueryClient 
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
@@ -294,7 +294,7 @@ export const patchApiV1DayTime = (
   
 
 
-export const getPatchApiV1DayTimeMutationOptions = <TError = ProblemDetails | void,
+export const getPatchApiV1DayTimeMutationOptions = <TError = ProblemDetails,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof patchApiV1DayTime>>, TError,{data: UpdateTimeRequest}, TContext>, }
 ): UseMutationOptions<Awaited<ReturnType<typeof patchApiV1DayTime>>, TError,{data: UpdateTimeRequest}, TContext> => {
 
@@ -321,12 +321,12 @@ const {mutation: mutationOptions} = options ?
 
     export type PatchApiV1DayTimeMutationResult = NonNullable<Awaited<ReturnType<typeof patchApiV1DayTime>>>
     export type PatchApiV1DayTimeMutationBody = UpdateTimeRequest
-    export type PatchApiV1DayTimeMutationError = ProblemDetails | void
+    export type PatchApiV1DayTimeMutationError = ProblemDetails
 
     /**
  * @summary Обновление времени для определенного дня
  */
-export const usePatchApiV1DayTime = <TError = ProblemDetails | void,
+export const usePatchApiV1DayTime = <TError = ProblemDetails,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof patchApiV1DayTime>>, TError,{data: UpdateTimeRequest}, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof patchApiV1DayTime>>,
