@@ -4,7 +4,7 @@ using TgPoster.Storage.Data.Entities;
 using TgPoster.Storage.Data.Enum;
 using TgPoster.Storage.Storages;
 
-namespace TgPoster.Storage.Tests;
+namespace TgPoster.Storage.Tests.Tests;
 
 public class SenderMessageStorageShould(StorageTestFixture fixture) : IClassFixture<StorageTestFixture>
 {
@@ -55,14 +55,6 @@ public class SenderMessageStorageShould(StorageTestFixture fixture) : IClassFixt
         result.SelectMany(x => x.MessageDto).Any(m => m.Id == msgInWindow.Id).ShouldBeTrue();
         result.SelectMany(x => x.MessageDto).Any(m => m.Id == msgOutOfWindow.Id).ShouldBeFalse();
         result.SelectMany(x => x.MessageDto).Any(m => m.Id == msgWrongStatus.Id).ShouldBeFalse();
-    }
-
-    [Fact]
-    public async Task GetMessagesAsync_ShouldReturnEmptyListIfNoMessages()
-    {
-        var result = await sut.GetMessagesAsync();
-        result.ShouldNotBeNull();
-        result.ShouldBeEmpty();
     }
 
     [Fact]

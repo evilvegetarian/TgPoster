@@ -11,6 +11,12 @@ namespace TgPoster.API.Controllers;
 [ApiController]
 public class ParseController(ISender sender) : ControllerBase
 {
+    /// <summary>
+    /// Парсинг канала
+    /// </summary>
+    /// <param name="request"></param>
+    /// <param name="ct"></param>
+    /// <returns></returns>
     [HttpPost(Routes.Parse.ParseChannel)]
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]

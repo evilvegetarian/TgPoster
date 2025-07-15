@@ -6,7 +6,7 @@ using TgPoster.Storage.Data.Entities;
 using TgPoster.Storage.Data.Enum;
 using TgPoster.Storage.Storages;
 
-namespace TgPoster.Storage.Tests;
+namespace TgPoster.Storage.Tests.Tests;
 
 public class CreateMessagesFromFilesUseCaseStorageShould(StorageTestFixture fixture) : IClassFixture<StorageTestFixture>
 {

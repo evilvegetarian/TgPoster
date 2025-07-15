@@ -1,4 +1,5 @@
 using System.Net.Http.Json;
+using MassTransit;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
@@ -6,6 +7,7 @@ using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using NSubstitute;
 using Testcontainers.PostgreSql;
 using TgPoster.API.Common;
 using TgPoster.API.Models;
@@ -72,6 +74,14 @@ public class EndpointTestFixture : WebApplicationFactory<Program>, IAsyncLifetim
         builder.ConfigureServices(services =>
         {
             services.AddSingleton(memoryCache!);
+            
+            var busDescriptor = services.FirstOrDefault(d => d.ServiceType == typeof(IBus));
+            if (busDescriptor != null)
+            {
+                services.Remove(busDescriptor);
+            }
+        
+            services.AddSingleton(Substitute.For<IBus>());
         });
         base.ConfigureWebHost(builder);
     }

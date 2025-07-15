@@ -1,4 +1,5 @@
 using System.Net;
+using System.Net.Http.Json;
 using Shouldly;
 using TgPoster.API.Common;
 using TgPoster.API.Models;
@@ -77,11 +78,10 @@ public class ParseEndpointTest(EndpointTestFixture fixture) : IClassFixture<Endp
         {
             Channel = GlobalConst.Worked.Channel,
             AlwaysCheckNewPosts = false,
-            ScheduleId = GlobalConst.Worked.ScheduleId
+            ScheduleId = GlobalConst.Worked.ScheduleId,
         };
 
-        var createdSchedule = await client.PostAsync(Url, request.ToStringContent());
-        var ss = await createdSchedule.Content.ReadAsStringAsync();
+        var createdSchedule = await client.PostAsJsonAsync(Url, request);
         createdSchedule.StatusCode.ShouldBe(HttpStatusCode.Created);
     }
 

@@ -2,7 +2,7 @@ using Shouldly;
 using TgPoster.Storage.Data;
 using TgPoster.Storage.Storages;
 
-namespace TgPoster.Storage.Tests;
+namespace TgPoster.Storage.Tests.Tests;
 
 public class CreateTelegramBotStorageShould(StorageTestFixture fixture) : IClassFixture<StorageTestFixture>
 {

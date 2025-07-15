@@ -16,6 +16,11 @@ public sealed record UserName
             throw new ArgumentException("The value length must be at least 5 characters long.", nameof(value));
         }
 
+        if (value.Length > GlobalSettings.UserLength)
+        {
+            throw new ArgumentException("Длина никнейма больше 30.", nameof(value));
+        }
+        
         Value = value;
     }
 

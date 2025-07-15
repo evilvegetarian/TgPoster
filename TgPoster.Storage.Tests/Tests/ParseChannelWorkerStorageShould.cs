@@ -3,7 +3,7 @@ using TgPoster.Storage.Data;
 using TgPoster.Storage.Data.Enum;
 using TgPoster.Storage.Storages;
 
-namespace TgPoster.Storage.Tests;
+namespace TgPoster.Storage.Tests.Tests;
 
 public class ParseChannelWorkerStorageShould(StorageTestFixture fixture) : IClassFixture<StorageTestFixture>
 {

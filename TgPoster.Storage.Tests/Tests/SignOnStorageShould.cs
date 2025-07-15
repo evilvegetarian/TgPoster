@@ -5,7 +5,7 @@ using TgPoster.Storage.Data.Entities;
 using TgPoster.Storage.Data.VO;
 using TgPoster.Storage.Storages;
 
-namespace TgPoster.Storage.Tests;
+namespace TgPoster.Storage.Tests.Tests;
 
 public class SignOnStorageShould(StorageTestFixture fixture) : IClassFixture<StorageTestFixture>
 {

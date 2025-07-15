@@ -5,7 +5,7 @@ using TgPoster.Storage.Data.Enum;
 using TgPoster.Storage.Storages;
 using TgPoster.Worker.Domain.UseCases.ParseChannel;
 
-namespace TgPoster.Storage.Tests;
+namespace TgPoster.Storage.Tests.Tests;
 
 public class ParseChannelUseCaseStorageShould(StorageTestFixture fixture) : IClassFixture<StorageTestFixture>
 {

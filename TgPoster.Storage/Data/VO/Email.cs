@@ -14,6 +14,11 @@ public sealed record Email
             throw new ArgumentException("Некорректный формат email.", nameof(value));
         }
 
+        if (value.Length > GlobalSettings.EmailLength)
+        {
+            throw new ArgumentException("Длина почты больше 200.", nameof(value));
+        }
+
         Value = value;
     }
 
