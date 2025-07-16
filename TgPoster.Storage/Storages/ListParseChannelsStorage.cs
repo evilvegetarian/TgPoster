@@ -1,0 +1,19 @@
+using Microsoft.EntityFrameworkCore;
+using TgPoster.API.Domain.UseCases.Parse.ListChannel;
+using TgPoster.Storage.Data;
+using TgPoster.Storage.Data.Enum;
+using TgPoster.Storage.Mapper;
+
+namespace TgPoster.Storage.Storages;
+
+internal class ListParseChannelsStorage(PosterContext context) : IListParseChannelsStorage
+{
+    public async Task<List<ParseChannelsResponse>> GetChannelAsync(Guid userId, CancellationToken ct)
+    {
+        var parametersList= await context.ChannelParsingParameters
+            .Where(x => x.Schedule.UserId == userId)
+            .ToListAsync(ct);
+
+        return parametersList.Select(x => x.ToDomain()).ToList();
+    }
+}

@@ -2,6 +2,9 @@ using System.ComponentModel.DataAnnotations;
 
 namespace TgPoster.API.Models;
 
+/// <summary>
+/// Регистрация
+/// </summary>
 public class SignInRequest : IValidatableObject
 {
     [MinLength(5)]

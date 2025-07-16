@@ -2,6 +2,8 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TgPoster.API.Common;
+using TgPoster.API.Domain.UseCases.Parse.ListChannel;
+using TgPoster.API.Domain.UseCases.Schedules.ListSchedule;
 using TgPoster.API.Mapper;
 using TgPoster.API.Models;
 
@@ -25,5 +27,19 @@ public class ParseController(ISender sender) : ControllerBase
     {
         await sender.Send(request.ToCommand(), ct);
         return Created();
+    }
+
+    /// <summary>
+    /// Список парсингов каналов
+    /// </summary>
+    /// <param name="ct"></param>
+    /// <returns></returns>
+    [HttpGet(Routes.Parse.List)]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(List<ParseChannelsResponse>))]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
+    public async Task<IActionResult> GetAll(CancellationToken ct)
+    {
+        var list = await sender.Send(new ListParseChannelsQuery(), ct);
+        return Ok(list);
     }
 }

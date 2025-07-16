@@ -61,6 +61,7 @@ internal static class Routes
     internal static class Parse
     {
         internal const string Root = Base + "/parse";
-        internal const string ParseChannel = Root + "/";
+        internal const string ParseChannel = Root ;
+        internal const string List = Root;
     }
 }
