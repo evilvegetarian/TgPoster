@@ -1,6 +1,6 @@
 namespace TgPoster.API.Domain.UseCases.Messages.ListMessage;
 
-public class MessageResponse
+public sealed class MessageResponse
 {
     public required Guid Id { get; set; }
     public string? TextMessage { get; set; }
