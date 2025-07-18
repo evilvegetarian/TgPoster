@@ -45,6 +45,11 @@ export function SideBar() {
                 title: "Посты",
                 path: "/messages",
                 icon: MessageCircleMore
+            },
+            {
+                title: "Спарсить канал",
+                path: "/parse-channel",
+                icon: MessageCircleMore
             }
         ]
         : [

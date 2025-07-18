@@ -3,18 +3,19 @@ import {createRoot} from 'react-dom/client';
 import './index.css';
 import {createBrowserRouter, RouterProvider} from "react-router-dom";
 import {Layout} from "@/layout.tsx";
-import {RegisterPage} from "@/pages/registerPage.tsx";
+import {RegisterPage} from "@/pages/register-page.tsx";
 import {LoginPage} from "@/pages/loginPage.tsx";
 import {RegistrationSuccessPage} from "@/pages/registrationSuccessPage.tsx";
 import {ProtectedRoute} from "@/protectedRoute.tsx";
 import {HomePage} from "@/pages/homePage.tsx";
 import {App} from "@/app.tsx";
 import {PublicRoute} from "@/publicRoute.tsx";
-import {SchedulePage} from "@/pages/schedulePage.tsx";
+import {SchedulePage} from "@/pages/schedule-page.tsx";
 import {TelegramBotPage} from "@/pages/telegramBotPage.tsx";
 import {ErrorPage} from "@/pages/errorPage.tsx";
 import {ApproveMessagesPage} from "@/pages/approveMessagesPage.tsx";
 import {MessagesPage} from "@/pages/messagesPage.tsx";
+import {ParseChannelPage} from "@/pages/parse-channel-page.tsx";
 
 const router = createBrowserRouter([
     {
@@ -64,6 +65,10 @@ const router = createBrowserRouter([
                             {
                                 path: "/messages",
                                 element: <MessagesPage/>
+                            },
+                            {
+                                path: "/parse-channel",
+                                element:  <ParseChannelPage/>
                             }
                         ]
                     }

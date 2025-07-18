@@ -151,6 +151,23 @@ export interface ParseChannelRequest {
   dateTo?: string | null;
 }
 
+export interface ParseChannelsResponse {
+  id: string;
+  scheduleId: string;
+  deleteText: boolean;
+  deleteMedia: boolean;
+  /** @nullable */
+  avoidWords: string[] | null;
+  needVerifiedPosts: boolean;
+  /** @nullable */
+  dateFrom?: string | null;
+  /** @nullable */
+  dateTo?: string | null;
+  /** @nullable */
+  status: string | null;
+  isActive: boolean;
+}
+
 export interface ProblemDetails {
   /** @nullable */
   type?: string | null;
@@ -172,8 +189,8 @@ export interface RefreshTokenRequest {
 export interface RefreshTokenResponse {
   /** @nullable */
   accessToken: string | null;
-  refreshToken?: string;
-  refreshTokenExpiration?: string;
+  refreshToken: string;
+  refreshTokenExpiration: string;
 }
 
 export interface ScheduleResponse {
@@ -185,6 +202,9 @@ export interface ScheduleResponse {
   channelName: string | null;
 }
 
+/**
+ * Регистрация
+ */
 export interface SignInRequest {
   /**
    * @minLength 5
@@ -206,6 +226,9 @@ export interface SignInResponse {
   accessToken: string | null;
 }
 
+/**
+ * Логин
+ */
 export interface SignOnRequest {
   /**
    * @minLength 5

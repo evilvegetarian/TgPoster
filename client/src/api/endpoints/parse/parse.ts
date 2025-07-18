@@ -5,17 +5,27 @@
  * OpenAPI spec version: 1.0
  */
 import {
-  useMutation
+  useMutation,
+  useQuery
 } from '@tanstack/react-query';
 import type {
+  DataTag,
+  DefinedInitialDataOptions,
+  DefinedUseQueryResult,
   MutationFunction,
   QueryClient,
+  QueryFunction,
+  QueryKey,
+  UndefinedInitialDataOptions,
   UseMutationOptions,
-  UseMutationResult
+  UseMutationResult,
+  UseQueryOptions,
+  UseQueryResult
 } from '@tanstack/react-query';
 
 import type {
   ParseChannelRequest,
+  ParseChannelsResponse,
   ProblemDetails
 } from '../tgPosterAPI.schemas';
 
@@ -24,6 +34,9 @@ import { customInstance } from '../../axios-instance';
 
 
 
+/**
+ * @summary Создания задания на парсинга
+ */
 export const postApiV1Parse = (
     parseChannelRequest: ParseChannelRequest,
  signal?: AbortSignal
@@ -69,7 +82,10 @@ const {mutation: mutationOptions} = options ?
     export type PostApiV1ParseMutationBody = ParseChannelRequest
     export type PostApiV1ParseMutationError = ProblemDetails
 
-    export const usePostApiV1Parse = <TError = ProblemDetails,
+    /**
+ * @summary Создания задания на парсинга
+ */
+export const usePostApiV1Parse = <TError = ProblemDetails,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postApiV1Parse>>, TError,{data: ParseChannelRequest}, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof postApiV1Parse>>,
@@ -82,4 +98,90 @@ const {mutation: mutationOptions} = options ?
 
       return useMutation(mutationOptions , queryClient);
     }
+    /**
+ * @summary Настройки парсинга
+ */
+export const getApiV1Parse = (
     
+ signal?: AbortSignal
+) => {
+      
+      
+      return customInstance<ParseChannelsResponse[]>(
+      {url: `/api/v1/parse`, method: 'GET', signal
+    },
+      );
+    }
+  
+
+export const getGetApiV1ParseQueryKey = () => {
+    return [`/api/v1/parse`] as const;
+    }
+
+    
+export const getGetApiV1ParseQueryOptions = <TData = Awaited<ReturnType<typeof getApiV1Parse>>, TError = ProblemDetails>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1Parse>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetApiV1ParseQueryKey();
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getApiV1Parse>>> = ({ signal }) => getApiV1Parse(signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getApiV1Parse>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetApiV1ParseQueryResult = NonNullable<Awaited<ReturnType<typeof getApiV1Parse>>>
+export type GetApiV1ParseQueryError = ProblemDetails
+
+
+export function useGetApiV1Parse<TData = Awaited<ReturnType<typeof getApiV1Parse>>, TError = ProblemDetails>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1Parse>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getApiV1Parse>>,
+          TError,
+          Awaited<ReturnType<typeof getApiV1Parse>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetApiV1Parse<TData = Awaited<ReturnType<typeof getApiV1Parse>>, TError = ProblemDetails>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1Parse>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getApiV1Parse>>,
+          TError,
+          Awaited<ReturnType<typeof getApiV1Parse>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetApiV1Parse<TData = Awaited<ReturnType<typeof getApiV1Parse>>, TError = ProblemDetails>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1Parse>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Настройки парсинга
+ */
+
+export function useGetApiV1Parse<TData = Awaited<ReturnType<typeof getApiV1Parse>>, TError = ProblemDetails>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1Parse>>, TError, TData>>, }
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetApiV1ParseQueryOptions(options)
+
+  const query = useQuery(queryOptions , queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
