@@ -10,5 +10,14 @@ public class ParseChannelsResponse
     public bool NeedVerifiedPosts { get; set; }
     public DateTime? DateFrom { get; set; }
     public DateTime? DateTo { get; set; }
+
+    /// <summary>
+    /// Тестовый статус парсинга
+    /// </summary>
     public string Status { get; set; }
+
+    /// <summary>
+    /// Работает ли парсинг
+    /// </summary>
+    public bool IsActive { get; set; }
 }

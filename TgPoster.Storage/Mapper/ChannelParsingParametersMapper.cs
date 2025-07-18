@@ -18,7 +18,8 @@ public static class ChannelParsingParametersMapper
             DeleteMedia = entity.DeleteMedia,
             DeleteText = entity.DeleteText,
             ScheduleId = entity.ScheduleId,
-            NeedVerifiedPosts = entity.NeedVerifiedPosts
+            NeedVerifiedPosts = entity.NeedVerifiedPosts,
+            IsActive = entity.Status.IsActive()
         };
     }
 }

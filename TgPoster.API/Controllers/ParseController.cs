@@ -18,7 +18,7 @@ namespace TgPoster.API.Controllers;
 public class ParseController(ISender sender) : ControllerBase
 {
     /// <summary>
-    /// Парсинг канала
+    /// Создания задания на парсинга
     /// </summary>
     /// <param name="request"></param>
     /// <param name="ct"></param>
@@ -34,7 +34,7 @@ public class ParseController(ISender sender) : ControllerBase
     }
 
     /// <summary>
-    /// Список парсингов каналов
+    /// Настройки парсинга
     /// </summary>
     /// <param name="ct"></param>
     /// <returns></returns>

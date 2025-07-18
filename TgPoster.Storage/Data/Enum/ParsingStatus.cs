@@ -25,4 +25,9 @@ public static class ParsingStatusExtensions
             _ => throw new ArgumentOutOfRangeException(nameof(status), status, null)
         };
     }
+
+    public static bool IsActive(this ParsingStatus status)
+    {
+        return status == ParsingStatus.New || status == ParsingStatus.InHandle || status == ParsingStatus.Waiting;
+    }
 }
