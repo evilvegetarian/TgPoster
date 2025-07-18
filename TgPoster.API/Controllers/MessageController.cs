@@ -57,7 +57,7 @@ public class MessageController(ISender sender) : ControllerBase
     /// <param name="id"></param>
     /// <param name="ct"></param>
     /// <returns></returns>
-    [HttpGet(Routes.Message.GetById)]
+    [HttpGet(Routes.Message.Get)]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(MessageResponse))]
     [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
     [ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]

@@ -16,7 +16,7 @@ public class UpdateStatusScheduleStorageShould(StorageTestFixture fixture) : ICl
     {
         var schedule = await helper.CreateScheduleAsync();
 
-        var result = await sut.ExistSchedule(schedule.Id, CancellationToken.None);
+        var result = await sut.ExistSchedule(schedule.Id, schedule.UserId, CancellationToken.None);
 
         result.ShouldBeTrue();
     }
@@ -26,7 +26,7 @@ public class UpdateStatusScheduleStorageShould(StorageTestFixture fixture) : ICl
     {
         var nonExistingScheduleId = Guid.NewGuid();
 
-        var result = await sut.ExistSchedule(nonExistingScheduleId, CancellationToken.None);
+        var result = await sut.ExistSchedule(nonExistingScheduleId, Guid.NewGuid(), CancellationToken.None);
 
         result.ShouldBeFalse();
     }
@@ -54,7 +54,7 @@ public class UpdateStatusScheduleStorageShould(StorageTestFixture fixture) : ICl
         await sut.UpdateStatus(schedule.Id, CancellationToken.None);
         var updatedSchedule = await context.Schedules
             .AsNoTracking()
-            .FirstOrDefaultAsync(x=>x.Id == schedule.Id);
+            .FirstOrDefaultAsync(x => x.Id == schedule.Id);
         updatedSchedule.ShouldNotBeNull();
         updatedSchedule.IsActive.ShouldBeTrue();
     }
@@ -79,9 +79,9 @@ public class UpdateStatusScheduleStorageShould(StorageTestFixture fixture) : ICl
         await sut.UpdateStatus(schedule.Id, CancellationToken.None);
         var firstUpdate = await context.Schedules
             .AsNoTracking()
-            .FirstOrDefaultAsync(x=>x.Id == schedule.Id);
+            .FirstOrDefaultAsync(x => x.Id == schedule.Id);
         firstUpdate!.IsActive.ShouldBe(!originalStatus);
-        
+
         await sut.UpdateStatus(schedule.Id, CancellationToken.None);
         var secondUpdate = await context.Schedules.FindAsync(schedule.Id);
         secondUpdate!.IsActive.ShouldBe(originalStatus);

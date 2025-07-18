@@ -24,6 +24,7 @@ internal sealed class CreateScheduleStorage(PosterContext context, GuidFactory g
             TelegramBotId = telegramBot,
             ChannelId = channelId,
             ChannelName = userNameChat,
+            IsActive = true
         };
         await context.Schedules.AddAsync(schedule, ct);
         await context.SaveChangesAsync(ct);

@@ -8,6 +8,10 @@ using TgPoster.API.Models;
 
 namespace TgPoster.API.Controllers;
 
+/// <summary>
+/// Контроллер пользователя
+/// </summary>
+/// <param name="sender"></param>
 [ApiController]
 public class AccountController(ISender sender) : ControllerBase
 {

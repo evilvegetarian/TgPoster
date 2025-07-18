@@ -15,9 +15,9 @@ internal class CreateParseChannelUseCase(
     IIdentityProvider provider,
     TelegramOptions telegramOptions,
     IBus bus)
-    : IRequestHandler<CreateParseChannelCommand>
+    : IRequestHandler<CreateParseChannelCommand, CreateParseChannelResponse>
 {
-    public async Task Handle(CreateParseChannelCommand request, CancellationToken ct)
+    public async Task<CreateParseChannelResponse> Handle(CreateParseChannelCommand request, CancellationToken ct)
     {
         var userId = provider.Current.UserId;
         var cryptoToken = await storage.GetTelegramTokenAsync(request.ScheduleId, userId, ct);
@@ -35,5 +35,10 @@ internal class CreateParseChannelUseCase(
             request.ScheduleId, request.DeleteText, request.DeleteMedia, request.AvoidWords, request.NeedVerifiedPosts,
             request.DateFrom, request.DateTo, ct);
         await bus.Publish(new ParseChannelContract { Id = id }, ct);
+
+        return new CreateParseChannelResponse
+        {
+            Id = id
+        };
     }
 }

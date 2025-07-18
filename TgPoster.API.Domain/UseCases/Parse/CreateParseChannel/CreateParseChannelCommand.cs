@@ -12,4 +12,4 @@ public sealed record CreateParseChannelCommand(
     bool NeedVerifiedPosts,
     DateTime? DateFrom,
     DateTime? DateTo
-) : IRequest;
+) : IRequest<CreateParseChannelResponse>;

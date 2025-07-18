@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -54,11 +55,11 @@ public class ScheduleController(ISender sender) : ControllerBase
     /// <param name="id"></param>
     /// <param name="ct"></param>
     /// <returns></returns>
-    [HttpGet(Routes.Schedule.GetById)]
+    [HttpGet(Routes.Schedule.Get)]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ScheduleResponse))]
     [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
     [ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
-    public async Task<IActionResult> Get(Guid id, CancellationToken ct)
+    public async Task<IActionResult> Get([Required] Guid id, CancellationToken ct)
     {
         var response = await sender.Send(new GetScheduleCommand(id), ct);
         return Ok(response);
@@ -74,12 +75,12 @@ public class ScheduleController(ISender sender) : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
     [ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
-    public async Task<IActionResult> Delete(Guid id, CancellationToken ct)
+    public async Task<IActionResult> Delete([Required] Guid id, CancellationToken ct)
     {
         await sender.Send(new DeleteScheduleCommand(id), ct);
         return Ok();
     }
-    
+
     /// <summary>
     ///     Изменить активность расписания
     /// </summary>
@@ -90,10 +91,9 @@ public class ScheduleController(ISender sender) : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
     [ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
-    public async Task<IActionResult> UpdateStatus(Guid id, CancellationToken ct)
+    public async Task<IActionResult> UpdateStatus([Required] Guid id, CancellationToken ct)
     {
         await sender.Send(new UpdateStatusScheduleCommand(id), ct);
         return Ok();
     }
 }
-

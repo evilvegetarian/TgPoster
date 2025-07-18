@@ -40,7 +40,7 @@ public class DayController(ISender sender) : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
     [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
     [ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
-    public async Task<IActionResult> CreateDay(CreateDaysRequest request, CancellationToken ct)
+    public async Task<IActionResult> Create(CreateDaysRequest request, CancellationToken ct)
     {
         var command = new CreateDaysCommand(
             request.ScheduleId,
@@ -62,11 +62,11 @@ public class DayController(ISender sender) : ControllerBase
     /// <param name="scheduleId"></param>
     /// <param name="ct"></param>
     /// <returns></returns>
-    [HttpGet(Routes.Day.Get)]
+    [HttpGet(Routes.Day.GetBySchedule)]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(List<GetDaysResponse>))]
     [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
     [ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
-    public async Task<IActionResult> GetDays([FromQuery] [Required] Guid scheduleId, CancellationToken ct)
+    public async Task<IActionResult> Get([FromQuery] [Required] Guid scheduleId, CancellationToken ct)
     {
         var response = await sender.Send(new GetDaysQuery(scheduleId), ct);
         return Ok(response);

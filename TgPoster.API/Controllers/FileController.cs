@@ -6,6 +6,10 @@ using TgPoster.API.Domain.UseCases.Files;
 
 namespace TgPoster.API.Controllers;
 
+/// <summary>
+/// 
+/// </summary>
+/// <param name="sender"></param>
 [Authorize]
 [ApiController]
 public class FileController(ISender sender) : ControllerBase
@@ -16,7 +20,7 @@ public class FileController(ISender sender) : ControllerBase
     /// <param name="id"></param>
     /// <param name="ct"></param>
     /// <returns></returns>
-    [HttpGet(Routes.File.GetById)]
+    [HttpGet(Routes.File.Get)]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(FileContentResult))]
     [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
     [ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]

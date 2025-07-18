@@ -3,8 +3,16 @@ using TgPoster.API.Models;
 
 namespace TgPoster.API.Mapper;
 
+/// <summary>
+/// 
+/// </summary>
 public static class ParsingMapping
 {
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="request"></param>
+    /// <returns></returns>
     public static CreateParseChannelCommand ToCommand(this ParseChannelRequest request)
     {
         return new CreateParseChannelCommand(

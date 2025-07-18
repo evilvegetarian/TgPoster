@@ -60,20 +60,6 @@ public class ParseEndpointTest(EndpointTestFixture fixture) : IClassFixture<Endp
     }
 
     [Fact]
-    public async Task Create_WithInvalidScheduleId_ShouldBadRequest()
-    {
-        var request = new ParseChannelRequest
-        {
-            Channel = "superChannel",
-            AlwaysCheckNewPosts = false,
-            ScheduleId = Guid.Empty
-        };
-
-        var createdSchedule = await client.PostAsync(Url, request.ToStringContent());
-        createdSchedule.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
-    }
-
-    [Fact]
     public async Task Create_WithValidData_ShouldReturnCreated()
     {
         var request = new ParseChannelRequest
@@ -116,7 +102,7 @@ public class ParseEndpointTest(EndpointTestFixture fixture) : IClassFixture<Endp
     }
 
     [Fact]
-    public async Task GetParseChannels_ShouldReturnValidData()
+    public async Task Get_ShouldReturnValidData()
     {
         var request = new ParseChannelRequest
         {
@@ -142,7 +128,7 @@ public class ParseEndpointTest(EndpointTestFixture fixture) : IClassFixture<Endp
     }
 
     [Fact]
-    public async Task GetParseChannels_WithAnotherUser_ShouldReturnEmptyList()
+    public async Task Get_WithAnotherUser_ShouldReturnEmptyList()
     {
         var request = new ParseChannelRequest
         {

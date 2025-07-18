@@ -9,6 +9,10 @@ using TgPoster.API.Models;
 
 namespace TgPoster.API.Controllers;
 
+/// <summary>
+/// 
+/// </summary>
+/// <param name="sender"></param>
 [Authorize]
 [ApiController]
 public class TelegramBotController(ISender sender) : ControllerBase
@@ -17,7 +21,7 @@ public class TelegramBotController(ISender sender) : ControllerBase
     ///     Добавление бота
     /// </summary>
     /// <param name="botRequest"></param>
-    /// <param name="ct"></param>
+    /// <param name="ct">CancellationToken</param>
     /// <returns></returns>
     [HttpPost(Routes.TelegramBot.Create)]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(CreateTelegramBotResponse))]

@@ -5,12 +5,14 @@ using TgPoster.API.Common;
 using TgPoster.API.Domain.UseCases.Accounts.SignIn;
 using TgPoster.API.Domain.UseCases.Accounts.SignOn;
 using TgPoster.API.Models;
+using TgPoster.Endpoint.Tests.Helper;
 
 namespace TgPoster.Endpoint.Tests.Endpoint;
 
 public class AccountEndpointTest(EndpointTestFixture fixture) : IClassFixture<EndpointTestFixture>
 {
     private readonly HttpClient client = fixture.CreateClient();
+    private readonly CreateHelper helper = new CreateHelper(fixture.CreateClient());
 
     [Fact]
     public async Task SignOn_WithValidData_ShouldReturnUserId()
@@ -20,12 +22,9 @@ public class AccountEndpointTest(EndpointTestFixture fixture) : IClassFixture<En
             Login = "testuser1",
             Password = "testpassword"
         };
-        var response = await client.PostAsJsonAsync(Routes.Account.SignOn, request);
-        response.StatusCode.ShouldBe(HttpStatusCode.OK);
-
-        var result = await response.Content.ReadFromJsonAsync<SignOnResponse>();
-        result.ShouldNotBeNull();
-        result.UserId.ShouldNotBe(Guid.Empty);
+        var response = await client.PostAsync<SignOnResponse>(Routes.Account.SignOn, request);
+        response.ShouldNotBeNull();
+        response.UserId.ShouldNotBe(Guid.Empty);
     }
 
     [Fact]
@@ -33,14 +32,12 @@ public class AccountEndpointTest(EndpointTestFixture fixture) : IClassFixture<En
     {
         var request = new SignOnRequest
         {
-            Login = "testuser2",
-            Password = "testpassword"
+            Login = "superPerfectLogin",
+            Password = "superPerfectPassword"
         };
-        // First registration
-        var response1 = await client.PostAsJsonAsync(Routes.Account.SignOn, request);
-        response1.StatusCode.ShouldBe(HttpStatusCode.OK);
 
-        // Second registration with same login
+        await helper.SignOn(request.Login, request.Password);
+
         var response2 = await client.PostAsJsonAsync(Routes.Account.SignOn, request);
         response2.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
     }
@@ -50,21 +47,14 @@ public class AccountEndpointTest(EndpointTestFixture fixture) : IClassFixture<En
     {
         var login = "testuser3";
         var password = "testpassword";
-        // Register user
-        var signOnRequest = new SignOnRequest { Login = login, Password = password };
-        var signOnResponse = await client.PostAsJsonAsync(Routes.Account.SignOn, signOnRequest);
-        signOnResponse.StatusCode.ShouldBe(HttpStatusCode.OK);
+        await helper.SignOn(login, password);
 
-        // Login
         var signInRequest = new SignInRequest { Login = login, Password = password };
-        var signInResponse = await client.PostAsJsonAsync(Routes.Account.SignIn, signInRequest);
-        signInResponse.StatusCode.ShouldBe(HttpStatusCode.OK);
-
-        var result = await signInResponse.Content.ReadFromJsonAsync<SignInResponse>();
-        result.ShouldNotBeNull();
-        result.AccessToken.ShouldNotBeNullOrWhiteSpace();
-        result.RefreshToken.ShouldNotBe(Guid.Empty);
-        result.RefreshTokenExpiration.ShouldBeGreaterThan(DateTimeOffset.UtcNow);
+        var signInResponse = await client.PostAsync<SignInResponse>(Routes.Account.SignIn, signInRequest);
+        signInResponse.ShouldNotBeNull();
+        signInResponse.AccessToken.ShouldNotBeNullOrWhiteSpace();
+        signInResponse.RefreshToken.ShouldNotBe(Guid.Empty);
+        signInResponse.RefreshTokenExpiration.ShouldBeGreaterThan(DateTimeOffset.UtcNow);
     }
 
     [Fact]
@@ -72,12 +62,8 @@ public class AccountEndpointTest(EndpointTestFixture fixture) : IClassFixture<En
     {
         var login = "testuser4";
         var password = "testpassword";
-        // Register user
-        var signOnRequest = new SignOnRequest { Login = login, Password = password };
-        var signOnResponse = await client.PostAsJsonAsync(Routes.Account.SignOn, signOnRequest);
-        signOnResponse.StatusCode.ShouldBe(HttpStatusCode.OK);
+        await helper.SignOn(login, password);
 
-        // Login with wrong password
         var signInRequest = new SignInRequest { Login = login, Password = "wrongpassword" };
         var signInResponse = await client.PostAsJsonAsync(Routes.Account.SignIn, signInRequest);
         signInResponse.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
@@ -94,16 +80,32 @@ public class AccountEndpointTest(EndpointTestFixture fixture) : IClassFixture<En
         var signInResponse = await client.PostAsJsonAsync(Routes.Account.SignIn, signInRequest);
         signInResponse.StatusCode.ShouldBe(HttpStatusCode.NotFound);
     }
-    
+
     [Fact]
-    public async Task RefreshToken_WithNonExistentUser_ShouldReturnNotFound()
+    public async Task RefreshToken_WithNonExistRefresh_ShouldReturnNotFound()
     {
-        var signInRequest = new SignInRequest
+        var refreshTokenRequest = new RefreshTokenRequest()
         {
-            Login = "nonexistentuser",
-            Password = "anyPassword"
+            RefreshToken = Guid.Parse("44448354-3701-4a64-b2cf-b661d77f0f61")
         };
-        var signInResponse = await client.PostAsJsonAsync(Routes.Account.SignIn, signInRequest);
+        var signInResponse = await client.PostAsJsonAsync(Routes.Account.RefreshToken, refreshTokenRequest);
         signInResponse.StatusCode.ShouldBe(HttpStatusCode.NotFound);
+    }
+
+
+    [Fact]
+    public async Task RefreshToken_WithValidData_ShouldReturnNewTokens()
+    {
+        var login = "testus85er4";
+        var password = "testpassword"; 
+        await helper.SignOn(login, password);
+        var signInResponse = await helper.SignIn(login, password);
+
+        var refreshTokenRequest = new RefreshTokenRequest
+        {
+            RefreshToken = signInResponse.RefreshToken
+        };
+        var refreshResponse = await client.PostAsJsonAsync(Routes.Account.RefreshToken, refreshTokenRequest);
+        refreshResponse.StatusCode.ShouldBe(HttpStatusCode.OK);
     }
 }

@@ -15,7 +15,7 @@ public class TelegramBotEndpointTest(EndpointTestFixture fixture) : IClassFixtur
     private readonly HttpClient client = fixture.AuthClient;
 
     [Fact]
-    public async Task CreateTelegramBot_WithMissingToken_ShouldReturnBadRequest()
+    public async Task Create_WithMissingToken_ShouldReturnBadRequest()
     {
         var request = new CreateTelegramBotRequest
         {
@@ -26,13 +26,26 @@ public class TelegramBotEndpointTest(EndpointTestFixture fixture) : IClassFixtur
     }
 
     [Fact]
-    public async Task ListTelegramBots_InitiallyEmpty_ThenContainsCreatedBot()
+    public async Task List_InitiallyEmpty_ThenContainsCreatedBot()
     {
         var listResponse = await client.GetAsync(Url);
         listResponse.StatusCode.ShouldBe(HttpStatusCode.OK);
         var bots = await listResponse.Content.ReadFromJsonAsync<List<TelegramBotResponse>>();
         bots.ShouldNotBeNull();
         bots.Count.ShouldBeGreaterThan(0);
+    }
+
+    [Fact]
+    public async Task List_WithAnotherUser_ShouldReturnEmptyList()
+    {
+        var response = await client.GetAsync<List<TelegramBotResponse>>(Url);
+        response.ShouldNotBeNull();
+        response.Count.ShouldBeGreaterThan(0);
+
+        var anotherClient = fixture.GetClient(fixture.GenerateTestToken(GlobalConst.UserIdEmpty));
+
+        var listAnotherResponse = await anotherClient.GetAsync<List<TelegramBotResponse>>(Url);
+        listAnotherResponse!.Count.ShouldBeEquivalentTo(0);
     }
 
     [Fact]
@@ -51,18 +64,5 @@ public class TelegramBotEndpointTest(EndpointTestFixture fixture) : IClassFixtur
 
         var repeatDeleteResponse = await client.DeleteAsync(Url + "/" + GlobalConst.TelegramBotId);
         repeatDeleteResponse.StatusCode.ShouldBe(HttpStatusCode.NotFound);
-    }
-
-    [Fact]
-    public async Task GetList_WithAnotherUser_ShouldReturnEmptyList()
-    {
-        var response = await client.GetAsync<List<TelegramBotResponse>>(Url);
-        response.ShouldNotBeNull();
-        response.Count.ShouldBeGreaterThan(0);
-
-        var anotherClient = fixture.GetClient(fixture.GenerateTestToken(GlobalConst.UserIdEmpty));
-
-        var listAnotherResponse = await anotherClient.GetAsync<List<TelegramBotResponse>>(Url);
-        listAnotherResponse!.Count.ShouldBeEquivalentTo(0);
     }
 }

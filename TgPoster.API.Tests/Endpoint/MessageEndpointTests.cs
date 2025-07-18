@@ -1,4 +1,5 @@
 using System.Net;
+using System.Net.Http.Json;
 using Shouldly;
 using TgPoster.API.Common;
 using TgPoster.API.Domain.UseCases.Messages.CreateMessage;
@@ -11,7 +12,7 @@ namespace TgPoster.Endpoint.Tests.Endpoint;
 public class MessageEndpointTests(EndpointTestFixture fixture) : IClassFixture<EndpointTestFixture>
 {
     private readonly HttpClient client = fixture.AuthClient;
-    private readonly CreateHelper create = new(fixture.AuthClient);
+    private readonly CreateHelper helper = new(fixture.AuthClient);
     private readonly string Url = Routes.Message.Root;
 
     [Fact]
@@ -33,7 +34,7 @@ public class MessageEndpointTests(EndpointTestFixture fixture) : IClassFixture<E
     }
 
     [Fact]
-    public async Task CreateMessagesFromFiles_WithNonexistentScheduleId_ReturnsNotFound()
+    public async Task CreateMessagesFromFiles_WithNonExistScheduleId_ReturnNotFound()
     {
         var request = new CreateMessagesFromFilesRequest
         {
@@ -48,7 +49,7 @@ public class MessageEndpointTests(EndpointTestFixture fixture) : IClassFixture<E
     [Fact]
     public async Task CreateMessagesFromFiles_WithInvalidData_ReturnsBadRequest()
     {
-        var scheduleId = await create.CreateSchedule();
+        var scheduleId = await helper.CreateSchedule();
         var request = new CreateMessagesFromFilesRequest
         {
             ScheduleId = scheduleId,
@@ -60,7 +61,23 @@ public class MessageEndpointTests(EndpointTestFixture fixture) : IClassFixture<E
     }
 
     [Fact]
-    public async Task ListMessages_WithNonExistentScheduleId_ReturnsNotFound()
+    public async Task CreateMessagesFromFiles_WithAnotherUser_ReturnsNotFound()
+    {
+        var files = FileHelper.GetTestIFormFiles();
+        var request = new CreateMessagesFromFilesRequest
+        {
+            ScheduleId = GlobalConst.Worked.ScheduleId,
+            Files = files
+        };
+
+        var anotherClient = fixture.GetClient(fixture.GenerateTestToken(GlobalConst.UserIdEmpty));
+        var createResponse =
+            await anotherClient.PostAsync(Routes.Message.CreateMessagesFromFiles, request.ToMultipartForm());
+        createResponse.StatusCode.ShouldBe(HttpStatusCode.NotFound);
+    }
+
+    [Fact]
+    public async Task List_WithNonExistentScheduleId_ReturnsNotFound()
     {
         var scheduleId = Guid.NewGuid();
         var response = await client.GetAsync(Routes.Message.List + "?scheduleId=" + scheduleId);
@@ -68,15 +85,59 @@ public class MessageEndpointTests(EndpointTestFixture fixture) : IClassFixture<E
     }
 
     [Fact]
-    public async Task GetMessage_WithNonExistentId_ReturnsNotFound()
+    public async Task List_WithValidData_ReturnsOk()
+    {
+        var scheduleId = await helper.CreateSchedule();
+        await helper.CreateMessages(scheduleId);
+
+        var response = await client.GetAsync(Routes.Message.List + "?scheduleId=" + scheduleId);
+        response.StatusCode.ShouldBe(HttpStatusCode.OK);
+        var messages = await response.Content.ReadFromJsonAsync<List<MessageResponse>>();
+        messages!.Count.ShouldBeGreaterThan(0);
+        messages.ShouldNotBeNull();
+    }
+
+    [Fact]
+    public async Task List_WithAnotherUser_ReturnsNotFound()
+    {
+        var scheduleId = await helper.CreateSchedule();
+        await helper.CreateMessages(scheduleId);
+
+        var anotherClient = fixture.GetClient(fixture.GenerateTestToken(GlobalConst.UserIdEmpty));
+        var response = await anotherClient.GetAsync(Routes.Message.List + "?scheduleId=" + scheduleId);
+        response.StatusCode.ShouldBe(HttpStatusCode.NotFound);
+    }
+
+    [Fact]
+    public async Task List_WithNonExistentId_ReturnsNotFound()
     {
         var nonExistMessageId = Guid.NewGuid();
         var response = await client.GetAsync(Url + "/" + nonExistMessageId);
         response.StatusCode.ShouldBe(HttpStatusCode.NotFound);
     }
+    
+    [Fact]
+    public async Task List_WithAnotherUser_ShouldReturnEmptyList()
+    {
+        var createMessage = new CreateMessageRequest
+        {
+            ScheduleId = GlobalConst.Worked.ScheduleId,
+            TimePosting = DateTimeOffset.UtcNow.AddDays(1),
+        };
+        var createdResponse = await client.PostAsync(Url, createMessage.ToMultipartForm());
+        createdResponse.StatusCode.ShouldBe(HttpStatusCode.Created);
+
+        var listResponseMessage = await client.GetAsync(Url + "?scheduleId=" + createMessage.ScheduleId);
+        listResponseMessage.StatusCode.ShouldBe(HttpStatusCode.OK);
+
+        var anotherClient = fixture.GetClient(fixture.GenerateTestToken(GlobalConst.UserIdEmpty));
+
+        var listAnotherResponse = await anotherClient.GetAsync(Url + "?scheduleId=" + createMessage.ScheduleId);
+        listAnotherResponse.StatusCode.ShouldBe(HttpStatusCode.NotFound);
+    }
 
     [Fact]
-    public async Task CreateMessage_WithValidDate_ReturnsCreated()
+    public async Task Create_WithValidDate_ReturnsCreated()
     {
         var createMessage = new CreateMessageRequest
         {
@@ -94,7 +155,7 @@ public class MessageEndpointTests(EndpointTestFixture fixture) : IClassFixture<E
     }
 
     [Fact]
-    public async Task CreateMessage_WithInvalidTimePosting_ReturnsBadRequest()
+    public async Task Create_WithInvalidTimePosting_ReturnsBadRequest()
     {
         var createMessage = new CreateMessageRequest
         {
@@ -106,7 +167,7 @@ public class MessageEndpointTests(EndpointTestFixture fixture) : IClassFixture<E
     }
 
     [Fact]
-    public async Task CreateMessage_WithNonExistScheduleId_ReturnsNotFound()
+    public async Task Create_WithNonExistScheduleId_ReturnsNotFound()
     {
         var createMessage = new CreateMessageRequest
         {
@@ -118,26 +179,6 @@ public class MessageEndpointTests(EndpointTestFixture fixture) : IClassFixture<E
     }
 
     [Fact]
-    public async Task List_WithAnotherUser_ShouldReturnEmptyList()
-    {
-        var createMessage = new CreateMessageRequest
-        {
-            ScheduleId = GlobalConst.Worked.ScheduleId,
-            TimePosting = DateTimeOffset.UtcNow.AddDays(1),
-        };
-        var createdResponse = await client.PostAsync(Url, createMessage.ToMultipartForm());
-        createdResponse.StatusCode.ShouldBe(HttpStatusCode.Created);
-        
-        var listResponseMessage = await client.GetAsync(Url + "?scheduleId=" + createMessage.ScheduleId);
-        listResponseMessage.StatusCode.ShouldBe(HttpStatusCode.OK);
-        
-        var anotherClient = fixture.GetClient(fixture.GenerateTestToken(GlobalConst.UserIdEmpty));
-
-        var listAnotherResponse = await anotherClient.GetAsync(Url + "?scheduleId=" + createMessage.ScheduleId);
-        listAnotherResponse.StatusCode.ShouldBe(HttpStatusCode.NotFound);
-    }
-    
-    [Fact]
     public async Task Get_WithAnotherUser_ShouldReturnNotFound()
     {
         var createMessage = new CreateMessageRequest
@@ -146,10 +187,10 @@ public class MessageEndpointTests(EndpointTestFixture fixture) : IClassFixture<E
             TimePosting = DateTimeOffset.UtcNow.AddDays(1),
         };
         var createdResponse = await client.PostMultipartFormAsync<CreateMessageResponse>(Url, createMessage);
-        
+
         var listResponseMessage = await client.GetAsync(Url + "/" + createdResponse.Id);
         listResponseMessage.StatusCode.ShouldBe(HttpStatusCode.OK);
-        
+
         var anotherClient = fixture.GetClient(fixture.GenerateTestToken(GlobalConst.UserIdEmpty));
 
         var listAnotherResponse = await anotherClient.GetAsync(Url + "/" + createdResponse.Id);

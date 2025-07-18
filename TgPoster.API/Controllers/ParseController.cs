@@ -9,6 +9,10 @@ using TgPoster.API.Models;
 
 namespace TgPoster.API.Controllers;
 
+/// <summary>
+/// 
+/// </summary>
+/// <param name="sender"></param>
 [Authorize]
 [ApiController]
 public class ParseController(ISender sender) : ControllerBase
@@ -19,11 +23,11 @@ public class ParseController(ISender sender) : ControllerBase
     /// <param name="request"></param>
     /// <param name="ct"></param>
     /// <returns></returns>
-    [HttpPost(Routes.Parse.ParseChannel)]
+    [HttpPost(Routes.Parse.Create)]
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
     [ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
-    public async Task<IActionResult> ParseChannel(ParseChannelRequest request, CancellationToken ct)
+    public async Task<IActionResult> Create(ParseChannelRequest request, CancellationToken ct)
     {
         await sender.Send(request.ToCommand(), ct);
         return Created();
@@ -37,7 +41,7 @@ public class ParseController(ISender sender) : ControllerBase
     [HttpGet(Routes.Parse.List)]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(List<ParseChannelsResponse>))]
     [ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
-    public async Task<IActionResult> GetAll(CancellationToken ct)
+    public async Task<IActionResult> List(CancellationToken ct)
     {
         var list = await sender.Send(new ListParseChannelsQuery(), ct);
         return Ok(list);

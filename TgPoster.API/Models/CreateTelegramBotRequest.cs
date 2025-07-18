@@ -10,7 +10,7 @@ public class CreateTelegramBotRequest : IValidatableObject
     {
         var validationErrors = new List<ValidationResult>();
 
-        if (Token.Length < 1)
+        if (Token.Length < 1 || string.IsNullOrWhiteSpace(Token))
         {
             validationErrors.Add(new ValidationResult("Token are required", [nameof(Token)]));
         }

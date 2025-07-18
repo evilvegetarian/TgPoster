@@ -1,6 +1,8 @@
 using System.Net;
 using Shouldly;
 using TgPoster.API.Common;
+using TgPoster.API.Domain.UseCases.Accounts.SignIn;
+using TgPoster.API.Domain.UseCases.Accounts.SignOn;
 using TgPoster.API.Domain.UseCases.Schedules.CreateSchedule;
 using TgPoster.API.Models;
 
@@ -44,5 +46,41 @@ public class CreateHelper(HttpClient client)
     {
         var scheduleId = await CreateSchedule();
         await CreateDay(scheduleId, null);
+    }
+
+    public async Task<Guid> SignOn(string username, string password)
+    {
+        var signOnRequest = new SignOnRequest
+        {
+            Login = username,
+            Password = password
+        };
+        var response = await client.PostAsync<SignOnResponse>(Routes.Account.SignOn, signOnRequest);
+        return response.UserId;
+    }
+
+    public async Task<SignInResponse> SignIn(string username, string password)
+    {
+        var signOnRequest = new SignOnRequest
+        {
+            Login = username,
+            Password = password
+        };
+        var response = await client.PostAsync<SignInResponse>(Routes.Account.SignIn, signOnRequest);
+        return response;
+    }
+
+    public async Task CreateMessages(Guid scheduleId)
+    {
+        await CreateDay(scheduleId, null);
+        var files = FileHelper.GetTestIFormFiles();
+        var request = new CreateMessagesFromFilesRequest
+        {
+            ScheduleId = scheduleId,
+            Files = files
+        };
+
+        var createResponse = await client.PostAsync(Routes.Message.CreateMessagesFromFiles, request.ToMultipartForm());
+        createResponse.StatusCode.ShouldBe(HttpStatusCode.Created);
     }
 }

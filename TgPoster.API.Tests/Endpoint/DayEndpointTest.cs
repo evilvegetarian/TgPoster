@@ -16,7 +16,7 @@ public class DayEndpointTest(EndpointTestFixture fixture) : IClassFixture<Endpoi
     private readonly CreateHelper helper = new(fixture.AuthClient);
 
     [Fact]
-    public async Task GetDayOfWeek_NonExistScheduleId_ShouldReturnOk()
+    public async Task GetDayOfWeek_ValidData_ShouldReturnOk()
     {
         var response = await client.GetAsync(Routes.Day.DayOfWeek);
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
@@ -27,7 +27,60 @@ public class DayEndpointTest(EndpointTestFixture fixture) : IClassFixture<Endpoi
     }
 
     [Fact]
-    public async Task CreateDay_NonExistScheduleId_ShouldReturnOk()
+    public async Task Get_WithAnotherUser_ShouldReturnNotFound()
+    {
+        var scheduleId = await helper.CreateSchedule();
+        var request = new CreateDaysRequest
+        {
+            ScheduleId = scheduleId,
+            DaysOfWeek =
+            [
+                new DayOfWeekRequest
+                {
+                    DayOfWeekPosting = DayOfWeek.Monday,
+                    StartPosting = new TimeOnly(17, 10),
+                    EndPosting = new TimeOnly(18, 00),
+                    Interval = 5
+                }
+            ]
+        };
+        var response = await client.PostAsync(Url, request.ToStringContent());
+        response.StatusCode.ShouldBe(HttpStatusCode.Created);
+
+        var anotherClient = fixture.GetClient(fixture.GenerateTestToken(GlobalConst.UserIdEmpty));
+
+        var responseAnother = await anotherClient.GetAsync(Url + "?scheduleId=" + scheduleId);
+        responseAnother.StatusCode.ShouldBe(HttpStatusCode.NotFound);
+    }
+    
+    [Fact]
+    public async Task Get_WithValidData_ShouldOk()
+    {
+        var scheduleId = await helper.CreateSchedule();
+        var request = new CreateDaysRequest
+        {
+            ScheduleId = scheduleId,
+            DaysOfWeek =
+            [
+                new DayOfWeekRequest
+                {
+                    DayOfWeekPosting = DayOfWeek.Monday,
+                    StartPosting = new TimeOnly(17, 10),
+                    EndPosting = new TimeOnly(18, 00),
+                    Interval = 5
+                }
+            ]
+        };
+        var response = await client.PostAsync(Url, request.ToStringContent());
+        response.StatusCode.ShouldBe(HttpStatusCode.Created);
+
+        var getResponse = await client.GetAsync<List<GetDaysResponse>>(Url + "?scheduleId=" + scheduleId);
+        getResponse.ShouldContain(x => x.ScheduleId == scheduleId);
+        getResponse.ShouldContain(x => request.DaysOfWeek.Select(day => day.DayOfWeekPosting).Contains(x.DayOfWeek));
+    }
+    
+    [Fact]
+    public async Task Create_NonExistScheduleId_ShouldReturnOk()
     {
         var request = new CreateDaysRequest
         {
@@ -39,7 +92,7 @@ public class DayEndpointTest(EndpointTestFixture fixture) : IClassFixture<Endpoi
     }
 
     [Fact]
-    public async Task CreateDay_DoubleDayOfWeek_ShouldReturnBadRequest()
+    public async Task Create_DoubleDayOfWeek_ShouldReturnBadRequest()
     {
         var scheduleId = await helper.CreateSchedule();
         var request = new CreateDaysRequest
@@ -64,7 +117,7 @@ public class DayEndpointTest(EndpointTestFixture fixture) : IClassFixture<Endpoi
     }
 
     [Fact]
-    public async Task CreateDay_WithValidData_ShouldReturnOk()
+    public async Task Create_WithValidData_ShouldReturnOk()
     {
         var scheduleId = await helper.CreateSchedule();
         var request = new CreateDaysRequest
@@ -96,7 +149,7 @@ public class DayEndpointTest(EndpointTestFixture fixture) : IClassFixture<Endpoi
     }
 
     [Fact]
-    public async Task CreateDay_WithDublicatDayOfWeek_ShouldReturnBadRequest()
+    public async Task Create_WithDuplicatDayOfWeek_ShouldReturnBadRequest()
     {
         var scheduleId = await helper.CreateSchedule();
         var request = new CreateDaysRequest
@@ -125,7 +178,7 @@ public class DayEndpointTest(EndpointTestFixture fixture) : IClassFixture<Endpoi
     }
 
     [Fact]
-    public async Task CreateDay_WithEndPostingMoreStartPosting_ShouldReturnBadRequest()
+    public async Task Create_WithEndPostingMoreStartPosting_ShouldReturnBadRequest()
     {
         var scheduleId = await helper.CreateSchedule();
         var request = new CreateDaysRequest
@@ -147,7 +200,7 @@ public class DayEndpointTest(EndpointTestFixture fixture) : IClassFixture<Endpoi
     }
 
     [Fact]
-    public async Task CreateDay_WithIntervalMoreTiming_ShouldReturnBadRequest()
+    public async Task Create_WithIntervalMoreTiming_ShouldReturnBadRequest()
     {
         var scheduleId = await helper.CreateSchedule();
         var request = new CreateDaysRequest
@@ -169,7 +222,7 @@ public class DayEndpointTest(EndpointTestFixture fixture) : IClassFixture<Endpoi
     }
 
     [Fact]
-    public async Task CreateDay_WithNonExistScheduleId_ShouldReturnNotFound()
+    public async Task Create_WithNonExistScheduleId_ShouldReturnNotFound()
     {
         var request = new CreateDaysRequest
         {
@@ -188,11 +241,38 @@ public class DayEndpointTest(EndpointTestFixture fixture) : IClassFixture<Endpoi
         var response = await client.PostAsync(Url, request.ToStringContent());
         response.StatusCode.ShouldBe(HttpStatusCode.NotFound);
     }
+    
+    [Fact]
+    public async Task Create_WithAnotherUser_ShouldReturnNotFound()
+    {
+        var scheduleId = await helper.CreateSchedule();
+        var request = new CreateDaysRequest
+        {
+            ScheduleId = scheduleId,
+            DaysOfWeek =
+            [
+                new DayOfWeekRequest
+                {
+                    DayOfWeekPosting = DayOfWeek.Monday,
+                    StartPosting = new TimeOnly(15, 10),
+                    EndPosting = new TimeOnly(18, 00),
+                    Interval = 5
+                }
+            ]
+        };
+        var response = await client.PostAsync(Url, request.ToStringContent());
+        response.StatusCode.ShouldBe(HttpStatusCode.Created);
+
+        var anotherClient = fixture.GetClient(fixture.GenerateTestToken(GlobalConst.UserIdEmpty));
+
+        var responseAnother = await anotherClient.PostAsync(Url, request.ToStringContent());
+        responseAnother.StatusCode.ShouldBe(HttpStatusCode.NotFound);
+    }
 
     [Fact]
     public async Task UpdateTimeDay_WithNonExistScheduleId_ShouldReturnNotFound()
     {
-        var nonExistScheduleId = Guid.NewGuid();
+        var nonExistScheduleId = Guid.Parse("4b44be73-3b59-41e2-baff-6b7857c2be6f");
         var upd = new UpdateTimeRequest
         {
             ScheduleId = nonExistScheduleId,
@@ -278,62 +358,6 @@ public class DayEndpointTest(EndpointTestFixture fixture) : IClassFixture<Endpoi
         var anotherClient = fixture.GetClient(fixture.GenerateTestToken(GlobalConst.UserIdEmpty));
 
         var responseAnother = await anotherClient.PostAsync(Url, request.ToStringContent());
-        responseAnother.StatusCode.ShouldBe(HttpStatusCode.NotFound);
-    }
-
-
-    [Fact]
-    public async Task Create_WithAnotherUser_ShouldReturnNotFound()
-    {
-        var scheduleId = await helper.CreateSchedule();
-        var request = new CreateDaysRequest
-        {
-            ScheduleId = scheduleId,
-            DaysOfWeek =
-            [
-                new DayOfWeekRequest
-                {
-                    DayOfWeekPosting = DayOfWeek.Monday,
-                    StartPosting = new TimeOnly(17, 10),
-                    EndPosting = new TimeOnly(18, 00),
-                    Interval = 5
-                }
-            ]
-        };
-        var response = await client.PostAsync(Url, request.ToStringContent());
-        response.StatusCode.ShouldBe(HttpStatusCode.Created);
-
-        var anotherClient = fixture.GetClient(fixture.GenerateTestToken(GlobalConst.UserIdEmpty));
-
-        var responseAnother = await anotherClient.PostAsync(Url, request.ToStringContent());
-        responseAnother.StatusCode.ShouldBe(HttpStatusCode.NotFound);
-    }
-
-    [Fact]
-    public async Task Get_WithAnotherUser_ShouldReturnNotFound()
-    {
-        var scheduleId = await helper.CreateSchedule();
-        var request = new CreateDaysRequest
-        {
-            ScheduleId = scheduleId,
-            DaysOfWeek =
-            [
-                new DayOfWeekRequest
-                {
-                    DayOfWeekPosting = DayOfWeek.Monday,
-                    StartPosting = new TimeOnly(17, 10),
-                    EndPosting = new TimeOnly(18, 00),
-                    Interval = 5
-                }
-            ]
-        };
-        var response = await client.PostAsync(Url, request.ToStringContent());
-        response.StatusCode.ShouldBe(HttpStatusCode.Created);
-
-        var anotherClient = fixture.GetClient(fixture.GenerateTestToken(GlobalConst.UserIdEmpty));
-
-        var responseAnother = await anotherClient.GetAsync(Url + "?scheduleId=" + scheduleId);
-
         responseAnother.StatusCode.ShouldBe(HttpStatusCode.NotFound);
     }
 }
