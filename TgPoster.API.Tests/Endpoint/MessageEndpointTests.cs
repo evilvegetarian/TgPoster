@@ -116,4 +116,43 @@ public class MessageEndpointTests(EndpointTestFixture fixture) : IClassFixture<E
         var response = await client.PostAsync(Url, createMessage.ToMultipartForm());
         response.StatusCode.ShouldBe(HttpStatusCode.NotFound);
     }
+
+    [Fact]
+    public async Task List_WithAnotherUser_ShouldReturnEmptyList()
+    {
+        var createMessage = new CreateMessageRequest
+        {
+            ScheduleId = GlobalConst.Worked.ScheduleId,
+            TimePosting = DateTimeOffset.UtcNow.AddDays(1),
+        };
+        var createdResponse = await client.PostAsync(Url, createMessage.ToMultipartForm());
+        createdResponse.StatusCode.ShouldBe(HttpStatusCode.Created);
+        
+        var listResponseMessage = await client.GetAsync(Url + "?scheduleId=" + createMessage.ScheduleId);
+        listResponseMessage.StatusCode.ShouldBe(HttpStatusCode.OK);
+        
+        var anotherClient = fixture.GetClient(fixture.GenerateTestToken(GlobalConst.UserIdEmpty));
+
+        var listAnotherResponse = await anotherClient.GetAsync(Url + "?scheduleId=" + createMessage.ScheduleId);
+        listAnotherResponse.StatusCode.ShouldBe(HttpStatusCode.NotFound);
+    }
+    
+    [Fact]
+    public async Task Get_WithAnotherUser_ShouldReturnNotFound()
+    {
+        var createMessage = new CreateMessageRequest
+        {
+            ScheduleId = GlobalConst.Worked.ScheduleId,
+            TimePosting = DateTimeOffset.UtcNow.AddDays(1),
+        };
+        var createdResponse = await client.PostMultipartFormAsync<CreateMessageResponse>(Url, createMessage);
+        
+        var listResponseMessage = await client.GetAsync(Url + "/" + createdResponse.Id);
+        listResponseMessage.StatusCode.ShouldBe(HttpStatusCode.OK);
+        
+        var anotherClient = fixture.GetClient(fixture.GenerateTestToken(GlobalConst.UserIdEmpty));
+
+        var listAnotherResponse = await anotherClient.GetAsync(Url + "/" + createdResponse.Id);
+        listAnotherResponse.StatusCode.ShouldBe(HttpStatusCode.NotFound);
+    }
 }

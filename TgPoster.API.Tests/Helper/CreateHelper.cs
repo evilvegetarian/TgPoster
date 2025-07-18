@@ -20,7 +20,7 @@ public class CreateHelper(HttpClient client)
         return response.Id;
     }
 
-    public async Task CreateDay(Guid scheduleId)
+    public async Task CreateDay(Guid scheduleId, DayOfWeek? dayOfWeek)
     {
         var request = new CreateDaysRequest
         {
@@ -29,7 +29,7 @@ public class CreateHelper(HttpClient client)
             [
                 new DayOfWeekRequest
                 {
-                    DayOfWeekPosting = DayOfWeek.Monday,
+                    DayOfWeekPosting = dayOfWeek ?? DayOfWeek.Monday,
                     StartPosting = new TimeOnly(10, 15),
                     EndPosting = new TimeOnly(20, 30),
                     Interval = 45
@@ -37,6 +37,12 @@ public class CreateHelper(HttpClient client)
             ]
         };
         var response = await client.PostAsync(Routes.Day.Root + "?scheduleId=" + scheduleId, request.ToStringContent());
-        response.StatusCode.ShouldBe(HttpStatusCode.OK);
+        response.StatusCode.ShouldBe(HttpStatusCode.Created);
+    }
+
+    public async Task CreateDay()
+    {
+        var scheduleId = await CreateSchedule();
+        await CreateDay(scheduleId, null);
     }
 }

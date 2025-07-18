@@ -1,4 +1,6 @@
+using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using System.Text.Json;
 using MassTransit;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -8,8 +10,11 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
+using Security.Interfaces;
+using Security.Models;
 using Testcontainers.PostgreSql;
 using TgPoster.API.Common;
+using TgPoster.API.Domain.UseCases.Accounts.SignIn;
 using TgPoster.API.Models;
 using TgPoster.Endpoint.Tests.Seeder;
 using TgPoster.Storage.Data;
@@ -38,27 +43,32 @@ public class EndpointTestFixture : WebApplicationFactory<Program>, IAsyncLifetim
         await CreateAuthClient();
     }
 
-
     public new async Task DisposeAsync()
     {
         await dbContainer.DisposeAsync();
     }
 
+    public string GenerateTestToken(Guid userId)
+    {
+        using var scope = Services.CreateScope();
+        var jwtProvider = scope.ServiceProvider.GetRequiredService<IJwtProvider>();
+        var payload = new TokenServiceBuildTokenPayload(userId);
+        return jwtProvider.GenerateToken(payload);
+    }
+
     private async Task CreateAuthClient()
     {
         AuthClient = CreateClient();
-        var response = await AuthClient.PostAsJsonAsync(Routes.Account.SignIn, new SignInRequest
-        {
-            Login = GlobalConst.Worked.UserName,
-            Password = "string"
-        });
-        response.EnsureSuccessStatusCode();
+        var accessToken = GenerateTestToken(GlobalConst.Worked.UserId);
+        AuthClient.DefaultRequestHeaders.Authorization =
+            new AuthenticationHeaderValue("Bearer", accessToken);
+    }
 
-        var setCookie = response.Headers.TryGetValues("Set-Cookie", out var values) ? values.FirstOrDefault() : null;
-        if (setCookie != null)
-        {
-            AuthClient.DefaultRequestHeaders.Add("Cookie", setCookie);
-        }
+    public HttpClient GetClient(string accessToken)
+    {
+        var client = CreateClient();
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+        return client;
     }
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
@@ -71,16 +81,17 @@ public class EndpointTestFixture : WebApplicationFactory<Program>, IAsyncLifetim
             .Build();
         builder.UseConfiguration(configuration);
         builder.ConfigureLogging(cfg => cfg.ClearProviders());
+        
         builder.ConfigureServices(services =>
         {
             services.AddSingleton(memoryCache!);
-            
+
             var busDescriptor = services.FirstOrDefault(d => d.ServiceType == typeof(IBus));
             if (busDescriptor != null)
             {
                 services.Remove(busDescriptor);
             }
-        
+            
             services.AddSingleton(Substitute.For<IBus>());
         });
         base.ConfigureWebHost(builder);
@@ -92,6 +103,7 @@ public class EndpointTestFixture : WebApplicationFactory<Program>, IAsyncLifetim
             .SetBasePath(AppContext.BaseDirectory)
             .AddJsonFile("appsettingsTest.json", false, true)
             .Build();
+        
         var apiValue = configuration["Api"]!;
 
         var hash = configuration["Hash"]!;

@@ -2,8 +2,10 @@ using System.Net;
 using System.Net.Http.Json;
 using Shouldly;
 using TgPoster.API.Common;
+using TgPoster.API.Domain.UseCases.Schedules.ListSchedule;
 using TgPoster.API.Domain.UseCases.TelegramBots.ListTelegramBot;
 using TgPoster.API.Models;
+using TgPoster.Endpoint.Tests.Helper;
 
 namespace TgPoster.Endpoint.Tests.Endpoint;
 
@@ -32,7 +34,7 @@ public class TelegramBotEndpointTest(EndpointTestFixture fixture) : IClassFixtur
         bots.ShouldNotBeNull();
         bots.Count.ShouldBeGreaterThan(0);
     }
-    
+
     [Fact]
     public async Task DeleteTelegramBot_WithNonExistingId_ShouldReturnNotFound()
     {
@@ -40,14 +42,27 @@ public class TelegramBotEndpointTest(EndpointTestFixture fixture) : IClassFixtur
         var response = await client.DeleteAsync($"{Url}/{nonExistentId}");
         response.StatusCode.ShouldBe(HttpStatusCode.NotFound);
     }
-    
+
     [Fact]
     public async Task DeleteTelegramBot_WithValidId_ShouldReturnOK()
     {
         var deleteResponse = await client.DeleteAsync(Url + "/" + GlobalConst.TelegramBotId);
         deleteResponse.StatusCode.ShouldBe(HttpStatusCode.OK);
-        
+
         var repeatDeleteResponse = await client.DeleteAsync(Url + "/" + GlobalConst.TelegramBotId);
         repeatDeleteResponse.StatusCode.ShouldBe(HttpStatusCode.NotFound);
+    }
+
+    [Fact]
+    public async Task GetList_WithAnotherUser_ShouldReturnEmptyList()
+    {
+        var response = await client.GetAsync<List<TelegramBotResponse>>(Url);
+        response.ShouldNotBeNull();
+        response.Count.ShouldBeGreaterThan(0);
+
+        var anotherClient = fixture.GetClient(fixture.GenerateTestToken(GlobalConst.UserIdEmpty));
+
+        var listAnotherResponse = await anotherClient.GetAsync<List<TelegramBotResponse>>(Url);
+        listAnotherResponse!.Count.ShouldBeEquivalentTo(0);
     }
 }

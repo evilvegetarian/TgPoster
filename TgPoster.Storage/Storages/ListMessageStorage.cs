@@ -7,9 +7,9 @@ namespace TgPoster.Storage.Storages;
 
 internal sealed class ListMessageStorage(PosterContext context) : IListMessageStorage
 {
-    public Task<bool> ExistScheduleAsync(Guid scheduleId, CancellationToken ct)
+    public Task<bool> ExistScheduleAsync(Guid scheduleId, Guid userId, CancellationToken ct)
     {
-        return context.Schedules.AnyAsync(x => x.Id == scheduleId, ct);
+        return context.Schedules.AnyAsync(x => x.Id == scheduleId && x.UserId== userId, ct);
     }
 
     public Task<string?> GetApiTokenAsync(Guid scheduleId, CancellationToken ct)

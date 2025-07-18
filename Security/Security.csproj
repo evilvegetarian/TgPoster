@@ -11,5 +11,8 @@
         <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.1"/>
         <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.1"/>
     </ItemGroup>
-
+    <ItemGroup>
+        <InternalsVisibleTo Include="TgPoster.Endpoint.Tests" />
+        <InternalsVisibleTo Include="TgPoster.API.Tests" />
+    </ItemGroup>
 </Project>

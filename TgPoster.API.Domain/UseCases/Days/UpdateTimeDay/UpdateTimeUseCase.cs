@@ -1,13 +1,15 @@
 using MediatR;
+using Security.Interfaces;
 using TgPoster.API.Domain.Exceptions;
 
 namespace TgPoster.API.Domain.UseCases.Days.UpdateTimeDay;
 
-internal class UpdateTimeUseCase(IUpdateTimeStorage storage) : IRequestHandler<UpdateTimeCommand>
+internal class UpdateTimeUseCase(IUpdateTimeStorage storage, IIdentityProvider provider)
+    : IRequestHandler<UpdateTimeCommand>
 {
     public async Task Handle(UpdateTimeCommand request, CancellationToken ct)
     {
-        if (!await storage.ExistScheduleAsync(request.ScheduleId, ct))
+        if (!await storage.ExistScheduleAsync(request.ScheduleId, provider.Current.UserId, ct))
         {
             throw new ScheduleNotFoundException();
         }

@@ -115,7 +115,7 @@ public class ParseChannelStorageShould(StorageTestFixture fixture) : IClassFixtu
     {
         var schedule = await helper.CreateScheduleAsync();
 
-        var result = await sut.GetTelegramTokenAsync(schedule.Id, CancellationToken.None);
+        var result = await sut.GetTelegramTokenAsync(schedule.Id, schedule.UserId, CancellationToken.None);
 
         result.ShouldNotBeNull();
         result.ShouldNotBeEmpty();
@@ -126,7 +126,7 @@ public class ParseChannelStorageShould(StorageTestFixture fixture) : IClassFixtu
     {
         var nonExistingScheduleId = Guid.NewGuid();
 
-        var result = await sut.GetTelegramTokenAsync(nonExistingScheduleId, CancellationToken.None);
+        var result = await sut.GetTelegramTokenAsync(nonExistingScheduleId, Guid.Empty, CancellationToken.None);
 
         result.ShouldBeNull();
     }

@@ -101,4 +101,17 @@ public class ScheduleEndpointTest(EndpointTestFixture fixture) : IClassFixture<E
         var response = await client.DeleteAsync($"{Url}/{nonExistentId}");
         response.StatusCode.ShouldBe(HttpStatusCode.NotFound);
     }
+    
+    [Fact]
+    public async Task List_WithAnotherUser_ShouldReturnEmptyList()
+    {
+        var response = await client.GetAsync<List<ScheduleResponse>>(Url);
+        response.ShouldNotBeNull();
+        response.Count.ShouldBeGreaterThan(0);
+
+        var anotherClient = fixture.GetClient(fixture.GenerateTestToken(GlobalConst.UserIdEmpty));
+
+        var listAnotherResponse = await anotherClient.GetAsync<List<ScheduleResponse>>(Url);
+        listAnotherResponse!.Count.ShouldBeEquivalentTo(0);
+    }
 }

@@ -15,5 +15,5 @@ public interface IParseChannelStorage
         CancellationToken ct
     );
 
-    Task<string?> GetTelegramTokenAsync(Guid scheduleId, CancellationToken ct);
+    Task<string?> GetTelegramTokenAsync(Guid scheduleId, Guid userId, CancellationToken ct);
 }

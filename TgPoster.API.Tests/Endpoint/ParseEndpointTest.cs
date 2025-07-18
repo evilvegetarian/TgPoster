@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Http.Json;
 using Shouldly;
 using TgPoster.API.Common;
+using TgPoster.API.Domain.UseCases.Parse.ListChannel;
 using TgPoster.API.Models;
 using TgPoster.Endpoint.Tests.Helper;
 
@@ -11,6 +12,7 @@ public class ParseEndpointTest(EndpointTestFixture fixture) : IClassFixture<Endp
 {
     private const string Url = Routes.Parse.Root;
     private readonly HttpClient client = fixture.AuthClient;
+    private readonly CreateHelper helper = new(fixture.AuthClient);
 
     [Fact]
     public async Task Create_WithInValidChannel_ShouldBadRequest()
@@ -111,5 +113,50 @@ public class ParseEndpointTest(EndpointTestFixture fixture) : IClassFixture<Endp
 
         var createdSchedule = await client.PostAsync(Url, request.ToStringContent());
         createdSchedule.StatusCode.ShouldBe(HttpStatusCode.NotFound);
+    }
+
+    [Fact]
+    public async Task GetParseChannels_ShouldReturnValidData()
+    {
+        var request = new ParseChannelRequest
+        {
+            Channel = GlobalConst.Worked.Channel,
+            ScheduleId = GlobalConst.Worked.ScheduleId,
+            AlwaysCheckNewPosts = false,
+            NeedVerifiedPosts = true,
+            DeleteMedia = true,
+            DeleteText = false
+        };
+
+        var createdSchedule = await client.PostAsJsonAsync(Url, request);
+        createdSchedule.StatusCode.ShouldBe(HttpStatusCode.Created);
+
+        var list = await client.GetFromJsonAsync<List<ParseChannelsResponse>>(Url);
+        list!.Count.ShouldBeGreaterThan(0);
+        list.ShouldNotBeNull();
+        list.ShouldNotBeEmpty();
+        list.ShouldContain(x =>
+            x.NeedVerifiedPosts == request.NeedVerifiedPosts
+            && x.DeleteMedia == request.DeleteMedia
+            && x.DeleteText == request.DeleteText);
+    }
+
+    [Fact]
+    public async Task GetParseChannels_WithAnotherUser_ShouldReturnEmptyList()
+    {
+        var request = new ParseChannelRequest
+        {
+            Channel = GlobalConst.Worked.Channel,
+            AlwaysCheckNewPosts = false,
+            ScheduleId = GlobalConst.Worked.ScheduleId,
+        };
+
+        var createdSchedule = await client.PostAsJsonAsync(Url, request);
+        createdSchedule.StatusCode.ShouldBe(HttpStatusCode.Created);
+
+        var anotherClient = fixture.GetClient(fixture.GenerateTestToken(GlobalConst.UserIdEmpty));
+
+        var list = await anotherClient.GetFromJsonAsync<List<ParseChannelsResponse>>(Url);
+        list!.Count.ShouldBe(0);
     }
 }

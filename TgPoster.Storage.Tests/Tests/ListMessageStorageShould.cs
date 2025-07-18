@@ -1,12 +1,10 @@
 using Shouldly;
-using TgPoster.Storage.Data;
 using TgPoster.Storage.Storages;
 
 namespace TgPoster.Storage.Tests.Tests;
 
 public class ListMessageStorageShould(StorageTestFixture fixture) : IClassFixture<StorageTestFixture>
 {
-    private readonly PosterContext context = fixture.GetDbContext();
     private readonly Helper helper = new(fixture.GetDbContext());
     private readonly ListMessageStorage sut = new(fixture.GetDbContext());
 
@@ -15,7 +13,7 @@ public class ListMessageStorageShould(StorageTestFixture fixture) : IClassFixtur
     {
         var schedule = await helper.CreateScheduleAsync();
 
-        var result = await sut.ExistScheduleAsync(schedule.Id, CancellationToken.None);
+        var result = await sut.ExistScheduleAsync(schedule.Id, schedule.UserId, CancellationToken.None);
 
         result.ShouldBeTrue();
     }
@@ -25,7 +23,7 @@ public class ListMessageStorageShould(StorageTestFixture fixture) : IClassFixtur
     {
         var nonExistingScheduleId = Guid.NewGuid();
 
-        var result = await sut.ExistScheduleAsync(nonExistingScheduleId, CancellationToken.None);
+        var result = await sut.ExistScheduleAsync(nonExistingScheduleId, Guid.NewGuid(), CancellationToken.None);
 
         result.ShouldBeFalse();
     }
@@ -104,7 +102,7 @@ public class ListMessageStorageShould(StorageTestFixture fixture) : IClassFixtur
         returnedMessage.Files.Count.ShouldBe(2);
         returnedMessage.Files.ShouldContain(x => x.Id == imageFile.Id && x.ContentType == "image/jpeg");
         returnedMessage.Files.ShouldContain(x => x.Id == videoFile.Id && x.ContentType == "video/mp4");
-        
+
         var videoFileDto = returnedMessage.Files.First(x => x.ContentType == "video/mp4");
         videoFileDto.PreviewIds.ShouldNotBeEmpty();
         videoFileDto.PreviewIds.Count.ShouldBe(2);

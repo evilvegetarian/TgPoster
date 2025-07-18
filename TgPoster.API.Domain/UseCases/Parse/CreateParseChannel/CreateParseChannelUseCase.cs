@@ -12,13 +12,15 @@ namespace TgPoster.API.Domain.UseCases.Parse.CreateParseChannel;
 internal class CreateParseChannelUseCase(
     IParseChannelStorage storage,
     ICryptoAES cryptoAes,
+    IIdentityProvider provider,
     TelegramOptions telegramOptions,
     IBus bus)
     : IRequestHandler<CreateParseChannelCommand>
 {
     public async Task Handle(CreateParseChannelCommand request, CancellationToken ct)
     {
-        var cryptoToken = await storage.GetTelegramTokenAsync(request.ScheduleId, ct);
+        var userId = provider.Current.UserId;
+        var cryptoToken = await storage.GetTelegramTokenAsync(request.ScheduleId, userId, ct);
         if (cryptoToken is null)
         {
             throw new ScheduleNotFoundException();

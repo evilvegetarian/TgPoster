@@ -41,6 +41,8 @@ public class UnauthorizedAccessTests : IClassFixture<EndpointTestFixture>
     [InlineData(Routes.Schedule.Root, "POST")]
     [InlineData(Routes.TelegramBot.Root, "GET")]
     [InlineData(Routes.TelegramBot.Root, "POST")]
+    [InlineData(Routes.Parse.Root, "POST")]
+    [InlineData(Routes.Parse.Root, "GET")]
     public async Task ProtectedEndpoints_ShouldReturnUnauthorized(string url, string method)
     {
         HttpResponseMessage response;

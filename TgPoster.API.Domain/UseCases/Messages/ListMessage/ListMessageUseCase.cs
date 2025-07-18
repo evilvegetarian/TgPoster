@@ -11,12 +11,13 @@ internal sealed class ListMessageUseCase(
     IListMessageStorage storage,
     TelegramOptions options,
     ICryptoAES aes,
-    FileService fileService
+    FileService fileService,
+    IIdentityProvider provider
 ) : IRequestHandler<ListMessageQuery, List<MessageResponse>>
 {
     public async Task<List<MessageResponse>> Handle(ListMessageQuery request, CancellationToken ct)
     {
-        if (!await storage.ExistScheduleAsync(request.ScheduleId, ct))
+        if (!await storage.ExistScheduleAsync(request.ScheduleId,provider.Current.UserId, ct))
         {
             throw new ScheduleNotFoundException();
         }
