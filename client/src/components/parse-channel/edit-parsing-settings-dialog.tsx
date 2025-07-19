@@ -96,7 +96,7 @@ export function EditParsingSettingsDialog({
         if (newAvoidWord.trim() && !formData.avoidWords?.includes(newAvoidWord.trim())) {
             setFormData({
                 ...formData,
-                avoidWords: [...formData.avoidWords, newAvoidWord.trim()],
+                avoidWords: [...formData.avoidWords??[], newAvoidWord.trim()],
             })
             setNewAvoidWord("")
             toast.success("Слово добавлено", {
@@ -144,7 +144,7 @@ export function EditParsingSettingsDialog({
                             <Input
                                 id="channel"
                                 placeholder="@channel_name"
-                                value={formData.channel}
+                                value={formData.channel?.valueOf()}
                                 onChange={(e) => setFormData({ ...formData, channel: e.target.value })}
                                 disabled={isLoading}
                                 required
@@ -272,7 +272,7 @@ export function EditParsingSettingsDialog({
                                 Добавить
                             </Button>
                         </div>
-                        {formData.avoidWords?.length > 0 && (
+                        {(formData.avoidWords?.length??0) > 0 && (
                             <div className="flex flex-wrap gap-2 mt-2">
                                 {formData.avoidWords?.map((word, index) => (
                                     <Badge key={index} variant="secondary" className="gap-1">
@@ -290,7 +290,7 @@ export function EditParsingSettingsDialog({
                             <Input
                                 id="dateFrom"
                                 type="date"
-                                value={formData.dateFrom}
+                                value={formData.dateFrom?.valueOf()}
                                 onChange={(e) => setFormData({ ...formData, dateFrom: e.target.value })}
                                 disabled={isLoading}
                             />
@@ -301,7 +301,7 @@ export function EditParsingSettingsDialog({
                             <Input
                                 id="dateTo"
                                 type="date"
-                                value={formData.dateTo}
+                                value={formData.dateTo?.valueOf()}
                                 onChange={(e) => setFormData({ ...formData, dateTo: e.target.value })}
                                 disabled={isLoading}
                             />

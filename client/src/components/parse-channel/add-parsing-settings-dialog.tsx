@@ -65,7 +65,7 @@ export function AddParsingSettingsDialog({
         const settings: CreateParseChannelRequest = {
             ...formData,
             channel: formData.channel.startsWith("@") ? formData.channel : `@${formData.channel}`,
-            avoidWords: formData.avoidWords && formData.avoidWords.length > 0 ? formData.avoidWords : null,
+            avoidWords: formData.avoidWords && formData.avoidWords.length > 0 ? formData.avoidWords : [],
             dateFrom: formData.dateFrom || null,
             dateTo: formData.dateTo || null,
         }
@@ -99,7 +99,7 @@ export function AddParsingSettingsDialog({
         if (newAvoidWord.trim() && !formData.avoidWords?.includes(newAvoidWord.trim())) {
             setFormData({
                 ...formData,
-                avoidWords: [...formData.avoidWords, newAvoidWord.trim()],
+                avoidWords: [...formData.avoidWords??[], newAvoidWord.trim()],
             })
             setNewAvoidWord("")
             toast.success("Слово добавлено", {
@@ -115,7 +115,7 @@ export function AddParsingSettingsDialog({
     const removeAvoidWord = (word: string) => {
         setFormData({
             ...formData,
-            avoidWords: formData.avoidWords.filter((w) => w !== word),
+            avoidWords: formData.avoidWords?.filter((w) => w !== word),
         })
         toast.info("Слово удалено", {
             description: `"${word}" удалено из списка исключений`,
@@ -144,7 +144,7 @@ export function AddParsingSettingsDialog({
                             <Input
                                 id="channel"
                                 placeholder="@channel_name"
-                                value={formData.channel}
+                                value={formData.channel?.valueOf()}
                                 onChange={(e) => setFormData({ ...formData, channel: e.target.value })}
                                 disabled={isLoading}
                                 required
@@ -264,9 +264,9 @@ export function AddParsingSettingsDialog({
                                 Добавить
                             </Button>
                         </div>
-                        {formData.avoidWords.length > 0 && (
+                        {(formData.avoidWords?.length??0) > 0 && (
                             <div className="flex flex-wrap gap-2 mt-2">
-                                {formData.avoidWords.map((word, index) => (
+                                {formData.avoidWords?.map((word, index) => (
                                     <Badge key={index} variant="secondary" className="gap-1">
                                         {word}
                                         <X className="h-3 w-3 cursor-pointer" onClick={() => !isLoading && removeAvoidWord(word)} />
@@ -282,7 +282,7 @@ export function AddParsingSettingsDialog({
                             <Input
                                 id="dateFrom"
                                 type="date"
-                                value={formData.dateFrom}
+                                value={formData.dateFrom?.valueOf()}
                                 onChange={(e) => setFormData({ ...formData, dateFrom: e.target.value })}
                                 disabled={isLoading}
                             />
@@ -293,7 +293,7 @@ export function AddParsingSettingsDialog({
                             <Input
                                 id="dateTo"
                                 type="date"
-                                value={formData.dateTo}
+                                value={formData.dateTo?.valueOf()}
                                 onChange={(e) => setFormData({ ...formData, dateTo: e.target.value })}
                                 disabled={isLoading}
                             />

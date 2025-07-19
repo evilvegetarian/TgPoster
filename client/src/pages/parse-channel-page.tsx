@@ -1,8 +1,8 @@
 ﻿import { useState } from "react"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Plus, Settings, Calendar, Filter, Eye, EyeOff, Edit, Loader2 } from "lucide-react"
+import { Plus, Settings,  Filter, Eye, EyeOff, Edit, Loader2 } from "lucide-react"
 import { toast } from "sonner"
 
 import {
@@ -22,7 +22,6 @@ export  function ParseChannelPage() {
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
     const [editingSettings, setEditingSettings] = useState<ParseChannelsResponse | null>(null)
 
-    // API хуки
     const { data: settings = [], isLoading, error, refetch } = useGetApiV1ParseChannel()
 
     const createMutation = usePostApiV1ParseChannel({
@@ -31,7 +30,7 @@ export  function ParseChannelPage() {
                 toast.success("Настройка создана", {
                     description: `Настройка парсинга создана с ID: ${data.id}`,
                 })
-                refetch()
+                 refetch()
                 setIsAddDialogOpen(false)
             },
             onError: (error) => {
@@ -109,7 +108,7 @@ export  function ParseChannelPage() {
             <div className="container mx-auto p-6 max-w-6xl">
                 <div className="text-center py-12">
                     <p className="text-red-500 mb-4">Ошибка загрузки настроек парсинга</p>
-                    <p className="text-sm text-muted-foreground mb-4">{error?.message || "Произошла неизвестная ошибка"}</p>
+                    <p className="text-sm text-muted-foreground mb-4">{error?.title || "Произошла неизвестная ошибка"}</p>
                     <Button onClick={() => refetch()} className="mt-4">
                         Попробовать снова
                     </Button>
