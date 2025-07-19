@@ -1,4 +1,4 @@
-﻿import ScheduleManager from "@/components/schedule-manager.tsx";
+﻿import ScheduleManager from "@/components/schedule/schedule-manager.tsx";
 
 export function SchedulePage() {
     return (

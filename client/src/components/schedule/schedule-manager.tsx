@@ -1,17 +1,17 @@
 ﻿import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button.tsx"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card.tsx"
+import { Input } from "@/components/ui/input.tsx"
+import { Label } from "@/components/ui/label.tsx"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select.tsx"
+import { Badge } from "@/components/ui/badge.tsx"
 import { Calendar, Clock, Plus, Save, X, ArrowLeft, Settings, Trash2, Loader2, Power, PowerOff } from "lucide-react"
-import { Separator } from "@/components/ui/separator"
+import { Separator } from "@/components/ui/separator.tsx"
 import { toast } from "sonner"
 import {useGetApiV1TelegramBot} from "@/api/endpoints/telegram-bot/telegram-bot.ts";
-import {useDeleteApiV1ScheduleId, useGetApiV1Schedule, usePatchApiV1ScheduleIdStatus, usePostApiV1Schedule} from "@/api/endpoints/schedule/schedule"
-import {useGetApiV1Day, usePatchApiV1DayTime} from "@/api/endpoints/day/day"
-import type {CreateScheduleRequest, DayOfWeek, ScheduleResponse} from "@/api/endpoints/tgPosterAPI.schemas"
+import {useDeleteApiV1ScheduleId, useGetApiV1Schedule, usePatchApiV1ScheduleIdStatus, usePostApiV1Schedule} from "@/api/endpoints/schedule/schedule.ts"
+import {useGetApiV1Day, usePatchApiV1DayTime} from "@/api/endpoints/day/day.ts"
+import type {CreateScheduleRequest, DayOfWeek, ScheduleResponse} from "@/api/endpoints/tgPosterAPI.schemas.ts"
 import {Switch} from "@/components/ui/switch.tsx";
 
 interface NewTimeSlot {

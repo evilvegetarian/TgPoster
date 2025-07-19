@@ -18,6 +18,45 @@ export interface CreateMessageResponse {
   id: string;
 }
 
+export interface CreateParseChannelRequest {
+  /**
+   * Канал который парсят.
+   * @nullable
+   */
+  channel: string | null;
+  /** Раз в день будет проверять новые посты. */
+  alwaysCheckNewPosts: boolean;
+  /** Расписание для которого парсят канал. */
+  scheduleId: string;
+  /** Нужно ли удалять текст, и оставлять только картинку. */
+  deleteText?: boolean;
+  /** Нужно ли удалять медиа, и оставлять только текст. */
+  deleteMedia?: boolean;
+  /**
+   * Избегать постов с данными словами, предложениями, словосочетаниями.
+   * @nullable
+   */
+  avoidWords?: string[] | null;
+  /** Нужно ли подтверждать пост перед тем как его запостить в вашем канале.
+Если не нужно, он будет автоматически поставлен в свободные даты {ScheduleId}.
+Если расписание пусто, то нужно будет дополнительно подтверждать все равно. */
+  needVerifiedPosts?: boolean;
+  /**
+   * Дата откуда парсить
+   * @nullable
+   */
+  dateFrom?: string | null;
+  /**
+   * До какой даты парсить
+   * @nullable
+   */
+  dateTo?: string | null;
+}
+
+export interface CreateParseChannelResponse {
+  id: string;
+}
+
 export interface CreateScheduleRequest {
   /**
    * @minLength 1
@@ -116,41 +155,6 @@ export interface MessageResponse {
   files?: FileResponse[] | null;
 }
 
-export interface ParseChannelRequest {
-  /**
-   * Канал который парсят.
-   * @nullable
-   */
-  channel: string | null;
-  /** Раз в день будет проверять новые посты. */
-  alwaysCheckNewPosts: boolean;
-  /** Расписание для которого парсят канал. */
-  scheduleId: string;
-  /** Нужно ли удалять текст, и оставлять только картинку. */
-  deleteText?: boolean;
-  /** Нужно ли удалять медиа, и оставлять только текст. */
-  deleteMedia?: boolean;
-  /**
-   * Избегать постов с данными словами, предложениями, словосочетаниями.
-   * @nullable
-   */
-  avoidWords?: string[] | null;
-  /** Нужно ли подтверждать пост перед тем как его запостить в вашем канале.
-Если не нужно, он будет автоматически поставлен в свободные даты {ScheduleId}.
-Если расписание пусто, то нужно будет дополнительно подтверждать все равно. */
-  needVerifiedPosts?: boolean;
-  /**
-   * Дата откуда парсить
-   * @nullable
-   */
-  dateFrom?: string | null;
-  /**
-   * До какой даты парсить
-   * @nullable
-   */
-  dateTo?: string | null;
-}
-
 export interface ParseChannelsResponse {
   id: string;
   scheduleId: string;
@@ -166,6 +170,8 @@ export interface ParseChannelsResponse {
   /** @nullable */
   status: string | null;
   isActive: boolean;
+  /** @nullable */
+  channel: string | null;
 }
 
 export interface ProblemDetails {
@@ -251,6 +257,41 @@ export interface TelegramBotResponse {
   id: string;
   /** @nullable */
   name: string | null;
+}
+
+export interface UpdateParseChannelRequest {
+  /**
+   * Канал который парсят.
+   * @nullable
+   */
+  channel: string | null;
+  /** Раз в день будет проверять новые посты. */
+  alwaysCheckNewPosts: boolean;
+  /** Расписание для которого парсят канал. */
+  scheduleId: string;
+  /** Нужно ли удалять текст, и оставлять только картинку. */
+  deleteText?: boolean;
+  /** Нужно ли удалять медиа, и оставлять только текст. */
+  deleteMedia?: boolean;
+  /**
+   * Избегать постов с данными словами, предложениями, словосочетаниями.
+   * @nullable
+   */
+  avoidWords?: string[] | null;
+  /** Нужно ли подтверждать пост перед тем как его запостить в вашем канале.
+Если не нужно, он будет автоматически поставлен в свободные даты {ScheduleId}.
+Если расписание пусто, то нужно будет дополнительно подтверждать все равно. */
+  needVerifiedPosts?: boolean;
+  /**
+   * Дата откуда парсить
+   * @nullable
+   */
+  dateFrom?: string | null;
+  /**
+   * До какой даты парсить
+   * @nullable
+   */
+  dateTo?: string | null;
 }
 
 export interface UpdateTimeRequest {
