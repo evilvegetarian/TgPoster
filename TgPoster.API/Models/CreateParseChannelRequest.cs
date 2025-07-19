@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace TgPoster.API.Models;
 
-public class ParseChannelRequest : IValidatableObject
+public class CreateParseChannelRequest : IValidatableObject
 {
     /// <summary>
     ///     Канал который парсят.

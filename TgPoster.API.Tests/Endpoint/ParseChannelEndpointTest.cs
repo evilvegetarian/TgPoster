@@ -8,16 +8,16 @@ using TgPoster.Endpoint.Tests.Helper;
 
 namespace TgPoster.Endpoint.Tests.Endpoint;
 
-public class ParseEndpointTest(EndpointTestFixture fixture) : IClassFixture<EndpointTestFixture>
+public class ParseChannelEndpointTest(EndpointTestFixture fixture) : IClassFixture<EndpointTestFixture>
 {
-    private const string Url = Routes.Parse.Root;
+    private const string Url = Routes.ParseChannel.Root;
     private readonly HttpClient client = fixture.AuthClient;
     private readonly CreateHelper helper = new(fixture.AuthClient);
 
     [Fact]
     public async Task Create_WithInValidChannel_ShouldBadRequest()
     {
-        var request = new ParseChannelRequest
+        var request = new CreateParseChannelRequest
         {
             Channel = "",
             AlwaysCheckNewPosts = false,
@@ -31,7 +31,7 @@ public class ParseEndpointTest(EndpointTestFixture fixture) : IClassFixture<Endp
     [Fact]
     public async Task Create_WithInValidDateFrom_ShouldBadRequest()
     {
-        var request = new ParseChannelRequest
+        var request = new CreateParseChannelRequest
         {
             Channel = "superChannel",
             AlwaysCheckNewPosts = false,
@@ -46,7 +46,7 @@ public class ParseEndpointTest(EndpointTestFixture fixture) : IClassFixture<Endp
     [Fact]
     public async Task Create_WithDeleteMediaAndDeleteText_ShouldBadRequest()
     {
-        var request = new ParseChannelRequest
+        var request = new CreateParseChannelRequest
         {
             Channel = "superChannel",
             AlwaysCheckNewPosts = false,
@@ -62,7 +62,7 @@ public class ParseEndpointTest(EndpointTestFixture fixture) : IClassFixture<Endp
     [Fact]
     public async Task Create_WithValidData_ShouldReturnCreated()
     {
-        var request = new ParseChannelRequest
+        var request = new CreateParseChannelRequest
         {
             Channel = GlobalConst.Worked.Channel,
             AlwaysCheckNewPosts = false,
@@ -76,7 +76,7 @@ public class ParseEndpointTest(EndpointTestFixture fixture) : IClassFixture<Endp
     [Fact]
     public async Task Create_WithNotExistChannel_ShouldReturnBadRequest()
     {
-        var request = new ParseChannelRequest
+        var request = new CreateParseChannelRequest
         {
             Channel = "GlobalConst.Worked.Channel",
             AlwaysCheckNewPosts = false,
@@ -90,7 +90,7 @@ public class ParseEndpointTest(EndpointTestFixture fixture) : IClassFixture<Endp
     [Fact]
     public async Task Create_WithNotExistSchedule_ShouldReturnNotFound()
     {
-        var request = new ParseChannelRequest
+        var request = new CreateParseChannelRequest
         {
             Channel = GlobalConst.Worked.Channel,
             AlwaysCheckNewPosts = false,
@@ -104,7 +104,7 @@ public class ParseEndpointTest(EndpointTestFixture fixture) : IClassFixture<Endp
     [Fact]
     public async Task Get_ShouldReturnValidData()
     {
-        var request = new ParseChannelRequest
+        var request = new CreateParseChannelRequest
         {
             Channel = GlobalConst.Worked.Channel,
             ScheduleId = GlobalConst.Worked.ScheduleId,
@@ -130,7 +130,7 @@ public class ParseEndpointTest(EndpointTestFixture fixture) : IClassFixture<Endp
     [Fact]
     public async Task Get_WithAnotherUser_ShouldReturnEmptyList()
     {
-        var request = new ParseChannelRequest
+        var request = new CreateParseChannelRequest
         {
             Channel = GlobalConst.Worked.Channel,
             AlwaysCheckNewPosts = false,
@@ -144,5 +144,71 @@ public class ParseEndpointTest(EndpointTestFixture fixture) : IClassFixture<Endp
 
         var list = await anotherClient.GetFromJsonAsync<List<ParseChannelsResponse>>(Url);
         list!.Count.ShouldBe(0);
+    }
+
+    [Fact]
+    public async Task Update_WithAnotherUser_ShouldReturnNotFound()
+    {
+        var parseId = helper.CreateParseChannel();
+
+        var anotherClient = fixture.GetClient(fixture.GenerateTestToken(GlobalConst.UserIdEmpty));
+
+        var updateRequest = new UpdateParseChannelRequest
+        {
+            Channel = GlobalConst.Worked.Channel,
+            ScheduleId = GlobalConst.Worked.ScheduleId,
+            AlwaysCheckNewPosts = false,
+            NeedVerifiedPosts = false,
+            AvoidWords = ["cum"],
+        };
+
+        var updateResponse = await anotherClient.PutAsync(Url + "/" + parseId, updateRequest.ToStringContent());
+        updateResponse.StatusCode.ShouldBe(HttpStatusCode.NotFound);
+    }
+
+    [Fact]
+    public async Task Update_WithNonExistId_ShouldReturnNotFound()
+    {
+        var nonExistId = Guid.Parse("612db3c5-0f51-4e42-84f2-65d6a2ca1b3f");
+        var updateRequest = new UpdateParseChannelRequest
+        {
+            Channel = GlobalConst.Worked.Channel,
+            ScheduleId = GlobalConst.Worked.ScheduleId,
+            AlwaysCheckNewPosts = false,
+            NeedVerifiedPosts = false,
+            AvoidWords = ["cum"],
+        };
+
+        var updateResponse = await client.PutAsync(Url + "/" + nonExistId, updateRequest.ToStringContent());
+        updateResponse.StatusCode.ShouldBe(HttpStatusCode.NotFound);
+    }
+
+    [Fact]
+    public async Task Update_WithValidData_ShouldOk()
+    {
+        var parseId = await helper.CreateParseChannel();
+        var updateRequest = new UpdateParseChannelRequest
+        {
+            Channel = GlobalConst.Worked.Channel,
+            ScheduleId = GlobalConst.Worked.ScheduleId,
+            AlwaysCheckNewPosts = false,
+            NeedVerifiedPosts = false,
+            AvoidWords = ["cum"]
+        };
+
+        var updateResponse = await client.PutAsync(Url + "/" + parseId, updateRequest.ToStringContent());
+        updateResponse.StatusCode.ShouldBe(HttpStatusCode.OK);
+
+        var list = await client.GetAsync<List<ParseChannelsResponse>>(Url);
+        var existParse = list.FirstOrDefault(x => x.Id == parseId);
+        existParse.ShouldNotBeNull();
+        existParse.NeedVerifiedPosts.ShouldBe(updateRequest.NeedVerifiedPosts);
+        existParse.Channel.ShouldBe(updateRequest.Channel);
+        existParse.AvoidWords.ShouldBe(updateRequest.AvoidWords);
+        existParse.DeleteMedia.ShouldBe(updateRequest.DeleteMedia);
+        existParse.DateFrom.ShouldBe(updateRequest.DateFrom);
+        existParse.DateTo.ShouldBe(updateRequest.DateTo);
+        existParse.DeleteText.ShouldBe(updateRequest.DeleteText);
+        existParse.ScheduleId.ShouldBe(updateRequest.ScheduleId);
     }
 }

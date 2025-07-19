@@ -20,4 +20,6 @@ public class ParseChannelsResponse
     /// Работает ли парсинг
     /// </summary>
     public required bool IsActive { get; set; }
+
+    public required string Channel { get; set; }
 }

@@ -58,10 +58,11 @@ internal static class Routes
         internal const string Get = Root + "/{id:guid}";
     }
 
-    internal static class Parse
+    internal static class ParseChannel
     {
-        internal const string Root = Base + "/parse";
-        internal const string Create = Root; 
+        internal const string Root = Base + "/parse-channel";
+        internal const string Create = Root;
         internal const string List = Root;
+        internal const string Update = Root + "/{id:guid}";
     }
 }

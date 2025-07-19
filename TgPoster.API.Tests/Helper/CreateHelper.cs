@@ -3,6 +3,7 @@ using Shouldly;
 using TgPoster.API.Common;
 using TgPoster.API.Domain.UseCases.Accounts.SignIn;
 using TgPoster.API.Domain.UseCases.Accounts.SignOn;
+using TgPoster.API.Domain.UseCases.Parse.CreateParseChannel;
 using TgPoster.API.Domain.UseCases.Schedules.CreateSchedule;
 using TgPoster.API.Models;
 
@@ -82,5 +83,21 @@ public class CreateHelper(HttpClient client)
 
         var createResponse = await client.PostAsync(Routes.Message.CreateMessagesFromFiles, request.ToMultipartForm());
         createResponse.StatusCode.ShouldBe(HttpStatusCode.Created);
+    }
+
+    public async Task<Guid> CreateParseChannel()
+    {
+        var request = new CreateParseChannelRequest
+        {
+            Channel = GlobalConst.Worked.Channel,
+            AlwaysCheckNewPosts = true,
+            DeleteText = false,
+            AvoidWords = ["perfect"],
+            DeleteMedia = true,
+            ScheduleId = GlobalConst.Worked.ScheduleId
+        };
+
+        var createResponse = await client.PostAsync<CreateParseChannelResponse>(Routes.ParseChannel.Create, request);
+        return createResponse.Id;
     }
 }

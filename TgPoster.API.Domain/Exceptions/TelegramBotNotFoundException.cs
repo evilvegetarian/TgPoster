@@ -1,3 +1,3 @@
 namespace TgPoster.API.Domain.Exceptions;
 
-public class TelegramBotNotFoundException() : NotFoundException("User does not exist.");
+public class TelegramBotNotFoundException() : NotFoundException("TelegramBot does not exist.");

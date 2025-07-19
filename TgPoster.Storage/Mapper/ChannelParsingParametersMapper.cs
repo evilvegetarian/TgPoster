@@ -1,4 +1,5 @@
 using TgPoster.API.Domain.UseCases.Parse.ListChannel;
+using TgPoster.API.Domain.UseCases.Parse.UpdateParseChannel;
 using TgPoster.Storage.Data.Entities;
 using TgPoster.Storage.Data.Enum;
 
@@ -19,7 +20,25 @@ public static class ChannelParsingParametersMapper
             DeleteText = entity.DeleteText,
             ScheduleId = entity.ScheduleId,
             NeedVerifiedPosts = entity.NeedVerifiedPosts,
-            IsActive = entity.Status.IsActive()
+            IsActive = entity.Status.IsActive(),
+            Channel=entity.Channel,
+        };
+    }
+
+    public static ChannelParsingParameters ToEntity(this UpdateParseChannelCommand request)
+    {
+        return new ChannelParsingParameters
+        {
+            Id = request.Id,
+            Channel = request.Channel,
+            ScheduleId = request.ScheduleId,
+            AvoidWords = request.AvoidWords,
+            DateTo = request.DateTo,
+            DateFrom = request.DateFrom,
+            DeleteText = request.DeleteText,
+            CheckNewPosts = request.AlwaysCheckNewPosts,
+            NeedVerifiedPosts = request.NeedVerifiedPosts,
+            DeleteMedia = request.DeleteMedia,
         };
     }
 }
