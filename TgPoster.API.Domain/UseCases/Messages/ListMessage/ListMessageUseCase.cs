@@ -17,7 +17,7 @@ internal sealed class ListMessageUseCase(
 {
     public async Task<List<MessageResponse>> Handle(ListMessageQuery request, CancellationToken ct)
     {
-        if (!await storage.ExistScheduleAsync(request.ScheduleId,provider.Current.UserId, ct))
+        if (!await storage.ExistScheduleAsync(request.ScheduleId, provider.Current.UserId, ct))
         {
             throw new ScheduleNotFoundException();
         }

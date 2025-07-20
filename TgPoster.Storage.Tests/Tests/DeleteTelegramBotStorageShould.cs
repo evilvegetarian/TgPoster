@@ -55,7 +55,7 @@ public class DeleteTelegramBotStorageShould(StorageTestFixture fixture) : IClass
 
         var deletedBot = await context.TelegramBots
             .FirstOrDefaultAsync(x => x.Id == telegramBot.Id);
-        
+
         deletedBot.ShouldNotBeNull();
         deletedBot.Deleted.ShouldNotBeNull();
         deletedBot.Deleted.ShouldBeGreaterThan(DateTime.UtcNow.AddMinutes(-1));
@@ -84,7 +84,7 @@ public class DeleteTelegramBotStorageShould(StorageTestFixture fixture) : IClass
 
         var bot = await context.TelegramBots
             .FirstOrDefaultAsync(x => x.Id == telegramBot.Id);
-        
+
         bot.ShouldNotBeNull();
         bot.Deleted.ShouldBeNull();
     }

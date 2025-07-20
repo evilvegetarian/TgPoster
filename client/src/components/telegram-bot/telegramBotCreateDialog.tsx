@@ -16,7 +16,7 @@ import {
     DialogTitle,
     DialogTrigger,
 } from "@/components/ui/dialog.tsx";
-import {Loader2, Plus, Bot} from "lucide-react";
+import {Bot, Loader2, Plus} from "lucide-react";
 import {toast} from "sonner";
 import {useQueryClient} from "@tanstack/react-query";
 
@@ -42,7 +42,7 @@ export function TelegramBotCreateDialog() {
                 toast.success(`Бот  успешно добавлен!`);
                 form.reset();
                 setOpen(false);
-                queryClient.invalidateQueries({ queryKey: getGetApiV1TelegramBotQueryKey() });
+                queryClient.invalidateQueries({queryKey: getGetApiV1TelegramBotQueryKey()});
             },
             onError: (error) => {
                 const errorMessage = error?.title || "Ошибка при добавлении бота";
@@ -68,14 +68,14 @@ export function TelegramBotCreateDialog() {
         <Dialog open={open} onOpenChange={handleOpenChange}>
             <DialogTrigger asChild>
                 <Button className="gap-2">
-                    <Plus className="h-4 w-4" />
+                    <Plus className="h-4 w-4"/>
                     Добавить бота
                 </Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
                     <div className="flex items-center gap-2">
-                        <Bot className="h-5 w-5 text-blue-500" />
+                        <Bot className="h-5 w-5 text-blue-500"/>
                         <DialogTitle>Добавить Telegram бота</DialogTitle>
                     </div>
                     <DialogDescription>
@@ -99,7 +99,7 @@ export function TelegramBotCreateDialog() {
                                             className="font-mono text-sm"
                                         />
                                     </FormControl>
-                                    <FormMessage />
+                                    <FormMessage/>
                                 </FormItem>
                             )}
                         />

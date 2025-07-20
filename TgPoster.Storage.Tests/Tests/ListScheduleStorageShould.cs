@@ -1,5 +1,6 @@
 using Shouldly;
 using TgPoster.Storage.Data;
+using TgPoster.Storage.Data.Entities;
 using TgPoster.Storage.Storages;
 
 namespace TgPoster.Storage.Tests.Tests;
@@ -16,7 +17,7 @@ public class ListScheduleStorageShould(StorageTestFixture fixture) : IClassFixtu
         var user = await helper.CreateUserAsync();
         var telegramBot1 = await helper.CreateTelegramBotAsync(user.Id);
         var telegramBot2 = await helper.CreateTelegramBotAsync(user.Id);
-        
+
         var schedule1 = await CreateScheduleForUser(user.Id, telegramBot1.Id, "Schedule 1");
         var schedule2 = await CreateScheduleForUser(user.Id, telegramBot2.Id, "Schedule 2");
 
@@ -54,10 +55,10 @@ public class ListScheduleStorageShould(StorageTestFixture fixture) : IClassFixtu
     {
         var user1 = await helper.CreateUserAsync();
         var user2 = await helper.CreateUserAsync();
-        
+
         var telegramBot1 = await helper.CreateTelegramBotAsync(user1.Id);
         var telegramBot2 = await helper.CreateTelegramBotAsync(user2.Id);
-        
+
         var schedule1 = await CreateScheduleForUser(user1.Id, telegramBot1.Id, "User1 Schedule");
         var schedule2 = await CreateScheduleForUser(user2.Id, telegramBot2.Id, "User2 Schedule");
 
@@ -86,13 +87,14 @@ public class ListScheduleStorageShould(StorageTestFixture fixture) : IClassFixtu
         returnedSchedule.IsActive.ShouldBe(true);
     }
 
-    private async Task<TgPoster.Storage.Data.Entities.Schedule> CreateScheduleForUser(
-        Guid userId, 
-        Guid telegramBotId, 
-        string name, 
-        bool isActive = false)
+    private async Task<Schedule> CreateScheduleForUser(
+        Guid userId,
+        Guid telegramBotId,
+        string name,
+        bool isActive = false
+    )
     {
-        var schedule = new TgPoster.Storage.Data.Entities.Schedule
+        var schedule = new Schedule
         {
             Id = Guid.NewGuid(),
             Name = name,

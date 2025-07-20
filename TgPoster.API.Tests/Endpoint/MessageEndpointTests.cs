@@ -115,14 +115,14 @@ public class MessageEndpointTests(EndpointTestFixture fixture) : IClassFixture<E
         var response = await client.GetAsync(Url + "/" + nonExistMessageId);
         response.StatusCode.ShouldBe(HttpStatusCode.NotFound);
     }
-    
+
     [Fact]
     public async Task List_WithAnotherUser_ShouldReturnEmptyList()
     {
         var createMessage = new CreateMessageRequest
         {
             ScheduleId = GlobalConst.Worked.ScheduleId,
-            TimePosting = DateTimeOffset.UtcNow.AddDays(1),
+            TimePosting = DateTimeOffset.UtcNow.AddDays(1)
         };
         var createdResponse = await client.PostAsync(Url, createMessage.ToMultipartForm());
         createdResponse.StatusCode.ShouldBe(HttpStatusCode.Created);
@@ -184,7 +184,7 @@ public class MessageEndpointTests(EndpointTestFixture fixture) : IClassFixture<E
         var createMessage = new CreateMessageRequest
         {
             ScheduleId = GlobalConst.Worked.ScheduleId,
-            TimePosting = DateTimeOffset.UtcNow.AddDays(1),
+            TimePosting = DateTimeOffset.UtcNow.AddDays(1)
         };
         var createdResponse = await client.PostMultipartFormAsync<CreateMessageResponse>(Url, createMessage);
 

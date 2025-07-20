@@ -1,4 +1,3 @@
-using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using TgPoster.Storage.Data.Entities;
 
@@ -11,10 +10,10 @@ internal class SessionConfiguration : BaseEntityConfig<RefreshSession>
         base.Configure(builder);
         builder.HasIndex(x => x.RefreshToken)
             .IsUnique();
-        
+
         builder.Property(x => x.RefreshToken)
             .IsRequired();
-        
+
         builder.Property(x => x.UserId)
             .IsRequired();
 

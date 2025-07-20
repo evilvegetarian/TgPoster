@@ -9,7 +9,7 @@ public static class CorsMiddleware
         var corsConfiguration = builder.Configuration.GetSection(nameof(CorsPolicies)).Get<CorsPolicies>()!;
         builder.Services.AddCors(options =>
         {
-            options.AddPolicy(name: corsName,
+            options.AddPolicy(corsName,
                 policy =>
                 {
                     if (builder.Environment.IsDevelopment())

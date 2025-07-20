@@ -12,7 +12,7 @@ export function TelegramBotPage() {
                         </h1>
                     </div>
                     <div className="flex items-center gap-2">
-                        <TelegramBotCreateDialog />
+                        <TelegramBotCreateDialog/>
                     </div>
                 </div>
                 <p className="text-muted-foreground">
@@ -21,7 +21,7 @@ export function TelegramBotPage() {
             </div>
 
             <div className="space-y-6">
-                <TelegramBotListComponent />
+                <TelegramBotListComponent/>
             </div>
         </div>
     );

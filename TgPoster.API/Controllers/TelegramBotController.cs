@@ -10,7 +10,6 @@ using TgPoster.API.Models;
 namespace TgPoster.API.Controllers;
 
 /// <summary>
-/// 
 /// </summary>
 /// <param name="sender"></param>
 [Authorize]

@@ -12,7 +12,7 @@ namespace TgPoster.Endpoint.Tests.Endpoint;
 public class AccountEndpointTest(EndpointTestFixture fixture) : IClassFixture<EndpointTestFixture>
 {
     private readonly HttpClient client = fixture.CreateClient();
-    private readonly CreateHelper helper = new CreateHelper(fixture.CreateClient());
+    private readonly CreateHelper helper = new(fixture.CreateClient());
 
     [Fact]
     public async Task SignOn_WithValidData_ShouldReturnUserId()
@@ -84,7 +84,7 @@ public class AccountEndpointTest(EndpointTestFixture fixture) : IClassFixture<En
     [Fact]
     public async Task RefreshToken_WithNonExistRefresh_ShouldReturnNotFound()
     {
-        var refreshTokenRequest = new RefreshTokenRequest()
+        var refreshTokenRequest = new RefreshTokenRequest
         {
             RefreshToken = Guid.Parse("44448354-3701-4a64-b2cf-b661d77f0f61")
         };
@@ -97,7 +97,7 @@ public class AccountEndpointTest(EndpointTestFixture fixture) : IClassFixture<En
     public async Task RefreshToken_WithValidData_ShouldReturnNewTokens()
     {
         var login = "testus85er4";
-        var password = "testpassword"; 
+        var password = "testpassword";
         await helper.SignOn(login, password);
         var signInResponse = await helper.SignIn(login, password);
 

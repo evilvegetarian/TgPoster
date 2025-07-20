@@ -92,7 +92,7 @@ public class ListMessageStorageShould(StorageTestFixture fixture) : IClassFixtur
     {
         var schedule = await helper.CreateScheduleAsync();
         var message = await helper.CreateMessageAsync(schedule.Id);
-        var imageFile = await helper.CreateMessageFileAsync(message.Id, "image/jpeg");
+        var imageFile = await helper.CreateMessageFileAsync(message.Id);
         var videoFile = await helper.CreateVideoMessageFileAsync(message.Id);
 
         var result = await sut.GetMessagesAsync(schedule.Id, CancellationToken.None);

@@ -21,18 +21,18 @@ public class CreateScheduleStorageShould(StorageTestFixture fixture) : IClassFix
         var channelName = "Test Channel";
 
         var scheduleId = await sut.CreateScheduleAsync(
-            name, 
-            user.Id, 
-            telegramBot.Id, 
-            channelId, 
-            channelName, 
+            name,
+            user.Id,
+            telegramBot.Id,
+            channelId,
+            channelName,
             CancellationToken.None);
 
         scheduleId.ShouldNotBe(Guid.Empty);
 
         var createdSchedule = await context.Schedules
             .FirstOrDefaultAsync(x => x.Id == scheduleId);
-        
+
         createdSchedule.ShouldNotBeNull();
         createdSchedule.Name.ShouldBe(name);
         createdSchedule.UserId.ShouldBe(user.Id);

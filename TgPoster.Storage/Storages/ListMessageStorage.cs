@@ -9,7 +9,7 @@ internal sealed class ListMessageStorage(PosterContext context) : IListMessageSt
 {
     public Task<bool> ExistScheduleAsync(Guid scheduleId, Guid userId, CancellationToken ct)
     {
-        return context.Schedules.AnyAsync(x => x.Id == scheduleId && x.UserId== userId, ct);
+        return context.Schedules.AnyAsync(x => x.Id == scheduleId && x.UserId == userId, ct);
     }
 
     public Task<string?> GetApiTokenAsync(Guid scheduleId, CancellationToken ct)

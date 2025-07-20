@@ -5,17 +5,17 @@ namespace TgPoster.API.Models;
 public sealed class UpdateTimeRequest : IValidatableObject
 {
     /// <summary>
-    /// Id расписания
+    ///     Id расписания
     /// </summary>
     public required Guid ScheduleId { get; set; }
 
     /// <summary>
-    /// День недели
+    ///     День недели
     /// </summary>
     public required DayOfWeek DayOfWeek { get; set; }
 
     /// <summary>
-    /// Время постов
+    ///     Время постов
     /// </summary>
     public List<TimeOnly> Times { get; set; } = [];
 

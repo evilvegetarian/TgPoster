@@ -2,7 +2,6 @@ using System.Net;
 using System.Net.Http.Json;
 using Shouldly;
 using TgPoster.API.Common;
-using TgPoster.API.Domain.UseCases.Schedules.ListSchedule;
 using TgPoster.API.Domain.UseCases.TelegramBots.ListTelegramBot;
 using TgPoster.API.Models;
 using TgPoster.Endpoint.Tests.Helper;

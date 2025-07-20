@@ -26,7 +26,7 @@ public class CreateTelegramBotStorageShould(StorageTestFixture fixture) : IClass
         botId.ShouldBe(bot!.Id);
         botName.ShouldBe(bot.Name);
     }
-    
+
     [Fact]
     public async Task CreateTelegramBotAsync_WithDuplicate_ShouldCreateBot()
     {

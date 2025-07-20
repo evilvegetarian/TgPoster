@@ -66,7 +66,7 @@ public class ParseChannelEndpointTest(EndpointTestFixture fixture) : IClassFixtu
         {
             Channel = GlobalConst.Worked.Channel,
             AlwaysCheckNewPosts = false,
-            ScheduleId = GlobalConst.Worked.ScheduleId,
+            ScheduleId = GlobalConst.Worked.ScheduleId
         };
 
         var createdSchedule = await client.PostAsJsonAsync(Url, request);
@@ -134,7 +134,7 @@ public class ParseChannelEndpointTest(EndpointTestFixture fixture) : IClassFixtu
         {
             Channel = GlobalConst.Worked.Channel,
             AlwaysCheckNewPosts = false,
-            ScheduleId = GlobalConst.Worked.ScheduleId,
+            ScheduleId = GlobalConst.Worked.ScheduleId
         };
 
         var createdSchedule = await client.PostAsJsonAsync(Url, request);
@@ -159,7 +159,7 @@ public class ParseChannelEndpointTest(EndpointTestFixture fixture) : IClassFixtu
             ScheduleId = GlobalConst.Worked.ScheduleId,
             AlwaysCheckNewPosts = false,
             NeedVerifiedPosts = false,
-            AvoidWords = ["cum"],
+            AvoidWords = ["cum"]
         };
 
         var updateResponse = await anotherClient.PutAsync(Url + "/" + parseId, updateRequest.ToStringContent());
@@ -176,7 +176,7 @@ public class ParseChannelEndpointTest(EndpointTestFixture fixture) : IClassFixtu
             ScheduleId = GlobalConst.Worked.ScheduleId,
             AlwaysCheckNewPosts = false,
             NeedVerifiedPosts = false,
-            AvoidWords = ["cum"],
+            AvoidWords = ["cum"]
         };
 
         var updateResponse = await client.PutAsync(Url + "/" + nonExistId, updateRequest.ToStringContent());

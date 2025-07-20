@@ -20,7 +20,7 @@ public sealed record UserName
         {
             throw new ArgumentException("Длина никнейма больше 30.", nameof(value));
         }
-        
+
         Value = value;
     }
 

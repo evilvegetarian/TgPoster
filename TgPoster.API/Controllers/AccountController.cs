@@ -9,7 +9,7 @@ using TgPoster.API.Models;
 namespace TgPoster.API.Controllers;
 
 /// <summary>
-/// Контроллер пользователя
+///     Контроллер пользователя
 /// </summary>
 /// <param name="sender"></param>
 [ApiController]

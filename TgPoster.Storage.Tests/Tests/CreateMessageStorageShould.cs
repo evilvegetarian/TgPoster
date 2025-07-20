@@ -1,7 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Shouldly;
 using TgPoster.API.Domain.Services;
-using TgPoster.API.Domain.UseCases.Messages.CreateMessage;
 using TgPoster.Storage.Data;
 using TgPoster.Storage.Storages;
 
@@ -17,9 +16,9 @@ public class CreateMessageStorageShould(StorageTestFixture fixture) : IClassFixt
     public async Task ExistScheduleAsync_WithExistingSchedule_ShouldReturnTrue()
     {
         var schedule = await helper.CreateScheduleAsync();
-        
+
         var result = await sut.ExistScheduleAsync(schedule.UserId, schedule.Id, CancellationToken.None);
-        
+
         result.ShouldBeTrue();
     }
 
@@ -28,9 +27,9 @@ public class CreateMessageStorageShould(StorageTestFixture fixture) : IClassFixt
     {
         var user = await helper.CreateUserAsync();
         var nonExistingScheduleId = Guid.NewGuid();
-        
+
         var result = await sut.ExistScheduleAsync(user.Id, nonExistingScheduleId, CancellationToken.None);
-        
+
         result.ShouldBeFalse();
     }
 
@@ -39,9 +38,9 @@ public class CreateMessageStorageShould(StorageTestFixture fixture) : IClassFixt
     {
         var schedule = await helper.CreateScheduleAsync();
         var wrongUserId = Guid.NewGuid();
-        
+
         var result = await sut.ExistScheduleAsync(wrongUserId, schedule.Id, CancellationToken.None);
-        
+
         result.ShouldBeFalse();
     }
 
@@ -49,9 +48,9 @@ public class CreateMessageStorageShould(StorageTestFixture fixture) : IClassFixt
     public async Task GetTelegramBotAsync_WithExistingSchedule_ShouldReturnTelegramBot()
     {
         var schedule = await helper.CreateScheduleAsync();
-        
+
         var result = await sut.GetTelegramBotAsync(schedule.Id, schedule.UserId, CancellationToken.None);
-        
+
         result.ShouldNotBeNull();
         result.ApiTelegram.ShouldNotBeNullOrEmpty();
         result.ChatId.ShouldNotBe(0);
@@ -62,9 +61,9 @@ public class CreateMessageStorageShould(StorageTestFixture fixture) : IClassFixt
     {
         var user = await helper.CreateUserAsync();
         var nonExistingScheduleId = Guid.NewGuid();
-        
+
         var result = await sut.GetTelegramBotAsync(nonExistingScheduleId, user.Id, CancellationToken.None);
-        
+
         result.ShouldBeNull();
     }
 
@@ -73,9 +72,9 @@ public class CreateMessageStorageShould(StorageTestFixture fixture) : IClassFixt
     {
         var schedule = await helper.CreateScheduleAsync();
         var wrongUserId = Guid.NewGuid();
-        
+
         var result = await sut.GetTelegramBotAsync(schedule.Id, wrongUserId, CancellationToken.None);
-        
+
         result.ShouldBeNull();
     }
 
@@ -98,7 +97,7 @@ public class CreateMessageStorageShould(StorageTestFixture fixture) : IClassFixt
         var createdMessage = await context.Messages
             .Include(x => x.MessageFiles)
             .FirstOrDefaultAsync(x => x.Id == messageId);
-        
+
         createdMessage.ShouldNotBeNull();
         createdMessage.ScheduleId.ShouldBe(schedule.Id);
         createdMessage.TextMessage.ShouldBe(text);
@@ -122,10 +121,10 @@ public class CreateMessageStorageShould(StorageTestFixture fixture) : IClassFixt
         var createdMessage = await context.Messages
             .Include(x => x.MessageFiles)
             .FirstOrDefaultAsync(x => x.Id == messageId);
-        
+
         createdMessage.ShouldNotBeNull();
         createdMessage.ScheduleId.ShouldBe(schedule.Id);
-        createdMessage.TextMessage.ShouldBe(text); 
+        createdMessage.TextMessage.ShouldBe(text);
         //createdMessage.TimePosting.ShouldBe(time);
         createdMessage.MessageFiles.ShouldBeEmpty();
     }
@@ -147,7 +146,7 @@ public class CreateMessageStorageShould(StorageTestFixture fixture) : IClassFixt
         var createdMessage = await context.Messages
             .Include(x => x.MessageFiles)
             .FirstOrDefaultAsync(x => x.Id == messageId);
-        
+
         createdMessage.ShouldNotBeNull();
         createdMessage.ScheduleId.ShouldBe(schedule.Id);
         createdMessage.TextMessage.ShouldBeNull();

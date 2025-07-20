@@ -168,17 +168,17 @@ public class ScheduleEndpointTest(EndpointTestFixture fixture) : IClassFixture<E
         var response = await client.PatchAsync(Url + "/" + scheduleId + "/status", null);
         response.StatusCode.ShouldBe(HttpStatusCode.NotFound);
     }
-    
+
     [Fact]
     public async Task UpdateStatus_ValidData_ShouldReturnOk()
     {
         //Изначальный статус true
         var initalStatus = true;
-        var scheduleId = await helper.CreateSchedule();  
-        
+        var scheduleId = await helper.CreateSchedule();
+
         var response = await client.PatchAsync(Url + "/" + scheduleId + "/status", null);
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
-        
+
         var getResponse = await client.GetAsync<ScheduleResponse>(Url + "/" + scheduleId);
         getResponse.IsActive.ShouldBe(!initalStatus);
     }

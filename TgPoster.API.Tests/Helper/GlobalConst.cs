@@ -10,6 +10,7 @@ internal static class GlobalConst
     public static long ChannelId = -1001563514057;
 
     public static Guid UserIdEmpty = Guid.Parse("d312dedb-70e8-4015-8d88-dc3c4d49f30c");
+
     public static class Worked
     {
         public const long ChatIdTg = 492807650;

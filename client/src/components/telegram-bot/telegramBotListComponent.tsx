@@ -1,13 +1,13 @@
 ﻿import {
-    useGetApiV1TelegramBot,
+    getGetApiV1TelegramBotQueryKey,
     useDeleteApiV1TelegramBotId,
-    getGetApiV1TelegramBotQueryKey
+    useGetApiV1TelegramBot
 } from "@/api/endpoints/telegram-bot/telegram-bot.ts";
 import type {TelegramBotResponse} from "@/api/endpoints/tgPosterAPI.schemas.ts";
 import {Card, CardContent, CardDescription, CardHeader, CardTitle} from "@/components/ui/card.tsx";
 import {Badge} from "@/components/ui/badge.tsx";
 import {Skeleton} from "@/components/ui/skeleton.tsx";
-import {Bot, Users, AlertCircle, MoreVertical, Trash2, Loader2} from "lucide-react";
+import {AlertCircle, Bot, Loader2, MoreVertical, Trash2, Users} from "lucide-react";
 import {Button} from "@/components/ui/button.tsx";
 import {
     DropdownMenu,
@@ -39,7 +39,7 @@ export function TelegramBotListComponent() {
             onSuccess: () => {
                 toast.success("Telegram бот успешно удален!");
                 setBotToDelete(null);
-                queryClient.invalidateQueries({ queryKey: getGetApiV1TelegramBotQueryKey() });
+                queryClient.invalidateQueries({queryKey: getGetApiV1TelegramBotQueryKey()});
             },
             onError: (error) => {
                 toast.error("Ошибка при удалении бота");
@@ -48,7 +48,8 @@ export function TelegramBotListComponent() {
         }
     });
 
-    useEffect(() => {}, [ refetch]);
+    useEffect(() => {
+    }, [refetch]);
 
     const handleDeleteClick = (bot: TelegramBotResponse) => {
         setBotToDelete(bot);
@@ -72,22 +73,22 @@ export function TelegramBotListComponent() {
                 <CardHeader>
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                            <Users className="h-5 w-5 text-green-500" />
+                            <Users className="h-5 w-5 text-green-500"/>
                             <CardTitle>Мои Telegram боты</CardTitle>
                         </div>
-                        <Skeleton className="h-6 w-16" />
+                        <Skeleton className="h-6 w-16"/>
                     </div>
                     <CardDescription>Загрузка списка ботов...</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                     {[...Array(3)].map((_, i) => (
                         <div key={i} className="flex items-center space-x-4 p-4 border rounded-lg">
-                            <Skeleton className="h-10 w-10 rounded-full" />
+                            <Skeleton className="h-10 w-10 rounded-full"/>
                             <div className="space-y-2 flex-1">
-                                <Skeleton className="h-4 w-[200px]" />
-                                <Skeleton className="h-3 w-[100px]" />
+                                <Skeleton className="h-4 w-[200px]"/>
+                                <Skeleton className="h-3 w-[100px]"/>
                             </div>
-                            <Skeleton className="h-8 w-8" />
+                            <Skeleton className="h-8 w-8"/>
                         </div>
                     ))}
                 </CardContent>
@@ -100,13 +101,13 @@ export function TelegramBotListComponent() {
             <Card>
                 <CardHeader>
                     <div className="flex items-center gap-2">
-                        <Users className="h-5 w-5 text-green-500" />
+                        <Users className="h-5 w-5 text-green-500"/>
                         <CardTitle>Мои Telegram боты</CardTitle>
                     </div>
                 </CardHeader>
                 <CardContent>
                     <div className="flex items-center gap-2 text-destructive bg-destructive/10 p-4 rounded-lg">
-                        <AlertCircle className="h-5 w-5" />
+                        <AlertCircle className="h-5 w-5"/>
                         <span>Произошла ошибка при загрузке ботов</span>
                     </div>
                 </CardContent>
@@ -120,7 +121,7 @@ export function TelegramBotListComponent() {
                 <CardHeader>
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                            <Users className="h-5 w-5 text-green-500" />
+                            <Users className="h-5 w-5 text-green-500"/>
                             <CardTitle>Мои Telegram боты</CardTitle>
                         </div>
                         <Badge variant="secondary">
@@ -140,8 +141,9 @@ export function TelegramBotListComponent() {
                                     className="flex items-center gap-4 p-4 border rounded-lg hover:bg-muted/50 transition-colors"
                                 >
                                     <div className="flex-shrink-0">
-                                        <div className="h-10 w-10 bg-blue-100 rounded-full flex items-center justify-center">
-                                            <Bot className="h-5 w-5 text-blue-600" />
+                                        <div
+                                            className="h-10 w-10 bg-blue-100 rounded-full flex items-center justify-center">
+                                            <Bot className="h-5 w-5 text-blue-600"/>
                                         </div>
                                     </div>
                                     <div className="flex-1 min-w-0">
@@ -160,7 +162,7 @@ export function TelegramBotListComponent() {
                                     <DropdownMenu>
                                         <DropdownMenuTrigger asChild>
                                             <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                                                <MoreVertical className="h-4 w-4" />
+                                                <MoreVertical className="h-4 w-4"/>
                                             </Button>
                                         </DropdownMenuTrigger>
                                         <DropdownMenuContent align="end">
@@ -169,7 +171,7 @@ export function TelegramBotListComponent() {
                                                 onClick={() => handleDeleteClick(bot)}
                                                 disabled={isDeleting}
                                             >
-                                                <Trash2 className="mr-2 h-4 w-4" />
+                                                <Trash2 className="mr-2 h-4 w-4"/>
                                                 Удалить
                                             </DropdownMenuItem>
                                         </DropdownMenuContent>
@@ -179,7 +181,7 @@ export function TelegramBotListComponent() {
                         </div>
                     ) : (
                         <div className="text-center py-8">
-                            <Bot className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                            <Bot className="h-12 w-12 text-muted-foreground mx-auto mb-4"/>
                             <h3 className="text-lg font-medium text-foreground mb-2">
                                 Боты не найдены
                             </h3>
@@ -213,9 +215,9 @@ export function TelegramBotListComponent() {
                             className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                         >
                             {isDeleting ? (
-                                <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Удаление...</>
+                                <><Loader2 className="mr-2 h-4 w-4 animate-spin"/>Удаление...</>
                             ) : (
-                                <><Trash2 className="mr-2 h-4 w-4" />Удалить</>
+                                <><Trash2 className="mr-2 h-4 w-4"/>Удалить</>
                             )}
                         </AlertDialogAction>
                     </AlertDialogFooter>

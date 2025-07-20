@@ -1,4 +1,3 @@
-using MediatR;
 using TgPoster.API.Domain.UseCases.Parse.CreateParseChannel;
 using TgPoster.API.Domain.UseCases.Parse.UpdateParseChannel;
 using TgPoster.API.Models;
@@ -6,12 +5,10 @@ using TgPoster.API.Models;
 namespace TgPoster.API.Mapper;
 
 /// <summary>
-/// 
 /// </summary>
 public static class ParsingMapping
 {
     /// <summary>
-    /// 
     /// </summary>
     /// <param name="request"></param>
     /// <returns></returns>

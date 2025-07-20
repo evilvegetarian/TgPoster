@@ -21,7 +21,7 @@ public static class ChannelParsingParametersMapper
             ScheduleId = entity.ScheduleId,
             NeedVerifiedPosts = entity.NeedVerifiedPosts,
             IsActive = entity.Status.IsActive(),
-            Channel=entity.Channel,
+            Channel = entity.Channel
         };
     }
 
@@ -38,7 +38,7 @@ public static class ChannelParsingParametersMapper
             DeleteText = request.DeleteText,
             CheckNewPosts = request.AlwaysCheckNewPosts,
             NeedVerifiedPosts = request.NeedVerifiedPosts,
-            DeleteMedia = request.DeleteMedia,
+            DeleteMedia = request.DeleteMedia
         };
     }
 }

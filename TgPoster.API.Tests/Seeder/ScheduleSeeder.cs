@@ -22,7 +22,7 @@ internal class ScheduleSeeder(PosterContext context) : BaseSeeder
                 UserId = GlobalConst.UserId,
                 TelegramBotId = GlobalConst.TelegramBotId,
                 ChannelId = GlobalConst.ChannelId,
-                ChannelName = "PerfectChannel",
+                ChannelName = "PerfectChannel"
             },
             new()
             {

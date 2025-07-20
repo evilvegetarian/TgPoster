@@ -12,12 +12,12 @@ public class ParseChannelsResponse
     public DateTime? DateTo { get; set; }
 
     /// <summary>
-    /// Тестовый статус парсинга
+    ///     Тестовый статус парсинга
     /// </summary>
     public required string Status { get; set; }
 
     /// <summary>
-    /// Работает ли парсинг
+    ///     Работает ли парсинг
     /// </summary>
     public required bool IsActive { get; set; }
 

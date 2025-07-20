@@ -11,7 +11,6 @@ using TgPoster.API.Models;
 namespace TgPoster.API.Controllers;
 
 /// <summary>
-/// 
 /// </summary>
 /// <param name="sender"></param>
 [Authorize]
@@ -19,7 +18,7 @@ namespace TgPoster.API.Controllers;
 public class ParseChannelController(ISender sender) : ControllerBase
 {
     /// <summary>
-    /// Создания задания для парсинга канала
+    ///     Создания задания для парсинга канала
     /// </summary>
     /// <param name="request"></param>
     /// <param name="ct"></param>
@@ -35,7 +34,7 @@ public class ParseChannelController(ISender sender) : ControllerBase
     }
 
     /// <summary>
-    /// Настройки парсинга
+    ///     Настройки парсинга
     /// </summary>
     /// <param name="ct"></param>
     /// <returns></returns>
@@ -49,7 +48,7 @@ public class ParseChannelController(ISender sender) : ControllerBase
     }
 
     /// <summary>
-    /// Изменения парсинга
+    ///     Изменения парсинга
     /// </summary>
     /// <param name="request"></param>
     /// <param name="ct"></param>

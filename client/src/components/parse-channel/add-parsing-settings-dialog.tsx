@@ -1,9 +1,8 @@
 ﻿"use client"
 
 import type React from "react"
-
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
+import {useState} from "react"
+import {Button} from "@/components/ui/button"
 import {
     Dialog,
     DialogContent,
@@ -12,13 +11,13 @@ import {
     DialogHeader,
     DialogTitle,
 } from "@/components/ui/dialog"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Switch } from "@/components/ui/switch"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Badge } from "@/components/ui/badge"
-import { X, Loader2, AlertCircle } from "lucide-react"
-import { toast } from "sonner"
+import {Input} from "@/components/ui/input"
+import {Label} from "@/components/ui/label"
+import {Switch} from "@/components/ui/switch"
+import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select"
+import {Badge} from "@/components/ui/badge"
+import {AlertCircle, Loader2, X} from "lucide-react"
+import {toast} from "sonner"
 import type {CreateParseChannelRequest} from "@/api/endpoints/tgPosterAPI.schemas.ts";
 import {useGetApiV1Schedule} from "@/api/endpoints/schedule/schedule.ts";
 
@@ -50,7 +49,7 @@ export function AddParsingSettingsDialog({
     const [newAvoidWord, setNewAvoidWord] = useState("")
 
     // Загружаем расписания
-    const { data: schedules = [], isLoading: schedulesLoading, error: schedulesError } = useGetApiV1Schedule()
+    const {data: schedules = [], isLoading: schedulesLoading, error: schedulesError} = useGetApiV1Schedule()
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault()
@@ -99,7 +98,7 @@ export function AddParsingSettingsDialog({
         if (newAvoidWord.trim() && !formData.avoidWords?.includes(newAvoidWord.trim())) {
             setFormData({
                 ...formData,
-                avoidWords: [...formData.avoidWords??[], newAvoidWord.trim()],
+                avoidWords: [...formData.avoidWords ?? [], newAvoidWord.trim()],
             })
             setNewAvoidWord("")
             toast.success("Слово добавлено", {
@@ -145,7 +144,7 @@ export function AddParsingSettingsDialog({
                                 id="channel"
                                 placeholder="@channel_name"
                                 value={formData.channel?.valueOf()}
-                                onChange={(e) => setFormData({ ...formData, channel: e.target.value })}
+                                onChange={(e) => setFormData({...formData, channel: e.target.value})}
                                 disabled={isLoading}
                                 required
                             />
@@ -155,24 +154,25 @@ export function AddParsingSettingsDialog({
                             <Label htmlFor="schedule">Расписание *</Label>
                             {schedulesError ? (
                                 <div className="flex items-center gap-2 p-2 text-sm text-red-600 bg-red-50 rounded-md">
-                                    <AlertCircle className="h-4 w-4" />
+                                    <AlertCircle className="h-4 w-4"/>
                                     <span>Ошибка загрузки расписаний</span>
                                 </div>
                             ) : (
                                 <Select
                                     value={formData.scheduleId}
-                                    onValueChange={(value) => setFormData({ ...formData, scheduleId: value })}
+                                    onValueChange={(value) => setFormData({...formData, scheduleId: value})}
                                     disabled={isLoading || schedulesLoading}
                                     required
                                 >
                                     <SelectTrigger>
-                                        <SelectValue placeholder={schedulesLoading ? "Загрузка..." : "Выберите расписание"} />
+                                        <SelectValue
+                                            placeholder={schedulesLoading ? "Загрузка..." : "Выберите расписание"}/>
                                     </SelectTrigger>
                                     <SelectContent>
                                         {schedulesLoading ? (
                                             <SelectItem value="loading" disabled>
                                                 <div className="flex items-center gap-2">
-                                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                                    <Loader2 className="h-4 w-4 animate-spin"/>
                                                     Загрузка расписаний...
                                                 </div>
                                             </SelectItem>
@@ -188,7 +188,8 @@ export function AddParsingSettingsDialog({
                                                         <div className="flex flex-col">
                                                             <span>{schedule.name}</span>
                                                             {schedule.name && (
-                                                                <span className="text-xs text-muted-foreground">{schedule.name}</span>
+                                                                <span
+                                                                    className="text-xs text-muted-foreground">{schedule.name}</span>
                                                             )}
                                                         </div>
                                                     </SelectItem>
@@ -208,7 +209,7 @@ export function AddParsingSettingsDialog({
                             </div>
                             <Switch
                                 checked={formData.alwaysCheckNewPosts}
-                                onCheckedChange={(checked) => setFormData({ ...formData, alwaysCheckNewPosts: checked })}
+                                onCheckedChange={(checked) => setFormData({...formData, alwaysCheckNewPosts: checked})}
                                 disabled={isLoading}
                             />
                         </div>
@@ -220,7 +221,7 @@ export function AddParsingSettingsDialog({
                             </div>
                             <Switch
                                 checked={formData.deleteText}
-                                onCheckedChange={(checked) => setFormData({ ...formData, deleteText: checked })}
+                                onCheckedChange={(checked) => setFormData({...formData, deleteText: checked})}
                                 disabled={isLoading}
                             />
                         </div>
@@ -232,7 +233,7 @@ export function AddParsingSettingsDialog({
                             </div>
                             <Switch
                                 checked={formData.deleteMedia}
-                                onCheckedChange={(checked) => setFormData({ ...formData, deleteMedia: checked })}
+                                onCheckedChange={(checked) => setFormData({...formData, deleteMedia: checked})}
                                 disabled={isLoading}
                             />
                         </div>
@@ -244,7 +245,7 @@ export function AddParsingSettingsDialog({
                             </div>
                             <Switch
                                 checked={formData.needVerifiedPosts}
-                                onCheckedChange={(checked) => setFormData({ ...formData, needVerifiedPosts: checked })}
+                                onCheckedChange={(checked) => setFormData({...formData, needVerifiedPosts: checked})}
                                 disabled={isLoading}
                             />
                         </div>
@@ -264,12 +265,13 @@ export function AddParsingSettingsDialog({
                                 Добавить
                             </Button>
                         </div>
-                        {(formData.avoidWords?.length??0) > 0 && (
+                        {(formData.avoidWords?.length ?? 0) > 0 && (
                             <div className="flex flex-wrap gap-2 mt-2">
                                 {formData.avoidWords?.map((word, index) => (
                                     <Badge key={index} variant="secondary" className="gap-1">
                                         {word}
-                                        <X className="h-3 w-3 cursor-pointer" onClick={() => !isLoading && removeAvoidWord(word)} />
+                                        <X className="h-3 w-3 cursor-pointer"
+                                           onClick={() => !isLoading && removeAvoidWord(word)}/>
                                     </Badge>
                                 ))}
                             </div>
@@ -283,7 +285,7 @@ export function AddParsingSettingsDialog({
                                 id="dateFrom"
                                 type="date"
                                 value={formData.dateFrom?.valueOf()}
-                                onChange={(e) => setFormData({ ...formData, dateFrom: e.target.value })}
+                                onChange={(e) => setFormData({...formData, dateFrom: e.target.value})}
                                 disabled={isLoading}
                             />
                         </div>
@@ -294,18 +296,19 @@ export function AddParsingSettingsDialog({
                                 id="dateTo"
                                 type="date"
                                 value={formData.dateTo?.valueOf()}
-                                onChange={(e) => setFormData({ ...formData, dateTo: e.target.value })}
+                                onChange={(e) => setFormData({...formData, dateTo: e.target.value})}
                                 disabled={isLoading}
                             />
                         </div>
                     </div>
 
                     <DialogFooter>
-                        <Button type="button" variant="outline" onClick={() => handleOpenChange(false)} disabled={isLoading}>
+                        <Button type="button" variant="outline" onClick={() => handleOpenChange(false)}
+                                disabled={isLoading}>
                             Отмена
                         </Button>
                         <Button type="submit" disabled={isLoading || schedulesLoading}>
-                            {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                            {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin"/>}
                             Создать настройку
                         </Button>
                     </DialogFooter>

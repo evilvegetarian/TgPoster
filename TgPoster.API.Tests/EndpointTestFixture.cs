@@ -1,6 +1,4 @@
 using System.Net.Http.Headers;
-using System.Net.Http.Json;
-using System.Text.Json;
 using MassTransit;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -13,9 +11,6 @@ using NSubstitute;
 using Security.Interfaces;
 using Security.Models;
 using Testcontainers.PostgreSql;
-using TgPoster.API.Common;
-using TgPoster.API.Domain.UseCases.Accounts.SignIn;
-using TgPoster.API.Models;
 using TgPoster.Endpoint.Tests.Seeder;
 using TgPoster.Storage.Data;
 
@@ -81,7 +76,7 @@ public class EndpointTestFixture : WebApplicationFactory<Program>, IAsyncLifetim
             .Build();
         builder.UseConfiguration(configuration);
         builder.ConfigureLogging(cfg => cfg.ClearProviders());
-        
+
         builder.ConfigureServices(services =>
         {
             services.AddSingleton(memoryCache!);
@@ -91,7 +86,7 @@ public class EndpointTestFixture : WebApplicationFactory<Program>, IAsyncLifetim
             {
                 services.Remove(busDescriptor);
             }
-            
+
             services.AddSingleton(Substitute.For<IBus>());
         });
         base.ConfigureWebHost(builder);
@@ -103,7 +98,7 @@ public class EndpointTestFixture : WebApplicationFactory<Program>, IAsyncLifetim
             .SetBasePath(AppContext.BaseDirectory)
             .AddJsonFile("appsettingsTest.json", false, true)
             .Build();
-        
+
         var apiValue = configuration["Api"]!;
 
         var hash = configuration["Hash"]!;

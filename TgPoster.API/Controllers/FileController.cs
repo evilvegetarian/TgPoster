@@ -7,7 +7,6 @@ using TgPoster.API.Domain.UseCases.Files;
 namespace TgPoster.API.Controllers;
 
 /// <summary>
-/// 
 /// </summary>
 /// <param name="sender"></param>
 [Authorize]

@@ -52,7 +52,7 @@ public class DayEndpointTest(EndpointTestFixture fixture) : IClassFixture<Endpoi
         var responseAnother = await anotherClient.GetAsync(Url + "?scheduleId=" + scheduleId);
         responseAnother.StatusCode.ShouldBe(HttpStatusCode.NotFound);
     }
-    
+
     [Fact]
     public async Task Get_WithValidData_ShouldOk()
     {
@@ -78,7 +78,7 @@ public class DayEndpointTest(EndpointTestFixture fixture) : IClassFixture<Endpoi
         getResponse.ShouldContain(x => x.ScheduleId == scheduleId);
         getResponse.ShouldContain(x => request.DaysOfWeek.Select(day => day.DayOfWeekPosting).Contains(x.DayOfWeek));
     }
-    
+
     [Fact]
     public async Task Create_NonExistScheduleId_ShouldReturnOk()
     {
@@ -241,7 +241,7 @@ public class DayEndpointTest(EndpointTestFixture fixture) : IClassFixture<Endpoi
         var response = await client.PostAsync(Url, request.ToStringContent());
         response.StatusCode.ShouldBe(HttpStatusCode.NotFound);
     }
-    
+
     [Fact]
     public async Task Create_WithAnotherUser_ShouldReturnNotFound()
     {

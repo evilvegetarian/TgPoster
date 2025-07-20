@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 namespace TgPoster.API.Models;
 
 /// <summary>
-/// Логин
+///     Логин
 /// </summary>
 public class SignOnRequest : IValidatableObject
 {

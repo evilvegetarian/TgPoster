@@ -20,7 +20,7 @@ internal class ScheduleConfiguration : BaseEntityConfig<Schedule>
         builder.Property(x => x.ChannelId)
             .HasMaxLength(15)
             .IsRequired();
-        
+
         builder.Property(x => x.ChannelName)
             .HasMaxLength(50)
             .IsRequired();
