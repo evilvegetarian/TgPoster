@@ -13,35 +13,35 @@ internal sealed class ListMessageUseCase(
     ICryptoAES aes,
     FileService fileService,
     IIdentityProvider provider
-) : IRequestHandler<ListMessageQuery, List<MessageResponse>>
+) : IRequestHandler<ListMessageQuery, PagedResponse<MessageResponse>>
 {
-    public async Task<List<MessageResponse>> Handle(ListMessageQuery request, CancellationToken ct)
+    public async Task<PagedResponse<MessageResponse>> Handle(ListMessageQuery request, CancellationToken ct)
     {
         if (!await storage.ExistScheduleAsync(request.ScheduleId, provider.Current.UserId, ct))
-        {
-            throw new ScheduleNotFoundException();
-        }
+            throw new ScheduleNotFoundException(request.ScheduleId);
 
         var encryptedToken = await storage.GetApiTokenAsync(request.ScheduleId, ct);
         if (encryptedToken == null)
-        {
             throw new TelegramNotFoundException();
-        }
 
         var token = aes.Decrypt(options.SecretKey, encryptedToken);
-
         var bot = new TelegramBotClient(token);
-        var message = await storage.GetMessagesAsync(request.ScheduleId, ct);
-        var messages = new List<MessageResponse>();
-        foreach (var m in message)
+
+        var pagedMessages =
+            await storage.GetMessagesAsync(request.ScheduleId, request.PageNumber, request.PageSize, ct);
+
+        var messageResponses = new List<MessageResponse>();
+        foreach (var m in pagedMessages.Items)
         {
             var filesCacheInfos = await fileService.ProcessFilesAsync(bot, m.Files, ct);
-            messages.Add(new MessageResponse
+            messageResponses.Add(new MessageResponse
             {
                 Id = m.Id,
                 TextMessage = m.TextMessage,
                 ScheduleId = m.ScheduleId,
                 TimePosting = m.TimePosting,
+                NeedApprove = !m.IsVerified,
+                CanApprove = true,
                 Files = filesCacheInfos.Select(file => new FileResponse
                 {
                     Id = file.Id,
@@ -52,6 +52,11 @@ internal sealed class ListMessageUseCase(
             });
         }
 
-        return messages;
+        return new PagedResponse<MessageResponse>(
+            messageResponses,
+            pagedMessages.TotalCount,
+            request.PageNumber,
+            request.PageSize
+        );
     }
 }

@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace TgPoster.API.Models;
 
-public sealed class CreateMessageRequest : IValidatableObject
+public sealed class EditMessageRequest : IValidatableObject
 {
     /// <summary>
     ///     Id расписания
@@ -20,9 +20,14 @@ public sealed class CreateMessageRequest : IValidatableObject
     public string? TextMessage { get; set; }
 
     /// <summary>
-    ///     Файлы сообщения
+    ///     Старые файлы сообщения
     /// </summary>
-    public List<IFormFile>? Files { get; set; } = [];
+    public List<Guid> OldFiles { get; set; } = [];
+
+    /// <summary>
+    ///     Новые файлы сообщения
+    /// </summary>
+    public List<IFormFile> NewFiles { get; set; } = [];
 
     public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
     {

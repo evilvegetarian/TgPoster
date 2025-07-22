@@ -11,7 +11,7 @@ internal class UpdateTimeUseCase(IUpdateTimeStorage storage, IIdentityProvider p
     {
         if (!await storage.ExistScheduleAsync(request.ScheduleId, provider.Current.UserId, ct))
         {
-            throw new ScheduleNotFoundException();
+            throw new ScheduleNotFoundException(request.ScheduleId);
         }
 
         var dayId = await storage.DayIdAsync(request.ScheduleId, request.DayOfWeek, ct);

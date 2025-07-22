@@ -7,17 +7,17 @@ public class Message : BaseEntity
     /// <summary>
     ///     Id расписания
     /// </summary>
-    public required Guid ScheduleId { get; init; }
+    public required Guid ScheduleId { get; set; }
 
     /// <summary>
     ///     Время поста
     /// </summary>
-    public required DateTimeOffset TimePosting { get; init; }
+    public required DateTimeOffset TimePosting { get; set; }
 
     /// <summary>
     ///     Текстовое сообщение
     /// </summary>
-    public string? TextMessage { get; init; }
+    public string? TextMessage { get; set; }
 
     /// <summary>
     ///     Если в TextMessage больше 1024 символов, в нем не могут быть файлы,
@@ -44,7 +44,7 @@ public class Message : BaseEntity
     /// <summary>
     ///     Файлы сообщения
     /// </summary>
-    public ICollection<MessageFile> MessageFiles { get; init; } = [];
+    public ICollection<MessageFile> MessageFiles { get; set; } = [];
 }
 
 public static class MessageExtenstion

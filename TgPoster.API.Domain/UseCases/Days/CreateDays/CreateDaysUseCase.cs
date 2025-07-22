@@ -11,7 +11,7 @@ internal class CreateDaysUseCase(ICreateDaysStorage storage, IIdentityProvider i
     {
         if (!await storage.ScheduleExistAsync(command.ScheduleId, identity.Current.UserId, ct))
         {
-            throw new ScheduleNotFoundException();
+            throw new ScheduleNotFoundException(command.ScheduleId);
         }
 
         var days = await storage.GetDayOfWeekAsync(command.ScheduleId, ct);

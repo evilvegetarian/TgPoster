@@ -20,9 +20,9 @@ internal sealed class CreateMessageUseCase(
         var userId = identityProvider.Current.UserId;
         if (!await storage.ExistScheduleAsync(userId, request.ScheduleId, ct))
         {
-            throw new ScheduleNotFoundException();
+            throw new ScheduleNotFoundException(request.ScheduleId);
         }
-
+        
         var telegramBot = await storage.GetTelegramBotAsync(request.ScheduleId, userId, ct);
         if (telegramBot == null)
         {

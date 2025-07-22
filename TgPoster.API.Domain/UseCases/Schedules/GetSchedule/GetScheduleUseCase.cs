@@ -13,7 +13,7 @@ internal sealed class GetScheduleUseCase(IGetScheduleStorage storage, IIdentityP
         var schedule = await storage.GetScheduleAsync(request.Id, identity.Current.UserId, ct);
         if (schedule is null)
         {
-            throw new ScheduleNotFoundException();
+            throw new ScheduleNotFoundException(request.Id);
         }
 
         return schedule;

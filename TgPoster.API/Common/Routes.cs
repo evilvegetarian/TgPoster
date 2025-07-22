@@ -48,6 +48,10 @@ internal static class Routes
         internal const string List = Root;
         internal const string CreateMessagesFromFiles = Root + "/batch-from-files";
         internal const string Create = Root;
+        internal const string Update = Root + "/{id:guid}";
+        internal const string DeleteFileMessage = Root + "/{id:guid}/files/{fileId:guid}";
+        internal const string LoadFiles = Root + "/{id:guid}/file";
+        internal const string ApproveMessages = Root ;
         internal const string Get = Root + "/{id:guid}";
         internal const string Delete = Root + "/{id:guid}";
     }

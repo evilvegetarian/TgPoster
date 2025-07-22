@@ -6,6 +6,9 @@ using TgPoster.API.Domain.UseCases.Messages.CreateMessage;
 using TgPoster.API.Domain.UseCases.Messages.ListMessage;
 using TgPoster.API.Models;
 using TgPoster.Endpoint.Tests.Helper;
+using TgPoster.API.Domain.UseCases.Messages.EditMessage;
+using TgPoster.API.Domain.UseCases.Messages.DeleteFileMessage;
+using TgPoster.API.Domain.UseCases.Messages.LoadFilesMessage;
 
 namespace TgPoster.Endpoint.Tests.Endpoint;
 
@@ -28,9 +31,9 @@ public class MessageEndpointTests(EndpointTestFixture fixture) : IClassFixture<E
         var createResponse = await client.PostAsync(Routes.Message.CreateMessagesFromFiles, request.ToMultipartForm());
         createResponse.StatusCode.ShouldBe(HttpStatusCode.Created);
 
-        var messages =
-            await client.GetAsync<List<MessageResponse>>(Routes.Message.List + "?scheduleId=" + request.ScheduleId);
-        messages.Count.ShouldBe(files.Count);
+        var message =
+            await client.GetAsync<PagedResponse<MessageResponse>>(Routes.Message.List + "?scheduleId=" + request.ScheduleId);
+        message.Data.Count.ShouldBe(files.Count);
     }
 
     [Fact]
@@ -92,8 +95,8 @@ public class MessageEndpointTests(EndpointTestFixture fixture) : IClassFixture<E
 
         var response = await client.GetAsync(Routes.Message.List + "?scheduleId=" + scheduleId);
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
-        var messages = await response.Content.ReadFromJsonAsync<List<MessageResponse>>();
-        messages!.Count.ShouldBeGreaterThan(0);
+        var messages = await response.Content.ReadFromJsonAsync<PagedResponse<MessageResponse>>();
+        messages!.Data.Count.ShouldBeGreaterThan(0);
         messages.ShouldNotBeNull();
     }
 
@@ -195,5 +198,88 @@ public class MessageEndpointTests(EndpointTestFixture fixture) : IClassFixture<E
 
         var listAnotherResponse = await anotherClient.GetAsync(Url + "/" + createdResponse.Id);
         listAnotherResponse.StatusCode.ShouldBe(HttpStatusCode.NotFound);
+    }
+
+    [Fact]
+    public async Task Edit_WithValidData_ReturnOk()
+    {
+        var messageId = await helper.CreateMessage(GlobalConst.Worked.ScheduleId);
+        var request = new EditMessageRequest
+        {
+            TextMessage = "new text",
+            TimePosting = DateTimeOffset.UtcNow.AddDays(2),
+            ScheduleId = GlobalConst.Worked.ScheduleId
+        };
+
+        var ssss=request.ToMultipartForm();
+        var response = await client.PutAsync(Url + "/" + messageId, ssss);
+        var ss=await response.Content.ReadAsStringAsync();
+        response.StatusCode.ShouldBe(HttpStatusCode.OK);
+
+        var updatedMessage = await client.GetAsync<MessageResponse>(Url + "/" + messageId);
+        updatedMessage.TextMessage.ShouldBe(request.TextMessage);
+    }
+
+    [Fact]
+    public async Task Edit_WithNonExistentMessageId_ReturnNotFound()
+    {
+        var request = new EditMessageRequest
+        {
+            TextMessage = "new text",
+            ScheduleId = Guid.NewGuid(),
+            TimePosting = DateTimeOffset.UtcNow.AddMinutes(5)
+        };
+
+        var response = await client.PutAsync(Url + "/" + Guid.NewGuid(), request.ToMultipartForm());
+        response.StatusCode.ShouldBe(HttpStatusCode.NotFound);
+    }
+
+    [Fact]
+    public async Task Edit_WithAnotherUser_ReturnNotFound()
+    {
+        var messageId = await helper.CreateMessage(GlobalConst.Worked.ScheduleId);
+        var request = new EditMessageRequest
+        {
+            TextMessage = "new text",
+            TimePosting = DateTimeOffset.UtcNow.AddDays(2),
+            ScheduleId = GlobalConst.Worked.ScheduleId
+        };
+
+        var anotherClient = fixture.GetClient(fixture.GenerateTestToken(GlobalConst.UserIdEmpty));
+        var response = await anotherClient.PutAsync(Url + "/" + messageId, request.ToMultipartForm());
+        response.StatusCode.ShouldBe(HttpStatusCode.NotFound);
+    }
+
+    [Fact]
+    public async Task DeleteFile_WithValidData_ReturnOk()
+    {
+        var messageId = await helper.CreateMessage(GlobalConst.Worked.ScheduleId, withFiles: true);
+        var message = await client.GetAsync<MessageResponse>(Url + "/" + messageId);
+        var fileId = message.Files.First().Id;
+
+        var response = await client.DeleteAsync(Url + "/" + messageId + "/files/" + fileId);
+        response.StatusCode.ShouldBe(HttpStatusCode.OK);
+
+        var updatedMessage = await client.GetAsync<MessageResponse>(Url + "/" + messageId);
+        updatedMessage.Files.ShouldNotContain(f => f.Id == fileId);
+    }
+
+    [Fact]
+    public async Task DeleteFile_WithNonExistentMessageId_ReturnNotFound()
+    {
+        var response = await client.DeleteAsync(Url + "/" + Guid.NewGuid() + "/files/" + Guid.NewGuid());
+        response.StatusCode.ShouldBe(HttpStatusCode.NotFound);
+    }
+
+    [Fact]
+    public async Task DeleteFile_WithAnotherUser_ReturnNotFound()
+    {
+        var messageId = await helper.CreateMessage(GlobalConst.Worked.ScheduleId, withFiles: true);
+        var message = await client.GetAsync<MessageResponse>(Url + "/" + messageId);
+        var fileId = message.Files.First().Id;
+
+        var anotherClient = fixture.GetClient(fixture.GenerateTestToken(GlobalConst.UserIdEmpty));
+        var response = await anotherClient.DeleteAsync(Url + "/" + messageId + "/files/" + fileId);
+        response.StatusCode.ShouldBe(HttpStatusCode.NotFound);
     }
 }

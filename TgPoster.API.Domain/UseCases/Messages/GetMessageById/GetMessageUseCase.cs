@@ -21,7 +21,7 @@ internal sealed class GetMessageUseCase(
 
         if (message == null)
         {
-            throw new MessageNotFoundException();
+            throw new MessageNotFoundException(request.Id);
         }
 
         var token = await tokenService.GetTokenByScheduleIdAsync(message.ScheduleId, ct);
@@ -35,6 +35,8 @@ internal sealed class GetMessageUseCase(
             TextMessage = message.TextMessage,
             ScheduleId = message.ScheduleId,
             TimePosting = message.TimePosting,
+            CanApprove = true,
+            NeedApprove = !message.IsVerified,
             Files = filesCacheInfos.Select(file => new FileResponse
             {
                 Id = file.Id,

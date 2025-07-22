@@ -4,6 +4,7 @@ using TgPoster.API.Domain.UseCases.Messages.CreateMessage;
 using TgPoster.API.Domain.UseCases.Messages.CreateMessagesFromFiles;
 using TgPoster.Storage.Data;
 using TgPoster.Storage.Data.Entities;
+using TgPoster.Storage.Mapper;
 
 namespace TgPoster.Storage.Storages;
 
@@ -44,13 +45,7 @@ internal sealed class CreateMessageStorage(PosterContext context, GuidFactory gu
             TextMessage = text,
             IsTextMessage = text.IsTextMessage()
         };
-        var messageFiles = files.Select(file => new MessageFile
-        {
-            Id = guidFactory.New(),
-            ContentType = file.MimeType,
-            MessageId = messageId,
-            TgFileId = file.FileId
-        });
+        var messageFiles = files.Select(file => file.ToEntity(messageId));
         await context.Messages.AddAsync(message, ct);
         await context.MessageFiles.AddRangeAsync(messageFiles, ct);
         await context.SaveChangesAsync(ct);

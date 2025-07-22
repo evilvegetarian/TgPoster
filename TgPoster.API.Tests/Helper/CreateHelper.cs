@@ -3,6 +3,7 @@ using Shouldly;
 using TgPoster.API.Common;
 using TgPoster.API.Domain.UseCases.Accounts.SignIn;
 using TgPoster.API.Domain.UseCases.Accounts.SignOn;
+using TgPoster.API.Domain.UseCases.Messages.CreateMessage;
 using TgPoster.API.Domain.UseCases.Parse.CreateParseChannel;
 using TgPoster.API.Domain.UseCases.Schedules.CreateSchedule;
 using TgPoster.API.Models;
@@ -99,5 +100,18 @@ public class CreateHelper(HttpClient client)
 
         var createResponse = await client.PostAsync<CreateParseChannelResponse>(Routes.ParseChannel.Create, request);
         return createResponse.Id;
+    }
+
+    public async Task<Guid> CreateMessage(Guid scheduleId, bool withFiles = false)
+    {
+        var request = new CreateMessageRequest
+        {
+            ScheduleId = scheduleId,
+            TimePosting = DateTimeOffset.UtcNow.AddDays(1),
+            Files = withFiles ? [FileHelper.GetTestIFormFile()] : null
+        };
+
+        var response = await client.PostMultipartFormAsync<CreateMessageResponse>(Routes.Message.Root, request);
+        return response.Id;
     }
 }

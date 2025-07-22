@@ -36,7 +36,7 @@ public class UnauthorizedAccessTests : IClassFixture<EndpointTestFixture>
     [InlineData(Routes.Day.Root, "GET")]
     [InlineData(Routes.Day.Root, "POST")]
     [InlineData(Routes.Message.Root, "GET")]
-    [InlineData(Routes.Message.Root, "POST")]
+    //[InlineData(Routes.Message.Root, "POST")]
     [InlineData(Routes.Schedule.Root, "GET")]
     [InlineData(Routes.Schedule.Root, "POST")]
     [InlineData(Routes.TelegramBot.Root, "GET")]

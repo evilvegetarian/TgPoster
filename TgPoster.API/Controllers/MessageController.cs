@@ -3,14 +3,22 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TgPoster.API.Common;
+using TgPoster.API.Domain.UseCases.Messages.ApproveMessages;
 using TgPoster.API.Domain.UseCases.Messages.CreateMessage;
 using TgPoster.API.Domain.UseCases.Messages.CreateMessagesFromFiles;
+using TgPoster.API.Domain.UseCases.Messages.DeleteFileMessage;
+using TgPoster.API.Domain.UseCases.Messages.EditMessage;
 using TgPoster.API.Domain.UseCases.Messages.GetMessageById;
 using TgPoster.API.Domain.UseCases.Messages.ListMessage;
+using TgPoster.API.Domain.UseCases.Messages.LoadFilesMessage;
 using TgPoster.API.Models;
 
 namespace TgPoster.API.Controllers;
 
+/// <summary>
+/// Контроллер для сообщений
+/// </summary>
+/// <param name="sender"></param>
 [Authorize]
 [ApiController]
 public class MessageController(ISender sender) : ControllerBase
@@ -22,12 +30,13 @@ public class MessageController(ISender sender) : ControllerBase
     /// <param name="ct"></param>
     /// <returns></returns>
     [HttpPost(Routes.Message.CreateMessagesFromFiles)]
+    [Consumes("multipart/form-data")]
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
     [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
     [ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
     public async Task<IActionResult> CreateMessagesFromFiles(
-        CreateMessagesFromFilesRequest request,
+        [FromForm] CreateMessagesFromFilesRequest request,
         CancellationToken ct
     )
     {
@@ -36,18 +45,24 @@ public class MessageController(ISender sender) : ControllerBase
     }
 
     /// <summary>
-    ///     Получение списка сообщений
+    ///     Получение списка сообщений c пагинацией.
     /// </summary>
-    /// <param name="scheduleId"></param>
-    /// <param name="ct"></param>
-    /// <returns></returns>
+    /// <param name="scheduleId">ID расписания.</param>
+    /// <param name="pagination">Параметры пагинации (pageNumber, pageSize).</param>
+    /// <param name="ct">Токен отмены.</param>
+    /// <returns>Пагинированный список сообщений.</returns>
     [HttpGet(Routes.Message.List)]
-    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(List<MessageResponse>))]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(PagedResponse<MessageResponse>))]
     [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
     [ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
-    public async Task<IActionResult> List([FromQuery] [Required] Guid scheduleId, CancellationToken ct)
+    public async Task<IActionResult> List(
+        [FromQuery] [Required] Guid scheduleId,
+        [FromQuery] PaginationRequest pagination,
+        CancellationToken ct
+    )
     {
-        var response = await sender.Send(new ListMessageQuery(scheduleId), ct);
+        var query = new ListMessageQuery(scheduleId, pagination.PageNumber, pagination.PageSize);
+        var response = await sender.Send(query, ct);
         return Ok(response);
     }
 
@@ -74,15 +89,102 @@ public class MessageController(ISender sender) : ControllerBase
     /// <param name="ct"></param>
     /// <returns></returns>
     [HttpPost(Routes.Message.Create)]
+    [Consumes("multipart/form-data")]
     [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(CreateMessageResponse))]
     [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
     [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
     [ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
-    public async Task<IActionResult> Create(CreateMessageRequest request, CancellationToken ct)
+    public async Task<IActionResult> Create([FromForm] CreateMessageRequest request, CancellationToken ct)
     {
-        var response = await sender.Send(
-            new CreateMessageCommand(request.ScheduleId, request.TimePosting, request.TextMessage, request.Files),
+        var response = await sender.Send(new CreateMessageCommand(
+                request.ScheduleId, request.TimePosting, request.TextMessage, request.Files),
             ct);
         return Created(Routes.Message.Create, response);
+    }
+
+    /// <summary>
+    ///     Изменения сообщения
+    /// </summary>
+    /// <param name="id"></param>
+    /// <param name="request"></param>
+    /// <param name="ct"></param>
+    /// <returns></returns>
+    [HttpPut(Routes.Message.Update)]
+    [Consumes("multipart/form-data")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
+    [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
+    public async Task<IActionResult> Update(
+        [Required] Guid id,
+        [FromForm] EditMessageRequest request,
+        CancellationToken ct
+    )
+    {
+        await sender.Send(new EditMessageCommand(
+                id, request.ScheduleId, request.TimePosting, request.TextMessage, request.OldFiles, request.NewFiles),
+            ct);
+        return Ok();
+    }
+
+    /// <summary>
+    ///     Удалить файл сообщения
+    /// </summary>
+    /// <param name="id"></param>
+    /// <param name="fileId"></param>
+    /// <param name="ct"></param>
+    /// <returns></returns>
+    [HttpDelete(Routes.Message.DeleteFileMessage)]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
+    public async Task<IActionResult> DeleteFileMessage(
+        [Required] Guid id,
+        [Required] Guid fileId,
+        CancellationToken ct
+    )
+    {
+        await sender.Send(new DeleteFileMessageCommand(id, fileId), ct);
+        return Ok();
+    }
+
+    /// <summary>
+    ///     Загрузить файлы сообщения
+    /// </summary>
+    /// <param name="id"></param>
+    /// <param name="fileId"></param>
+    /// <param name="ct"></param>
+    /// <returns></returns>
+    [HttpPatch(Routes.Message.LoadFiles)]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
+    public async Task<IActionResult> LoadFiles(
+        [Required] Guid id,
+        List<IFormFile> files,
+        CancellationToken ct
+    )
+    {
+        await sender.Send(new LoadFilesMessageCommand(id, files), ct);
+        return Ok();
+    }
+
+    /// <summary>
+    ///     Подтверждение сообщений
+    /// </summary>
+    /// <param name="request"></param>
+    /// <param name="ct"></param>
+    /// <returns></returns>
+    [HttpPatch(Routes.Message.ApproveMessages)]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
+    public async Task<IActionResult> ApproveMessages(
+        ApproveMessagesRequest request,
+        CancellationToken ct
+    )
+    {
+        await sender.Send(new ApproveMessagesCommand(request.MessagesIds), ct);
+        return Ok();
     }
 }

@@ -4,6 +4,7 @@ using TgPoster.API.Domain.UseCases.Messages.CreateMessagesFromFiles;
 using TgPoster.Storage.Data;
 using TgPoster.Storage.Data.Entities;
 using TgPoster.Storage.Data.Enum;
+using TgPoster.Storage.Mapper;
 
 namespace TgPoster.Storage.Storages;
 
@@ -52,22 +53,7 @@ internal sealed class CreateMessagesFromFilesUseCaseStorage(PosterContext contex
             var messageId = guidFactory.New();
             var file = files[i];
 
-            MessageFile messageFile = !file.PreviewPhotoIds.Any()
-                ? new PhotoMessageFile
-                {
-                    Id = guidFactory.New(),
-                    MessageId = messageId,
-                    TgFileId = file.FileId,
-                    ContentType = file.MimeType
-                }
-                : new VideoMessageFile
-                {
-                    Id = guidFactory.New(),
-                    MessageId = messageId,
-                    TgFileId = file.FileId,
-                    ContentType = file.MimeType,
-                    ThumbnailIds = file.PreviewPhotoIds
-                };
+            MessageFile messageFile = file.ToEntity(messageId);
             var message = new Message
             {
                 Id = messageId,

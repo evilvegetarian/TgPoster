@@ -11,7 +11,7 @@ internal sealed class DeleteScheduleUseCase(IDeleteScheduleStorage storage, IIde
     {
         if (!await storage.ScheduleExistAsync(request.Id, identity.Current.UserId))
         {
-            throw new ScheduleNotFoundException();
+            throw new ScheduleNotFoundException(request.Id);
         }
 
         await storage.DeleteScheduleAsync(request.Id);

@@ -12,7 +12,7 @@ internal class UpdateStatusScheduleUseCase(IUpdateStatusScheduleStorage storage,
         var userId = provider.Current.UserId;
         if (!await storage.ExistSchedule(request.Id, userId, cancellationToken))
         {
-            throw new ScheduleNotFoundException();
+            throw new ScheduleNotFoundException(request.Id);
         }
 
         await storage.UpdateStatus(request.Id, cancellationToken);

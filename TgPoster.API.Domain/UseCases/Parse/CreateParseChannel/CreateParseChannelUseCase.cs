@@ -23,7 +23,7 @@ internal class CreateParseChannelUseCase(
         var cryptoToken = await storage.GetTelegramTokenAsync(request.ScheduleId, userId, ct);
         if (cryptoToken is null)
         {
-            throw new ScheduleNotFoundException();
+            throw new ScheduleNotFoundException(request.ScheduleId);
         }
 
         var token = cryptoAes.Decrypt(telegramOptions.SecretKey, cryptoToken);

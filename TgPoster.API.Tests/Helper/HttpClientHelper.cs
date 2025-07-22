@@ -25,4 +25,23 @@ public static class HttpClientHelper
         response.StatusCode.ShouldBeOneOf(HttpStatusCode.OK, HttpStatusCode.Created);
         return await response.ToObject<T>();
     }
+
+    public static async Task PostMultipartFormAsync(this HttpClient client, string url, object request)
+    {
+        var response = await client.PostAsync(url, request.ToMultipartForm());
+        response.StatusCode.ShouldBeOneOf(HttpStatusCode.OK, HttpStatusCode.Created);
+    }
+
+    public static async Task<T> PutMultipartFormAsync<T>(this HttpClient client, string url, object request)
+    {
+        var response = await client.PostAsync(url, request.ToMultipartForm());
+        response.StatusCode.ShouldBeOneOf(HttpStatusCode.OK, HttpStatusCode.Created);
+        return await response.ToObject<T>();
+    }
+
+    public static async Task PutMultipartFormAsync(this HttpClient client, string url, object request)
+    {
+        var response = await client.PostAsync(url, request.ToMultipartForm());
+        response.StatusCode.ShouldBeOneOf(HttpStatusCode.OK, HttpStatusCode.Created);
+    }
 }

@@ -6,5 +6,6 @@ public sealed class MessageDto
     public required Guid ScheduleId { get; set; }
     public required DateTimeOffset TimePosting { get; set; }
     public string? TextMessage { get; set; }
+    public bool IsVerified { get; set; }
     public List<FileDto> Files { get; set; } = [];
 }

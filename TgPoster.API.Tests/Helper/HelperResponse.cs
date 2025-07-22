@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Net.Http.Headers;
 using System.Reflection;
 using System.Text;
@@ -34,7 +35,7 @@ public static class HttpContentHelper
             throw new ArgumentNullException(nameof(data));
         }
 
-        var content = new MultipartFormDataContent();
+        var content = new MultipartFormDataContent("----------" + Guid.NewGuid().ToString("N"));
         var properties = data.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance);
 
         foreach (var property in properties)
@@ -56,9 +57,23 @@ public static class HttpContentHelper
                     AddFileContent(content, property.Name, f);
                 }
             }
+            else if (value is IEnumerable collection && value is not string)
+            {
+                foreach (var item in collection)
+                {
+                    if (item != null)
+                    {
+                        content.Add(new StringContent(item.ToString()!), property.Name);
+                    }
+                }
+            }
             else
             {
-                content.Add(new StringContent(value.ToString()!), property.Name);
+                var stringValue = value is DateTimeOffset dto
+                    ? dto.ToString("o")
+                    : value.ToString()!;
+
+                content.Add(new StringContent(stringValue), property.Name);
             }
         }
 
