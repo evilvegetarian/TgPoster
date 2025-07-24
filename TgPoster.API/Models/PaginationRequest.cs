@@ -1,5 +1,8 @@
 namespace TgPoster.API.Models;
 
+/// <summary>
+/// Пагинация
+/// </summary>
 public class PaginationRequest
 {
     private const int MaxPageSize = 50;

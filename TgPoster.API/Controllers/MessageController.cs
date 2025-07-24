@@ -11,6 +11,7 @@ using TgPoster.API.Domain.UseCases.Messages.EditMessage;
 using TgPoster.API.Domain.UseCases.Messages.GetMessageById;
 using TgPoster.API.Domain.UseCases.Messages.ListMessage;
 using TgPoster.API.Domain.UseCases.Messages.LoadFilesMessage;
+using TgPoster.API.Mapper;
 using TgPoster.API.Models;
 
 namespace TgPoster.API.Controllers;
@@ -47,21 +48,16 @@ public class MessageController(ISender sender) : ControllerBase
     /// <summary>
     ///     Получение списка сообщений c пагинацией.
     /// </summary>
-    /// <param name="scheduleId">ID расписания.</param>
-    /// <param name="pagination">Параметры пагинации (pageNumber, pageSize).</param>
+    /// <param name="request"></param>
     /// <param name="ct">Токен отмены.</param>
     /// <returns>Пагинированный список сообщений.</returns>
     [HttpGet(Routes.Message.List)]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(PagedResponse<MessageResponse>))]
     [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
     [ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
-    public async Task<IActionResult> List(
-        [FromQuery] [Required] Guid scheduleId,
-        [FromQuery] PaginationRequest pagination,
-        CancellationToken ct
-    )
+    public async Task<IActionResult> List([FromQuery] ListMessagesRequest request, CancellationToken ct)
     {
-        var query = new ListMessageQuery(scheduleId, pagination.PageNumber, pagination.PageSize);
+        var query = request.ToDomain();
         var response = await sender.Send(query, ct);
         return Ok(response);
     }
