@@ -15,15 +15,16 @@ public class OptionsController : ControllerBase
         /// <summary>
         /// Числовое значение элемента Enum.
         /// </summary>
-        public int Value { get; set; }
+        public required int Value { get; set; }
 
         /// <summary>
         /// Имя элемента Enum (для отображения пользователю).
         /// </summary>
-        public string Name { get; set; }
+        public required string Name { get; set; }
     }
     
     [HttpGet("message-statuses")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(List<EnumViewModel>))]
     public IActionResult GetMessageStatuses()
     {
         var statuses = Enum.GetValues<MessageStatus>()
@@ -38,6 +39,7 @@ public class OptionsController : ControllerBase
     }
 
     [HttpGet("message-sort-fields")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(List<EnumViewModel>))]
     public IActionResult GetMessageSortFields()
     {
         var sortFields = Enum.GetValues<MessageSortBy>()
@@ -52,6 +54,7 @@ public class OptionsController : ControllerBase
     }
 
     [HttpGet("sort-directions")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(List<EnumViewModel>))]
     public IActionResult GetSortDirections()
     {
         var directions = Enum.GetValues<SortDirection>()
