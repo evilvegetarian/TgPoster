@@ -14,8 +14,8 @@ import {SchedulePage} from "@/pages/schedule-page.tsx";
 import {TelegramBotPage} from "@/pages/telegramBotPage.tsx";
 import {ErrorPage} from "@/pages/errorPage.tsx";
 import {ApproveMessagesPage} from "@/pages/approveMessagesPage.tsx";
-import {MessagesPage} from "@/pages/messagesPage.tsx";
 import {ParseChannelPage} from "@/pages/parse-channel-page.tsx";
+import {MessagesPage} from "@/pages/messages-page.tsx";
 
 const router = createBrowserRouter([
     {

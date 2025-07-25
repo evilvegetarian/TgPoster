@@ -24,14 +24,16 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  ApproveMessagesRequest,
   CreateMessageResponse,
   GetApiV1MessageParams,
   MessageResponse,
+  MessageResponsePagedResponse,
+  PatchApiV1MessageIdFileBody,
   PostApiV1MessageBatchFromFilesBody,
-  PostApiV1MessageBatchFromFilesParams,
   PostApiV1MessageBody,
-  PostApiV1MessageParams,
-  ProblemDetails
+  ProblemDetails,
+  PutApiV1MessageIdBody
 } from '../tgPosterAPI.schemas';
 
 import { customInstance } from '../../axios-instance';
@@ -44,18 +46,17 @@ import { customInstance } from '../../axios-instance';
  */
 export const postApiV1MessageBatchFromFiles = (
     postApiV1MessageBatchFromFilesBody: PostApiV1MessageBatchFromFilesBody,
-    params: PostApiV1MessageBatchFromFilesParams,
  signal?: AbortSignal
 ) => {
       
       const formData = new FormData();
+formData.append(`ScheduleId`, postApiV1MessageBatchFromFilesBody.ScheduleId)
 postApiV1MessageBatchFromFilesBody.Files.forEach(value => formData.append(`Files`, value));
 
       return customInstance<void>(
       {url: `/api/v1/message/batch-from-files`, method: 'POST',
       headers: {'Content-Type': 'multipart/form-data', },
-       data: formData,
-        params, signal
+       data: formData, signal
     },
       );
     }
@@ -63,8 +64,8 @@ postApiV1MessageBatchFromFilesBody.Files.forEach(value => formData.append(`Files
 
 
 export const getPostApiV1MessageBatchFromFilesMutationOptions = <TError = ProblemDetails,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postApiV1MessageBatchFromFiles>>, TError,{data: PostApiV1MessageBatchFromFilesBody;params: PostApiV1MessageBatchFromFilesParams}, TContext>, }
-): UseMutationOptions<Awaited<ReturnType<typeof postApiV1MessageBatchFromFiles>>, TError,{data: PostApiV1MessageBatchFromFilesBody;params: PostApiV1MessageBatchFromFilesParams}, TContext> => {
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postApiV1MessageBatchFromFiles>>, TError,{data: PostApiV1MessageBatchFromFilesBody}, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof postApiV1MessageBatchFromFiles>>, TError,{data: PostApiV1MessageBatchFromFilesBody}, TContext> => {
 
 const mutationKey = ['postApiV1MessageBatchFromFiles'];
 const {mutation: mutationOptions} = options ?
@@ -76,10 +77,10 @@ const {mutation: mutationOptions} = options ?
       
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof postApiV1MessageBatchFromFiles>>, {data: PostApiV1MessageBatchFromFilesBody;params: PostApiV1MessageBatchFromFilesParams}> = (props) => {
-          const {data,params} = props ?? {};
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof postApiV1MessageBatchFromFiles>>, {data: PostApiV1MessageBatchFromFilesBody}> = (props) => {
+          const {data} = props ?? {};
 
-          return  postApiV1MessageBatchFromFiles(data,params,)
+          return  postApiV1MessageBatchFromFiles(data,)
         }
 
         
@@ -95,11 +96,11 @@ const {mutation: mutationOptions} = options ?
  * @summary Создает сообщения из файлов, один файл = одно сообщение.
  */
 export const usePostApiV1MessageBatchFromFiles = <TError = ProblemDetails,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postApiV1MessageBatchFromFiles>>, TError,{data: PostApiV1MessageBatchFromFilesBody;params: PostApiV1MessageBatchFromFilesParams}, TContext>, }
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postApiV1MessageBatchFromFiles>>, TError,{data: PostApiV1MessageBatchFromFilesBody}, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof postApiV1MessageBatchFromFiles>>,
         TError,
-        {data: PostApiV1MessageBatchFromFilesBody;params: PostApiV1MessageBatchFromFilesParams},
+        {data: PostApiV1MessageBatchFromFilesBody},
         TContext
       > => {
 
@@ -108,7 +109,7 @@ export const usePostApiV1MessageBatchFromFiles = <TError = ProblemDetails,
       return useMutation(mutationOptions , queryClient);
     }
     /**
- * @summary Получение списка сообщений
+ * @summary Получение списка сообщений c пагинацией.
  */
 export const getApiV1Message = (
     params: GetApiV1MessageParams,
@@ -116,7 +117,7 @@ export const getApiV1Message = (
 ) => {
       
       
-      return customInstance<MessageResponse[]>(
+      return customInstance<MessageResponsePagedResponse>(
       {url: `/api/v1/message`, method: 'GET',
         params, signal
     },
@@ -176,7 +177,7 @@ export function useGetApiV1Message<TData = Awaited<ReturnType<typeof getApiV1Mes
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
- * @summary Получение списка сообщений
+ * @summary Получение списка сообщений c пагинацией.
  */
 
 export function useGetApiV1Message<TData = Awaited<ReturnType<typeof getApiV1Message>>, TError = ProblemDetails>(
@@ -200,11 +201,15 @@ export function useGetApiV1Message<TData = Awaited<ReturnType<typeof getApiV1Mes
  */
 export const postApiV1Message = (
     postApiV1MessageBody: PostApiV1MessageBody,
-    params: PostApiV1MessageParams,
  signal?: AbortSignal
 ) => {
       
       const formData = new FormData();
+formData.append(`ScheduleId`, postApiV1MessageBody.ScheduleId)
+formData.append(`TimePosting`, postApiV1MessageBody.TimePosting)
+if(postApiV1MessageBody.TextMessage !== undefined) {
+ formData.append(`TextMessage`, postApiV1MessageBody.TextMessage)
+ }
 if(postApiV1MessageBody.Files !== undefined) {
  postApiV1MessageBody.Files.forEach(value => formData.append(`Files`, value));
  }
@@ -212,8 +217,7 @@ if(postApiV1MessageBody.Files !== undefined) {
       return customInstance<CreateMessageResponse>(
       {url: `/api/v1/message`, method: 'POST',
       headers: {'Content-Type': 'multipart/form-data', },
-       data: formData,
-        params, signal
+       data: formData, signal
     },
       );
     }
@@ -221,8 +225,8 @@ if(postApiV1MessageBody.Files !== undefined) {
 
 
 export const getPostApiV1MessageMutationOptions = <TError = ProblemDetails,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postApiV1Message>>, TError,{data: PostApiV1MessageBody;params: PostApiV1MessageParams}, TContext>, }
-): UseMutationOptions<Awaited<ReturnType<typeof postApiV1Message>>, TError,{data: PostApiV1MessageBody;params: PostApiV1MessageParams}, TContext> => {
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postApiV1Message>>, TError,{data: PostApiV1MessageBody}, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof postApiV1Message>>, TError,{data: PostApiV1MessageBody}, TContext> => {
 
 const mutationKey = ['postApiV1Message'];
 const {mutation: mutationOptions} = options ?
@@ -234,10 +238,10 @@ const {mutation: mutationOptions} = options ?
       
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof postApiV1Message>>, {data: PostApiV1MessageBody;params: PostApiV1MessageParams}> = (props) => {
-          const {data,params} = props ?? {};
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof postApiV1Message>>, {data: PostApiV1MessageBody}> = (props) => {
+          const {data} = props ?? {};
 
-          return  postApiV1Message(data,params,)
+          return  postApiV1Message(data,)
         }
 
         
@@ -253,15 +257,78 @@ const {mutation: mutationOptions} = options ?
  * @summary Создание сообщения
  */
 export const usePostApiV1Message = <TError = ProblemDetails,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postApiV1Message>>, TError,{data: PostApiV1MessageBody;params: PostApiV1MessageParams}, TContext>, }
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postApiV1Message>>, TError,{data: PostApiV1MessageBody}, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof postApiV1Message>>,
         TError,
-        {data: PostApiV1MessageBody;params: PostApiV1MessageParams},
+        {data: PostApiV1MessageBody},
         TContext
       > => {
 
       const mutationOptions = getPostApiV1MessageMutationOptions(options);
+
+      return useMutation(mutationOptions , queryClient);
+    }
+    /**
+ * @summary Подтверждение сообщений
+ */
+export const patchApiV1Message = (
+    approveMessagesRequest: ApproveMessagesRequest,
+ ) => {
+      
+      
+      return customInstance<void>(
+      {url: `/api/v1/message`, method: 'PATCH',
+      headers: {'Content-Type': 'application/json', },
+      data: approveMessagesRequest
+    },
+      );
+    }
+  
+
+
+export const getPatchApiV1MessageMutationOptions = <TError = ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof patchApiV1Message>>, TError,{data: ApproveMessagesRequest}, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof patchApiV1Message>>, TError,{data: ApproveMessagesRequest}, TContext> => {
+
+const mutationKey = ['patchApiV1Message'];
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof patchApiV1Message>>, {data: ApproveMessagesRequest}> = (props) => {
+          const {data} = props ?? {};
+
+          return  patchApiV1Message(data,)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type PatchApiV1MessageMutationResult = NonNullable<Awaited<ReturnType<typeof patchApiV1Message>>>
+    export type PatchApiV1MessageMutationBody = ApproveMessagesRequest
+    export type PatchApiV1MessageMutationError = ProblemDetails
+
+    /**
+ * @summary Подтверждение сообщений
+ */
+export const usePatchApiV1Message = <TError = ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof patchApiV1Message>>, TError,{data: ApproveMessagesRequest}, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof patchApiV1Message>>,
+        TError,
+        {data: ApproveMessagesRequest},
+        TContext
+      > => {
+
+      const mutationOptions = getPatchApiV1MessageMutationOptions(options);
 
       return useMutation(mutationOptions , queryClient);
     }
@@ -352,3 +419,210 @@ export function useGetApiV1MessageId<TData = Awaited<ReturnType<typeof getApiV1M
 
 
 
+/**
+ * @summary Изменения сообщения
+ */
+export const putApiV1MessageId = (
+    id: string,
+    putApiV1MessageIdBody: PutApiV1MessageIdBody,
+ ) => {
+      
+      const formData = new FormData();
+formData.append(`ScheduleId`, putApiV1MessageIdBody.ScheduleId)
+formData.append(`TimePosting`, putApiV1MessageIdBody.TimePosting)
+if(putApiV1MessageIdBody.TextMessage !== undefined) {
+ formData.append(`TextMessage`, putApiV1MessageIdBody.TextMessage)
+ }
+if(putApiV1MessageIdBody.OldFiles !== undefined) {
+ putApiV1MessageIdBody.OldFiles.forEach(value => formData.append(`OldFiles`, value));
+ }
+if(putApiV1MessageIdBody.NewFiles !== undefined) {
+ putApiV1MessageIdBody.NewFiles.forEach(value => formData.append(`NewFiles`, value));
+ }
+
+      return customInstance<void>(
+      {url: `/api/v1/message/${id}`, method: 'PUT',
+      headers: {'Content-Type': 'multipart/form-data', },
+       data: formData
+    },
+      );
+    }
+  
+
+
+export const getPutApiV1MessageIdMutationOptions = <TError = ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof putApiV1MessageId>>, TError,{id: string;data: PutApiV1MessageIdBody}, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof putApiV1MessageId>>, TError,{id: string;data: PutApiV1MessageIdBody}, TContext> => {
+
+const mutationKey = ['putApiV1MessageId'];
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof putApiV1MessageId>>, {id: string;data: PutApiV1MessageIdBody}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  putApiV1MessageId(id,data,)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type PutApiV1MessageIdMutationResult = NonNullable<Awaited<ReturnType<typeof putApiV1MessageId>>>
+    export type PutApiV1MessageIdMutationBody = PutApiV1MessageIdBody
+    export type PutApiV1MessageIdMutationError = ProblemDetails
+
+    /**
+ * @summary Изменения сообщения
+ */
+export const usePutApiV1MessageId = <TError = ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof putApiV1MessageId>>, TError,{id: string;data: PutApiV1MessageIdBody}, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof putApiV1MessageId>>,
+        TError,
+        {id: string;data: PutApiV1MessageIdBody},
+        TContext
+      > => {
+
+      const mutationOptions = getPutApiV1MessageIdMutationOptions(options);
+
+      return useMutation(mutationOptions , queryClient);
+    }
+    /**
+ * @summary Удалить файл сообщения
+ */
+export const deleteApiV1MessageIdFilesFileId = (
+    id: string,
+    fileId: string,
+ ) => {
+      
+      
+      return customInstance<void>(
+      {url: `/api/v1/message/${id}/files/${fileId}`, method: 'DELETE'
+    },
+      );
+    }
+  
+
+
+export const getDeleteApiV1MessageIdFilesFileIdMutationOptions = <TError = ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteApiV1MessageIdFilesFileId>>, TError,{id: string;fileId: string}, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof deleteApiV1MessageIdFilesFileId>>, TError,{id: string;fileId: string}, TContext> => {
+
+const mutationKey = ['deleteApiV1MessageIdFilesFileId'];
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteApiV1MessageIdFilesFileId>>, {id: string;fileId: string}> = (props) => {
+          const {id,fileId} = props ?? {};
+
+          return  deleteApiV1MessageIdFilesFileId(id,fileId,)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteApiV1MessageIdFilesFileIdMutationResult = NonNullable<Awaited<ReturnType<typeof deleteApiV1MessageIdFilesFileId>>>
+    
+    export type DeleteApiV1MessageIdFilesFileIdMutationError = ProblemDetails
+
+    /**
+ * @summary Удалить файл сообщения
+ */
+export const useDeleteApiV1MessageIdFilesFileId = <TError = ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteApiV1MessageIdFilesFileId>>, TError,{id: string;fileId: string}, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof deleteApiV1MessageIdFilesFileId>>,
+        TError,
+        {id: string;fileId: string},
+        TContext
+      > => {
+
+      const mutationOptions = getDeleteApiV1MessageIdFilesFileIdMutationOptions(options);
+
+      return useMutation(mutationOptions , queryClient);
+    }
+    /**
+ * @summary Загрузить файлы сообщения
+ */
+export const patchApiV1MessageIdFile = (
+    id: string,
+    patchApiV1MessageIdFileBody: PatchApiV1MessageIdFileBody,
+ ) => {
+      
+      const formData = new FormData();
+if(patchApiV1MessageIdFileBody.files !== undefined) {
+ patchApiV1MessageIdFileBody.files.forEach(value => formData.append(`files`, value));
+ }
+
+      return customInstance<void>(
+      {url: `/api/v1/message/${id}/file`, method: 'PATCH',
+      headers: {'Content-Type': 'multipart/form-data', },
+       data: formData
+    },
+      );
+    }
+  
+
+
+export const getPatchApiV1MessageIdFileMutationOptions = <TError = ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof patchApiV1MessageIdFile>>, TError,{id: string;data: PatchApiV1MessageIdFileBody}, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof patchApiV1MessageIdFile>>, TError,{id: string;data: PatchApiV1MessageIdFileBody}, TContext> => {
+
+const mutationKey = ['patchApiV1MessageIdFile'];
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof patchApiV1MessageIdFile>>, {id: string;data: PatchApiV1MessageIdFileBody}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  patchApiV1MessageIdFile(id,data,)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type PatchApiV1MessageIdFileMutationResult = NonNullable<Awaited<ReturnType<typeof patchApiV1MessageIdFile>>>
+    export type PatchApiV1MessageIdFileMutationBody = PatchApiV1MessageIdFileBody
+    export type PatchApiV1MessageIdFileMutationError = ProblemDetails
+
+    /**
+ * @summary Загрузить файлы сообщения
+ */
+export const usePatchApiV1MessageIdFile = <TError = ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof patchApiV1MessageIdFile>>, TError,{id: string;data: PatchApiV1MessageIdFileBody}, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof patchApiV1MessageIdFile>>,
+        TError,
+        {id: string;data: PatchApiV1MessageIdFileBody},
+        TContext
+      > => {
+
+      const mutationOptions = getPatchApiV1MessageIdFileMutationOptions(options);
+
+      return useMutation(mutationOptions , queryClient);
+    }
+    

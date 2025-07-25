@@ -4,6 +4,11 @@
  * TgPoster.API
  * OpenAPI spec version: 1.0
  */
+export interface ApproveMessagesRequest {
+  /** @nullable */
+  messagesIds?: string[] | null;
+}
+
 export interface CreateDaysRequest {
   /** Id расписания */
   scheduleId: string;
@@ -118,6 +123,19 @@ export interface DayOfWeekResponse {
   name?: string | null;
 }
 
+/**
+ * Модель для представления значения Enum на фронтенде.
+ */
+export interface EnumViewModel {
+  /** Числовое значение элемента Enum. */
+  value: number;
+  /**
+   * Имя элемента Enum (для отображения пользователю).
+   * @nullable
+   */
+  name: string | null;
+}
+
 export interface FileResponse {
   id: string;
   fileType?: FileTypes;
@@ -149,11 +167,44 @@ export interface MessageResponse {
   id: string;
   /** @nullable */
   textMessage?: string | null;
-  timePosting: string;
+  timePosting?: string;
   scheduleId: string;
+  needApprove: boolean;
+  canApprove: boolean;
   /** @nullable */
   files?: FileResponse[] | null;
 }
+
+export interface MessageResponsePagedResponse {
+  currentPage?: number;
+  readonly totalPages?: number;
+  pageSize?: number;
+  totalCount?: number;
+  readonly hasPreviousPage?: boolean;
+  readonly hasNextPage?: boolean;
+  /** @nullable */
+  data?: MessageResponse[] | null;
+}
+
+export type MessageSortBy = typeof MessageSortBy[keyof typeof MessageSortBy];
+
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const MessageSortBy = {
+  NUMBER_0: 0,
+  NUMBER_1: 1,
+} as const;
+
+export type MessageStatus = typeof MessageStatus[keyof typeof MessageStatus];
+
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const MessageStatus = {
+  NUMBER_0: 0,
+  NUMBER_1: 1,
+  NUMBER_2: 2,
+  NUMBER_3: 3,
+} as const;
 
 export interface ParseChannelsResponse {
   id: string;
@@ -253,6 +304,15 @@ export interface SignOnResponse {
   userId: string;
 }
 
+export type SortDirection = typeof SortDirection[keyof typeof SortDirection];
+
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const SortDirection = {
+  NUMBER_0: 0,
+  NUMBER_1: 1,
+} as const;
+
 export interface TelegramBotResponse {
   id: string;
   /** @nullable */
@@ -309,35 +369,75 @@ export type GetApiV1DayParams = {
 scheduleId: string;
 };
 
-export type PostApiV1MessageBatchFromFilesParams = {
-ScheduleId: string;
-};
-
 export type PostApiV1MessageBatchFromFilesBody = {
+  ScheduleId: string;
   Files: Blob[];
 };
 
 export type GetApiV1MessageParams = {
-scheduleId: string;
-};
-
-export type PostApiV1MessageParams = {
 /**
- * Id расписания
+ * ID расписания, к которому относятся сообщения. Обязательный параметр.
  */
 ScheduleId: string;
 /**
- * Время поста
+ * Фильтр по статусу сообщения.
  */
-TimePosting: string;
+Status?: MessageStatus;
 /**
- * Текстовое сообщение
+ * Текстовый поиск по содержимому сообщения.
  */
-TextMessage?: string;
+SearchText?: string;
+/**
+ * Начальная дата создания для фильтрации (включительно).
+ */
+CreatedFrom?: string;
+/**
+ * Конечная дата создания для фильтрации (включительно).
+ */
+CreatedTo?: string;
+/**
+ * Поле для сортировки. По умолчанию - по дате создания.
+ */
+SortBy?: MessageSortBy;
+/**
+ * Направление сортировки. По умолчанию - по убыванию (сначала новые).
+ */
+SortDirection?: SortDirection;
+/**
+ * Номер страницы.
+ */
+PageNumber?: number;
+/**
+ * Размер страницы.
+ */
+PageSize?: number;
 };
 
 export type PostApiV1MessageBody = {
+  /** Id расписания */
+  ScheduleId: string;
+  /** Время поста */
+  TimePosting: string;
+  /** Текстовое сообщение */
+  TextMessage?: string;
   /** Файлы сообщения */
   Files?: Blob[];
+};
+
+export type PutApiV1MessageIdBody = {
+  /** Id расписания */
+  ScheduleId: string;
+  /** Время поста */
+  TimePosting: string;
+  /** Текстовое сообщение */
+  TextMessage?: string;
+  /** Старые файлы сообщения */
+  OldFiles?: string[];
+  /** Новые файлы сообщения */
+  NewFiles?: Blob[];
+};
+
+export type PatchApiV1MessageIdFileBody = {
+  files?: Blob[];
 };
 

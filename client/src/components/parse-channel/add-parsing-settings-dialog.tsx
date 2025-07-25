@@ -50,7 +50,12 @@ export function AddParsingSettingsDialog({
 
     // Загружаем расписания
     const {data: schedules = [], isLoading: schedulesLoading, error: schedulesError} = useGetApiV1Schedule()
-
+    const getUtcString = (dateValue: string | Date | null | undefined): string | null => {
+        if (!dateValue) {
+            return null;
+        }
+        return new Date(dateValue).toISOString();
+    };
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault()
 
@@ -65,8 +70,8 @@ export function AddParsingSettingsDialog({
             ...formData,
             channel: formData.channel.startsWith("@") ? formData.channel : `@${formData.channel}`,
             avoidWords: formData.avoidWords && formData.avoidWords.length > 0 ? formData.avoidWords : [],
-            dateFrom: formData.dateFrom || null,
-            dateTo: formData.dateTo || null,
+            dateFrom: getUtcString(formData.dateFrom),
+            dateTo: getUtcString(formData.dateTo),
         }
 
         onSubmit(settings)

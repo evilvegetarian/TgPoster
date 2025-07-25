@@ -27,8 +27,7 @@ internal sealed class ListMessageUseCase(
         var token = aes.Decrypt(options.SecretKey, encryptedToken);
         var bot = new TelegramBotClient(token);
 
-        var pagedMessages =
-            await storage.GetMessagesAsync(request, ct);
+        var pagedMessages = await storage.GetMessagesAsync(request, ct);
 
         var messageResponses = new List<MessageResponse>();
         foreach (var m in pagedMessages.Items)
