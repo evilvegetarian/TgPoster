@@ -139,10 +139,6 @@ export interface EnumViewModel {
 export interface FileResponse {
   id: string;
   fileType?: FileTypes;
-  /** @nullable */
-  fileCacheId?: string | null;
-  /** @nullable */
-  previewCacheIds?: string[] | null;
 }
 
 export type FileTypes = typeof FileTypes[keyof typeof FileTypes];

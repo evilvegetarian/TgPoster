@@ -1,4 +1,4 @@
-namespace TgPoster.API.Domain.UseCases.Parse.ListChannel;
+namespace TgPoster.API.Domain.UseCases.Parse.ListParseChannel;
 
 public interface IListParseChannelsStorage
 {

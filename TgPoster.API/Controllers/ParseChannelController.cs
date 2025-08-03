@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TgPoster.API.Common;
 using TgPoster.API.Domain.UseCases.Parse.CreateParseChannel;
-using TgPoster.API.Domain.UseCases.Parse.ListChannel;
+using TgPoster.API.Domain.UseCases.Parse.ListParseChannel;
 using TgPoster.API.Mapper;
 using TgPoster.API.Models;
 

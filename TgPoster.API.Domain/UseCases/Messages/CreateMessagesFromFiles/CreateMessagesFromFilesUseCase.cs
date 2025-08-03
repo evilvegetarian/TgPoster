@@ -1,38 +1,23 @@
 using MediatR;
-using Security.Interfaces;
 using Shared;
 using Telegram.Bot;
-using TgPoster.API.Domain.ConfigModels;
-using TgPoster.API.Domain.Exceptions;
 using TgPoster.API.Domain.Services;
 
 namespace TgPoster.API.Domain.UseCases.Messages.CreateMessagesFromFiles;
 
 internal sealed class CreateMessagesFromFilesUseCase(
     ICreateMessagesFromFilesUseCaseStorage storage,
-    IIdentityProvider identity,
-    ICryptoAES cryptoAes,
-    TelegramOptions options,
     TelegramService telegramService,
-    TimePostingService timePostingService
+    TimePostingService timePostingService,
+    TelegramTokenService tokenService
 ) : IRequestHandler<CreateMessagesFromFilesCommand>
 {
     public async Task Handle(CreateMessagesFromFilesCommand request, CancellationToken ct)
     {
-        var userId = identity.Current.UserId;
-        var telegramBot = await storage.GetTelegramBotAsync(request.ScheduleId, userId, ct);
-        if (telegramBot == null)
-        {
-            throw new TelegramNotFoundException();
-        }
+        var (token, chatId) = await tokenService.GetTokenByScheduleIdAsync(request.ScheduleId, ct);
 
-        var token = cryptoAes.Decrypt(options.SecretKey, telegramBot.ApiTelegram);
         var bot = new TelegramBotClient(token);
-        var files = await telegramService.GetFileMessageInTelegramByFile(
-            bot,
-            request.Files,
-            telegramBot.ChatId,
-            ct);
+        var files = await telegramService.GetFileMessageInTelegramByFile(bot, request.Files, chatId, ct);
         var existTime = await storage.GetExistMessageTimePostingAsync(request.ScheduleId, ct);
         var scheduleTime = await storage.GetScheduleTimeAsync(request.ScheduleId, ct);
 

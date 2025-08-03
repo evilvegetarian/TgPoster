@@ -1,4 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.OpenApi.Extensions;
+using Shared;
 using TgPoster.API.Models;
 
 namespace TgPoster.API.Controllers;
@@ -58,6 +60,21 @@ public class OptionsController : ControllerBase
     public IActionResult GetSortDirections()
     {
         var directions = Enum.GetValues<SortDirection>()
+            .Select(dir => new EnumViewModel
+            {
+                Value = (int)dir,
+                Name = dir.GetName()
+            })
+            .ToList();
+
+        return Ok(directions);
+    }
+    
+    [HttpGet("file-type")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(List<EnumViewModel>))]
+    public IActionResult GetFileTypes()
+    {
+        var directions = Enum.GetValues<FileTypes>()
             .Select(dir => new EnumViewModel
             {
                 Value = (int)dir,

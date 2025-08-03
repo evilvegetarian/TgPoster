@@ -13,20 +13,16 @@ internal class LoadFilesMessageUseCase(
     TelegramService telegramService,
     ICryptoAES cryptoAes,
     TelegramOptions options,
+    TelegramTokenService tokenService,
     IIdentityProvider provider)
     : IRequestHandler<LoadFilesMessageCommand>
 {
     public async Task Handle(LoadFilesMessageCommand request, CancellationToken ct)
     {
-        var userId = provider.Current.UserId;
-        var telegramBot = await storage.GetTelegramBotAsync(request.Id, userId, ct);
-        if (telegramBot is null)
-            throw new MessageNotFoundException(request.Id);
+        var (token, chatId) = await tokenService.GetTokenByMessageIdAsync(request.Id, ct);
 
-        var token = cryptoAes.Decrypt(options.SecretKey, telegramBot.ApiTelegram);
-        
         var bot = new TelegramBotClient(token);
-        var files = await telegramService.GetFileMessageInTelegramByFile(bot, request.Files, telegramBot.ChatId, ct);
+        var files = await telegramService.GetFileMessageInTelegramByFile(bot, request.Files, chatId, ct);
 
         await storage.AddFileAsync(request.Id, files, ct);
     }

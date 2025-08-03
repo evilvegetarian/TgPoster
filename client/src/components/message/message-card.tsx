@@ -4,15 +4,13 @@ import { useState } from "react"
 import { Edit, Clock } from "lucide-react"
 import { format } from "date-fns"
 import { ru } from "date-fns/locale"
-
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Badge } from "@/components/ui/badge"
-
 import { FilePreview } from "./file-preview"
 import { EditMessageDialog } from "./edit-message-dialog"
-import type {MessageResponse} from "@/api/endpoints/tgPosterAPI.schemas.ts";
+import type { MessageResponse } from "@/api/endpoints/tgPosterAPI.schemas"
 
 interface MessageCardProps {
     message: MessageResponse
@@ -53,7 +51,7 @@ export function MessageCard({ message, isSelected, onSelectionChange }: MessageC
                                 </div>
                                 <Button variant="ghost" size="sm" onClick={() => setIsEditDialogOpen(true)}>
                                     <Edit className="h-4 w-4 mr-1" />
-                                    ��едактировать
+                                    Редактировать
                                 </Button>
                             </div>
 

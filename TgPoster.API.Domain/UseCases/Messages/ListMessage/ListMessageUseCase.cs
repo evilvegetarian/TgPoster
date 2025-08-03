@@ -1,7 +1,8 @@
+using Amazon.S3.Model;
 using MediatR;
 using Security.Interfaces;
+using Shared;
 using Telegram.Bot;
-using TgPoster.API.Domain.ConfigModels;
 using TgPoster.API.Domain.Exceptions;
 using TgPoster.API.Domain.Services;
 
@@ -9,47 +10,37 @@ namespace TgPoster.API.Domain.UseCases.Messages.ListMessage;
 
 internal sealed class ListMessageUseCase(
     IListMessageStorage storage,
-    TelegramOptions options,
-    ICryptoAES aes,
+    IIdentityProvider provider,
     FileService fileService,
-    IIdentityProvider provider
+    TelegramTokenService tokenService
 ) : IRequestHandler<ListMessageQuery, PagedResponse<MessageResponse>>
 {
     public async Task<PagedResponse<MessageResponse>> Handle(ListMessageQuery request, CancellationToken ct)
     {
         if (!await storage.ExistScheduleAsync(request.ScheduleId, provider.Current.UserId, ct))
             throw new ScheduleNotFoundException(request.ScheduleId);
-
-        var encryptedToken = await storage.GetApiTokenAsync(request.ScheduleId, ct);
-        if (encryptedToken == null)
-            throw new TelegramNotFoundException();
-
-        var token = aes.Decrypt(options.SecretKey, encryptedToken);
-        var bot = new TelegramBotClient(token);
-
+        
+        var telega = await tokenService.GetTokenByScheduleIdAsync(request.ScheduleId, ct);
         var pagedMessages = await storage.GetMessagesAsync(request, ct);
+        var tgbot = new TelegramBotClient(telega.token);
+        var files = pagedMessages.Items.SelectMany(x => x.Files).ToList();
 
-        var messageResponses = new List<MessageResponse>();
-        foreach (var m in pagedMessages.Items)
+        await fileService.CacheFileToS3(tgbot, files, ct);
+
+        var messageResponses = pagedMessages.Items.Select(m => new MessageResponse
         {
-            var filesCacheInfos = await fileService.ProcessFilesAsync(bot, m.Files, ct);
-            messageResponses.Add(new MessageResponse
+            Id = m.Id,
+            TextMessage = m.TextMessage,
+            ScheduleId = m.ScheduleId,
+            TimePosting = m.TimePosting,
+            NeedApprove = !m.IsVerified,
+            CanApprove = true,
+            Files = m.Files.Select(file => new FileResponse
             {
-                Id = m.Id,
-                TextMessage = m.TextMessage,
-                ScheduleId = m.ScheduleId,
-                TimePosting = m.TimePosting,
-                NeedApprove = !m.IsVerified,
-                CanApprove = true,
-                Files = filesCacheInfos.Select(file => new FileResponse
-                {
-                    Id = file.Id,
-                    FileType = file.FileType,
-                    FileCacheId = file.FileCacheId,
-                    PreviewCacheIds = file.PreviewCacheIds
-                }).ToList()
-            });
-        }
+                Id = file.Id,
+                FileType = file.ContentType.GetFileType()
+            }).ToList()
+        }).ToList();
 
         return new PagedResponse<MessageResponse>(
             messageResponses,

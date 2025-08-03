@@ -1,5 +1,5 @@
-﻿import {TelegramBotListComponent} from "@/components/telegram-bot/telegramBotListComponent.tsx";
-import {TelegramBotCreateDialog} from "@/components/telegram-bot/telegramBotCreateDialog.tsx";
+﻿import {TelegramBotListComponent} from "@/components/telegram-bot/telegram-bot-list-component.tsx";
+import {TelegramBotCreateDialog} from "@/components/telegram-bot/telegram-bot-create-dialog.tsx";
 
 export function TelegramBotPage() {
     return (

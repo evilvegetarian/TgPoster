@@ -1,4 +1,4 @@
-using TgPoster.API.Domain.UseCases.Parse.ListChannel;
+using TgPoster.API.Domain.UseCases.Parse.ListParseChannel;
 using TgPoster.API.Domain.UseCases.Parse.UpdateParseChannel;
 using TgPoster.Storage.Data.Entities;
 using TgPoster.Storage.Data.Enum;

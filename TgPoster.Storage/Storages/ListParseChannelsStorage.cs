@@ -1,5 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-using TgPoster.API.Domain.UseCases.Parse.ListChannel;
+using TgPoster.API.Domain.UseCases.Parse.ListParseChannel;
 using TgPoster.Storage.Data;
 using TgPoster.Storage.Mapper;
 

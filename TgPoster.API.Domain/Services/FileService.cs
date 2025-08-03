@@ -1,3 +1,5 @@
+using Amazon.S3;
+using Amazon.S3.Model;
 using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.Extensions.Caching.Memory;
 using Shared;
@@ -6,7 +8,11 @@ using TgPoster.API.Domain.UseCases.Messages.ListMessage;
 
 namespace TgPoster.API.Domain.Services;
 
-internal sealed class FileService(IMemoryCache memoryCache, FileExtensionContentTypeProvider contentTypeProvider)
+internal sealed class FileService(
+    IMemoryCache memoryCache,
+    FileExtensionContentTypeProvider contentTypeProvider,
+    IAmazonS3 _s3,
+    S3Options _s3Options)
 {
     /// <summary>
     ///     Обрабатывает список файлов и возвращает список объектов с информацией о кешированном контенте.
@@ -94,6 +100,62 @@ internal sealed class FileService(IMemoryCache memoryCache, FileExtensionContent
     }
 
     /// <summary>
+    ///     Скачивает файл из Telegram и кэширует его в S3, если его там еще нет.
+    /// </summary>
+    /// <param name="botClient">Экземпляр TelegramBotClient.</param>
+    /// <param name="fileDtoId">Уникальный идентификатор файла, используемый как ключ в S3.</param>
+    /// <param name="telegramFileId">Идентификатор файла в Telegram.</param>
+    /// <param name="ct">Токен отмены операции.</param>
+    /// <returns>
+    ///     Возвращает true, если файл был успешно скачан и загружен в S3.
+    ///     Возвращает false, если файл уже существовал в S3.
+    /// </returns>
+    private async Task<bool> DownloadAndCacheS3FileAsync(
+        TelegramBotClient botClient,
+        Guid fileDtoId,
+        string telegramFileId,
+        CancellationToken ct
+    )
+    {
+        try
+        {
+            var getObjectRequest = new GetObjectMetadataRequest
+            {
+                BucketName = _s3Options.BucketName,
+                Key = fileDtoId.ToString()
+            };
+            await _s3.GetObjectMetadataAsync(getObjectRequest, ct);
+
+            return false;
+        }
+        catch (AmazonS3Exception e) when (e.StatusCode == System.Net.HttpStatusCode.NotFound)
+        {
+        }
+
+        await using var memoryStream = new MemoryStream();
+        var file = await botClient.GetInfoAndDownloadFile(telegramFileId, memoryStream, ct);
+        memoryStream.Position = 0;
+        contentTypeProvider.TryGetContentType(file.FilePath, out var contentType);
+        var request = new PutObjectRequest
+        {
+            BucketName = _s3Options.BucketName,
+            Key = fileDtoId.ToString(),
+            ContentType = contentType,
+            InputStream = memoryStream,
+        };
+
+        var response = await _s3.PutObjectAsync(request, ct);
+
+        if (response.HttpStatusCode != System.Net.HttpStatusCode.OK)
+        {
+            throw new InvalidOperationException(
+                $"Failed to upload file {fileDtoId} to S3. Status: {response.HttpStatusCode}");
+        }
+
+        return true;
+    }
+
+    /// <summary>
     ///     Сохраняет файл в cache и возвращает уникальный идентификатор.
     /// </summary>
     /// <param name="fileData">Байт-представление файла.</param>
@@ -128,6 +190,31 @@ internal sealed class FileService(IMemoryCache memoryCache, FileExtensionContent
         return memoryCache.TryGetValue<FileCacheItem>(cacheId, out var fileCacheItem)
             ? fileCacheItem
             : null;
+    }
+
+    public async Task CacheFileToS3(TelegramBotClient botClient, List<FileDto> files, CancellationToken ct)
+    {
+        foreach (var fileDto in files)
+        {
+            var fileType = fileDto.ContentType.GetFileType();
+            switch (fileType)
+            {
+                case FileTypes.Image:
+                {
+                    await DownloadAndCacheS3FileAsync(botClient, fileDto.Id, fileDto.TgFileId, ct);
+                    break;
+                }
+
+                case FileTypes.Video:
+                {
+                    await DownloadAndCacheS3FileAsync(botClient, fileDto.Id, fileDto.PreviewIds.First(), ct);
+                    break;
+                }
+                case FileTypes.NoOne:
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(fileType), $"Неизвестный тип контента: {fileType}");
+            }
+        }
     }
 }
 

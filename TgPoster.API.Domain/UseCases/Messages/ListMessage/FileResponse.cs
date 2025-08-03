@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using Shared;
 
 namespace TgPoster.API.Domain.UseCases.Messages.ListMessage;
@@ -12,15 +13,6 @@ public class FileResponse
     /// <summary>
     ///     Тип файла.
     /// </summary>
+    [JsonConverter(typeof(JsonStringEnumConverter))]
     public FileTypes FileType { get; set; }
-
-    /// <summary>
-    ///     Доступ до файла быстрый
-    /// </summary>
-    public Guid? FileCacheId { get; set; }
-
-    /// <summary>
-    ///     Доступ до превью видео быстрый
-    /// </summary>
-    public List<Guid> PreviewCacheIds { get; set; } = [];
 }

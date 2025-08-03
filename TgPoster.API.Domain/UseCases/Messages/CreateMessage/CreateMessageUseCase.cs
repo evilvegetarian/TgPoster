@@ -12,30 +12,20 @@ internal sealed class CreateMessageUseCase(
     IIdentityProvider identityProvider,
     ICryptoAES cryptoAes,
     TelegramOptions options,
-    TelegramService telegramService
+    TelegramService telegramService,
+    TelegramTokenService tokenService
 ) : IRequestHandler<CreateMessageCommand, CreateMessageResponse>
 {
     public async Task<CreateMessageResponse> Handle(CreateMessageCommand request, CancellationToken ct)
     {
         var userId = identityProvider.Current.UserId;
         if (!await storage.ExistScheduleAsync(userId, request.ScheduleId, ct))
-        {
             throw new ScheduleNotFoundException(request.ScheduleId);
-        }
-        
-        var telegramBot = await storage.GetTelegramBotAsync(request.ScheduleId, userId, ct);
-        if (telegramBot == null)
-        {
-            throw new TelegramNotFoundException();
-        }
 
-        var token = cryptoAes.Decrypt(options.SecretKey, telegramBot.ApiTelegram);
+        var (token, chatId) = await tokenService.GetTokenByScheduleIdAsync(request.ScheduleId, ct);
+
         var bot = new TelegramBotClient(token);
-        var files = await telegramService.GetFileMessageInTelegramByFile(
-            bot,
-            request.Files,
-            telegramBot.ChatId,
-            ct);
+        var files = await telegramService.GetFileMessageInTelegramByFile(bot, request.Files, chatId, ct);
 
         var id = await storage.CreateMessagesAsync(request.ScheduleId, request.Text, request.TimePosting, files, ct);
         return new CreateMessageResponse

@@ -271,3 +271,84 @@ export function useGetApiOptionsSortDirections<TData = Awaited<ReturnType<typeof
 
 
 
+export const getApiOptionsFileType = (
+    
+ signal?: AbortSignal
+) => {
+      
+      
+      return customInstance<EnumViewModel[]>(
+      {url: `/api/options/file-type`, method: 'GET', signal
+    },
+      );
+    }
+  
+
+export const getGetApiOptionsFileTypeQueryKey = () => {
+    return [`/api/options/file-type`] as const;
+    }
+
+    
+export const getGetApiOptionsFileTypeQueryOptions = <TData = Awaited<ReturnType<typeof getApiOptionsFileType>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiOptionsFileType>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetApiOptionsFileTypeQueryKey();
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getApiOptionsFileType>>> = ({ signal }) => getApiOptionsFileType(signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getApiOptionsFileType>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetApiOptionsFileTypeQueryResult = NonNullable<Awaited<ReturnType<typeof getApiOptionsFileType>>>
+export type GetApiOptionsFileTypeQueryError = unknown
+
+
+export function useGetApiOptionsFileType<TData = Awaited<ReturnType<typeof getApiOptionsFileType>>, TError = unknown>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiOptionsFileType>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getApiOptionsFileType>>,
+          TError,
+          Awaited<ReturnType<typeof getApiOptionsFileType>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetApiOptionsFileType<TData = Awaited<ReturnType<typeof getApiOptionsFileType>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiOptionsFileType>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getApiOptionsFileType>>,
+          TError,
+          Awaited<ReturnType<typeof getApiOptionsFileType>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetApiOptionsFileType<TData = Awaited<ReturnType<typeof getApiOptionsFileType>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiOptionsFileType>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetApiOptionsFileType<TData = Awaited<ReturnType<typeof getApiOptionsFileType>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiOptionsFileType>>, TError, TData>>, }
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetApiOptionsFileTypeQueryOptions(options)
+
+  const query = useQuery(queryOptions , queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+

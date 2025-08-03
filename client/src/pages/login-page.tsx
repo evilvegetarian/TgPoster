@@ -6,10 +6,10 @@ import {Input} from "@/components/ui/input";
 import {CardFooter} from "@/components/ui/card";
 import {Loader2} from "lucide-react";
 import {usePostApiV1AccountSignIn} from "@/api/endpoints/account/account";
-import {AuthLayout} from "./authLayout";
+import {AuthLayout} from "./auth-layout.tsx";
 import {Form, FormControl, FormField, FormItem, FormLabel, FormMessage} from "@/components/ui/form.tsx";
 import {Link} from "react-router-dom";
-import {useAuth} from "@/authContext.tsx";
+import {useAuth} from "@/auth-context.tsx";
 
 const formSchema = z.object({
     login: z.string().min(5, "Логин должен быть не менее 5 символов"),

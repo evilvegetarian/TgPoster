@@ -13,7 +13,7 @@ import {
     SidebarMenuItem,
     SidebarRail,
 } from "@/components/ui/sidebar"
-import {useAuth} from "@/authContext.tsx";
+import {useAuth} from "@/auth-context.tsx";
 
 export function SideBar() {
     const location = useLocation()

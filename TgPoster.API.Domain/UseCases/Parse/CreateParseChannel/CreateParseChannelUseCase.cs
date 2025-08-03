@@ -6,6 +6,7 @@ using Telegram.Bot;
 using TgPoster.API.Domain.ConfigModels;
 using TgPoster.API.Domain.Exceptions;
 using TgPoster.API.Domain.Extensions;
+using TgPoster.API.Domain.Services;
 
 namespace TgPoster.API.Domain.UseCases.Parse.CreateParseChannel;
 
@@ -14,19 +15,13 @@ internal class CreateParseChannelUseCase(
     ICryptoAES cryptoAes,
     IIdentityProvider provider,
     TelegramOptions telegramOptions,
+    TelegramTokenService tokenService,
     IBus bus)
     : IRequestHandler<CreateParseChannelCommand, CreateParseChannelResponse>
 {
     public async Task<CreateParseChannelResponse> Handle(CreateParseChannelCommand request, CancellationToken ct)
     {
-        var userId = provider.Current.UserId;
-        var cryptoToken = await storage.GetTelegramTokenAsync(request.ScheduleId, userId, ct);
-        if (cryptoToken is null)
-        {
-            throw new ScheduleNotFoundException(request.ScheduleId);
-        }
-
-        var token = cryptoAes.Decrypt(telegramOptions.SecretKey, cryptoToken);
+        var (token, _) = await tokenService.GetTokenByScheduleIdAsync(request.ScheduleId, ct);
         var bot = new TelegramBotClient(token);
         var channel = request.Channel.ConvertToTelegramHandle();
         var chat = await bot.GetChat(channel, ct);

@@ -1,4 +1,4 @@
-﻿import {useAuth} from "@/authContext.tsx";
+﻿import {useAuth} from "@/auth-context.tsx";
 import {Navigate, Outlet} from "react-router-dom";
 
 export function PublicRoute() {

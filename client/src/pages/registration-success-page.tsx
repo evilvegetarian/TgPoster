@@ -1,4 +1,4 @@
-﻿import {AuthLayout} from "@/pages/authLayout.tsx";
+﻿import {AuthLayout} from "@/pages/auth-layout.tsx";
 import {Link} from "react-router-dom";
 import {Button} from "@/components/ui/button.tsx";
 import {CheckCircle2} from "lucide-react";

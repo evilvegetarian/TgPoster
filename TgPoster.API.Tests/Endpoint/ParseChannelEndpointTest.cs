@@ -2,7 +2,7 @@ using System.Net;
 using System.Net.Http.Json;
 using Shouldly;
 using TgPoster.API.Common;
-using TgPoster.API.Domain.UseCases.Parse.ListChannel;
+using TgPoster.API.Domain.UseCases.Parse.ListParseChannel;
 using TgPoster.API.Models;
 using TgPoster.Endpoint.Tests.Helper;
 

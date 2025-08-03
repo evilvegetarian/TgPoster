@@ -1,5 +1,6 @@
 using MediatR;
 using Security.Interfaces;
+using Shared;
 using Telegram.Bot;
 using TgPoster.API.Domain.Exceptions;
 using TgPoster.API.Domain.Services;
@@ -9,9 +10,7 @@ namespace TgPoster.API.Domain.UseCases.Messages.GetMessageById;
 
 internal sealed class GetMessageUseCase(
     IGetMessageStorage storage,
-    IIdentityProvider identity,
-    TelegramTokenService tokenService,
-    FileService fileService
+    IIdentityProvider identity
 ) : IRequestHandler<GetMessageQuery, MessageResponse>
 {
     public async Task<MessageResponse> Handle(GetMessageQuery request, CancellationToken ct)
@@ -19,16 +18,9 @@ internal sealed class GetMessageUseCase(
         var userId = identity.Current.UserId;
         var message = await storage.GetMessagesAsync(request.Id, userId, ct);
 
-        if (message == null)
-        {
+        if (message is null)
             throw new MessageNotFoundException(request.Id);
-        }
 
-        var token = await tokenService.GetTokenByScheduleIdAsync(message.ScheduleId, ct);
-
-        var bot = new TelegramBotClient(token);
-
-        var filesCacheInfos = await fileService.ProcessFilesAsync(bot, message.Files, ct);
         return new MessageResponse
         {
             Id = message.Id,
@@ -37,12 +29,10 @@ internal sealed class GetMessageUseCase(
             TimePosting = message.TimePosting,
             CanApprove = true,
             NeedApprove = !message.IsVerified,
-            Files = filesCacheInfos.Select(file => new FileResponse
+            Files = message.Files.Select(file => new FileResponse
             {
                 Id = file.Id,
-                FileType = file.FileType,
-                FileCacheId = file.FileCacheId,
-                PreviewCacheIds = file.PreviewCacheIds
+                FileType = file.ContentType.GetFileType()
             }).ToList()
         };
     }

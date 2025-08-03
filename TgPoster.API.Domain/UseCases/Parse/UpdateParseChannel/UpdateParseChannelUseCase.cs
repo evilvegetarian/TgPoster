@@ -11,9 +11,8 @@ internal class UpdateParseChannelUseCase(IIdentityProvider provider, IUpdatePars
     {
         var userId = provider.Current.UserId;
         if (!await storage.ExistParseChannelAsync(request.Id, userId, cancellationToken))
-        {
             throw new ParseChannelNotFoundException();
-        }
+        
 
         await storage.UpdateParseChannelAsync(request, cancellationToken);
     }
