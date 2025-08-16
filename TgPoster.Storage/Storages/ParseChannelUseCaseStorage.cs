@@ -73,18 +73,23 @@ internal class ParseChannelUseCaseStorage(PosterContext context, GuidFactory gui
         return context.SaveChangesAsync(ct);
     }
 
-    public Task UpdateChannelParsingParametersAsync(Guid id, int offsetId, bool checkNewPosts, CancellationToken ct)
+    public async Task UpdateChannelParsingParametersAsync(
+        Guid id,
+        int offsetId,
+        bool checkNewPosts,
+        CancellationToken ct
+    )
     {
         var status = checkNewPosts
             ? ParsingStatus.Waiting
             : ParsingStatus.Finished;
-        return context.ChannelParsingParameters
+        var parametrs = await context.ChannelParsingParameters
             .Where(x => x.Id == id)
-            .ExecuteUpdateAsync(updater =>
-                    updater
-                        .SetProperty(x => x.Status, status)
-                        .SetProperty(x => x.LastParseId, offsetId),
-                ct);
+            .FirstOrDefaultAsync(ct);
+        parametrs!.Status = status;
+        parametrs.LastParseId = offsetId;
+        parametrs.LastParseDate = DateTime.UtcNow;
+        await context.SaveChangesAsync(ct);
     }
 
     public Task UpdateInHandleStatusAsync(Guid id, CancellationToken ct)

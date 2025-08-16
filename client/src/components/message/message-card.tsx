@@ -1,5 +1,3 @@
-"use client"
-
 import { useState } from "react"
 import { Edit, Clock } from "lucide-react"
 import { format } from "date-fns"

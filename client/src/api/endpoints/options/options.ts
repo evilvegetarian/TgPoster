@@ -20,7 +20,10 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
-  EnumViewModel
+  FileTypesEnumViewModel,
+  MessageSortByEnumViewModel,
+  MessageStatusEnumViewModel,
+  SortDirectionEnumViewModel
 } from '../tgPosterAPI.schemas';
 
 import { customInstance } from '../../axios-instance';
@@ -34,7 +37,7 @@ export const getApiOptionsMessageStatuses = (
 ) => {
       
       
-      return customInstance<EnumViewModel[]>(
+      return customInstance<MessageStatusEnumViewModel[]>(
       {url: `/api/options/message-statuses`, method: 'GET', signal
     },
       );
@@ -115,7 +118,7 @@ export const getApiOptionsMessageSortFields = (
 ) => {
       
       
-      return customInstance<EnumViewModel[]>(
+      return customInstance<MessageSortByEnumViewModel[]>(
       {url: `/api/options/message-sort-fields`, method: 'GET', signal
     },
       );
@@ -196,7 +199,7 @@ export const getApiOptionsSortDirections = (
 ) => {
       
       
-      return customInstance<EnumViewModel[]>(
+      return customInstance<SortDirectionEnumViewModel[]>(
       {url: `/api/options/sort-directions`, method: 'GET', signal
     },
       );
@@ -277,7 +280,7 @@ export const getApiOptionsFileType = (
 ) => {
       
       
-      return customInstance<EnumViewModel[]>(
+      return customInstance<FileTypesEnumViewModel[]>(
       {url: `/api/options/file-type`, method: 'GET', signal
     },
       );

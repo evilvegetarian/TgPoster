@@ -13,6 +13,5 @@ public class FileResponse
     /// <summary>
     ///     Тип файла.
     /// </summary>
-    [JsonConverter(typeof(JsonStringEnumConverter))]
     public FileTypes FileType { get; set; }
 }

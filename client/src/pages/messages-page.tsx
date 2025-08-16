@@ -1,5 +1,4 @@
-﻿
-import { useState, useEffect } from "react"
+﻿import { useState, useEffect } from "react"
 import { Check, AlertCircle } from "lucide-react"
 import type { DateRange } from "react-day-picker"
 import { Button } from "@/components/ui/button"
@@ -7,8 +6,17 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Card, CardContent } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import  {MessageSortBy, MessageStatus, SortDirection} from "@/api/endpoints/tgPosterAPI.schemas"
-import { useGetApiV1Message, usePatchApiV1Message } from "@/api/endpoints/message/message"
+import {
+
+    MessageSortBy,
+    MessageStatus,
+    SortDirection
+} from "@/api/endpoints/tgPosterAPI.schemas"
+import {
+    useDeleteApiV1Message,
+    useGetApiV1Message,
+    usePatchApiV1Message
+} from "@/api/endpoints/message/message"
 import {
     Pagination,
     PaginationContent,
@@ -23,7 +31,6 @@ import {CreateMessageDialog} from "@/components/message/create-message-dialog.ts
 import {toast} from "sonner";
 
 export function MessagesPage() {
-    // Состояние фильтров
     const [scheduleId, setScheduleId] = useState("")
     const [status, setStatus] = useState<MessageStatus>(MessageStatus.NUMBER_0)
     const [searchText, setSearchText] = useState("")
@@ -33,10 +40,8 @@ export function MessagesPage() {
     const [currentPage, setCurrentPage] = useState(1)
     const pageSize = 10
 
-    // Состояние выбора
     const [selectedMessageIds, setSelectedMessageIds] = useState<string[]>([])
 
-    // API запросы
     const {
         data: messagesData,
         isLoading,
@@ -58,6 +63,18 @@ export function MessagesPage() {
         },
     )
 
+    const deleteMessages = useDeleteApiV1Message({
+        mutation: {
+            onSuccess: () => {
+                toast.success("Успех",{description: `Удалено сообщений: ${selectedMessageIds.length}`})
+                setSelectedMessageIds([])
+            },
+            onError: (error) => {
+                toast( "Ошибка",{description: error.title || "Не удалось удалить сообщения",})
+            },
+        },
+    })
+
     const confirmMessages = usePatchApiV1Message({
         mutation: {
             onSuccess: () => {
@@ -70,12 +87,10 @@ export function MessagesPage() {
         },
     })
 
-    // Сброс выбора при изменении фильтров
     useEffect(() => {
         setSelectedMessageIds([])
     }, [scheduleId, status, searchText, dateRange, sortBy, sortDirection, currentPage])
 
-    // Сброс страницы при изменении фильтров
     useEffect(() => {
         setCurrentPage(1)
     }, [scheduleId, status, searchText, dateRange, sortBy, sortDirection])
@@ -100,7 +115,14 @@ export function MessagesPage() {
         confirmMessages.mutate({
             data: {
                 messagesIds: selectedMessageIds,
-            },
+            }
+        })
+    }
+
+    const handleDeleteSelected = () => {
+        deleteMessages.mutate({
+            data: selectedMessageIds,
+
         })
     }
 
@@ -172,7 +194,6 @@ export function MessagesPage() {
                 onDateRangeChange={setDateRange}
             />
 
-            {/* Контекстная панель для массовых операций */}
             {selectedMessageIds.length > 0 && (
                 <Card className="border-primary">
                     <CardContent className="p-4">
@@ -186,7 +207,11 @@ export function MessagesPage() {
                             <div className="flex items-center gap-2">
                                 <Button onClick={handleConfirmSelected} disabled={confirmMessages.isPending}>
                                     <Check className="h-4 w-4 mr-2" />
-                                    Подтвердить выбранные ({selectedMessageIds.length})
+                                    Подтвердить ({selectedMessageIds.length})
+                                </Button>
+                                <Button onClick={handleDeleteSelected} disabled={deleteMessages.isPending}>
+                                    <Check className="h-4 w-4 mr-2" />
+                                    Удалить ({selectedMessageIds.length})
                                 </Button>
                             </div>
                         </div>

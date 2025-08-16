@@ -12,28 +12,28 @@ public class OptionsController : ControllerBase
     /// <summary>
     /// Модель для представления значения Enum на фронтенде.
     /// </summary>
-    public class EnumViewModel
+    public class EnumViewModel<T>
     {
         /// <summary>
         /// Числовое значение элемента Enum.
         /// </summary>
-        public required int Value { get; set; }
+        public required T Value { get; set; }
 
         /// <summary>
         /// Имя элемента Enum (для отображения пользователю).
         /// </summary>
         public required string Name { get; set; }
     }
-    
+
     [HttpGet("message-statuses")]
-    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(List<EnumViewModel>))]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(List<EnumViewModel<MessageStatus>>))]
     public IActionResult GetMessageStatuses()
     {
         var statuses = Enum.GetValues<MessageStatus>()
-            .Select(status => new EnumViewModel
+            .Select(status => new EnumViewModel<MessageStatus>
             {
-                Value = (int)status,
-                Name = status.GetName() 
+                Value = status,
+                Name = status.GetName()
             })
             .ToList();
 
@@ -41,13 +41,13 @@ public class OptionsController : ControllerBase
     }
 
     [HttpGet("message-sort-fields")]
-    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(List<EnumViewModel>))]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(List<EnumViewModel<MessageSortBy>>))]
     public IActionResult GetMessageSortFields()
     {
         var sortFields = Enum.GetValues<MessageSortBy>()
-            .Select(field => new EnumViewModel
+            .Select(field => new EnumViewModel<MessageSortBy>
             {
-                Value = (int)field,
+                Value = field,
                 Name = field.GetName()
             })
             .ToList();
@@ -56,28 +56,28 @@ public class OptionsController : ControllerBase
     }
 
     [HttpGet("sort-directions")]
-    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(List<EnumViewModel>))]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(List<EnumViewModel<SortDirection>>))]
     public IActionResult GetSortDirections()
     {
         var directions = Enum.GetValues<SortDirection>()
-            .Select(dir => new EnumViewModel
+            .Select(dir => new EnumViewModel<SortDirection>
             {
-                Value = (int)dir,
+                Value = dir,
                 Name = dir.GetName()
             })
             .ToList();
 
         return Ok(directions);
     }
-    
+
     [HttpGet("file-type")]
-    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(List<EnumViewModel>))]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(List<EnumViewModel<FileTypes>>))]
     public IActionResult GetFileTypes()
     {
         var directions = Enum.GetValues<FileTypes>()
-            .Select(dir => new EnumViewModel
+            .Select(dir => new EnumViewModel<FileTypes>
             {
-                Value = (int)dir,
+                Value = dir,
                 Name = dir.GetName()
             })
             .ToList();

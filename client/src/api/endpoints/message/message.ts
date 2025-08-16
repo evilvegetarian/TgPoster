@@ -333,6 +333,69 @@ export const usePatchApiV1Message = <TError = ProblemDetails,
       return useMutation(mutationOptions , queryClient);
     }
     /**
+ * @summary Удалить сообщения
+ */
+export const deleteApiV1Message = (
+    deleteApiV1MessageBody: string[],
+ ) => {
+      
+      
+      return customInstance<void>(
+      {url: `/api/v1/message`, method: 'DELETE',
+      headers: {'Content-Type': 'application/json', },
+      data: deleteApiV1MessageBody
+    },
+      );
+    }
+  
+
+
+export const getDeleteApiV1MessageMutationOptions = <TError = ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteApiV1Message>>, TError,{data: string[]}, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof deleteApiV1Message>>, TError,{data: string[]}, TContext> => {
+
+const mutationKey = ['deleteApiV1Message'];
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteApiV1Message>>, {data: string[]}> = (props) => {
+          const {data} = props ?? {};
+
+          return  deleteApiV1Message(data,)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteApiV1MessageMutationResult = NonNullable<Awaited<ReturnType<typeof deleteApiV1Message>>>
+    export type DeleteApiV1MessageMutationBody = string[]
+    export type DeleteApiV1MessageMutationError = ProblemDetails
+
+    /**
+ * @summary Удалить сообщения
+ */
+export const useDeleteApiV1Message = <TError = ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteApiV1Message>>, TError,{data: string[]}, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof deleteApiV1Message>>,
+        TError,
+        {data: string[]},
+        TContext
+      > => {
+
+      const mutationOptions = getDeleteApiV1MessageMutationOptions(options);
+
+      return useMutation(mutationOptions , queryClient);
+    }
+    /**
  * @summary Получение сообщения по Id
  */
 export const getApiV1MessageId = (

@@ -1,15 +1,16 @@
-"use client"
-
-import { CalendarIcon, Search } from "lucide-react"
+import {CalendarIcon, Search} from "lucide-react"
 import { format } from "date-fns"
 import { ru } from "date-fns/locale"
-
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent } from "@/components/ui/card"
 import { cn } from "@/lib/utils"
-import type {MessageSortBy, MessageStatus, SortDirection} from "@/api/endpoints/tgPosterAPI.schemas"
+import {
+    type MessageSortBy,
+    type MessageStatus,
+    type SortDirection
+} from "@/api/endpoints/tgPosterAPI.schemas"
 import { useGetApiV1Schedule } from "@/api/endpoints/schedule/schedule"
 import {Popover, PopoverContent, PopoverTrigger} from "@/components/ui/popover.tsx";
 import {Calendar} from "@/components/ui/calendar.tsx";
@@ -57,9 +58,8 @@ export function FiltersPanel({
         <Card>
             <CardContent className="p-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                    {/* Выбор расписания */}
                     <div className="space-y-2">
-                        <label className="text-sm font-medium">Расписание *</label>
+                        <label className="text-sm font-medium">Расписание</label>
                         <Select value={scheduleId} onValueChange={onScheduleChange} disabled={schedulesLoading}>
                             <SelectTrigger>
                                 <SelectValue placeholder="Выберите расписание" />
@@ -74,7 +74,6 @@ export function FiltersPanel({
                         </Select>
                     </div>
 
-                    {/* Фильтр по статусу */}
                     <div className="space-y-2">
                         <label className="text-sm font-medium">Статус</label>
                         <Select

@@ -51,9 +51,9 @@ internal static class Routes
         internal const string Update = Root + "/{id:guid}";
         internal const string DeleteFileMessage = Root + "/{id:guid}/files/{fileId:guid}";
         internal const string LoadFiles = Root + "/{id:guid}/file";
-        internal const string ApproveMessages = Root ;
+        internal const string ApproveMessages = Root;
         internal const string Get = Root + "/{id:guid}";
-        internal const string Delete = Root + "/{id:guid}";
+        internal const string Delete = Root;
     }
 
     internal static class File

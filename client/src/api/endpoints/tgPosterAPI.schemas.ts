@@ -123,19 +123,6 @@ export interface DayOfWeekResponse {
   name?: string | null;
 }
 
-/**
- * Модель для представления значения Enum на фронтенде.
- */
-export interface EnumViewModel {
-  /** Числовое значение элемента Enum. */
-  value: number;
-  /**
-   * Имя элемента Enum (для отображения пользователю).
-   * @nullable
-   */
-  name: string | null;
-}
-
 export interface FileResponse {
   id: string;
   fileType?: FileTypes;
@@ -151,6 +138,18 @@ export const FileTypes = {
   NUMBER_2: 2,
 } as const;
 
+/**
+ * Модель для представления значения Enum на фронтенде.
+ */
+export interface FileTypesEnumViewModel {
+  value: FileTypes;
+  /**
+   * Имя элемента Enum (для отображения пользователю).
+   * @nullable
+   */
+  name: string | null;
+}
+
 export interface GetDaysResponse {
   id: string;
   scheduleId: string;
@@ -163,7 +162,7 @@ export interface MessageResponse {
   id: string;
   /** @nullable */
   textMessage?: string | null;
-  timePosting?: string;
+  timePosting: string;
   scheduleId: string;
   needApprove: boolean;
   canApprove: boolean;
@@ -191,6 +190,18 @@ export const MessageSortBy = {
   NUMBER_1: 1,
 } as const;
 
+/**
+ * Модель для представления значения Enum на фронтенде.
+ */
+export interface MessageSortByEnumViewModel {
+  value: MessageSortBy;
+  /**
+   * Имя элемента Enum (для отображения пользователю).
+   * @nullable
+   */
+  name: string | null;
+}
+
 export type MessageStatus = typeof MessageStatus[keyof typeof MessageStatus];
 
 
@@ -201,6 +212,18 @@ export const MessageStatus = {
   NUMBER_2: 2,
   NUMBER_3: 3,
 } as const;
+
+/**
+ * Модель для представления значения Enum на фронтенде.
+ */
+export interface MessageStatusEnumViewModel {
+  value: MessageStatus;
+  /**
+   * Имя элемента Enum (для отображения пользователю).
+   * @nullable
+   */
+  name: string | null;
+}
 
 export interface ParseChannelsResponse {
   id: string;
@@ -308,6 +331,18 @@ export const SortDirection = {
   NUMBER_0: 0,
   NUMBER_1: 1,
 } as const;
+
+/**
+ * Модель для представления значения Enum на фронтенде.
+ */
+export interface SortDirectionEnumViewModel {
+  value: SortDirection;
+  /**
+   * Имя элемента Enum (для отображения пользователю).
+   * @nullable
+   */
+  name: string | null;
+}
 
 export interface TelegramBotResponse {
   id: string;

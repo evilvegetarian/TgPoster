@@ -1,21 +1,16 @@
-"use client"
-
 import type React from "react"
-
 import { useState, useEffect } from "react"
 import { Upload, X } from "lucide-react"
-import { format } from "date-fns"
-
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-
 import { FilePreview } from "./file-preview"
-import type {MessageResponse} from "@/api/endpoints/tgPosterAPI.schemas.ts";
-import {usePutApiV1MessageId} from "@/api/endpoints/message/message.ts";
+import type { MessageResponse} from "@/api/endpoints/tgPosterAPI.schemas.ts";
+import { usePutApiV1MessageId} from "@/api/endpoints/message/message.ts";
 import {Textarea} from "@/components/ui/textarea.tsx";
 import {toast} from "sonner";
+
 
 interface EditMessageDialogProps {
     message: MessageResponse | null
@@ -23,11 +18,26 @@ interface EditMessageDialogProps {
     onClose: () => void
 }
 
+const utcToLocalDatetimeString = (utcString: string): string => {
+    const date = new Date(utcString);
+    const localISOTime = new Date(date.getTime() - date.getTimezoneOffset() * 60000)
+        .toISOString()
+        .slice(0, 16);
+    return localISOTime;
+};
+
+const localDatetimeStringToUtc = (localString: string): string => {
+    const localDate = new Date(localString);
+    const utcDate = new Date(localDate.getTime() + localDate.getTimezoneOffset() * 60000);
+    return utcDate.toISOString();
+};
+
 export function EditMessageDialog({ message, isOpen, onClose }: EditMessageDialogProps) {
     const [textMessage, setTextMessage] = useState("")
     const [timePosting, setTimePosting] = useState("")
     const [oldFiles, setOldFiles] = useState<string[]>([])
     const [newFiles, setNewFiles] = useState<File[]>([])
+
 
     const updateMessage = usePutApiV1MessageId({
         mutation: {
@@ -44,7 +54,9 @@ export function EditMessageDialog({ message, isOpen, onClose }: EditMessageDialo
     useEffect(() => {
         if (message) {
             setTextMessage(message.textMessage || "")
-            setTimePosting(message.timePosting ? format(new Date(message.timePosting), "yyyy-MM-dd'T'HH:mm") : "")
+            setTimePosting(message.timePosting
+                ? utcToLocalDatetimeString(message.timePosting)
+                : "");
             setOldFiles(message.files?.map((f) => f.id) || [])
             setNewFiles([])
         }
@@ -54,15 +66,17 @@ export function EditMessageDialog({ message, isOpen, onClose }: EditMessageDialo
         e.preventDefault()
 
         if (!message || !timePosting) {
-            toast( "Ошибка", {   description: "Укажите время публикации"})
+            toast.error("Ошибка", { description: "Укажите время публикации"})
             return
         }
+
+        const utcTimePosting = localDatetimeStringToUtc(timePosting);
 
         updateMessage.mutate({
             id: message.id,
             data: {
                 ScheduleId: message.scheduleId,
-                TimePosting: timePosting,
+                TimePosting: utcTimePosting,
                 TextMessage: textMessage || undefined,
                 OldFiles: oldFiles.length > 0 ? oldFiles : undefined,
                 NewFiles: newFiles.length > 0 ? newFiles : undefined,
@@ -106,7 +120,7 @@ export function EditMessageDialog({ message, isOpen, onClose }: EditMessageDialo
                     </div>
 
                     <div className="space-y-2">
-                        <Label htmlFor="time">Время публикации</Label>
+                        <Label htmlFor="time">Время публикации (местное время)</Label>
                         <Input
                             id="time"
                             type="datetime-local"

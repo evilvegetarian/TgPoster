@@ -1,5 +1,7 @@
 using Shouldly;
+using TgPoster.API.Domain.UseCases.Messages.ListMessage;
 using TgPoster.Storage.Storages;
+using SortDirection = TgPoster.API.Domain.UseCases.Messages.ListMessage.SortDirection;
 
 namespace TgPoster.Storage.Tests.Tests;
 
@@ -57,24 +59,26 @@ public class ListMessageStorageShould(StorageTestFixture fixture) : IClassFixtur
         var message2 = await helper.CreateMessageAsync(schedule.Id);
         await helper.CreateMessageFileAsync(message1.Id);
         await helper.CreateVideoMessageFileAsync(message2.Id);
+        var request = new ListMessageQuery(schedule.Id, 1, 10, MessageSortBy.SentAt, SortDirection.Asc, null, MessageStatus.All);
 
-        var result = await sut.GetMessagesAsync(schedule.Id, CancellationToken.None);
+        var result = await sut.GetMessagesAsync(request, CancellationToken.None);
 
-        result.ShouldNotBeEmpty();
-        result.Count.ShouldBe(2);
-        result.ShouldContain(x => x.Id == message1.Id);
-        result.ShouldContain(x => x.Id == message2.Id);
-        result.All(x => x.ScheduleId == schedule.Id).ShouldBeTrue();
+        result.Items.ShouldNotBeEmpty();
+        result.Items.Count.ShouldBe(2);
+        result.Items.ShouldContain(x => x.Id == message1.Id);
+        result.Items.ShouldContain(x => x.Id == message2.Id);
+        result.Items.All(x => x.ScheduleId == schedule.Id).ShouldBeTrue();
     }
 
     [Fact]
     public async Task GetMessagesAsync_WithScheduleWithoutMessages_ShouldReturnEmptyList()
     {
         var schedule = await helper.CreateScheduleAsync();
+        var request = new ListMessageQuery(schedule.Id, 1, 10, MessageSortBy.SentAt, SortDirection.Asc, null, MessageStatus.All);
 
-        var result = await sut.GetMessagesAsync(schedule.Id, CancellationToken.None);
+        var result = await sut.GetMessagesAsync(request, CancellationToken.None);
 
-        result.ShouldBeEmpty();
+        result.Items.ShouldBeEmpty();
     }
 
     [Fact]
@@ -82,9 +86,11 @@ public class ListMessageStorageShould(StorageTestFixture fixture) : IClassFixtur
     {
         var nonExistingScheduleId = Guid.NewGuid();
 
-        var result = await sut.GetMessagesAsync(nonExistingScheduleId, CancellationToken.None);
+        var request = new ListMessageQuery(nonExistingScheduleId, 1, 10, MessageSortBy.SentAt, SortDirection.Asc, null, MessageStatus.All);
 
-        result.ShouldBeEmpty();
+        var result = await sut.GetMessagesAsync(request, CancellationToken.None);
+
+        result.Items.ShouldBeEmpty();
     }
 
     [Fact]
@@ -94,11 +100,12 @@ public class ListMessageStorageShould(StorageTestFixture fixture) : IClassFixtur
         var message = await helper.CreateMessageAsync(schedule.Id);
         var imageFile = await helper.CreateMessageFileAsync(message.Id);
         var videoFile = await helper.CreateVideoMessageFileAsync(message.Id);
+        var request = new ListMessageQuery(schedule.Id, 1, 10, MessageSortBy.SentAt, SortDirection.Asc, null, MessageStatus.All);
 
-        var result = await sut.GetMessagesAsync(schedule.Id, CancellationToken.None);
+        var result = await sut.GetMessagesAsync(request, CancellationToken.None);
 
-        result.ShouldNotBeEmpty();
-        var returnedMessage = result.First();
+        result.Items.ShouldNotBeEmpty();
+        var returnedMessage = result.Items.First();
         returnedMessage.Files.Count.ShouldBe(2);
         returnedMessage.Files.ShouldContain(x => x.Id == imageFile.Id && x.ContentType == "image/jpeg");
         returnedMessage.Files.ShouldContain(x => x.Id == videoFile.Id && x.ContentType == "video/mp4");
@@ -113,11 +120,12 @@ public class ListMessageStorageShould(StorageTestFixture fixture) : IClassFixtur
     {
         var schedule = await helper.CreateScheduleAsync();
         var message = await helper.CreateMessageAsync(schedule.Id);
+        var request = new ListMessageQuery(schedule.Id, 1, 10, MessageSortBy.SentAt, SortDirection.Asc, null, MessageStatus.All);
 
-        var result = await sut.GetMessagesAsync(schedule.Id, CancellationToken.None);
+        var result = await sut.GetMessagesAsync(request, CancellationToken.None);
 
-        result.ShouldNotBeEmpty();
-        var returnedMessage = result.First();
+        result.Items.ShouldNotBeEmpty();
+        var returnedMessage = result.Items.First();
         returnedMessage.Id.ShouldBe(message.Id);
         returnedMessage.TextMessage.ShouldBe(message.TextMessage);
         returnedMessage.ScheduleId.ShouldBe(message.ScheduleId);

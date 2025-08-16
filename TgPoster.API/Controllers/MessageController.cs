@@ -7,6 +7,7 @@ using TgPoster.API.Domain.UseCases.Messages.ApproveMessages;
 using TgPoster.API.Domain.UseCases.Messages.CreateMessage;
 using TgPoster.API.Domain.UseCases.Messages.CreateMessagesFromFiles;
 using TgPoster.API.Domain.UseCases.Messages.DeleteFileMessage;
+using TgPoster.API.Domain.UseCases.Messages.DeleteMessages;
 using TgPoster.API.Domain.UseCases.Messages.EditMessage;
 using TgPoster.API.Domain.UseCases.Messages.GetMessageById;
 using TgPoster.API.Domain.UseCases.Messages.ListMessage;
@@ -175,12 +176,25 @@ public class MessageController(ISender sender) : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
     [ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
-    public async Task<IActionResult> ApproveMessages(
-        ApproveMessagesRequest request,
-        CancellationToken ct
-    )
+    public async Task<IActionResult> ApproveMessages(ApproveMessagesRequest request, CancellationToken ct)
     {
         await sender.Send(new ApproveMessagesCommand(request.MessagesIds), ct);
+        return Ok();
+    }
+
+    /// <summary>
+    ///     Удалить сообщения
+    /// </summary>
+    /// <param name="ids"></param>
+    /// <param name="ct"></param>
+    /// <returns></returns>
+    [HttpDelete(Routes.Message.Delete)]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
+    public async Task<IActionResult> DeleteMessages([Required] List<Guid> ids, CancellationToken ct)
+    {
+        await sender.Send(new DeleteMessagesCommand(ids), ct);
         return Ok();
     }
 }

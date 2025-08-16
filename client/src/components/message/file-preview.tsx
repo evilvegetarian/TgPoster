@@ -1,10 +1,9 @@
-"use client"
-
 import { useState } from "react"
 import { X} from "lucide-react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import type { FileResponse } from "@/api/endpoints/tgPosterAPI.schemas"
+import {useGetApiOptionsFileType} from "@/api/endpoints/options/options.ts";
 
 interface FilePreviewProps {
     file: FileResponse
@@ -20,10 +19,14 @@ function getS3Url(fileId: string): string {
 }
 
 export function FilePreview({ file, onRemove, showRemoveButton = false }: FilePreviewProps) {
+    const { data: fileTypes, isLoading } = useGetApiOptionsFileType();
+    const targetFileType = fileTypes?.find(x => x.value === file.fileType);
     const [isModalOpen, setIsModalOpen] = useState(false)
+    if (isLoading) {
+        return <div>Загрузка...</div>;
+    }
 
     const mainFileUrl = file.id ? getS3Url(file.id) : null
-    //const { data: fileTypes, isLoading: fileLoading } = useGetApiOptionsFileType();
 
     if (!mainFileUrl) {
         return (
@@ -36,6 +39,7 @@ export function FilePreview({ file, onRemove, showRemoveButton = false }: FilePr
     return (
         <>
             <div className="relative group">
+                {targetFileType!.name}
                 <div
                     className="w-20 h-20 rounded-lg overflow-hidden cursor-pointer hover:opacity-80 transition-opacity"
                     onClick={() => setIsModalOpen(true)}

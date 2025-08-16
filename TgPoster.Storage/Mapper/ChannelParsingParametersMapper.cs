@@ -21,7 +21,8 @@ public static class ChannelParsingParametersMapper
             ScheduleId = entity.ScheduleId,
             NeedVerifiedPosts = entity.NeedVerifiedPosts,
             IsActive = entity.Status.IsActive(),
-            Channel = entity.Channel
+            Channel = entity.Channel,
+            LastParseDate = entity.LastParseDate
         };
     }
 

@@ -60,4 +60,5 @@ public class ChannelParsingParameters : BaseEntity
     public ParsingStatus Status { get; set; }
 
     public Schedule Schedule { get; set; } = null!;
+    public DateTime? LastParseDate { get; set; }
 }

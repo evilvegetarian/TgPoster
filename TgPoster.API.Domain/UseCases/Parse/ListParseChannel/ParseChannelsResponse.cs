@@ -22,4 +22,5 @@ public class ParseChannelsResponse
     public required bool IsActive { get; set; }
 
     public required string Channel { get; set; }
+    public DateTime? LastParseDate { get; set; }
 }
