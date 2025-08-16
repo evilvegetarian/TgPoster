@@ -1,5 +1,5 @@
 ﻿import type React from "react"
-import {useState} from "react"
+import {useEffect, useState} from "react"
 import {Plus, Upload, X} from "lucide-react"
 import {format} from "date-fns"
 import {Button} from "@/components/ui/button"
@@ -15,7 +15,8 @@ import {Badge} from "@/components/ui/badge.tsx";
 
 interface CreateMessageDialogProps {
     scheduleId: string,
-    availableTimes?: string[] | null
+    availableTimes?: string[] | null,
+    onTimeSelect: (time: string) => void
 }
 
 const utcToLocalDatetimeString = (utcString: string): string => {
@@ -26,7 +27,7 @@ const utcToLocalDatetimeString = (utcString: string): string => {
     return localISOTime;
 };
 
-export function CreateMessageDialog({ scheduleId, availableTimes}: CreateMessageDialogProps) {
+export function CreateMessageDialog({ scheduleId, availableTimes, onTimeSelect}: CreateMessageDialogProps) {
     const [isOpen, setIsOpen] = useState(false)
     const [textMessage, setTextMessage] = useState("")
     const [timePosting, setTimePosting] = useState("")
@@ -121,7 +122,10 @@ export function CreateMessageDialog({ scheduleId, availableTimes}: CreateMessage
                                         key={time}
                                         variant="secondary"
                                         className="cursor-pointer"
-                                        onClick={() => setTimePosting(utcToLocalDatetimeString(time))}
+                                        onClick={() => {
+                                            setTimePosting(utcToLocalDatetimeString(time))
+                                            onTimeSelect(time)
+                                        }}
                                     >
                                         {format(new Date(time), "dd MMM HH:mm", { locale: ru })}
                                     </Badge>

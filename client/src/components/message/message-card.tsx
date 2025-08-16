@@ -14,10 +14,11 @@ interface MessageCardProps {
     message: MessageResponse,
     isSelected: boolean,
     onSelectionChange: (selected: boolean) => void,
-    availableTimes?: string[] | null
+    availableTimes?: string[] | null,
+    onTimeSelect: (time: string) => void
 }
 
-export function MessageCard({message, isSelected, onSelectionChange, availableTimes}: MessageCardProps) {
+export function MessageCard({message, isSelected, onSelectionChange, availableTimes, onTimeSelect}: MessageCardProps) {
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
 
     const getStatusBadge = (needApprove: boolean, canApprove: boolean) => {
@@ -82,7 +83,9 @@ export function MessageCard({message, isSelected, onSelectionChange, availableTi
                 availableTimes={availableTimes}
                 message={message}
                                isOpen={isEditDialogOpen}
-                               onClose={() => setIsEditDialogOpen(false)}/>
+                               onClose={() => setIsEditDialogOpen(false)}
+                               onTimeSelect={onTimeSelect}
+            />
         </>
     )
 }

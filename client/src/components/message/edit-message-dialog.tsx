@@ -19,7 +19,8 @@ interface EditMessageDialogProps {
     message: MessageResponse | null,
     isOpen: boolean,
     onClose: () => void,
-    availableTimes?: string[] | null
+    availableTimes?: string[] | null,
+    onTimeSelect: (time: string) => void;
 }
 
 const utcToLocalDatetimeString = (utcString: string): string => {
@@ -29,12 +30,11 @@ const utcToLocalDatetimeString = (utcString: string): string => {
         .slice(0, 16);
 };
 
-export function EditMessageDialog({message, isOpen, onClose, availableTimes}: EditMessageDialogProps) {
+export function EditMessageDialog({message, isOpen, onClose, availableTimes, onTimeSelect}: EditMessageDialogProps) {
     const [textMessage, setTextMessage] = useState("")
     const [timePosting, setTimePosting] = useState("")
     const [oldFiles, setOldFiles] = useState<string[]>([])
     const [newFiles, setNewFiles] = useState<File[]>([])
-    const [times, setTimes] = useState<string[]>([])
 
     const updateMessage = usePutApiV1MessageId({
         mutation: {
@@ -56,9 +56,8 @@ export function EditMessageDialog({message, isOpen, onClose, availableTimes}: Ed
                 : "");
             setOldFiles(message.files?.map((f) => f.id) || [])
             setNewFiles([])
-            setTimes(availableTimes || [])
         }
-    }, [message, availableTimes])
+    }, [message])
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
@@ -94,11 +93,9 @@ export function EditMessageDialog({message, isOpen, onClose, availableTimes}: Ed
         setNewFiles((prev) => prev.filter((_, i) => i !== index))
     }
 
-    const addTime = (localTimeString: string) => {
-        setTimePosting(localTimeString)
-
-        const selectedUtcTime = new Date(localTimeString).toISOString();
-        setTimes(availableTimes?.filter(a => new Date(a).getTime() !== new Date(selectedUtcTime).getTime()) || [])
+    const handleTimeSuggestionClick = (time: string) => {
+        setTimePosting(utcToLocalDatetimeString(time))
+        onTimeSelect(time)
     }
 
     if (!message)
@@ -135,16 +132,16 @@ export function EditMessageDialog({message, isOpen, onClose, availableTimes}: Ed
                     </div>
 
                     {/* Блок с подсказками по времени */}
-                    {times.length > 0 && (
+                    {availableTimes && availableTimes.length > 0 && (
                         <div className="space-y-2 rounded-md border p-3">
                             <Label>Свободное время по расписанию:</Label>
                             <div className="flex flex-wrap gap-2">
-                                {times.slice(0, 4).map((time) => (
+                                {availableTimes.slice(0, 4).map((time) => (
                                     <Badge
                                         key={time}
                                         variant={message.timePosting === time ? "default" : "secondary"}
                                         className="cursor-pointer"
-                                        onClick={() => addTime(utcToLocalDatetimeString(time))}
+                                        onClick={() => handleTimeSuggestionClick(time)}
                                     >
                                         {format(new Date(time), "dd MMM HH:mm", {locale: ru})}
                                     </Badge>

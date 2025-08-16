@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from "react"
+﻿import { useState, useEffect, useCallback } from "react"
 import { Check, AlertCircle } from "lucide-react"
 import type { DateRange } from "react-day-picker"
 import { Button } from "@/components/ui/button"
@@ -39,8 +39,17 @@ export function MessagesPage() {
     const [dateRange, setDateRange] = useState<DateRange | undefined>()
     const [currentPage, setCurrentPage] = useState(1)
     const pageSize = 10;
-    const { data: times } = useGetApiV1MessageScheduleIdTime(scheduleId);
+    const { data: timesData, refetch: refetchTimes } = useGetApiV1MessageScheduleIdTime(scheduleId, { query: { enabled: !!scheduleId } });
+    const [availableTimes, setAvailableTimes] = useState<string[] | null | undefined>([]);
     const [selectedMessageIds, setSelectedMessageIds] = useState<string[]>([])
+
+    useEffect(() => {
+        setAvailableTimes(timesData?.postingTimes);
+    }, [timesData]);
+
+    const handleTimeSelect = useCallback((time: string) => {
+        setAvailableTimes(prev => prev?.filter(t => t !== time));
+    }, []);
 
     const {
         data: messagesData,
@@ -89,7 +98,10 @@ export function MessagesPage() {
 
     useEffect(() => {
         setSelectedMessageIds([])
-    }, [scheduleId, status, searchText, dateRange, sortBy, sortDirection, currentPage])
+        if (scheduleId) {
+            refetchTimes();
+        }
+    }, [scheduleId, status, searchText, dateRange, sortBy, sortDirection, currentPage, refetchTimes])
 
     useEffect(() => {
         setCurrentPage(1)
@@ -178,7 +190,8 @@ export function MessagesPage() {
                 {scheduleId &&
                     <CreateMessageDialog
                     scheduleId={scheduleId}
-                    availableTimes={times?.postingTimes}
+                    availableTimes={availableTimes}
+                    onTimeSelect={handleTimeSelect}
                 />}
             </div>
 
@@ -285,7 +298,8 @@ export function MessagesPage() {
                             message={message}
                             isSelected={selectedMessageIds.includes(message.id)}
                             onSelectionChange={(selected) => handleSelectMessage(message.id, selected)}
-                            availableTimes={times?.postingTimes}
+                            availableTimes={availableTimes}
+                            onTimeSelect={handleTimeSelect}
                         />
                     ))}
 
