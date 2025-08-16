@@ -231,16 +231,13 @@ internal class ParseChannelUseCase(
             }
         }
 
-        if (!isNeedVerified)
+        var existTime = await storage.GetExistMessageTimePostingAsync(scheduleId, ct);
+        var scheduleTime = await storage.GetScheduleTimeAsync(scheduleId, ct);
+        var postingTime = timePostingService.GetTimeForPosting(result.Count, scheduleTime, existTime);
+        if (postingTime.Count != 0)
         {
-            var existTime = await storage.GetExistMessageTimePostingAsync(scheduleId, ct);
-            var scheduleTime = await storage.GetScheduleTimeAsync(scheduleId, ct);
-            var postingTime = timePostingService.GetTimeForPosting(result.Count, scheduleTime, existTime);
-            if (postingTime.Count != 0)
-            {
-                for (var t = 0; t < Math.Min(result.Count, postingTime.Count); t++)
-                    result[t].TimePosting = postingTime[t];
-            }
+            for (var t = 0; t < Math.Min(result.Count, postingTime.Count); t++)
+                result[t].TimePosting = postingTime[t];
         }
 
         await storage.CreateMessagesAsync(result, ct);
