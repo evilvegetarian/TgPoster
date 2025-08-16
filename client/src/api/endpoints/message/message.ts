@@ -27,6 +27,7 @@ import type {
   ApproveMessagesRequest,
   CreateMessageResponse,
   GetApiV1MessageParams,
+  GetTimeResponse,
   MessageResponse,
   MessageResponsePagedResponse,
   PatchApiV1MessageIdFileBody,
@@ -688,4 +689,90 @@ export const usePatchApiV1MessageIdFile = <TError = ProblemDetails,
 
       return useMutation(mutationOptions , queryClient);
     }
+    /**
+ * @summary Получить ближайшее подходящее время постинга
+ */
+export const getApiV1MessageScheduleIdTime = (
+    scheduleId: string,
+ signal?: AbortSignal
+) => {
+      
+      
+      return customInstance<GetTimeResponse>(
+      {url: `/api/v1/message/${scheduleId}/time`, method: 'GET', signal
+    },
+      );
+    }
+  
+
+export const getGetApiV1MessageScheduleIdTimeQueryKey = (scheduleId: string,) => {
+    return [`/api/v1/message/${scheduleId}/time`] as const;
+    }
+
     
+export const getGetApiV1MessageScheduleIdTimeQueryOptions = <TData = Awaited<ReturnType<typeof getApiV1MessageScheduleIdTime>>, TError = ProblemDetails>(scheduleId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1MessageScheduleIdTime>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetApiV1MessageScheduleIdTimeQueryKey(scheduleId);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getApiV1MessageScheduleIdTime>>> = ({ signal }) => getApiV1MessageScheduleIdTime(scheduleId, signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, enabled: !!(scheduleId), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getApiV1MessageScheduleIdTime>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetApiV1MessageScheduleIdTimeQueryResult = NonNullable<Awaited<ReturnType<typeof getApiV1MessageScheduleIdTime>>>
+export type GetApiV1MessageScheduleIdTimeQueryError = ProblemDetails
+
+
+export function useGetApiV1MessageScheduleIdTime<TData = Awaited<ReturnType<typeof getApiV1MessageScheduleIdTime>>, TError = ProblemDetails>(
+ scheduleId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1MessageScheduleIdTime>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getApiV1MessageScheduleIdTime>>,
+          TError,
+          Awaited<ReturnType<typeof getApiV1MessageScheduleIdTime>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetApiV1MessageScheduleIdTime<TData = Awaited<ReturnType<typeof getApiV1MessageScheduleIdTime>>, TError = ProblemDetails>(
+ scheduleId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1MessageScheduleIdTime>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getApiV1MessageScheduleIdTime>>,
+          TError,
+          Awaited<ReturnType<typeof getApiV1MessageScheduleIdTime>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetApiV1MessageScheduleIdTime<TData = Awaited<ReturnType<typeof getApiV1MessageScheduleIdTime>>, TError = ProblemDetails>(
+ scheduleId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1MessageScheduleIdTime>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Получить ближайшее подходящее время постинга
+ */
+
+export function useGetApiV1MessageScheduleIdTime<TData = Awaited<ReturnType<typeof getApiV1MessageScheduleIdTime>>, TError = ProblemDetails>(
+ scheduleId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1MessageScheduleIdTime>>, TError, TData>>, }
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetApiV1MessageScheduleIdTimeQueryOptions(scheduleId,options)
+
+  const query = useQuery(queryOptions , queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+

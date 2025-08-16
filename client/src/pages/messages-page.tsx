@@ -14,7 +14,7 @@ import {
 } from "@/api/endpoints/tgPosterAPI.schemas"
 import {
     useDeleteApiV1Message,
-    useGetApiV1Message,
+    useGetApiV1Message, useGetApiV1MessageScheduleIdTime,
     usePatchApiV1Message
 } from "@/api/endpoints/message/message"
 import {
@@ -34,12 +34,12 @@ export function MessagesPage() {
     const [scheduleId, setScheduleId] = useState("")
     const [status, setStatus] = useState<MessageStatus>(MessageStatus.NUMBER_0)
     const [searchText, setSearchText] = useState("")
-    const [sortBy, setSortBy] = useState<MessageSortBy>(MessageSortBy.NUMBER_0)
-    const [sortDirection, setSortDirection] = useState<SortDirection>(SortDirection.NUMBER_1)
+    const [sortBy, setSortBy] = useState<MessageSortBy>(MessageSortBy.NUMBER_1)
+    const [sortDirection, setSortDirection] = useState<SortDirection>(SortDirection.NUMBER_0)
     const [dateRange, setDateRange] = useState<DateRange | undefined>()
     const [currentPage, setCurrentPage] = useState(1)
-    const pageSize = 10
-
+    const pageSize = 10;
+    const { data: times } = useGetApiV1MessageScheduleIdTime(scheduleId);
     const [selectedMessageIds, setSelectedMessageIds] = useState<string[]>([])
 
     const {
@@ -175,7 +175,11 @@ export function MessagesPage() {
         <div className="container mx-auto p-6 space-y-6">
             <div className="flex items-center justify-between">
                 <h1 className="text-3xl font-bold">Управление сообщениями</h1>
-                {scheduleId && <CreateMessageDialog scheduleId={scheduleId} />}
+                {scheduleId &&
+                    <CreateMessageDialog
+                    scheduleId={scheduleId}
+                    availableTimes={times?.postingTimes}
+                />}
             </div>
 
             {/* Панель фильтров */}
@@ -281,6 +285,7 @@ export function MessagesPage() {
                             message={message}
                             isSelected={selectedMessageIds.includes(message.id)}
                             onSelectionChange={(selected) => handleSelectMessage(message.id, selected)}
+                            availableTimes={times?.postingTimes}
                         />
                     ))}
 

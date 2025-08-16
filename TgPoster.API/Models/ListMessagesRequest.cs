@@ -34,10 +34,10 @@ public class ListMessagesRequest : PaginationRequest
     /// <summary>
     /// Поле для сортировки. По умолчанию - по дате создания.
     /// </summary>
-    public MessageSortBy SortBy { get; set; } = MessageSortBy.CreatedAt;
+    public MessageSortBy SortBy { get; set; } = MessageSortBy.SentAt;
 
     /// <summary>
     /// Направление сортировки. По умолчанию - по убыванию (сначала новые).
     /// </summary>
-    public SortDirection SortDirection { get; set; } = SortDirection.Desc;
+    public SortDirection SortDirection { get; set; } = SortDirection.Asc;
 }

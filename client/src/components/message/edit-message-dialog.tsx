@@ -1,52 +1,49 @@
 import type React from "react"
-import { useState, useEffect } from "react"
-import { Upload, X } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { FilePreview } from "./file-preview"
-import type { MessageResponse} from "@/api/endpoints/tgPosterAPI.schemas.ts";
-import { usePutApiV1MessageId} from "@/api/endpoints/message/message.ts";
+import {useEffect, useState} from "react"
+import {Upload, X} from "lucide-react"
+import {Button} from "@/components/ui/button"
+import {Dialog, DialogContent, DialogHeader, DialogTitle} from "@/components/ui/dialog"
+import {Input} from "@/components/ui/input"
+import {Label} from "@/components/ui/label"
+import {FilePreview} from "./file-preview"
+import type {MessageResponse} from "@/api/endpoints/tgPosterAPI.schemas.ts";
+import {usePutApiV1MessageId} from "@/api/endpoints/message/message.ts";
 import {Textarea} from "@/components/ui/textarea.tsx";
 import {toast} from "sonner";
+import {Badge} from "@/components/ui/badge.tsx";
+import {format} from "date-fns"
+import {ru} from "date-fns/locale";
 
 
 interface EditMessageDialogProps {
-    message: MessageResponse | null
-    isOpen: boolean
-    onClose: () => void
+    message: MessageResponse | null,
+    isOpen: boolean,
+    onClose: () => void,
+    availableTimes?: string[] | null
 }
 
 const utcToLocalDatetimeString = (utcString: string): string => {
     const date = new Date(utcString);
-    const localISOTime = new Date(date.getTime() - date.getTimezoneOffset() * 60000)
+    return new Date(date.getTime() - date.getTimezoneOffset() * 60000)
         .toISOString()
         .slice(0, 16);
-    return localISOTime;
 };
 
-const localDatetimeStringToUtc = (localString: string): string => {
-    const localDate = new Date(localString);
-    const utcDate = new Date(localDate.getTime() + localDate.getTimezoneOffset() * 60000);
-    return utcDate.toISOString();
-};
-
-export function EditMessageDialog({ message, isOpen, onClose }: EditMessageDialogProps) {
+export function EditMessageDialog({message, isOpen, onClose, availableTimes}: EditMessageDialogProps) {
     const [textMessage, setTextMessage] = useState("")
     const [timePosting, setTimePosting] = useState("")
     const [oldFiles, setOldFiles] = useState<string[]>([])
     const [newFiles, setNewFiles] = useState<File[]>([])
-
+    const [times, setTimes] = useState<string[]>([])
 
     const updateMessage = usePutApiV1MessageId({
         mutation: {
             onSuccess: () => {
-                toast.success("Успех", { description: "Сообщение обновлено успешно"})
+                toast.success("Успех", {description: "Сообщение обновлено успешно"})
                 onClose()
             },
             onError: () => {
-                toast.error( "Ошибка",{description: "Не удалось обновить сообщение"})
+                toast.error("Ошибка", {description: "Не удалось обновить сообщение"})
             },
         },
     })
@@ -59,24 +56,23 @@ export function EditMessageDialog({ message, isOpen, onClose }: EditMessageDialo
                 : "");
             setOldFiles(message.files?.map((f) => f.id) || [])
             setNewFiles([])
+            setTimes(availableTimes || [])
         }
-    }, [message])
+    }, [message, availableTimes])
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
 
         if (!message || !timePosting) {
-            toast.error("Ошибка", { description: "Укажите время публикации"})
+            toast.error("Ошибка", {description: "Укажите время публикации"})
             return
         }
-
-        const utcTimePosting = localDatetimeStringToUtc(timePosting);
 
         updateMessage.mutate({
             id: message.id,
             data: {
                 ScheduleId: message.scheduleId,
-                TimePosting: utcTimePosting,
+                TimePosting: new Date(timePosting).toISOString(),
                 TextMessage: textMessage || undefined,
                 OldFiles: oldFiles.length > 0 ? oldFiles : undefined,
                 NewFiles: newFiles.length > 0 ? newFiles : undefined,
@@ -98,7 +94,15 @@ export function EditMessageDialog({ message, isOpen, onClose }: EditMessageDialo
         setNewFiles((prev) => prev.filter((_, i) => i !== index))
     }
 
-    if (!message) return null
+    const addTime = (localTimeString: string) => {
+        setTimePosting(localTimeString)
+
+        const selectedUtcTime = new Date(localTimeString).toISOString();
+        setTimes(availableTimes?.filter(a => new Date(a).getTime() !== new Date(selectedUtcTime).getTime()) || [])
+    }
+
+    if (!message)
+        return null
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
@@ -130,6 +134,25 @@ export function EditMessageDialog({ message, isOpen, onClose }: EditMessageDialo
                         />
                     </div>
 
+                    {/* Блок с подсказками по времени */}
+                    {times.length > 0 && (
+                        <div className="space-y-2 rounded-md border p-3">
+                            <Label>Свободное время по расписанию:</Label>
+                            <div className="flex flex-wrap gap-2">
+                                {times.slice(0, 4).map((time) => (
+                                    <Badge
+                                        key={time}
+                                        variant={message.timePosting === time ? "default" : "secondary"}
+                                        className="cursor-pointer"
+                                        onClick={() => addTime(utcToLocalDatetimeString(time))}
+                                    >
+                                        {format(new Date(time), "dd MMM HH:mm", {locale: ru})}
+                                    </Badge>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
                     <div className="space-y-2">
                         <Label>Файлы</Label>
 
@@ -141,7 +164,8 @@ export function EditMessageDialog({ message, isOpen, onClose }: EditMessageDialo
                                     {message.files
                                         .filter((file) => oldFiles.includes(file.id))
                                         .map((file) => (
-                                            <FilePreview key={file.id} file={file} showRemoveButton onRemove={() => removeOldFile(file.id)} />
+                                            <FilePreview key={file.id} file={file} showRemoveButton
+                                                         onRemove={() => removeOldFile(file.id)}/>
                                         ))}
                                 </div>
                             </div>
@@ -154,7 +178,8 @@ export function EditMessageDialog({ message, isOpen, onClose }: EditMessageDialo
                                 <div className="grid grid-cols-4 gap-2">
                                     {newFiles.map((file, index) => (
                                         <div key={index} className="relative group">
-                                            <div className="w-20 h-20 bg-muted rounded-lg flex items-center justify-center">
+                                            <div
+                                                className="w-20 h-20 bg-muted rounded-lg flex items-center justify-center">
                                                 <span className="text-xs text-center p-1">{file.name}</span>
                                             </div>
                                             <Button
@@ -164,7 +189,7 @@ export function EditMessageDialog({ message, isOpen, onClose }: EditMessageDialo
                                                 className="absolute -top-2 -right-2 h-6 w-6 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
                                                 onClick={() => removeNewFile(index)}
                                             >
-                                                <X className="h-3 w-3" />
+                                                <X className="h-3 w-3"/>
                                             </Button>
                                         </div>
                                     ))}
@@ -183,8 +208,9 @@ export function EditMessageDialog({ message, isOpen, onClose }: EditMessageDialo
                                 id="file-upload-edit"
                             />
                             <Label htmlFor="file-upload-edit" className="cursor-pointer">
-                                <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-4 text-center hover:border-muted-foreground/50 transition-colors">
-                                    <Upload className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
+                                <div
+                                    className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-4 text-center hover:border-muted-foreground/50 transition-colors">
+                                    <Upload className="h-8 w-8 mx-auto mb-2 text-muted-foreground"/>
                                     <p className="text-sm text-muted-foreground">Добавить новые файлы</p>
                                 </div>
                             </Label>

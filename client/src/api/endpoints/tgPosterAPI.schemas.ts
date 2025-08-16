@@ -158,6 +158,11 @@ export interface GetDaysResponse {
   timePostings?: string[] | null;
 }
 
+export interface GetTimeResponse {
+  /** @nullable */
+  postingTimes?: string[] | null;
+}
+
 export interface MessageResponse {
   id: string;
   /** @nullable */
@@ -242,6 +247,8 @@ export interface ParseChannelsResponse {
   isActive: boolean;
   /** @nullable */
   channel: string | null;
+  /** @nullable */
+  lastParseDate?: string | null;
 }
 
 export interface ProblemDetails {

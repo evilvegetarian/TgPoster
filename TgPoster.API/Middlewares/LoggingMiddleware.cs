@@ -13,9 +13,9 @@ public static class LoggingMiddleware
         var serilog = new LoggerConfiguration()
             .MinimumLevel.Information()
             .MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Warning)
-            .MinimumLevel.Override("Microsoft.EntityFrameworkCore.Database.Command", LogEventLevel.Warning)
+            .MinimumLevel.Override("Microsoft.EntityFrameworkCore.Database.Command", LogEventLevel.Verbose)
             .MinimumLevel.Override("System.Net.Http.HttpClient", LogEventLevel.Warning)
-            .MinimumLevel.Override("Microsoft.AspNetCore.Authentication", LogEventLevel.Verbose)
+            .MinimumLevel.Override("Microsoft.AspNetCore.Authentication", LogEventLevel.Warning)
             .Enrich.WithProperty(nameof(logger.Application), logger.Application)
             .WriteTo.GrafanaLoki(
                 logger.LogsUrl,

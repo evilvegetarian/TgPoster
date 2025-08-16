@@ -1,21 +1,32 @@
 ﻿import type React from "react"
-import { useState } from "react"
-import { Plus, Upload, X } from "lucide-react"
-import { format } from "date-fns"
-import { Button } from "@/components/ui/button"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { Textarea } from "@/components/ui/textarea"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+import {useState} from "react"
+import {Plus, Upload, X} from "lucide-react"
+import {format} from "date-fns"
+import {Button} from "@/components/ui/button"
+import {Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger} from "@/components/ui/dialog"
+import {Textarea} from "@/components/ui/textarea"
+import {Input} from "@/components/ui/input"
+import {Label} from "@/components/ui/label"
 
-import { toast } from "sonner"
+import {toast} from "sonner"
 import {usePostApiV1Message} from "@/api/endpoints/message/message.ts";
+import { ru } from "date-fns/locale"
+import {Badge} from "@/components/ui/badge.tsx";
 
 interface CreateMessageDialogProps {
-    scheduleId: string
+    scheduleId: string,
+    availableTimes?: string[] | null
 }
 
-export function CreateMessageDialog({ scheduleId }: CreateMessageDialogProps) {
+const utcToLocalDatetimeString = (utcString: string): string => {
+    const date = new Date(utcString);
+    const localISOTime = new Date(date.getTime() - date.getTimezoneOffset() * 60000)
+        .toISOString()
+        .slice(0, 16);
+    return localISOTime;
+};
+
+export function CreateMessageDialog({ scheduleId, availableTimes}: CreateMessageDialogProps) {
     const [isOpen, setIsOpen] = useState(false)
     const [textMessage, setTextMessage] = useState("")
     const [timePosting, setTimePosting] = useState("")
@@ -40,7 +51,7 @@ export function CreateMessageDialog({ scheduleId }: CreateMessageDialogProps) {
         e.preventDefault()
 
         if (!timePosting) {
-            toast.error( "Ошибка", {description: "Укажите время публикации"})
+            toast.error("Ошибка", {description: "Укажите время публикации"})
             return
         }
 
@@ -64,13 +75,11 @@ export function CreateMessageDialog({ scheduleId }: CreateMessageDialogProps) {
         setFiles((prev) => prev.filter((_, i) => i !== index))
     }
 
-    const defaultDateTime = format(new Date(), "yyyy-MM-dd'T'HH:mm")
-
     return (
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
             <DialogTrigger asChild>
                 <Button>
-                    <Plus className="h-4 w-4 mr-2" />
+                    <Plus className="h-4 w-4 mr-2"/>
                     Создать новое сообщение
                 </Button>
             </DialogTrigger>
@@ -97,12 +106,29 @@ export function CreateMessageDialog({ scheduleId }: CreateMessageDialogProps) {
                         <Input
                             id="time"
                             type="datetime-local"
-                            value={timePosting || defaultDateTime}
+                            value={timePosting}
                             onChange={(e) => setTimePosting(e.target.value)}
                             required
                         />
                     </div>
-
+                    {/* 6. Блок с подсказками по времени */}
+                    {availableTimes && availableTimes.length > 0 && (
+                        <div className="space-y-2 rounded-md border p-3">
+                            <Label>Свободное время по расписанию:</Label>
+                            <div className="flex flex-wrap gap-2">
+                                {availableTimes.slice(0,4).map((time) => (
+                                    <Badge
+                                        key={time}
+                                        variant="secondary"
+                                        className="cursor-pointer"
+                                        onClick={() => setTimePosting(utcToLocalDatetimeString(time))}
+                                    >
+                                        {format(new Date(time), "dd MMM HH:mm", { locale: ru })}
+                                    </Badge>
+                                ))}
+                            </div>
+                        </div>
+                    )}
                     <div className="space-y-2">
                         <Label>Файлы</Label>
                         <div className="space-y-2">
@@ -115,8 +141,9 @@ export function CreateMessageDialog({ scheduleId }: CreateMessageDialogProps) {
                                 id="file-upload"
                             />
                             <Label htmlFor="file-upload" className="cursor-pointer">
-                                <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-4 text-center hover:border-muted-foreground/50 transition-colors">
-                                    <Upload className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
+                                <div
+                                    className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-4 text-center hover:border-muted-foreground/50 transition-colors">
+                                    <Upload className="h-8 w-8 mx-auto mb-2 text-muted-foreground"/>
                                     <p className="text-sm text-muted-foreground">Нажмите для выбора файлов</p>
                                 </div>
                             </Label>
@@ -125,7 +152,8 @@ export function CreateMessageDialog({ scheduleId }: CreateMessageDialogProps) {
                                 <div className="grid grid-cols-4 gap-2">
                                     {files.map((file, index) => (
                                         <div key={index} className="relative group">
-                                            <div className="w-20 h-20 bg-muted rounded-lg flex items-center justify-center">
+                                            <div
+                                                className="w-20 h-20 bg-muted rounded-lg flex items-center justify-center">
                                                 <span className="text-xs text-center p-1">{file.name}</span>
                                             </div>
                                             <Button
@@ -135,7 +163,7 @@ export function CreateMessageDialog({ scheduleId }: CreateMessageDialogProps) {
                                                 className="absolute -top-2 -right-2 h-6 w-6 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
                                                 onClick={() => removeFile(index)}
                                             >
-                                                <X className="h-3 w-3" />
+                                                <X className="h-3 w-3"/>
                                             </Button>
                                         </div>
                                     ))}

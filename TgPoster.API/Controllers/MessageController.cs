@@ -10,6 +10,7 @@ using TgPoster.API.Domain.UseCases.Messages.DeleteFileMessage;
 using TgPoster.API.Domain.UseCases.Messages.DeleteMessages;
 using TgPoster.API.Domain.UseCases.Messages.EditMessage;
 using TgPoster.API.Domain.UseCases.Messages.GetMessageById;
+using TgPoster.API.Domain.UseCases.Messages.GetTime;
 using TgPoster.API.Domain.UseCases.Messages.ListMessage;
 using TgPoster.API.Domain.UseCases.Messages.LoadFilesMessage;
 using TgPoster.API.Mapper;
@@ -196,5 +197,21 @@ public class MessageController(ISender sender) : ControllerBase
     {
         await sender.Send(new DeleteMessagesCommand(ids), ct);
         return Ok();
+    }
+
+    /// <summary>
+    ///     Получить ближайшее подходящее время постинга
+    /// </summary>
+    /// <param name="scheduleId"></param>
+    /// <param name="ct"></param>
+    /// <returns></returns>
+    [HttpGet(Routes.Message.GetTime)]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(GetTimeResponse))]
+    [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
+    public async Task<IActionResult> GetTime([Required] Guid scheduleId, CancellationToken ct)
+    {
+        var response = await sender.Send(new GetTimeCommand(scheduleId), ct);
+        return Ok(response);
     }
 }

@@ -3,7 +3,7 @@ namespace Shared;
 public sealed class TimePostingService
 {
     public List<DateTimeOffset> GetTimeForPosting(
-        int mediaCount,
+        int messageCount,
         Dictionary<DayOfWeek, List<TimeOnly>> scheduleTime,
         List<DateTimeOffset> existMessageTimePosting
     )
@@ -13,7 +13,7 @@ public sealed class TimePostingService
             throw new ArgumentNullException("Расписание не заполнено!");
         }
 
-        var currentDateValue = DateTimeOffset.UtcNow;
+        var currentDateValue = existMessageTimePosting.OrderByDescending(x => x).First();
 
         var currentDayOfWeek = currentDateValue.DayOfWeek;
         var currentTime = currentDateValue.TimeOfDay;
@@ -21,7 +21,7 @@ public sealed class TimePostingService
         var dateTimes = new List<DateTimeOffset>();
         var index = 0;
 
-        while (index < mediaCount)
+        while (index < messageCount)
         {
             if (scheduleTime.TryGetValue(currentDayOfWeek, out var timesForToday))
             {
@@ -35,7 +35,7 @@ public sealed class TimePostingService
                     {
                         dateTimes.Add(potentialNewDateTime);
                         index++;
-                        if (index >= mediaCount)
+                        if (index >= messageCount)
                         {
                             break;
                         }

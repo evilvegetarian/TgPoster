@@ -54,6 +54,7 @@ internal static class Routes
         internal const string ApproveMessages = Root;
         internal const string Get = Root + "/{id:guid}";
         internal const string Delete = Root;
+        internal const string GetTime = Root + "/{scheduleId:guid}/time";
     }
 
     internal static class File
