@@ -47,14 +47,13 @@ jobs:
 
   deploy-api:
     needs: [build-and-push]
-    runs-on: [self-hosted, apirunner]
+    runs-on: [self-hosted, runner]
 
     steps:
       - name: Download docker-compose.api.yml
         uses: actions/download-artifact@v4
         with:
           name: docker-compose-api
-          path: /home/dev/
 
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v3
@@ -65,9 +64,10 @@ jobs:
 
       - name: Pull latest image and restart container
         run: |
-          cd /home/dev/
-          export TGPOSTER_API_CONNECTIONSTRING='${{ secrets.WORKER_CONNECTIONSTRING }}'
+          export TGPOSTER_API_CONNECTIONSTRING='${{ secrets.CONNECTIONSTRING }}'
           export TGPOSTER_API_LOGSURL='${{ secrets.LOGSURL }}'
+          export TGPOSTER_API_JWTOPTIONS_SECRETKEY='${{ secrets.JWTOPTIONS_SECRETKEY }}'
+          export TGPOSTER_API_TELEGRAMOPTIONS_SECRETKEY='${{ secrets.TELEGRAMOPTIONS_SECRETKEY }}'
           docker compose -f docker-compose.api.yml pull
           docker compose -f docker-compose.api.yml up -d
       
