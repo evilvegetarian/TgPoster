@@ -6,7 +6,7 @@ services:
   tgposter-worker:
     volumes:
       - ./worker-logs:/app/logs
-      - /WTelegram.session:/app/WTelegram.session
+      - ./WTelegram.session:/app/WTelegram.session
     container_name: tgposter-worker
     image: ${TGPOSTER_WORKER_IMAGE:-ghcr.io/evilvegetarian/tgposter-worker:latest}
     ports:
