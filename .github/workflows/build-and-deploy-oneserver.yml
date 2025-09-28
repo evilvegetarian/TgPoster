@@ -1,6 +1,8 @@
-name: Build and deploy api
+name: Build and deploy for one server
 
 on:
+  push:
+    branches: [ master ]
   workflow_dispatch:
 
 permissions:
@@ -8,7 +10,7 @@ permissions:
   packages: write
   
 jobs:
-  build:
+  build-api:
     runs-on: ubuntu-latest
 
     permissions:
@@ -43,8 +45,43 @@ jobs:
           name: docker-compose-api
           path: docker/docker-compose.api.yml
 
+  build-worker:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push tgposter-worker
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: TgPoster.Worker/Dockerfile
+          push: true
+          tags: ghcr.io/evilvegetarian/tgposter-worker:latest
+
+      - name: Upload docker-compose.worker.yml
+        uses: actions/upload-artifact@v4
+        with:
+          name: docker-compose-worker
+          path: docker/docker-compose.worker.yml
+
   deploy:
-    needs: [build]
+    needs: [build-api, build-worker]
     runs-on: [self-hosted, runner]
 
     steps:
@@ -52,6 +89,11 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: docker-compose-api
+
+      - name: Download docker-compose.worker.yml
+        uses: actions/download-artifact@v4
+        with:
+          name: docker-compose-worker
 
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v3
@@ -64,9 +106,13 @@ jobs:
         run: |
           export CONNECTIONSTRING='${{ secrets.CONNECTIONSTRING }}' 
           export TGPOSTER_API_JWTOPTIONS_SECRETKEY='${{ secrets.JWTOPTIONS_SECRETKEY }}'
+          export TELEGRAM_API_ID='${{ secrets.API_ID }}'
+          export TELEGRAM_API_HASH='${{ secrets.API_HASH }}'
+          export TELEGRAM_PHONE_NUMBER='${{ secrets.PHONE_NUMBER }}'
           export TELEGRAMOPTIONS_SECRETKEY='${{ secrets.TELEGRAMOPTIONS_SECRETKEY }}'
-          docker compose -f docker-compose.api.yml pull
-          docker compose -f docker-compose.api.yml up -d
+
+          docker-compose -f docker-compose.worker.yml -f docker-compose.api.yml pull
+          docker-compose -f docker-compose.worker.yml -f docker-compose.api.yml up -d
       
       - name: Clean up old docker images and containers
         if: always() 

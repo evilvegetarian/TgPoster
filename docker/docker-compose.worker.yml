@@ -3,7 +3,7 @@ networks:
     name: tg
 
 services:
-  worker:
+  tgposter-worker:
     volumes:
       - ./worker-logs:/app/logs
       - /WTelegram.session:/app/WTelegram.session
@@ -15,10 +15,9 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: "Production"
       ASPNETCORE_URLS: "http://+:8090"
-      DataBase__ConnectionString: ${TGPOSTER_WORKER_CONNECTIONSTRING:-Host=localhost;Username=admin;Password=admin;Database=tg-db}
+      DataBase__ConnectionString: ${CONNECTIONSTRING:-Host=localhost;Username=admin;Password=admin;Database=tg-db}
       TelegramSettings__api_id: ${TELEGRAM_API_ID}
       TelegramSettings__api_hash: ${TELEGRAM_API_HASH}
       TelegramSettings__phone_number: ${TELEGRAM_PHONE_NUMBER}
-      Logger__LogsUrl: ${TGPOSTER_WORKER_LOGSURL:-localhost:3100}
-      TelegramOptions__SecretKey: ${TGPOSTER_API_TELEGRAMOPTIONS_SECRETKEY}
+      TelegramOptions__SecretKey: ${TELEGRAMOPTIONS_SECRETKEY}
       
