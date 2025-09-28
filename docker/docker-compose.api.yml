@@ -5,7 +5,7 @@ networks:
 services:
   worker:
     volumes:
-      - ./mylogs:/app/logs
+      - ./api-logs:/app/logs
     container_name: tgposter-api
     image: ${TGPOSTER_API_IMAGE:-ghcr.io/evilvegetarian/tgposter-api:latest}
     ports:
