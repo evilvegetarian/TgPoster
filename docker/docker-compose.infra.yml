@@ -4,8 +4,7 @@ networks:
 
 volumes:
   tg-pg:
-  tg-postgres:
-  tg-grafana:  
+  tg-grafana:
 
 services:
   postgres:
@@ -14,28 +13,28 @@ services:
     ports:
       - '5432:5432'
     environment:
-      POSTGRES_USER: 'admin'
-      POSTGRES_PASSWORD: 'admin'
+      POSTGRES_USER: '${POSTGRES_USER}'
+      POSTGRES_PASSWORD: '${POSTGRES_PASSWORD}'
       POSTGRES_DB: 'tg-db'
     restart: unless-stopped
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}" ]
+      test: [ "CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}" ]
       interval: 10s
       timeout: 5s
       retries: 5
       start_period: 10s
     volumes:
       - tg-pg:/var/lib/postgresql/data
-      
+  
   loki:
     container_name: "tg-loki"
-    hostname: tg-loki
     image: grafana/loki
     ports:
       - "3100:3100"
     volumes:
       - /home/dev/loki-config.yml:/etc/loki/local-config.yml
     command: --config.file=/etc/loki/local-config.yml
+    restart: unless-stopped
 
   grafana:
     container_name: "tg-grafana"

@@ -1,0 +1,40 @@
+name: Deploy Infrastructure
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Upload docker-compose.infra.yml
+        uses: actions/upload-artifact@v4
+        with:
+          name: docker-compose-infra
+          path: docker/docker-compose.infra.yml
+
+  deploy:
+    needs: [build]
+    runs-on: [self-hosted, runner] 
+
+    steps:
+      - name: Download docker-compose.infra.yml
+        uses: actions/download-artifact@v4
+        with:
+          name: docker-compose-infra
+
+      - name: Create .env file
+        run: |
+          echo "POSTGRES_USER=${{ secrets.POSTGRES_USER }}" >> .env
+          echo "POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}" >> .env
+          
+      - name: Pull latest infra images
+        run: docker compose -f docker-compose.infra.yml pull
+
+      - name: Deploy infrastructure stack
+        run: docker compose -f docker-compose.infra.yml up -d
+
