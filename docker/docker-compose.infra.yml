@@ -32,7 +32,7 @@ services:
     ports:
       - "3100:3100"
     volumes:
-      - /home/dev/loki-config.yml:/etc/loki/local-config.yml
+      - ./loki-config.yml:/etc/loki/local-config.yml
     command: --config.file=/etc/loki/local-config.yml
     restart: unless-stopped
 
