@@ -64,7 +64,7 @@ jobs:
 
       - name: Pull latest image and restart container
         run: |
-          export TGPOSTER_API_CONNECTIONSTRING='${{ secrets.CONNECTIONSTRING }}'
+          export TGPOSTER_API_CONNECTIONSTRING='${{ secrets.CONNECTIONSTRING }}' 
           export TGPOSTER_API_LOGSURL='${{ secrets.LOGSURL }}'
           export TGPOSTER_API_JWTOPTIONS_SECRETKEY='${{ secrets.JWTOPTIONS_SECRETKEY }}'
           export TGPOSTER_API_TELEGRAMOPTIONS_SECRETKEY='${{ secrets.TELEGRAMOPTIONS_SECRETKEY }}'
