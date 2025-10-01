@@ -1,0 +1,10 @@
+networks:
+  default:
+    name: tg
+
+services:
+  frontend:
+    container_name: frontend
+    image: ${TGPOSTER_FRONTEND_IMAGE:-ghcr.io/evilvegetarian/frontend:latest}
+    ports:
+      - "8077:80"
