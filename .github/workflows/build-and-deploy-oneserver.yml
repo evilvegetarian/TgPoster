@@ -130,6 +130,11 @@ jobs:
         with:
           name: docker-compose-worker
 
+      - name: Download docker-compose.frontend.yml
+        uses: actions/download-artifact@v4
+        with:
+          name: docker-compose-frontend    
+
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v3
         with:
@@ -137,17 +142,18 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Pull latest image and restart container
-        env:
-          API_URL: ${{ secrets.API_URL }}
+      - name: Create .env file
         run: |
-          export CONNECTIONSTRING='${{ secrets.CONNECTIONSTRING }}' 
-          export TGPOSTER_API_JWTOPTIONS_SECRETKEY='${{ secrets.JWTOPTIONS_SECRETKEY }}'
-          export TELEGRAM_API_ID='${{ secrets.API_ID }}'
-          export TELEGRAM_API_HASH='${{ secrets.API_HASH }}'
-          export TELEGRAM_PHONE_NUMBER='${{ secrets.PHONE_NUMBER }}'
-          export TELEGRAMOPTIONS_SECRETKEY='${{ secrets.TELEGRAMOPTIONS_SECRETKEY }}'
+          echo "API_URL=${{ secrets.API_URL }}" >> .env
+          echo "CONNECTIONSTRING=${{ secrets.CONNECTIONSTRING }}" >> .env
+          echo "TGPOSTER_API_JWTOPTIONS_SECRETKEY=${{ secrets.JWTOPTIONS_SECRETKEY }}" >> .env
+          echo "TELEGRAM_API_ID=${{ secrets.API_ID }}" >> .env
+          echo "TELEGRAM_API_HASH=${{ secrets.API_HASH }}" >> .env
+          echo "TELEGRAM_PHONE_NUMBER=${{ secrets.PHONE_NUMBER }}" >> .env
+          echo "TELEGRAMOPTIONS_SECRETKEY=${{ secrets.TELEGRAMOPTIONS_SECRETKEY }}" >> .env
 
+      - name: Pull latest images and restart containers
+        run: |
           docker-compose -f docker-compose.worker.yml -f docker-compose.api.yml -f docker-compose.frontend.yml pull
           docker-compose -f docker-compose.worker.yml -f docker-compose.api.yml -f docker-compose.frontend.yml up -d
 
