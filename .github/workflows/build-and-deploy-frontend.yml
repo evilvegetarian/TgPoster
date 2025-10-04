@@ -61,9 +61,11 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Pull latest image and restart container
+        env:
+          API_URL: ${{ secrets.API_URL }}
         run: |
           docker compose -f docker-compose.frontend.yml pull
-          docker compose -f docker-compose.frontend.yml up -d
+          docker compose -f docker-compose.frontend up -d 
       
       - name: Clean up old docker images and containers
         if: always() 

@@ -43,9 +43,7 @@ jobs:
           echo "POSTGRES_USER=${{ secrets.POSTGRES_USER }}" >> .env
           echo "POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}" >> .env
           
-      - name: Pull latest infra images
-        run: docker compose -f docker-compose.infra.yml pull
-
-      - name: Deploy infrastructure stack
-        run: docker compose -f docker-compose.infra.yml up -d
-
+      - name: Pull infrastructure stack and deploy
+        run: | 
+          docker compose -f docker-compose.infra.yml pull
+          docker compose -f docker-compose.infra.yml up -d
