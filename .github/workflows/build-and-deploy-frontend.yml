@@ -65,7 +65,7 @@ jobs:
           API_URL: ${{ secrets.API_URL }}
         run: |
           docker compose -f docker-compose.frontend.yml pull
-          docker compose -f docker-compose.frontend up -d 
+          docker compose -f docker-compose.frontend.yml up -d 
       
       - name: Clean up old docker images and containers
         if: always() 

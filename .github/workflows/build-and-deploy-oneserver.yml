@@ -80,8 +80,43 @@ jobs:
           name: docker-compose-worker
           path: docker/docker-compose.worker.yml
 
+  build-frontend:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push tgposter-frontend
+        uses: docker/build-push-action@v5
+        with:
+          context: ./client
+          file: client/Dockerfile
+          push: true
+          tags: ghcr.io/evilvegetarian/frontend:latest
+
+      - name: Upload docker-compose artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: docker-compose-frontend
+          path: docker/docker-compose.frontend.yml
+
   deploy:
-    needs: [build-api, build-worker]
+    needs: [build-api, build-worker, build-frontend]
     runs-on: [self-hosted, runner]
 
     steps:
@@ -103,6 +138,8 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Pull latest image and restart container
+        env:
+          API_URL: ${{ secrets.API_URL }}
         run: |
           export CONNECTIONSTRING='${{ secrets.CONNECTIONSTRING }}' 
           export TGPOSTER_API_JWTOPTIONS_SECRETKEY='${{ secrets.JWTOPTIONS_SECRETKEY }}'
@@ -111,9 +148,9 @@ jobs:
           export TELEGRAM_PHONE_NUMBER='${{ secrets.PHONE_NUMBER }}'
           export TELEGRAMOPTIONS_SECRETKEY='${{ secrets.TELEGRAMOPTIONS_SECRETKEY }}'
 
-          docker-compose -f docker-compose.worker.yml -f docker-compose.api.yml pull
-          docker-compose -f docker-compose.worker.yml -f docker-compose.api.yml up -d
-      
+          docker-compose -f docker-compose.worker.yml -f docker-compose.api.yml -f docker-compose.frontend.yml pull
+          docker-compose -f docker-compose.worker.yml -f docker-compose.api.yml -f docker-compose.frontend.yml up -d
+
       - name: Clean up old docker images and containers
         if: always() 
         run: |
