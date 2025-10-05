@@ -112,7 +112,6 @@ export function CreateMessageDialog({ scheduleId, availableTimes, onTimeSelect}:
                             required
                         />
                     </div>
-                    {/* 6. Блок с подсказками по времени */}
                     {availableTimes && availableTimes.length > 0 && (
                         <div className="space-y-2 rounded-md border p-3">
                             <Label>Свободное время по расписанию:</Label>

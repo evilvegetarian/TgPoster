@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "generate:api": "orval --config ./orval.config.ts"
+    "generate:api": "orval --config src/api/orval.config.ts"
   },
   "dependencies": {
     "@faker-js/faker": "^9.8.0",

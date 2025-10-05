@@ -18,7 +18,7 @@ export default defineConfig({
             },
         },
         input: {
-            target: 'http://localhost:5059/swagger/v1/swagger.json',
+            target:`${import.meta.env.VITE_API_URL}/swagger/v1/swagger.json`,
         },
     },
 });

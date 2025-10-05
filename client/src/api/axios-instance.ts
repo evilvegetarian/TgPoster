@@ -1,6 +1,8 @@
 import Axios, {type AxiosRequestConfig, HttpStatusCode} from 'axios';
+import {postApiV1AccountRefreshToken} from "@/api/endpoints/account/account.ts";
+import {GetAccessToken} from "@/auth-context.tsx";
 
-const API_URL = import.meta.env.VITE_API_URL??import.meta.env.VITE_API_LOCAL_URL;
+const API_URL = import.meta.env.VITE_API_URL ?? import.meta.env.VITE_API_LOCAL_URL;
 
 export const axiosInstance = Axios.create({
     baseURL: API_URL,
@@ -11,7 +13,7 @@ export const axiosInstance = Axios.create({
 
 let isRefreshing = false;
 let failedQueue: Array<{
-    resolve: (value?: string|null) => void;
+    resolve: (value?: string | null) => void;
     reject: (reason?: unknown) => void;
 }> = [];
 
@@ -28,7 +30,7 @@ const processQueue = (error: unknown, token: string | null = null) => {
 };
 
 axiosInstance.interceptors.request.use((config) => {
-    const token = localStorage.getItem('accessToken');
+    const token = GetAccessToken();
     if (token) {
         config.headers.Authorization = `Bearer ${token}`;
     }
@@ -47,7 +49,7 @@ axiosInstance.interceptors.response.use(
         if (error.response?.status === HttpStatusCode.Unauthorized) {
             if (isRefreshing) {
                 return new Promise((resolve, reject) => {
-                    failedQueue.push({ resolve, reject });
+                    failedQueue.push({resolve, reject});
                 })
                     .then(token => {
                         originalRequest.headers.Authorization = `Bearer ${token}`;
@@ -72,18 +74,17 @@ axiosInstance.interceptors.response.use(
             }
 
             try {
-                const response = await Axios.post<{ accessToken: string; refreshToken: string; }>(
-                    `${API_URL}/api/v1/account/refresh-token`, // Use the full URL
-                    { refreshToken: refreshToken }
-                );
+                const response = await postApiV1AccountRefreshToken({
+                    refreshToken: refreshToken
+                });
 
-                if (response.data.accessToken && response.data.refreshToken) {
-                    localStorage.setItem('accessToken', response.data.accessToken);
-                    localStorage.setItem('refreshToken', response.data.refreshToken);
+                if (response.accessToken && response.refreshToken) {
+                    localStorage.setItem('accessToken', response.accessToken);
+                    localStorage.setItem('refreshToken', response.refreshToken);
 
-                    processQueue(null, response.data.accessToken);
+                    processQueue(null, response.accessToken);
 
-                    originalRequest.headers.Authorization = `Bearer ${response.data.accessToken}`;
+                    originalRequest.headers.Authorization = `Bearer ${response.accessToken}`;
                     return axiosInstance(originalRequest);
                 } else {
                     throw new Error('Invalid refresh response');

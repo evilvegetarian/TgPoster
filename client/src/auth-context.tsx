@@ -1,4 +1,4 @@
-import {createContext, type ReactNode, useContext, useEffect, useMemo, useState, useCallback} from 'react';
+import {createContext, type ReactNode, useCallback, useContext, useEffect, useMemo, useState} from 'react';
 import {postApiV1AccountRefreshToken} from "@/api/endpoints/account/account";
 
 interface AuthContextType {
@@ -12,13 +12,18 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+export function GetAccessToken() {
+    return localStorage.getItem("accessToken");
+}
+
+export function GetRefreshToken() {
+    return localStorage.getItem("refreshToken");
+}
+
+
 export function AuthProvider({children}: { children: ReactNode }) {
-    const [accessToken, setAccessToken] = useState<string | null>(
-        localStorage.getItem("accessToken")
-    );
-    const [refreshToken, setRefreshToken] = useState<string | null>(
-        localStorage.getItem("refreshToken")
-    );
+    const [accessToken, setAccessToken] = useState<string | null>(GetAccessToken);
+    const [refreshToken, setRefreshToken] = useState<string | null>(GetRefreshToken);
 
     useEffect(() => {
         if (accessToken) {
