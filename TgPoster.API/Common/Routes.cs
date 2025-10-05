@@ -27,7 +27,7 @@ internal static class Routes
     internal static class Day
     {
         internal const string Root = Base + "/day";
-        internal const string DayOfWeek = Root + "/dayofweek";
+        internal const string DayOfWeek = Root + "/day-of-week";
         internal const string UpdateTime = Root + "/time";
         internal const string GetBySchedule = Root;
         internal const string Create = Root;
