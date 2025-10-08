@@ -2,6 +2,7 @@
 import {QueryClient, QueryClientProvider} from "@tanstack/react-query";
 import {ReactQueryDevtools} from "@tanstack/react-query-devtools";
 import {AuthProvider} from "@/auth-context.tsx";
+import {Toaster} from "sonner";
 
 const queryClient = new QueryClient({
     defaultOptions: {
@@ -15,6 +16,7 @@ const queryClient = new QueryClient({
 export function App() {
     return (
         <AuthProvider>
+            <Toaster />
             <QueryClientProvider client={queryClient}>
                 <Outlet/>
                 <ReactQueryDevtools initialIsOpen={false}/>

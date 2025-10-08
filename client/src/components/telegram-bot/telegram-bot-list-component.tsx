@@ -42,8 +42,7 @@ export function TelegramBotListComponent() {
                 queryClient.invalidateQueries({queryKey: getGetApiV1TelegramBotQueryKey()});
             },
             onError: (error) => {
-                toast.error("Ошибка при удалении бота");
-                console.error("Delete error:", error);
+                toast.error("Ошибка",{description:error.title||'Ошибка при удалении бота'});
             }
         }
     });

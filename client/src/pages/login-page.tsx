@@ -11,6 +11,7 @@ import {Form, FormControl, FormField, FormItem, FormLabel, FormMessage} from "@/
 import {Link} from "react-router-dom";
 import {useAuth} from "@/auth-context.tsx";
 import {toast} from "sonner";
+import type {SignInRequest} from "@/api/endpoints/tgPosterAPI.schemas.ts";
 
 const formSchema = z.object({
     login: z.string().min(5, "Логин должен быть не менее 5 символов"),
@@ -34,17 +35,15 @@ export function LoginPage() {
             onSuccess: (data) => {
                 if (data.accessToken && data.refreshToken) {
                     login(data.accessToken, data.refreshToken);
-                } else {
-                    console.error('Missing tokens in response');
                 }
             },
             onError: (error) => {
-                toast.error('Ошибка', {description:error.title|| "Не удалось войти в аккаунт"})
+                toast.error('Ошибка', {description : error.title|| "Не удалось войти в аккаунт"})
             }
         }
     });
 
-    function onSubmit(values: LoginFormValues) {
+    function onSubmit(values: SignInRequest) {
         mutate({data: values});
     }
 

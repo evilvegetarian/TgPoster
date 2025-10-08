@@ -71,7 +71,6 @@ export function AuthProvider({children}: { children: ReactNode }) {
                 return false;
             }
         } catch (error) {
-            console.error('Failed to refresh token:', error);
             logout();
             return false;
         }
