@@ -45,8 +45,7 @@ export function TelegramBotCreateDialog() {
                 queryClient.invalidateQueries({queryKey: getGetApiV1TelegramBotQueryKey()});
             },
             onError: (error) => {
-                const errorMessage = error?.title || "Ошибка при добавлении бота";
-                toast.error(errorMessage);
+                toast.error("Ошибка",{description: error.title || "Ошибка при добавлении бота"});
             }
         }
     });

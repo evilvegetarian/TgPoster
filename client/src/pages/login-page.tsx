@@ -38,7 +38,11 @@ export function LoginPage() {
                 }
             },
             onError: (error) => {
-                toast.error('Ошибка', {description : error.title|| "Не удалось войти в аккаунт"})
+                console.log('Error object:', error);
+                console.log('Error title:', error.title);
+                toast.error('Ошибка', {
+                    description: error.title || "Не удалось войти в аккаунт"
+                });
             }
         }
     });

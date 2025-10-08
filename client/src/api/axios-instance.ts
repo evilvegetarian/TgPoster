@@ -103,8 +103,10 @@ axiosInstance.interceptors.response.use(
         }
 
         console.error('API Error:', error);
-        if (error.response?.data?.title) {
-            console.error('Error details:', error.response.data.title);
+        console.error('Error details:', error.response.data.title);
+
+        if (error.response?.data) {
+            return Promise.reject(error.response.data);
         }
 
         return Promise.reject(error);
