@@ -31,8 +31,7 @@ public class MessageEndpointTests(EndpointTestFixture fixture) : IClassFixture<E
         var createResponse = await client.PostAsync(Routes.Message.CreateMessagesFromFiles, request.ToMultipartForm());
         createResponse.StatusCode.ShouldBe(HttpStatusCode.Created);
 
-        var message =
-            await client.GetAsync<PagedResponse<MessageResponse>>(Routes.Message.List + "?scheduleId=" + request.ScheduleId);
+        var message = await client.GetAsync<PagedResponse<MessageResponse>>(Routes.Message.List + "?scheduleId=" + request.ScheduleId);
         message.Data.Count.ShouldBe(files.Count);
     }
 

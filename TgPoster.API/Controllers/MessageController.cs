@@ -150,7 +150,7 @@ public class MessageController(ISender sender) : ControllerBase
     ///     Загрузить файлы сообщения
     /// </summary>
     /// <param name="id"></param>
-    /// <param name="fileId"></param>
+    /// <param name="files"></param>
     /// <param name="ct"></param>
     /// <returns></returns>
     [HttpPatch(Routes.Message.LoadFiles)]

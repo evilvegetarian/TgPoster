@@ -22,7 +22,7 @@ public sealed class CreateMessageRequest : IValidatableObject
     /// <summary>
     ///     Файлы сообщения
     /// </summary>
-    public List<IFormFile>? Files { get; set; } = [];
+    public List<IFormFile> Files { get; set; } = [];
 
     public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
     {

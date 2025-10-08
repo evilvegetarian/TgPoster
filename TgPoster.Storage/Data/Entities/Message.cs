@@ -34,7 +34,7 @@ public class Message : BaseEntity
     ///     Сообщение верифицировано
     ///     Дефолтно ставится true
     /// </summary>
-    public bool IsVerified { get; init; }
+    public bool IsVerified { get; set; }
 
     /// <summary>
     ///     Расписание
