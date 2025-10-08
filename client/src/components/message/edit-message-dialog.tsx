@@ -14,7 +14,6 @@ import {Badge} from "@/components/ui/badge.tsx";
 import {format} from "date-fns"
 import {ru} from "date-fns/locale";
 
-
 interface EditMessageDialogProps {
     message: MessageResponse | null,
     isOpen: boolean,

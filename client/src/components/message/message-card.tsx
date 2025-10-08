@@ -1,5 +1,5 @@
 import {useState} from "react"
-import {Edit, Clock} from "lucide-react"
+import {Clock, Edit} from "lucide-react"
 import {format} from "date-fns"
 import {ru} from "date-fns/locale"
 import {Card, CardContent} from "@/components/ui/card"
@@ -82,9 +82,9 @@ export function MessageCard({message, isSelected, onSelectionChange, availableTi
             <EditMessageDialog
                 availableTimes={availableTimes}
                 message={message}
-                               isOpen={isEditDialogOpen}
-                               onClose={() => setIsEditDialogOpen(false)}
-                               onTimeSelect={onTimeSelect}
+                isOpen={isEditDialogOpen}
+                onClose={() => setIsEditDialogOpen(false)}
+                onTimeSelect={onTimeSelect}
             />
         </>
     )

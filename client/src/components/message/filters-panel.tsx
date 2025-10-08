@@ -1,22 +1,19 @@
 import {CalendarIcon, Search} from "lucide-react"
-import { format } from "date-fns"
-import { ru } from "date-fns/locale"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Card, CardContent } from "@/components/ui/card"
-import { cn } from "@/lib/utils"
-import {
-    type MessageSortBy,
-    type MessageStatus,
-    type SortDirection
-} from "@/api/endpoints/tgPosterAPI.schemas"
-import { useGetApiV1Schedule } from "@/api/endpoints/schedule/schedule"
+import {format} from "date-fns"
+import {ru} from "date-fns/locale"
+import {Button} from "@/components/ui/button"
+import {Input} from "@/components/ui/input"
+import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select"
+import {Card, CardContent} from "@/components/ui/card"
+import {cn} from "@/lib/utils"
+import {type MessageSortBy, type MessageStatus, type SortDirection} from "@/api/endpoints/tgPosterAPI.schemas"
+import {useGetApiV1Schedule} from "@/api/endpoints/schedule/schedule"
 import {Popover, PopoverContent, PopoverTrigger} from "@/components/ui/popover.tsx";
 import {Calendar} from "@/components/ui/calendar.tsx";
 import {
     useGetApiOptionsMessageSortFields,
-    useGetApiOptionsMessageStatuses, useGetApiOptionsSortDirections,
+    useGetApiOptionsMessageStatuses,
+    useGetApiOptionsSortDirections,
 } from "@/api/endpoints/options/options.ts";
 import type {DateRange} from "react-day-picker";
 
@@ -49,10 +46,10 @@ export function FiltersPanel({
                                  onSortDirectionChange,
                                  onDateRangeChange,
                              }: FiltersPanelProps) {
-    const { data: schedules, isLoading: schedulesLoading } = useGetApiV1Schedule()
-    const { data: sortFields, isLoading: sortFieldsLoading } = useGetApiOptionsMessageSortFields()
-    const { data: statusMessage, isLoading: statusMessageLoading } = useGetApiOptionsMessageStatuses()
-    const { data: sortDirections, isLoading: sortDirectionsLoading } = useGetApiOptionsSortDirections()
+    const {data: schedules, isLoading: schedulesLoading} = useGetApiV1Schedule()
+    const {data: sortFields, isLoading: sortFieldsLoading} = useGetApiOptionsMessageSortFields()
+    const {data: statusMessage, isLoading: statusMessageLoading} = useGetApiOptionsMessageStatuses()
+    const {data: sortDirections, isLoading: sortDirectionsLoading} = useGetApiOptionsSortDirections()
 
     return (
         <Card>
@@ -62,7 +59,7 @@ export function FiltersPanel({
                         <label className="text-sm font-medium">Расписание</label>
                         <Select value={scheduleId} onValueChange={onScheduleChange} disabled={schedulesLoading}>
                             <SelectTrigger>
-                                <SelectValue placeholder="Выберите расписание" />
+                                <SelectValue placeholder="Выберите расписание"/>
                             </SelectTrigger>
                             <SelectContent>
                                 {schedules?.map((schedule) => (
@@ -82,7 +79,7 @@ export function FiltersPanel({
                             disabled={!scheduleId && statusMessageLoading}
                         >
                             <SelectTrigger>
-                                <SelectValue placeholder="Все статусы" />
+                                <SelectValue placeholder="Все статусы"/>
                             </SelectTrigger>
                             <SelectContent>
                                 {statusMessage?.map((stat) => (
@@ -102,7 +99,7 @@ export function FiltersPanel({
                             disabled={!scheduleId && sortFieldsLoading}
                         >
                             <SelectTrigger>
-                                <SelectValue placeholder="Поле сортировки" />
+                                <SelectValue placeholder="Поле сортировки"/>
                             </SelectTrigger>
                             <SelectContent>
                                 {sortFields?.map((sortf) => (
@@ -123,7 +120,7 @@ export function FiltersPanel({
                             disabled={!scheduleId && sortDirectionsLoading}
                         >
                             <SelectTrigger>
-                                <SelectValue placeholder="Направление" />
+                                <SelectValue placeholder="Направление"/>
                             </SelectTrigger>
                             <SelectContent>
                                 {sortDirections?.map((sortD) => (
@@ -139,7 +136,8 @@ export function FiltersPanel({
                     <div className="space-y-2">
                         <label className="text-sm font-medium">Поиск</label>
                         <div className="relative">
-                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                            <Search
+                                className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground"/>
                             <Input
                                 placeholder="Поиск по тексту..."
                                 value={searchText}
@@ -160,15 +158,15 @@ export function FiltersPanel({
                                     className={cn("w-full justify-start text-left font-normal", !dateRange && "text-muted-foreground")}
                                     disabled={!scheduleId}
                                 >
-                                    <CalendarIcon className="mr-2 h-4 w-4" />
+                                    <CalendarIcon className="mr-2 h-4 w-4"/>
                                     {dateRange?.from ? (
                                         dateRange.to ? (
                                             <>
-                                                {format(dateRange.from, "dd.MM.yyyy", { locale: ru })} -{" "}
-                                                {format(dateRange.to, "dd.MM.yyyy", { locale: ru })}
+                                                {format(dateRange.from, "dd.MM.yyyy", {locale: ru})} -{" "}
+                                                {format(dateRange.to, "dd.MM.yyyy", {locale: ru})}
                                             </>
                                         ) : (
-                                            format(dateRange.from, "dd.MM.yyyy", { locale: ru })
+                                            format(dateRange.from, "dd.MM.yyyy", {locale: ru})
                                         )
                                     ) : (
                                         "Выберите период"

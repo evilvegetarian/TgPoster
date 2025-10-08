@@ -10,7 +10,7 @@ import {Label} from "@/components/ui/label"
 
 import {toast} from "sonner"
 import {usePostApiV1Message} from "@/api/endpoints/message/message.ts";
-import { ru } from "date-fns/locale"
+import {ru} from "date-fns/locale"
 import {Badge} from "@/components/ui/badge.tsx";
 
 interface CreateMessageDialogProps {
@@ -27,7 +27,7 @@ const utcToLocalDatetimeString = (utcString: string): string => {
     return localISOTime;
 };
 
-export function CreateMessageDialog({ scheduleId, availableTimes, onTimeSelect}: CreateMessageDialogProps) {
+export function CreateMessageDialog({scheduleId, availableTimes, onTimeSelect}: CreateMessageDialogProps) {
     const [isOpen, setIsOpen] = useState(false)
     const [textMessage, setTextMessage] = useState("")
     const [timePosting, setTimePosting] = useState("")
@@ -116,7 +116,7 @@ export function CreateMessageDialog({ scheduleId, availableTimes, onTimeSelect}:
                         <div className="space-y-2 rounded-md border p-3">
                             <Label>Свободное время по расписанию:</Label>
                             <div className="flex flex-wrap gap-2">
-                                {availableTimes.slice(0,4).map((time) => (
+                                {availableTimes.slice(0, 4).map((time) => (
                                     <Badge
                                         key={time}
                                         variant="secondary"
@@ -126,7 +126,7 @@ export function CreateMessageDialog({ scheduleId, availableTimes, onTimeSelect}:
                                             onTimeSelect(time)
                                         }}
                                     >
-                                        {format(new Date(time), "dd MMM HH:mm", { locale: ru })}
+                                        {format(new Date(time), "dd MMM HH:mm", {locale: ru})}
                                     </Badge>
                                 ))}
                             </div>

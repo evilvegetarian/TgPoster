@@ -1,8 +1,8 @@
-import { useState } from "react"
-import { X} from "lucide-react"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
-import type { FileResponse } from "@/api/endpoints/tgPosterAPI.schemas"
+import {useState} from "react"
+import {X} from "lucide-react"
+import {Dialog, DialogContent, DialogHeader, DialogTitle} from "@/components/ui/dialog"
+import {Button} from "@/components/ui/button"
+import type {FileResponse} from "@/api/endpoints/tgPosterAPI.schemas"
 import {useGetApiOptionsFileType} from "@/api/endpoints/options/options.ts";
 
 interface FilePreviewProps {
@@ -18,8 +18,8 @@ function getS3Url(fileId: string): string {
     return `${S3_BASE_URL}/${fileId}`
 }
 
-export function FilePreview({ file, onRemove, showRemoveButton = false }: FilePreviewProps) {
-    const { data: fileTypes, isLoading } = useGetApiOptionsFileType();
+export function FilePreview({file, onRemove, showRemoveButton = false}: FilePreviewProps) {
+    const {data: fileTypes, isLoading} = useGetApiOptionsFileType();
     const targetFileType = fileTypes?.find(x => x.value === file.fileType);
     const [isModalOpen, setIsModalOpen] = useState(false)
     if (isLoading) {
@@ -61,7 +61,7 @@ export function FilePreview({ file, onRemove, showRemoveButton = false }: FilePr
                             onRemove()
                         }}
                     >
-                        <X className="h-3 w-3" />
+                        <X className="h-3 w-3"/>
                     </Button>
                 )}
             </div>

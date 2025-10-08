@@ -1,20 +1,16 @@
-﻿import { useState, useEffect, useCallback } from "react"
-import { Check, AlertCircle } from "lucide-react"
-import type { DateRange } from "react-day-picker"
-import { Button } from "@/components/ui/button"
-import { Checkbox } from "@/components/ui/checkbox"
-import { Card, CardContent } from "@/components/ui/card"
-import { Skeleton } from "@/components/ui/skeleton"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import {
-
-    MessageSortBy,
-    MessageStatus,
-    SortDirection
-} from "@/api/endpoints/tgPosterAPI.schemas"
+﻿import {useCallback, useEffect, useState} from "react"
+import {AlertCircle, Check} from "lucide-react"
+import type {DateRange} from "react-day-picker"
+import {Button} from "@/components/ui/button"
+import {Checkbox} from "@/components/ui/checkbox"
+import {Card, CardContent} from "@/components/ui/card"
+import {Skeleton} from "@/components/ui/skeleton"
+import {Alert, AlertDescription} from "@/components/ui/alert"
+import {MessageSortBy, MessageStatus, SortDirection} from "@/api/endpoints/tgPosterAPI.schemas"
 import {
     useDeleteApiV1Message,
-    useGetApiV1Message, useGetApiV1MessageScheduleIdTime,
+    useGetApiV1Message,
+    useGetApiV1MessageScheduleIdTime,
     usePatchApiV1Message
 } from "@/api/endpoints/message/message"
 import {
@@ -39,7 +35,10 @@ export function MessagesPage() {
     const [dateRange, setDateRange] = useState<DateRange | undefined>()
     const [currentPage, setCurrentPage] = useState(1)
     const pageSize = 10;
-    const { data: timesData, refetch: refetchTimes } = useGetApiV1MessageScheduleIdTime(scheduleId, { query: { enabled: !!scheduleId } });
+    const {
+        data: timesData,
+        refetch: refetchTimes
+    } = useGetApiV1MessageScheduleIdTime(scheduleId, {query: {enabled: !!scheduleId}});
     const [availableTimes, setAvailableTimes] = useState<string[] | null | undefined>([]);
     const [selectedMessageIds, setSelectedMessageIds] = useState<string[]>([])
 
@@ -68,18 +67,18 @@ export function MessagesPage() {
             PageSize: pageSize,
         },
         {
-            query: { enabled: !!scheduleId },
+            query: {enabled: !!scheduleId},
         },
     )
 
     const deleteMessages = useDeleteApiV1Message({
         mutation: {
             onSuccess: () => {
-                toast.success("Успех",{description: `Удалено сообщений: ${selectedMessageIds.length}`})
+                toast.success("Успех", {description: `Удалено сообщений: ${selectedMessageIds.length}`})
                 setSelectedMessageIds([])
             },
             onError: (error) => {
-                toast( "Ошибка",{description: error.title || "Не удалось удалить сообщения",})
+                toast("Ошибка", {description: error.title || "Не удалось удалить сообщения",})
             },
         },
     })
@@ -87,11 +86,11 @@ export function MessagesPage() {
     const confirmMessages = usePatchApiV1Message({
         mutation: {
             onSuccess: () => {
-                toast.success("Успех",{description: `Подтверждено сообщений: ${selectedMessageIds.length}`})
+                toast.success("Успех", {description: `Подтверждено сообщений: ${selectedMessageIds.length}`})
                 setSelectedMessageIds([])
             },
             onError: (error) => {
-                toast( "Ошибка",{description: error.title || "Не удалось подтвердить сообщения",})
+                toast("Ошибка", {description: error.title || "Не удалось подтвердить сообщения",})
             },
         },
     })
@@ -189,10 +188,10 @@ export function MessagesPage() {
                 <h1 className="text-3xl font-bold">Управление сообщениями</h1>
                 {scheduleId &&
                     <CreateMessageDialog
-                    scheduleId={scheduleId}
-                    availableTimes={availableTimes}
-                    onTimeSelect={handleTimeSelect}
-                />}
+                        scheduleId={scheduleId}
+                        availableTimes={availableTimes}
+                        onTimeSelect={handleTimeSelect}
+                    />}
             </div>
 
             {/* Панель фильтров */}
@@ -223,11 +222,11 @@ export function MessagesPage() {
                             </div>
                             <div className="flex items-center gap-2">
                                 <Button onClick={handleConfirmSelected} disabled={confirmMessages.isPending}>
-                                    <Check className="h-4 w-4 mr-2" />
+                                    <Check className="h-4 w-4 mr-2"/>
                                     Подтвердить ({selectedMessageIds.length})
                                 </Button>
                                 <Button onClick={handleDeleteSelected} disabled={deleteMessages.isPending}>
-                                    <Check className="h-4 w-4 mr-2" />
+                                    <Check className="h-4 w-4 mr-2"/>
                                     Удалить ({selectedMessageIds.length})
                                 </Button>
                             </div>
@@ -239,34 +238,35 @@ export function MessagesPage() {
             {/* Основной контент */}
             {!scheduleId ? (
                 <Alert>
-                    <AlertCircle className="h-4 w-4" />
+                    <AlertCircle className="h-4 w-4"/>
                     <AlertDescription>Выберите расписание для отображения сообщений</AlertDescription>
                 </Alert>
             ) : error ? (
                 <Alert variant="destructive">
-                    <AlertCircle className="h-4 w-4" />
-                    <AlertDescription>Произошла ошибка при загрузке сообщений. Попробуйте обновить страницу.</AlertDescription>
+                    <AlertCircle className="h-4 w-4"/>
+                    <AlertDescription>Произошла ошибка при загрузке сообщений. Попробуйте обновить
+                        страницу.</AlertDescription>
                 </Alert>
             ) : isLoading ? (
                 <div className="space-y-4">
                     <div className="flex items-center gap-3">
-                        <Checkbox disabled />
+                        <Checkbox disabled/>
                         <span className="text-sm font-medium">Выбрать все</span>
                     </div>
-                    {Array.from({ length: 3 }).map((_, i) => (
+                    {Array.from({length: 3}).map((_, i) => (
                         <Card key={i}>
                             <CardContent className="p-4">
                                 <div className="flex items-start gap-3">
-                                    <Skeleton className="h-4 w-4 mt-1" />
+                                    <Skeleton className="h-4 w-4 mt-1"/>
                                     <div className="flex-1 space-y-3">
                                         <div className="flex items-center justify-between">
                                             <div className="flex items-center gap-2">
-                                                <Skeleton className="h-5 w-20" />
-                                                <Skeleton className="h-4 w-24" />
+                                                <Skeleton className="h-5 w-20"/>
+                                                <Skeleton className="h-4 w-24"/>
                                             </div>
-                                            <Skeleton className="h-8 w-24" />
+                                            <Skeleton className="h-8 w-24"/>
                                         </div>
-                                        <Skeleton className="h-16 w-full" />
+                                        <Skeleton className="h-16 w-full"/>
                                     </div>
                                 </div>
                             </CardContent>
@@ -275,7 +275,7 @@ export function MessagesPage() {
                 </div>
             ) : !messagesData?.data?.length ? (
                 <Alert>
-                    <AlertCircle className="h-4 w-4" />
+                    <AlertCircle className="h-4 w-4"/>
                     <AlertDescription>
                         Сообщений не найдено. Попробуйте изменить фильтры или создать новое сообщение.
                     </AlertDescription>
