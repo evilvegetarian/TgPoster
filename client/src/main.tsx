@@ -16,6 +16,7 @@ import {ErrorPage} from "@/pages/error-page.tsx";
 import {ApproveMessagesPage} from "@/pages/approve-messages-page.tsx";
 import {ParseChannelPage} from "@/pages/parse-channel-page.tsx";
 import {MessagesPage} from "@/pages/messages-page.tsx";
+import {LogOutPage} from "@/pages/logout-page.tsx";
 
 const router = createBrowserRouter([
     {
@@ -69,6 +70,10 @@ const router = createBrowserRouter([
                             {
                                 path: "/parse-channel",
                                 element:  <ParseChannelPage/>
+                            },
+                            {
+                                path: "/logout",
+                                element: <LogOutPage/>,
                             }
                         ]
                     }

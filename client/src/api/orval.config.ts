@@ -18,7 +18,7 @@ export default defineConfig({
             },
         },
         input: {
-            target:`${import.meta.env.VITE_API_URL}/swagger/v1/swagger.json`,
+            target:`${process.env.VITE_API_URL}/swagger/v1/swagger.json`,
         },
     },
 });

@@ -1,8 +1,9 @@
+/// <reference types="vite/client" />
 import Axios, {type AxiosRequestConfig, HttpStatusCode} from 'axios';
 import {postApiV1AccountRefreshToken} from "@/api/endpoints/account/account.ts";
 import {GetAccessToken} from "@/auth-context.tsx";
 
-const API_URL = import.meta.env.VITE_API_URL ?? import.meta.env.VITE_API_LOCAL_URL;
+const API_URL ='';
 
 export const axiosInstance = Axios.create({
     baseURL: API_URL,
@@ -41,7 +42,6 @@ axiosInstance.interceptors.response.use(
     (response) => response,
     async (error) => {
         const originalRequest = error.config;
-
         if (error.code === "ERR_CANCELED") {
             return Promise.resolve({status: 499});
         }

@@ -1,9 +1,19 @@
 ﻿import {Link, useLocation} from "react-router-dom"
-import {Bot, BotIcon, CalendarDays, Home, LogIn, MessageCircleMore, SignatureIcon, UserPlus} from "lucide-react"
+import {
+    Bot,
+    BotIcon,
+    CalendarDays,
+    Home,
+    LogIn, LogOut,
+    MessageCircleMore,
+    Settings,
+    SignatureIcon,
+    UserPlus
+} from "lucide-react"
 
 import {
     Sidebar,
-    SidebarContent,
+    SidebarContent, SidebarFooter,
     SidebarGroup,
     SidebarGroupContent,
     SidebarGroupLabel,
@@ -98,6 +108,26 @@ export function SideBar() {
                     </SidebarGroupContent>
                 </SidebarGroup>
             </SidebarContent>
+            <SidebarFooter className="p-4">
+                <SidebarMenu>
+                    <SidebarMenuItem>
+                        <SidebarMenuButton asChild>
+                            <Link to="/settings">
+                                <Settings className="h-4 w-4"/>
+                                <span>Настройки</span>
+                            </Link>
+                        </SidebarMenuButton>
+                    </SidebarMenuItem>
+                    <SidebarMenuItem>
+                        <SidebarMenuButton asChild>
+                            <Link to="/logout">
+                                <LogOut className="h-4 w-4"/>
+                                <span>Выход</span>
+                            </Link>
+                        </SidebarMenuButton>
+                    </SidebarMenuItem>
+                </SidebarMenu>
+            </SidebarFooter>
             <SidebarRail/>
         </Sidebar>
     )
