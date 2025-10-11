@@ -8,7 +8,7 @@ import {Badge} from "@/components/ui/badge.tsx"
 import {ArrowLeft, Calendar, Clock, Loader2, Plus, Power, PowerOff, Save, Settings, Trash2, X} from "lucide-react"
 import {Separator} from "@/components/ui/separator.tsx"
 import {toast} from "sonner"
-import {useGetApiV1TelegramBot} from "@/api/endpoints/telegram-bot/telegram-bot.ts";
+import {useGetApiV1TelegramBot} from "@/api/endpoints/telegram-bot/telegram-bot.ts"
 import {
     useDeleteApiV1ScheduleId,
     useGetApiV1Schedule,
@@ -17,7 +17,9 @@ import {
 } from "@/api/endpoints/schedule/schedule.ts"
 import {useGetApiV1Day, usePatchApiV1DayTime} from "@/api/endpoints/day/day.ts"
 import type {CreateScheduleRequest, DayOfWeek, ScheduleResponse} from "@/api/endpoints/tgPosterAPI.schemas.ts"
-import {Switch} from "@/components/ui/switch.tsx";
+import {Switch} from "@/components/ui/switch.tsx"
+import {Popover, PopoverContent, PopoverTrigger} from "@/components/ui/popover.tsx"
+import {Tabs, TabsContent, TabsList, TabsTrigger} from "@/components/ui/tabs.tsx"
 
 interface NewTimeSlot {
     hour: string
@@ -33,7 +35,6 @@ interface IntervalTimeSlot {
 }
 
 export default function ScheduleManager() {
-
     const {data: schedules = [], isLoading: schedulesLoading, refetch: refetchSchedules} = useGetApiV1Schedule()
     const {data: telegramBots = [], isLoading: botsLoading} = useGetApiV1TelegramBot()
     const createScheduleMutation = usePostApiV1Schedule()
@@ -49,7 +50,7 @@ export default function ScheduleManager() {
         telegramBotId: "",
     })
 
-    const [editingDay, setEditingDay] = useState<DayOfWeek | null>(null)
+    const [popoverOpenForDay, setPopoverOpenForDay] = useState<DayOfWeek | null>(null)
     const [newTimeSlot, setNewTimeSlot] = useState<NewTimeSlot>({
         hour: "09",
         minute: "00",
@@ -59,12 +60,11 @@ export default function ScheduleManager() {
     const [intervalTimeSlot, setIntervalTimeSlot] = useState<IntervalTimeSlot>({
         startHour: "09",
         startMinute: "00",
-        endHour: "17",
+        endHour: "22",
         endMinute: "00",
         intervalMinutes: 120,
     })
 
-    // Get days for editing schedule
     const {data: scheduleDays = [], refetch: refetchDays} = useGetApiV1Day(
         {scheduleId: editingSchedule?.id || ""},
         {query: {enabled: !!editingSchedule?.id}},
@@ -117,7 +117,6 @@ export default function ScheduleManager() {
 
         try {
             if (timeMode === "single") {
-                // Добавить одно время
                 const time = `${newTimeSlot.hour}:${newTimeSlot.minute}`
                 const existingDay = scheduleDays.find((day) => day.dayOfWeek === dayOfWeek)
                 const currentTimes = existingDay?.timePostings || []
@@ -130,7 +129,6 @@ export default function ScheduleManager() {
                     },
                 })
             } else {
-                // Добавить через интервал
                 const startTimeMinutes =
                     Number.parseInt(intervalTimeSlot.startHour) * 60 + Number.parseInt(intervalTimeSlot.startMinute)
                 const endTimeMinutes =
@@ -158,7 +156,7 @@ export default function ScheduleManager() {
             }
 
             await refetchDays()
-            setEditingDay(null)
+            setPopoverOpenForDay(null)
             setNewTimeSlot({hour: "09", minute: "00"})
             setIntervalTimeSlot({
                 startHour: "09",
@@ -232,7 +230,7 @@ export default function ScheduleManager() {
 
     const DAYS_ORDER: DayOfWeek[] = [1, 2, 3, 4, 5, 6, 0] // Понедельник - Воскресенье
 
-    // Список расписаний
+    // ... (Views for "list" and "create" remain unchanged)
     if (currentView === "list") {
         return (
             <div className="max-w-6xl mx-auto p-6">
@@ -301,7 +299,8 @@ export default function ScheduleManager() {
                                         <div className="flex flex-wrap gap-1">
                                             {DAYS_ORDER.map((dayOfWeek) => {
                                                 // Здесь можно добавить логику для определения активных дней
-                                                // Пока используем заглушку
+                                                // Пока используем заглушку, т.к. данные о днях загружаются только для
+                                                // редактируемого расписания
                                                 const hasTime = Math.random() > 0.5 // Заглушка
                                                 return (
                                                     <Badge key={dayOfWeek} variant={hasTime ? "default" : "outline"}
@@ -366,7 +365,6 @@ export default function ScheduleManager() {
         )
     }
 
-    // Форма создания расписания
     if (currentView === "create") {
         return (
             <div className="max-w-2xl mx-auto p-6">
@@ -457,7 +455,7 @@ export default function ScheduleManager() {
         )
     }
 
-    // Редактирование расписания
+
     if (currentView === "edit" && editingSchedule) {
         return (
             <div className="max-w-4xl mx-auto p-6">
@@ -470,24 +468,16 @@ export default function ScheduleManager() {
                             <h1 className="text-2xl font-bold">{editingSchedule.name}</h1>
                             <Badge variant={editingSchedule.isActive ? "default" : "secondary"}>
                                 {editingSchedule.isActive ? (
-                                    <>
-                                        <Power className="h-3 w-3 mr-1"/>
-                                        Активно
-                                    </>
+                                    <><Power className="h-3 w-3 mr-1"/>Активно</>
                                 ) : (
-                                    <>
-                                        <PowerOff className="h-3 w-3 mr-1"/>
-                                        Неактивно
-                                    </>
+                                    <><PowerOff className="h-3 w-3 mr-1"/>Неактивно</>
                                 )}
                             </Badge>
                         </div>
                         <p className="text-muted-foreground">{editingSchedule.channelName || "Канал не указан"}</p>
                     </div>
                     <div className="flex items-center gap-2">
-                        <Label htmlFor="schedule-active" className="text-sm">
-                            Активность:
-                        </Label>
+                        <Label htmlFor="schedule-active" className="text-sm">Активность:</Label>
                         <Switch
                             id="schedule-active"
                             checked={editingSchedule.isActive}
@@ -510,215 +500,129 @@ export default function ScheduleManager() {
                             <div key={dayOfWeek} className="space-y-3">
                                 <div className="flex items-center justify-between">
                                     <Label className="text-base font-medium">{getDayName(dayOfWeek)}</Label>
-                                    <Button
-                                        variant="outline"
-                                        size="sm"
-                                        onClick={() => setEditingDay(dayOfWeek)}
-                                        className="flex items-center gap-2"
+                                    <Popover
+                                        open={popoverOpenForDay === dayOfWeek}
+                                        onOpenChange={(isOpen) => setPopoverOpenForDay(isOpen ? dayOfWeek : null)}
                                     >
-                                        <Plus className="h-4 w-4"/>
-                                        Добавить время
-                                    </Button>
-                                </div>
-
-                                <div className="space-y-2">
-                                    {getTimesForDay(dayOfWeek).map((time, index) => (
-                                        <div key={index}
-                                             className="flex items-center justify-between p-3 border rounded-lg">
-                                            <Badge variant="secondary">{time}</Badge>
-                                            <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                onClick={() => removeTimeFromDay(dayOfWeek, time)}
-                                                className="text-destructive hover:text-destructive"
-                                                disabled={updateTimeMutation.isPending}
-                                            >
-                                                {updateTimeMutation.isPending ? (
-                                                    <Loader2 className="h-4 w-4 animate-spin"/>
-                                                ) : (
-                                                    <Trash2 className="h-4 w-4"/>
-                                                )}
+                                        <PopoverTrigger asChild>
+                                            <Button variant="outline" size="sm" className="flex items-center gap-2">
+                                                <Plus className="h-4 w-4"/>
+                                                Добавить время
                                             </Button>
-                                        </div>
-                                    ))}
-
-                                    {getTimesForDay(dayOfWeek).length === 0 && (
-                                        <p className="text-sm text-muted-foreground p-3 border rounded-lg border-dashed">Время
-                                            не задано</p>
-                                    )}
-                                </div>
-
-                                {editingDay === dayOfWeek && (
-                                    <div className="space-y-4 p-4 border rounded-lg bg-muted/50">
-                                        <div className="space-y-3">
-                                            <div className="flex items-center space-x-4">
-                                                <div className="flex items-center space-x-2">
-                                                    <input
-                                                        type="radio"
-                                                        id="single-mode"
-                                                        name="time-mode"
-                                                        checked={timeMode === "single"}
-                                                        onChange={() => setTimeMode("single")}
-                                                    />
-                                                    <Label htmlFor="single-mode">Добавить одно время</Label>
+                                        </PopoverTrigger>
+                                        <PopoverContent className="w-[26rem]">
+                                            <div className="grid gap-4">
+                                                <div className="space-y-1.5">
+                                                    <h4 className="font-medium leading-none">Добавить время</h4>
+                                                    <p className="text-sm text-muted-foreground">
+                                                        Выберите способ добавления для «{getDayName(dayOfWeek)}».
+                                                    </p>
                                                 </div>
-                                                <div className="flex items-center space-x-2">
-                                                    <input
-                                                        type="radio"
-                                                        id="interval-mode"
-                                                        name="time-mode"
-                                                        checked={timeMode === "interval"}
-                                                        onChange={() => setTimeMode("interval")}
-                                                    />
-                                                    <Label htmlFor="interval-mode">Добавить через интервал</Label>
+
+                                                <Tabs value={timeMode} onValueChange={(v) => setTimeMode(v as 'single' | 'interval')}>
+                                                    <TabsList className="grid w-full grid-cols-2">
+                                                        <TabsTrigger value="single">Точное время</TabsTrigger>
+                                                        <TabsTrigger value="interval">Интервал</TabsTrigger>
+                                                    </TabsList>
+                                                    <TabsContent value="single" className="pt-4 space-y-4">
+                                                        <div className="flex items-center gap-2">
+                                                            <Label className="text-sm font-medium">Время:</Label>
+                                                            <Select value={newTimeSlot.hour} onValueChange={(value) => setNewTimeSlot((prev) => ({...prev, hour: value}))}>
+                                                                <SelectTrigger className="w-24"><SelectValue/></SelectTrigger>
+                                                                <SelectContent>{generateHourOptions()}</SelectContent>
+                                                            </Select>
+                                                            <span>:</span>
+                                                            <Select value={newTimeSlot.minute} onValueChange={(value) => setNewTimeSlot((prev) => ({...prev, minute: value}))}>
+                                                                <SelectTrigger className="w-24"><SelectValue/></SelectTrigger>
+                                                                <SelectContent>{generateMinuteOptions()}</SelectContent>
+                                                            </Select>
+                                                        </div>
+                                                    </TabsContent>
+                                                    <TabsContent value="interval" className="pt-4 space-y-4">
+                                                        <div className="grid grid-cols-2 gap-4">
+                                                            <div className="space-y-2">
+                                                                <Label className="text-sm font-medium">Начало</Label>
+                                                                <div className="flex items-center gap-2">
+                                                                    <Select value={intervalTimeSlot.startHour} onValueChange={(value) => setIntervalTimeSlot((prev) => ({...prev, startHour: value}))}>
+                                                                        <SelectTrigger className="flex-1"><SelectValue/></SelectTrigger>
+                                                                        <SelectContent>{generateHourOptions()}</SelectContent>
+                                                                    </Select>
+                                                                    :
+                                                                    <Select value={intervalTimeSlot.startMinute} onValueChange={(value) => setIntervalTimeSlot((prev) => ({...prev, startMinute: value}))}>
+                                                                        <SelectTrigger className="flex-1"><SelectValue/></SelectTrigger>
+                                                                        <SelectContent>{generateMinuteOptions()}</SelectContent>
+                                                                    </Select>
+                                                                </div>
+                                                            </div>
+                                                            <div className="space-y-2">
+                                                                <Label className="text-sm font-medium">Окончание</Label>
+                                                                <div className="flex items-center gap-2">
+                                                                    <Select value={intervalTimeSlot.endHour} onValueChange={(value) => setIntervalTimeSlot((prev) => ({...prev, endHour: value}))}>
+                                                                        <SelectTrigger className="flex-1"><SelectValue/></SelectTrigger>
+                                                                        <SelectContent>{generateHourOptions()}</SelectContent>
+                                                                    </Select>
+                                                                    :
+                                                                    <Select value={intervalTimeSlot.endMinute} onValueChange={(value) => setIntervalTimeSlot((prev) => ({...prev, endMinute: value}))}>
+                                                                        <SelectTrigger className="flex-1"><SelectValue/></SelectTrigger>
+                                                                        <SelectContent>{generateMinuteOptions()}</SelectContent>
+                                                                    </Select>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div className="space-y-2">
+                                                            <Label className="text-sm font-medium">Интервал (минуты)</Label>
+                                                            <Input type="number" value={intervalTimeSlot.intervalMinutes} onChange={(e) => setIntervalTimeSlot((prev) => ({...prev, intervalMinutes: Number.parseInt(e.target.value) || 0}))}/>
+                                                        </div>
+                                                    </TabsContent>
+                                                </Tabs>
+
+                                                <div className="flex gap-2">
+                                                    <Button size="sm" onClick={() => addTimeToDay(dayOfWeek)} disabled={updateTimeMutation.isPending}>
+                                                        {updateTimeMutation.isPending ? (
+                                                            <><Loader2 className="h-4 w-4 mr-2 animate-spin"/>Добавление...</>
+                                                        ) : (
+                                                            <><Save className="h-4 w-4 mr-2"/>Добавить</>
+                                                        )}
+                                                    </Button>
+                                                    <Button variant="outline" size="sm" onClick={() => setPopoverOpenForDay(null)}>
+                                                        <X className="h-4 w-4 mr-2"/>Отмена
+                                                    </Button>
                                                 </div>
                                             </div>
+                                        </PopoverContent>
+                                    </Popover>
+                                </div>
 
-                                            {timeMode === "single" ? (
-                                                <div className="flex items-center gap-2">
-                                                    <Label className="text-sm font-medium">Время:</Label>
-                                                    <Select
-                                                        value={newTimeSlot.hour}
-                                                        onValueChange={(value) => setNewTimeSlot((prev) => ({
-                                                            ...prev,
-                                                            hour: value
-                                                        }))}
-                                                    >
-                                                        <SelectTrigger className="w-20">
-                                                            <SelectValue/>
-                                                        </SelectTrigger>
-                                                        <SelectContent>{generateHourOptions()}</SelectContent>
-                                                    </Select>
+                                <div className="flex flex-wrap items-center gap-2 p-3 border rounded-lg min-h-[52px]">
+                                    {getTimesForDay(dayOfWeek).length > 0 ? (
+                                        getTimesForDay(dayOfWeek).map((time) => (
+                                            <Badge
+                                                key={time}
+                                                variant="secondary"
+                                                className="inline-flex items-center gap-x-1 pl-2.5 pr-1 py-0.5 rounded-full"
+                                            >
+                                                <span className="font-mono text-sm leading-none">{time}</span>
+                                                <button
+                                                    onClick={() => removeTimeFromDay(dayOfWeek, time)}
+                                                    disabled={updateTimeMutation.isPending}
+                                                    className="flex-shrink-0 group rounded-full p-0.5 text-muted-foreground/50 hover:bg-destructive/20 hover:text-destructive transition-colors disabled:cursor-not-allowed"
+                                                    aria-label={`Удалить время ${time}`}
+                                                >
+                                                    {updateTimeMutation.isPending ?
+                                                        <Loader2 className="h-3 w-3 animate-spin"/> :
+                                                        <X className="h-3 w-3 group-hover:text-destructive-foreground"/>
+                                                    }
+                                                </button>
+                                            </Badge>
+                                        ))
+                                    ) : (
+                                        <p className="text-sm text-muted-foreground">Время не задано</p>
+                                    )}
+                                </div>
+                                {/* === UPDATED BLOCK END === */}
 
-                                                    <span>:</span>
-                                                    <Select
-                                                        value={newTimeSlot.minute}
-                                                        onValueChange={(value) => setNewTimeSlot((prev) => ({
-                                                            ...prev,
-                                                            minute: value
-                                                        }))}
-                                                    >
-                                                        <SelectTrigger className="w-20">
-                                                            <SelectValue/>
-                                                        </SelectTrigger>
-                                                        <SelectContent>{generateMinuteOptions()}</SelectContent>
-                                                    </Select>
-                                                </div>
-                                            ) : (
-                                                <div className="space-y-3">
-                                                    <div className="grid grid-cols-2 gap-4">
-                                                        <div className="space-y-2">
-                                                            <Label className="text-sm font-medium">Время начала:</Label>
-                                                            <div className="flex items-center gap-2">
-                                                                <Select
-                                                                    value={intervalTimeSlot.startHour}
-                                                                    onValueChange={(value) =>
-                                                                        setIntervalTimeSlot((prev) => ({
-                                                                            ...prev,
-                                                                            startHour: value
-                                                                        }))
-                                                                    }
-                                                                >
-                                                                    <SelectTrigger className="w-20">
-                                                                        <SelectValue/>
-                                                                    </SelectTrigger>
-                                                                    <SelectContent>{generateHourOptions()}</SelectContent>
-                                                                </Select>
-                                                                <span>:</span>
-                                                                <Select
-                                                                    value={intervalTimeSlot.startMinute}
-                                                                    onValueChange={(value) =>
-                                                                        setIntervalTimeSlot((prev) => ({
-                                                                            ...prev,
-                                                                            startMinute: value
-                                                                        }))
-                                                                    }
-                                                                >
-                                                                    <SelectTrigger className="w-20">
-                                                                        <SelectValue/>
-                                                                    </SelectTrigger>
-                                                                    <SelectContent>{generateMinuteOptions()}</SelectContent>
-                                                                </Select>
-                                                            </div>
-                                                        </div>
-                                                        <div className="space-y-2">
-                                                            <Label className="text-sm font-medium">Время
-                                                                окончания:</Label>
-                                                            <div className="flex items-center gap-2">
-                                                                <Select
-                                                                    value={intervalTimeSlot.endHour}
-                                                                    onValueChange={(value) =>
-                                                                        setIntervalTimeSlot((prev) => ({
-                                                                            ...prev,
-                                                                            endHour: value
-                                                                        }))
-                                                                    }
-                                                                >
-                                                                    <SelectTrigger className="w-20">
-                                                                        <SelectValue/>
-                                                                    </SelectTrigger>
-                                                                    <SelectContent>{generateHourOptions()}</SelectContent>
-                                                                </Select>
-                                                                <span>:</span>
-                                                                <Select
-                                                                    value={intervalTimeSlot.endMinute}
-                                                                    onValueChange={(value) =>
-                                                                        setIntervalTimeSlot((prev) => ({
-                                                                            ...prev,
-                                                                            endMinute: value
-                                                                        }))
-                                                                    }
-                                                                >
-                                                                    <SelectTrigger className="w-20">
-                                                                        <SelectValue/>
-                                                                    </SelectTrigger>
-                                                                    <SelectContent>{generateMinuteOptions()}</SelectContent>
-                                                                </Select>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                    <div className="space-y-2">
-                                                        <Label className="text-sm font-medium">Интервал
-                                                            (минуты):</Label>
-                                                        <Input
-                                                            value={intervalTimeSlot.intervalMinutes}
-                                                            onChange={(value) =>
-                                                                setIntervalTimeSlot((prev) => ({
-                                                                    ...prev,
-                                                                    intervalMinutes: Number.parseInt(value.target.value)
-                                                                }))
-                                                            }
-                                                        >
-                                                        </Input>
-                                                    </div>
-                                                </div>
-                                            )}
-                                        </div>
+                                {DAYS_ORDER.indexOf(dayOfWeek) < DAYS_ORDER.length - 1 && <Separator className="pt-2"/>}
 
-                                        <div className="flex gap-2">
-                                            <Button size="sm" onClick={() => addTimeToDay(dayOfWeek)}
-                                                    disabled={updateTimeMutation.isPending}>
-                                                {updateTimeMutation.isPending ? (
-                                                    <>
-                                                        <Loader2 className="h-4 w-4 mr-2 animate-spin"/>
-                                                        Добавление...
-                                                    </>
-                                                ) : (
-                                                    <>
-                                                        <Save className="h-4 w-4 mr-2"/>
-                                                        Добавить
-                                                    </>
-                                                )}
-                                            </Button>
-                                            <Button variant="outline" size="sm" onClick={() => setEditingDay(null)}>
-                                                <X className="h-4 w-4 mr-2"/>
-                                                Отмена
-                                            </Button>
-                                        </div>
-                                    </div>
-                                )}
-
-                                <Separator/>
                             </div>
                         ))}
                     </CardContent>
