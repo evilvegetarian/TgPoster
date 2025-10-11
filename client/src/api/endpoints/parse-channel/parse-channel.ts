@@ -101,7 +101,7 @@ export const usePostApiV1ParseChannel = <TError = ProblemDetails,
       return useMutation(mutationOptions , queryClient);
     }
     /**
- * @summary Настройки парсинга
+ * @summary Все задачи парсинга
  */
 export const getApiV1ParseChannel = (
     
@@ -168,7 +168,7 @@ export function useGetApiV1ParseChannel<TData = Awaited<ReturnType<typeof getApi
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
- * @summary Настройки парсинга
+ * @summary Все задачи парсинга
  */
 
 export function useGetApiV1ParseChannel<TData = Awaited<ReturnType<typeof getApiV1ParseChannel>>, TError = ProblemDetails>(
@@ -188,7 +188,7 @@ export function useGetApiV1ParseChannel<TData = Awaited<ReturnType<typeof getApi
 
 
 /**
- * @summary Изменения парсинга
+ * @summary Изменения задачи на парсинг
  */
 export const putApiV1ParseChannelId = (
     id: string,
@@ -236,7 +236,7 @@ const {mutation: mutationOptions} = options ?
     export type PutApiV1ParseChannelIdMutationError = ProblemDetails
 
     /**
- * @summary Изменения парсинга
+ * @summary Изменения задачи на парсинг
  */
 export const usePutApiV1ParseChannelId = <TError = ProblemDetails,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof putApiV1ParseChannelId>>, TError,{id: string;data: UpdateParseChannelRequest}, TContext>, }
@@ -248,6 +248,67 @@ export const usePutApiV1ParseChannelId = <TError = ProblemDetails,
       > => {
 
       const mutationOptions = getPutApiV1ParseChannelIdMutationOptions(options);
+
+      return useMutation(mutationOptions , queryClient);
+    }
+    /**
+ * @summary Удаления задачи на парсинг
+ */
+export const deleteApiV1ParseChannelId = (
+    id: string,
+ ) => {
+      
+      
+      return customInstance<void>(
+      {url: `/api/v1/parse-channel/${id}`, method: 'DELETE'
+    },
+      );
+    }
+  
+
+
+export const getDeleteApiV1ParseChannelIdMutationOptions = <TError = ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteApiV1ParseChannelId>>, TError,{id: string}, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof deleteApiV1ParseChannelId>>, TError,{id: string}, TContext> => {
+
+const mutationKey = ['deleteApiV1ParseChannelId'];
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteApiV1ParseChannelId>>, {id: string}> = (props) => {
+          const {id} = props ?? {};
+
+          return  deleteApiV1ParseChannelId(id,)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteApiV1ParseChannelIdMutationResult = NonNullable<Awaited<ReturnType<typeof deleteApiV1ParseChannelId>>>
+    
+    export type DeleteApiV1ParseChannelIdMutationError = ProblemDetails
+
+    /**
+ * @summary Удаления задачи на парсинг
+ */
+export const useDeleteApiV1ParseChannelId = <TError = ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteApiV1ParseChannelId>>, TError,{id: string}, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof deleteApiV1ParseChannelId>>,
+        TError,
+        {id: string},
+        TContext
+      > => {
+
+      const mutationOptions = getDeleteApiV1ParseChannelIdMutationOptions(options);
 
       return useMutation(mutationOptions , queryClient);
     }

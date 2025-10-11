@@ -11,9 +11,6 @@ namespace TgPoster.API.Domain.UseCases.Parse.CreateParseChannel;
 
 internal class CreateParseChannelUseCase(
     IParseChannelStorage storage,
-    ICryptoAES cryptoAes,
-    IIdentityProvider provider,
-    TelegramOptions telegramOptions,
     TelegramTokenService tokenService,
     IBus bus)
     : IRequestHandler<CreateParseChannelCommand, CreateParseChannelResponse>

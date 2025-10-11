@@ -211,4 +211,34 @@ public class ParseChannelEndpointTest(EndpointTestFixture fixture) : IClassFixtu
         existParse.DeleteText.ShouldBe(updateRequest.DeleteText);
         existParse.ScheduleId.ShouldBe(updateRequest.ScheduleId);
     }
+
+    [Fact]
+    public async Task Delete_WithNonExitsId_ShouldReturnNotFound()
+    {
+        var notExistGuid = Guid.Parse("df317ad1-3959-4a2e-8183-d2df4f300932");
+        var deleteResponse = await client.DeleteAsync(Url + $"/{notExistGuid}");
+        deleteResponse.StatusCode.ShouldBe(HttpStatusCode.NotFound);
+    }
+    
+    [Fact]
+    public async Task Delete_WithValidData_ShouldReturnOk()
+    {
+        var parseId = await helper.CreateParseChannel();
+
+        var deleteResponse = await client.DeleteAsync(Url + $"/{parseId}");
+        deleteResponse.StatusCode.ShouldBe(HttpStatusCode.OK);
+        
+        var deleteResponse2 = await client.DeleteAsync(Url + $"/{parseId}");
+        deleteResponse2.StatusCode.ShouldBe(HttpStatusCode.NotFound);
+    }
+    
+    [Fact]
+    public async Task Delete_WithAnotherUser_ShouldReturnNotFound()
+    {
+        var parseId = await helper.CreateParseChannel();
+
+        var anotherClient = fixture.GetClient(fixture.GenerateTestToken(GlobalConst.UserIdEmpty));
+        var deleteResponse = await anotherClient.DeleteAsync(Url + $"/{parseId}");
+        deleteResponse.StatusCode.ShouldBe(HttpStatusCode.NotFound);
+    }
 }

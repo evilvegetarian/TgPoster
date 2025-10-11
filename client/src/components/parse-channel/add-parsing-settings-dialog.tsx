@@ -46,7 +46,6 @@ export function AddParsingSettingsDialog({
 
     const [newAvoidWord, setNewAvoidWord] = useState("")
 
-    // Загружаем расписания
     const {data: schedules = [], isLoading: schedulesLoading, error: schedulesError} = useGetApiV1Schedule()
     const getUtcString = (dateValue: string | Date | null | undefined): string | null => {
         if (!dateValue) {
@@ -58,15 +57,14 @@ export function AddParsingSettingsDialog({
         e.preventDefault()
 
         if (!formData.channel || !formData.scheduleId) {
-            toast.error("Ошибка валидации", {
-                description: "Канал и расписание обязательны для заполнения",
-            })
+            toast.error("Ошибка валидации",
+                {description: "Канал и расписание обязательны для заполнения",})
             return
         }
 
         const settings: CreateParseChannelRequest = {
             ...formData,
-            channel: formData.channel.startsWith("@") ? formData.channel : `@${formData.channel}`,
+            channel: formData.channel,
             avoidWords: formData.avoidWords && formData.avoidWords.length > 0 ? formData.avoidWords : [],
             dateFrom: getUtcString(formData.dateFrom),
             dateTo: getUtcString(formData.dateTo),

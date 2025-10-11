@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TgPoster.API.Common;
 using TgPoster.API.Domain.UseCases.Parse.CreateParseChannel;
+using TgPoster.API.Domain.UseCases.Parse.DeleteParseChannel;
 using TgPoster.API.Domain.UseCases.Parse.ListParseChannel;
 using TgPoster.API.Mapper;
 using TgPoster.API.Models;
@@ -34,7 +35,7 @@ public class ParseChannelController(ISender sender) : ControllerBase
     }
 
     /// <summary>
-    ///     Настройки парсинга
+    ///    Все задачи парсинга
     /// </summary>
     /// <param name="ct"></param>
     /// <returns></returns>
@@ -48,7 +49,7 @@ public class ParseChannelController(ISender sender) : ControllerBase
     }
 
     /// <summary>
-    ///     Изменения парсинга
+    ///     Изменения задачи на парсинг
     /// </summary>
     /// <param name="request"></param>
     /// <param name="ct"></param>
@@ -65,6 +66,23 @@ public class ParseChannelController(ISender sender) : ControllerBase
     )
     {
         await sender.Send(request.ToCommand(id), ct);
+        return Ok();
+    }
+
+    /// <summary>
+    ///     Удаления задачи на парсинг
+    /// </summary>
+    /// <param name="request"></param>
+    /// <param name="ct"></param>
+    /// <param name="id"></param>
+    /// <returns></returns>
+    [HttpDelete(Routes.ParseChannel.Delete)]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
+    public async Task<IActionResult> Delete([Required] Guid id, CancellationToken ct)
+    {
+        await sender.Send(new DeleteParseChannelCommand(id), ct);
         return Ok();
     }
 }

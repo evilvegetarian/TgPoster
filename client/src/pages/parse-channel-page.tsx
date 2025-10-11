@@ -2,10 +2,11 @@
 import {Button} from "@/components/ui/button"
 import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card"
 import {Badge} from "@/components/ui/badge"
-import {Edit, Eye, EyeOff, Filter, Loader2, Plus, Settings} from "lucide-react"
+import {Edit, Eye, EyeOff, Filter, Loader2, Plus, Settings, X} from "lucide-react"
 import {toast} from "sonner"
 
 import {
+    useDeleteApiV1ParseChannelId,
     useGetApiV1ParseChannel,
     usePostApiV1ParseChannel,
     usePutApiV1ParseChannelId
@@ -35,7 +36,7 @@ export function ParseChannelPage() {
                 setIsAddDialogOpen(false)
             },
             onError: (error) => {
-                toast.error("Ошибка создания", error?.message || "Не удалось создать настройку парсинга")
+                toast.error("Ошибка создания", {description: error.title || "Не удалось создать настройку парсинга"})
             },
         },
     })
@@ -51,7 +52,21 @@ export function ParseChannelPage() {
                 setEditingSettings(null)
             },
             onError: (error) => {
-                toast.error("Ошибка обновления", error?.message || "Не удалось обновить настройку парсинга")
+                toast.error("Ошибка обновления", {description: error.title ||"Не удалось обновить настройку парсинга"})
+            },
+        },
+    })
+
+    const deleteMutation = useDeleteApiV1ParseChannelId({
+        mutation: {
+            onSuccess: () => {
+                toast.success("Настройка удалена", {
+                    description: "Настройка парсинга успешно удалена",
+                })
+                refetch()
+            },
+            onError: (error) => {
+                toast.error("Ошибка обновления", error?.message || "Не удалось удалить настройку парсинга")
             },
         },
     })
@@ -67,6 +82,12 @@ export function ParseChannelPage() {
                 data: updatedSettings,
             })
         }
+    }
+
+    const openDeleteDialog = (id: string) => {
+        deleteMutation.mutate({
+            id: id,
+        })
     }
 
     const openEditDialog = (settings: ParseChannelsResponse) => {
@@ -149,7 +170,16 @@ export function ParseChannelPage() {
                     </Card>
                 ) : (
                     settings.map((setting) => (
-                        <Card key={setting.id} className="hover:shadow-md transition-shadow">
+                        <Card key={setting.id} className="relative hover:shadow-md transition-shadow">
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                className="absolute top-2 right-2 h-7 w-7 text-muted-foreground hover:text-destructive"
+                                onClick={() => openDeleteDialog(setting.id)}
+                            >
+                                <X className="h-4 w-4"/>
+                            </Button>
+
                             <CardHeader>
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-3">
@@ -165,7 +195,9 @@ export function ParseChannelPage() {
                                         </Button>
                                     </div>
                                 </div>
+
                             </CardHeader>
+
                             <CardContent className="space-y-4">
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                                     <div className="flex items-center gap-2">
@@ -190,8 +222,8 @@ export function ParseChannelPage() {
                                     <div className="flex items-center gap-2">
                                         <Settings className="h-4 w-4 text-blue-500"/>
                                         <span className="text-sm">
-                      {setting.needVerifiedPosts ? "Требует подтверждения" : "Автопубликация"}
-                    </span>
+                                        {setting.needVerifiedPosts ? "Требует подтверждения" : "Автопубликация"}
+                                    </span>
                                     </div>
 
                                     {setting.avoidWords && setting.avoidWords.length > 0 && (

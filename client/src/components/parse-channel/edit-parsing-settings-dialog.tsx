@@ -50,15 +50,13 @@ export function EditParsingSettingsDialog({
 
     const [newAvoidWord, setNewAvoidWord] = useState("")
 
-    // Загружаем расписания
     const {data: schedules = [], isLoading: schedulesLoading, error: schedulesError} = useGetApiV1Schedule()
 
-    // Заполняем форму данными при открытии
     useEffect(() => {
         if (open && initialData) {
             setFormData({
                 channel: initialData.channel || "",
-                alwaysCheckNewPosts: true, // Это поле отсутствует в ParseChannelsResponse, используем значение по умолчанию
+                alwaysCheckNewPosts: true,
                 scheduleId: initialData.scheduleId,
                 deleteText: initialData.deleteText,
                 deleteMedia: initialData.deleteMedia,
@@ -82,8 +80,8 @@ export function EditParsingSettingsDialog({
 
         const settings: UpdateParseChannelRequest = {
             ...formData,
-            channel: formData.channel.startsWith("@") ? formData.channel : `@${formData.channel}`,
-            avoidWords: formData.avoidWords && formData.avoidWords.length > 0 ? formData.avoidWords : null,
+            channel: formData.channel,
+            avoidWords: formData.avoidWords||null,
             dateFrom: formData.dateFrom || null,
             dateTo: formData.dateTo || null,
         }
@@ -125,7 +123,6 @@ export function EditParsingSettingsDialog({
         }
     }
 
-    // Найти название текущего расписания
     const currentSchedule = schedules.find((schedule) => schedule.id === initialData.scheduleId)
 
     return (
