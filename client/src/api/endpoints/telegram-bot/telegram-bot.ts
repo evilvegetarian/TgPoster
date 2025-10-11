@@ -27,7 +27,8 @@ import type {
   CreateTelegramBotRequest,
   CreateTelegramBotResponse,
   ProblemDetails,
-  TelegramBotResponse
+  TelegramBotResponse,
+  UpdateTelegramBotRequest
 } from '../tgPosterAPI.schemas';
 
 import { customInstance } from '../../axios-instance';
@@ -100,7 +101,7 @@ export const usePostApiV1TelegramBot = <TError = ProblemDetails,
       return useMutation(mutationOptions , queryClient);
     }
     /**
- * @summary Получение ботов
+ * @summary Получение всех ботов пользователя
  */
 export const getApiV1TelegramBot = (
     
@@ -167,7 +168,7 @@ export function useGetApiV1TelegramBot<TData = Awaited<ReturnType<typeof getApiV
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
- * @summary Получение ботов
+ * @summary Получение всех ботов пользователя
  */
 
 export function useGetApiV1TelegramBot<TData = Awaited<ReturnType<typeof getApiV1TelegramBot>>, TError = ProblemDetails>(
@@ -187,6 +188,70 @@ export function useGetApiV1TelegramBot<TData = Awaited<ReturnType<typeof getApiV
 
 
 /**
+ * @summary Обновление бота
+ */
+export const putApiV1TelegramBotId = (
+    id: string,
+    updateTelegramBotRequest: UpdateTelegramBotRequest,
+ ) => {
+      
+      
+      return customInstance<void>(
+      {url: `/api/v1/telegram-bot/${id}`, method: 'PUT',
+      headers: {'Content-Type': 'application/json', },
+      data: updateTelegramBotRequest
+    },
+      );
+    }
+  
+
+
+export const getPutApiV1TelegramBotIdMutationOptions = <TError = ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof putApiV1TelegramBotId>>, TError,{id: string;data: UpdateTelegramBotRequest}, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof putApiV1TelegramBotId>>, TError,{id: string;data: UpdateTelegramBotRequest}, TContext> => {
+
+const mutationKey = ['putApiV1TelegramBotId'];
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof putApiV1TelegramBotId>>, {id: string;data: UpdateTelegramBotRequest}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  putApiV1TelegramBotId(id,data,)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type PutApiV1TelegramBotIdMutationResult = NonNullable<Awaited<ReturnType<typeof putApiV1TelegramBotId>>>
+    export type PutApiV1TelegramBotIdMutationBody = UpdateTelegramBotRequest
+    export type PutApiV1TelegramBotIdMutationError = ProblemDetails
+
+    /**
+ * @summary Обновление бота
+ */
+export const usePutApiV1TelegramBotId = <TError = ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof putApiV1TelegramBotId>>, TError,{id: string;data: UpdateTelegramBotRequest}, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof putApiV1TelegramBotId>>,
+        TError,
+        {id: string;data: UpdateTelegramBotRequest},
+        TContext
+      > => {
+
+      const mutationOptions = getPutApiV1TelegramBotIdMutationOptions(options);
+
+      return useMutation(mutationOptions , queryClient);
+    }
+    /**
  * @summary Удаление бота
  */
 export const deleteApiV1TelegramBotId = (

@@ -40,80 +40,80 @@ import { customInstance } from '../../axios-instance';
 /**
  * @summary Получение дней недели
  */
-export const getApiV1DayDayofweek = (
+export const getApiV1DayDayOfWeek = (
     
  signal?: AbortSignal
 ) => {
       
       
       return customInstance<DayOfWeekResponse[]>(
-      {url: `/api/v1/day/dayofweek`, method: 'GET', signal
+      {url: `/api/v1/day/day-of-week`, method: 'GET', signal
     },
       );
     }
   
 
-export const getGetApiV1DayDayofweekQueryKey = () => {
-    return [`/api/v1/day/dayofweek`] as const;
+export const getGetApiV1DayDayOfWeekQueryKey = () => {
+    return [`/api/v1/day/day-of-week`] as const;
     }
 
     
-export const getGetApiV1DayDayofweekQueryOptions = <TData = Awaited<ReturnType<typeof getApiV1DayDayofweek>>, TError = ProblemDetails>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1DayDayofweek>>, TError, TData>>, }
+export const getGetApiV1DayDayOfWeekQueryOptions = <TData = Awaited<ReturnType<typeof getApiV1DayDayOfWeek>>, TError = ProblemDetails>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1DayDayOfWeek>>, TError, TData>>, }
 ) => {
 
 const {query: queryOptions} = options ?? {};
 
-  const queryKey =  queryOptions?.queryKey ?? getGetApiV1DayDayofweekQueryKey();
+  const queryKey =  queryOptions?.queryKey ?? getGetApiV1DayDayOfWeekQueryKey();
 
   
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getApiV1DayDayofweek>>> = ({ signal }) => getApiV1DayDayofweek(signal);
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getApiV1DayDayOfWeek>>> = ({ signal }) => getApiV1DayDayOfWeek(signal);
 
       
 
       
 
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getApiV1DayDayofweek>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getApiV1DayDayOfWeek>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
-export type GetApiV1DayDayofweekQueryResult = NonNullable<Awaited<ReturnType<typeof getApiV1DayDayofweek>>>
-export type GetApiV1DayDayofweekQueryError = ProblemDetails
+export type GetApiV1DayDayOfWeekQueryResult = NonNullable<Awaited<ReturnType<typeof getApiV1DayDayOfWeek>>>
+export type GetApiV1DayDayOfWeekQueryError = ProblemDetails
 
 
-export function useGetApiV1DayDayofweek<TData = Awaited<ReturnType<typeof getApiV1DayDayofweek>>, TError = ProblemDetails>(
-  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1DayDayofweek>>, TError, TData>> & Pick<
+export function useGetApiV1DayDayOfWeek<TData = Awaited<ReturnType<typeof getApiV1DayDayOfWeek>>, TError = ProblemDetails>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1DayDayOfWeek>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getApiV1DayDayofweek>>,
+          Awaited<ReturnType<typeof getApiV1DayDayOfWeek>>,
           TError,
-          Awaited<ReturnType<typeof getApiV1DayDayofweek>>
+          Awaited<ReturnType<typeof getApiV1DayDayOfWeek>>
         > , 'initialData'
       >, }
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetApiV1DayDayofweek<TData = Awaited<ReturnType<typeof getApiV1DayDayofweek>>, TError = ProblemDetails>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1DayDayofweek>>, TError, TData>> & Pick<
+export function useGetApiV1DayDayOfWeek<TData = Awaited<ReturnType<typeof getApiV1DayDayOfWeek>>, TError = ProblemDetails>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1DayDayOfWeek>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getApiV1DayDayofweek>>,
+          Awaited<ReturnType<typeof getApiV1DayDayOfWeek>>,
           TError,
-          Awaited<ReturnType<typeof getApiV1DayDayofweek>>
+          Awaited<ReturnType<typeof getApiV1DayDayOfWeek>>
         > , 'initialData'
       >, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetApiV1DayDayofweek<TData = Awaited<ReturnType<typeof getApiV1DayDayofweek>>, TError = ProblemDetails>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1DayDayofweek>>, TError, TData>>, }
+export function useGetApiV1DayDayOfWeek<TData = Awaited<ReturnType<typeof getApiV1DayDayOfWeek>>, TError = ProblemDetails>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1DayDayOfWeek>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
  * @summary Получение дней недели
  */
 
-export function useGetApiV1DayDayofweek<TData = Awaited<ReturnType<typeof getApiV1DayDayofweek>>, TError = ProblemDetails>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1DayDayofweek>>, TError, TData>>, }
+export function useGetApiV1DayDayOfWeek<TData = Awaited<ReturnType<typeof getApiV1DayDayOfWeek>>, TError = ProblemDetails>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1DayDayOfWeek>>, TError, TData>>, }
  , queryClient?: QueryClient 
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
-  const queryOptions = getGetApiV1DayDayofweekQueryOptions(options)
+  const queryOptions = getGetApiV1DayDayOfWeekQueryOptions(options)
 
   const query = useQuery(queryOptions , queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 

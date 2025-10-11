@@ -4,11 +4,11 @@ export default defineConfig({
     api: {
         output: {
             mode: 'tags-split',
-            target: 'src/api/endpoints',
+            target: 'endpoints',
             client: 'react-query',
             override: {
                 mutator: {
-                    path: './src/api/axios-instance.ts',
+                    path: 'axios-instance.ts',
                     name: 'customInstance',
                 },
                 query: {
@@ -18,7 +18,7 @@ export default defineConfig({
             },
         },
         input: {
-            target:`${process.env.VITE_API_URL}/swagger/v1/swagger.json`,
+            target:`http://localhost:5059/swagger/v1/swagger.json`,
         },
     },
 });

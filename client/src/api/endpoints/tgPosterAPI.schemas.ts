@@ -81,7 +81,10 @@ export interface CreateScheduleResponse {
 }
 
 export interface CreateTelegramBotRequest {
-  /** @nullable */
+  /**
+   * Токен телеграм бота
+   * @nullable
+   */
   token: string | null;
 }
 
@@ -283,6 +286,8 @@ export interface ScheduleResponse {
   isActive: boolean;
   /** @nullable */
   channelName: string | null;
+  /** @nullable */
+  botName: string | null;
 }
 
 /**
@@ -390,6 +395,16 @@ export interface UpdateParseChannelRequest {
    * @nullable
    */
   dateTo?: string | null;
+}
+
+export interface UpdateTelegramBotRequest {
+  /**
+   * Название телеграм бота
+   * @nullable
+   */
+  name?: string | null;
+  /** Активность телеграм бота */
+  isActive?: boolean;
 }
 
 export interface UpdateTimeRequest {
