@@ -11,7 +11,9 @@ internal sealed class GetDaysUseCases(IGetDaysStorage storage, IIdentityProvider
     {
         var existDays = await storage.ScheduleExistAsync(request.ScheduleId, identity.Current.UserId, ct);
         if (!existDays)
+        {
             throw new ScheduleNotFoundException(request.ScheduleId);
+        }
 
         return await storage.GetDaysAsync(request.ScheduleId, ct);
     }

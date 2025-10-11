@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.OpenApi.Extensions;
 using Shared;
 using TgPoster.API.Models;
 
@@ -9,22 +8,6 @@ namespace TgPoster.API.Controllers;
 [Route("api/options")] // Общий роут для всех опций
 public class OptionsController : ControllerBase
 {
-    /// <summary>
-    /// Модель для представления значения Enum на фронтенде.
-    /// </summary>
-    public class EnumViewModel<T>
-    {
-        /// <summary>
-        /// Числовое значение элемента Enum.
-        /// </summary>
-        public required T Value { get; set; }
-
-        /// <summary>
-        /// Имя элемента Enum (для отображения пользователю).
-        /// </summary>
-        public required string Name { get; set; }
-    }
-
     [HttpGet("message-statuses")]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(List<EnumViewModel<MessageStatus>>))]
     public IActionResult GetMessageStatuses()
@@ -83,5 +66,21 @@ public class OptionsController : ControllerBase
             .ToList();
 
         return Ok(directions);
+    }
+
+    /// <summary>
+    ///     Модель для представления значения Enum на фронтенде.
+    /// </summary>
+    public class EnumViewModel<T>
+    {
+        /// <summary>
+        ///     Числовое значение элемента Enum.
+        /// </summary>
+        public required T Value { get; set; }
+
+        /// <summary>
+        ///     Имя элемента Enum (для отображения пользователю).
+        /// </summary>
+        public required string Name { get; set; }
     }
 }

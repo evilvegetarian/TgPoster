@@ -1,9 +1,7 @@
 using MediatR;
 using Security.Interfaces;
 using Shared;
-using Telegram.Bot;
 using TgPoster.API.Domain.Exceptions;
-using TgPoster.API.Domain.Services;
 using TgPoster.API.Domain.UseCases.Messages.ListMessage;
 
 namespace TgPoster.API.Domain.UseCases.Messages.GetMessageById;
@@ -19,7 +17,9 @@ internal sealed class GetMessageUseCase(
         var message = await storage.GetMessagesAsync(request.Id, userId, ct);
 
         if (message is null)
+        {
             throw new MessageNotFoundException(request.Id);
+        }
 
         return new MessageResponse
         {

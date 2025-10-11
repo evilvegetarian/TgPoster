@@ -17,7 +17,9 @@ internal class EditMessageUseCase(
     {
         var userId = provider.Current.UserId;
         if (!await storage.ExistMessageAsync(request.Id, userId, ct))
+        {
             throw new MessageNotFoundException(request.Id);
+        }
 
         var (token, chatId) = await tokenService.GetTokenByScheduleIdAsync(request.ScheduleId, ct);
 

@@ -1,7 +1,7 @@
 namespace TgPoster.API.Models;
 
 /// <summary>
-/// Пагинация
+///     Пагинация
 /// </summary>
 public class PaginationRequest
 {
@@ -15,7 +15,7 @@ public class PaginationRequest
     public int PageNumber
     {
         get => _pageNumber;
-        set => _pageNumber = (value > 0) ? value : 1;
+        set => _pageNumber = value > 0 ? value : 1;
     }
 
     /// <summary>
@@ -24,6 +24,6 @@ public class PaginationRequest
     public int PageSize
     {
         get => _pageSize;
-        set => _pageSize = (value > MaxPageSize) ? MaxPageSize : value;
+        set => _pageSize = value > MaxPageSize ? MaxPageSize : value;
     }
 }

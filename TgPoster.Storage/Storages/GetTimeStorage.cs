@@ -8,7 +8,7 @@ public class GetTimeStorage(PosterContext context) : IGetTimeStorage
 {
     public Task<DateTimeOffset> GetTime(Guid scheduleId, CancellationToken ct)
     {
-        return  context.Messages
+        return context.Messages
             .Where(s => s.ScheduleId == scheduleId)
             .Where(x => x.TimePosting > DateTimeOffset.UtcNow)
             .Select(x => x.TimePosting)

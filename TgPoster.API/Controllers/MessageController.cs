@@ -19,7 +19,7 @@ using TgPoster.API.Models;
 namespace TgPoster.API.Controllers;
 
 /// <summary>
-/// Контроллер для сообщений
+///     Контроллер для сообщений
 /// </summary>
 /// <param name="sender"></param>
 [Authorize]
@@ -59,8 +59,7 @@ public class MessageController(ISender sender) : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
     public async Task<IActionResult> List([FromQuery] ListMessagesRequest request, CancellationToken ct)
     {
-        var query = request.ToDomain();
-        var response = await sender.Send(query, ct);
+        var response = await sender.Send(request.ToDomain(), ct);
         return Ok(response);
     }
 

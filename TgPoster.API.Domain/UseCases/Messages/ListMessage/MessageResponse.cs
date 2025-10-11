@@ -1,5 +1,3 @@
-using MassTransit.Futures.Contracts;
-
 namespace TgPoster.API.Domain.UseCases.Messages.ListMessage;
 
 public sealed class MessageResponse

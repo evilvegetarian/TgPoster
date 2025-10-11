@@ -59,7 +59,8 @@ public class ListMessageStorageShould(StorageTestFixture fixture) : IClassFixtur
         var message2 = await helper.CreateMessageAsync(schedule.Id);
         await helper.CreateMessageFileAsync(message1.Id);
         await helper.CreateVideoMessageFileAsync(message2.Id);
-        var request = new ListMessageQuery(schedule.Id, 1, 10, MessageSortBy.SentAt, SortDirection.Asc, null, MessageStatus.All);
+        var request = new ListMessageQuery(schedule.Id, 1, 10, MessageSortBy.SentAt, SortDirection.Asc, null,
+            MessageStatus.All);
 
         var result = await sut.GetMessagesAsync(request, CancellationToken.None);
 
@@ -74,7 +75,8 @@ public class ListMessageStorageShould(StorageTestFixture fixture) : IClassFixtur
     public async Task GetMessagesAsync_WithScheduleWithoutMessages_ShouldReturnEmptyList()
     {
         var schedule = await helper.CreateScheduleAsync();
-        var request = new ListMessageQuery(schedule.Id, 1, 10, MessageSortBy.SentAt, SortDirection.Asc, null, MessageStatus.All);
+        var request = new ListMessageQuery(schedule.Id, 1, 10, MessageSortBy.SentAt, SortDirection.Asc, null,
+            MessageStatus.All);
 
         var result = await sut.GetMessagesAsync(request, CancellationToken.None);
 
@@ -86,7 +88,8 @@ public class ListMessageStorageShould(StorageTestFixture fixture) : IClassFixtur
     {
         var nonExistingScheduleId = Guid.NewGuid();
 
-        var request = new ListMessageQuery(nonExistingScheduleId, 1, 10, MessageSortBy.SentAt, SortDirection.Asc, null, MessageStatus.All);
+        var request = new ListMessageQuery(nonExistingScheduleId, 1, 10, MessageSortBy.SentAt, SortDirection.Asc, null,
+            MessageStatus.All);
 
         var result = await sut.GetMessagesAsync(request, CancellationToken.None);
 
@@ -100,7 +103,8 @@ public class ListMessageStorageShould(StorageTestFixture fixture) : IClassFixtur
         var message = await helper.CreateMessageAsync(schedule.Id);
         var imageFile = await helper.CreateMessageFileAsync(message.Id);
         var videoFile = await helper.CreateVideoMessageFileAsync(message.Id);
-        var request = new ListMessageQuery(schedule.Id, 1, 10, MessageSortBy.SentAt, SortDirection.Asc, null, MessageStatus.All);
+        var request = new ListMessageQuery(schedule.Id, 1, 10, MessageSortBy.SentAt, SortDirection.Asc, null,
+            MessageStatus.All);
 
         var result = await sut.GetMessagesAsync(request, CancellationToken.None);
 
@@ -120,7 +124,8 @@ public class ListMessageStorageShould(StorageTestFixture fixture) : IClassFixtur
     {
         var schedule = await helper.CreateScheduleAsync();
         var message = await helper.CreateMessageAsync(schedule.Id);
-        var request = new ListMessageQuery(schedule.Id, 1, 10, MessageSortBy.SentAt, SortDirection.Asc, null, MessageStatus.All);
+        var request = new ListMessageQuery(schedule.Id, 1, 10, MessageSortBy.SentAt, SortDirection.Asc, null,
+            MessageStatus.All);
 
         var result = await sut.GetMessagesAsync(request, CancellationToken.None);
 

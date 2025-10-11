@@ -12,7 +12,10 @@ internal sealed class UpdateTelegramBotHandler(TelegramTokenService service, IUp
     {
         var (token, _) = await service.GetTokenByTelegramIdAsync(request.Id, ct);
         if (token is null)
+        {
             throw new TelegramBotNotFoundException(request.Id);
+        }
+
         var nameBot = request.Name;
         if (nameBot is null)
         {

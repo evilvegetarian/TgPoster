@@ -1,5 +1,3 @@
-using TgPoster.API.Domain.Models;
-
 namespace TgPoster.API.Domain.UseCases.Messages.DeleteFileMessage;
 
 public interface IDeleteFileMessageStorage

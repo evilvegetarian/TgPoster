@@ -1,4 +1,3 @@
-using System.Text.Json.Serialization;
 using Shared;
 
 namespace TgPoster.API.Domain.UseCases.Messages.ListMessage;

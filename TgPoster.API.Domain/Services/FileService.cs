@@ -1,3 +1,4 @@
+using System.Net;
 using Amazon.S3;
 using Amazon.S3.Model;
 using Microsoft.AspNetCore.StaticFiles;
@@ -128,7 +129,7 @@ internal sealed class FileService(
 
             return false;
         }
-        catch (AmazonS3Exception e) when (e.StatusCode == System.Net.HttpStatusCode.NotFound)
+        catch (AmazonS3Exception e) when (e.StatusCode == HttpStatusCode.NotFound)
         {
         }
 
@@ -141,12 +142,12 @@ internal sealed class FileService(
             BucketName = _s3Options.BucketName,
             Key = fileDtoId.ToString(),
             ContentType = contentType,
-            InputStream = memoryStream,
+            InputStream = memoryStream
         };
 
         var response = await _s3.PutObjectAsync(request, ct);
 
-        if (response.HttpStatusCode != System.Net.HttpStatusCode.OK)
+        if (response.HttpStatusCode != HttpStatusCode.OK)
         {
             throw new InvalidOperationException(
                 $"Failed to upload file {fileDtoId} to S3. Status: {response.HttpStatusCode}");

@@ -13,9 +13,9 @@ public class GetTelegramBotStorageShould(StorageTestFixture fixture) : IClassFix
     [Fact]
     public async Task GetApiTokenAsync_WithExistingSchedule_ShouldReturnApiToken()
     {
-        var schedule = await helper.CreateScheduleAsync();
+        var telegramBot = await helper.CreateTelegramBotAsync();
 
-        var result = await sut.GetApiTokenAsync(schedule.Id, schedule.UserId, CancellationToken.None);
+        var result = await sut.GetApiTokenAsync(telegramBot.Id, telegramBot.OwnerId, CancellationToken.None);
 
         result.ShouldNotBeNull();
     }

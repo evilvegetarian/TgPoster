@@ -13,7 +13,7 @@ public sealed class TimePostingService
             throw new ArgumentNullException("Расписание не заполнено!");
         }
 
-        DateTimeOffset currentDateValue = DateTimeOffset.UtcNow;
+        var currentDateValue = DateTimeOffset.UtcNow;
         if (existMessageTimePosting.Any())
         {
             currentDateValue = existMessageTimePosting.OrderByDescending(x => x).FirstOrDefault();

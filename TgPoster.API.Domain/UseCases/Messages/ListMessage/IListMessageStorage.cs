@@ -6,6 +6,7 @@ public interface IListMessageStorage
 {
     Task<bool> ExistScheduleAsync(Guid scheduleId, Guid userId, CancellationToken ct);
     Task<string?> GetApiTokenAsync(Guid scheduleId, CancellationToken ct);
+
     Task<PagedList<MessageDto>> GetMessagesAsync(
         Guid scheduleId,
         int pageNumber,
@@ -14,5 +15,5 @@ public interface IListMessageStorage
         CancellationToken ct
     );
 
-    Task<PagedList<MessageDto>>  GetMessagesAsync(ListMessageQuery query, CancellationToken pageNumber);
+    Task<PagedList<MessageDto>> GetMessagesAsync(ListMessageQuery query, CancellationToken pageNumber);
 }

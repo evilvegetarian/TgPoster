@@ -10,11 +10,15 @@ internal class CreateDaysUseCase(ICreateDaysStorage storage, IIdentityProvider i
     public async Task Handle(CreateDaysCommand command, CancellationToken ct)
     {
         if (!await storage.ScheduleExistAsync(command.ScheduleId, identity.Current.UserId, ct))
+        {
             throw new ScheduleNotFoundException(command.ScheduleId);
+        }
 
         var days = await storage.GetDayOfWeekAsync(command.ScheduleId, ct);
         if (command.DayOfWeekForms.Any(x => days.Contains(x.DayOfWeekPosting)))
+        {
             throw new ArgumentException();
+        }
 
         List<CreateDayDto> daysList = [];
         foreach (var dayForm in command.DayOfWeekForms)

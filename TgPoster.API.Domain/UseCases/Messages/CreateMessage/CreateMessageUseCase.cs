@@ -1,7 +1,6 @@
 using MediatR;
 using Security.Interfaces;
 using Telegram.Bot;
-using TgPoster.API.Domain.ConfigModels;
 using TgPoster.API.Domain.Exceptions;
 using TgPoster.API.Domain.Services;
 
@@ -18,7 +17,9 @@ internal sealed class CreateMessageUseCase(
     {
         var userId = identityProvider.Current.UserId;
         if (!await storage.ExistScheduleAsync(userId, request.ScheduleId, ct))
+        {
             throw new ScheduleNotFoundException(request.ScheduleId);
+        }
 
         var (token, chatId) = await tokenService.GetTokenByScheduleIdAsync(request.ScheduleId, ct);
 

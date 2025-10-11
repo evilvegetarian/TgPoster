@@ -12,7 +12,9 @@ public class DeleteFileMessageUseCase(IDeleteFileMessageStorage storage, IIdenti
         var userId = provider.Current.UserId;
         var existMessage = await storage.ExistMessageAsync(request.Id, userId, cancellationToken);
         if (!existMessage)
+        {
             throw new MessageNotFoundException(request.Id);
+        }
 
         await storage.DeleteFileAsync(request.FileId, cancellationToken);
     }

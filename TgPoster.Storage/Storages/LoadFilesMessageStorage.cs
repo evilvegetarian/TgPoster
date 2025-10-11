@@ -1,11 +1,8 @@
-using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
-using TgPoster.API.Domain.Models;
 using TgPoster.API.Domain.Services;
 using TgPoster.API.Domain.UseCases.Messages.CreateMessagesFromFiles;
 using TgPoster.API.Domain.UseCases.Messages.LoadFilesMessage;
 using TgPoster.Storage.Data;
-using TgPoster.Storage.Exception;
 using TgPoster.Storage.Mapper;
 
 namespace TgPoster.Storage.Storages;
@@ -29,7 +26,7 @@ internal sealed class LoadFilesMessageStorage(PosterContext context, GuidFactory
             .Select(m => new TelegramBotDto
             {
                 ApiTelegram = m.Schedule.TelegramBot.ApiTelegram,
-                ChatId = m.Schedule.TelegramBot.ChatId,
+                ChatId = m.Schedule.TelegramBot.ChatId
             })
             .FirstOrDefaultAsync(ct);
     }

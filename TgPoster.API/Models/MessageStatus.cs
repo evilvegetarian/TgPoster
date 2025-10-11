@@ -1,5 +1,3 @@
-using System.ComponentModel.DataAnnotations;
-
 namespace TgPoster.API.Models;
 
 public enum MessageStatus
@@ -7,14 +5,14 @@ public enum MessageStatus
     All,
     Planed,
     NotApproved,
-    Delivered,
+    Delivered
 }
 
 // Для примера определим поля для сортировки
 public enum MessageSortBy
 {
     CreatedAt, // По дате создания
-    SentAt, // По дате отправки
+    SentAt // По дате отправки
 }
 
 public enum SortDirection
@@ -36,7 +34,7 @@ public static class EnumExtensions
             _ => throw new ArgumentOutOfRangeException(nameof(status), status, null)
         };
     }
-    
+
     public static string GetName(this MessageSortBy sortBy)
     {
         return sortBy switch
@@ -46,6 +44,7 @@ public static class EnumExtensions
             _ => throw new ArgumentOutOfRangeException(nameof(sortBy), sortBy, null)
         };
     }
+
     public static string GetName(this SortDirection sortDirection)
     {
         return sortDirection switch

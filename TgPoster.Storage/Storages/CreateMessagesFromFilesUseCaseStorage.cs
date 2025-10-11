@@ -53,7 +53,7 @@ internal sealed class CreateMessagesFromFilesUseCaseStorage(PosterContext contex
             var messageId = guidFactory.New();
             var file = files[i];
 
-            MessageFile messageFile = file.ToEntity(messageId);
+            var messageFile = file.ToEntity(messageId);
             var message = new Message
             {
                 Id = messageId,

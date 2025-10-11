@@ -4,7 +4,6 @@ using Security.Interfaces;
 using Shared.Contracts;
 using Telegram.Bot;
 using TgPoster.API.Domain.ConfigModels;
-using TgPoster.API.Domain.Exceptions;
 using TgPoster.API.Domain.Extensions;
 using TgPoster.API.Domain.Services;
 

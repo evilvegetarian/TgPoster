@@ -2,7 +2,6 @@ using System.Reflection;
 using Amazon.S3;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
 using Shared;
 using TgPoster.API.Domain.ConfigModels;
 using TgPoster.API.Domain.Services;

@@ -5,7 +5,7 @@ namespace TgPoster.API.Models;
 public class CreateTelegramBotRequest : IValidatableObject
 {
     /// <summary>
-    /// Токен телеграм бота
+    ///     Токен телеграм бота
     /// </summary>
     public required string Token { get; set; }
 

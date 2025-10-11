@@ -104,9 +104,11 @@ internal sealed class ListMessageStorage(PosterContext context) : IListMessageSt
 
 
         if (!string.IsNullOrEmpty(request.SearchText))
+        {
             query = query.Where(message =>
                 message.TextMessage != null
                 && message.TextMessage.Contains(request.SearchText, StringComparison.CurrentCultureIgnoreCase));
+        }
 
         var totalCount = await query.CountAsync(ct);
 

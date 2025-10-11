@@ -4,7 +4,6 @@ using TgPoster.API.Domain.Services;
 using TgPoster.API.Domain.UseCases.Messages.CreateMessagesFromFiles;
 using TgPoster.API.Domain.UseCases.Messages.EditMessage;
 using TgPoster.Storage.Data;
-using TgPoster.Storage.Exception;
 using TgPoster.Storage.Mapper;
 
 namespace TgPoster.Storage.Storages;

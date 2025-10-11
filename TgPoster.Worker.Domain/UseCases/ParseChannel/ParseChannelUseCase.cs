@@ -170,7 +170,7 @@ internal class ParseChannelUseCase(
                         {
                             var fileType = doc.mime_type.Split('/')[0];
 
-                            if (fileType == "video") 
+                            if (fileType == "video")
                             {
                                 using var stream = new MemoryStream();
                                 await client.DownloadFileAsync(doc, stream);

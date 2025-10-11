@@ -11,7 +11,7 @@ using TgPoster.API.Models;
 namespace TgPoster.API.Controllers;
 
 /// <summary>
-/// Управление ботами
+///     Управление ботами
 /// </summary>
 /// <param name="sender"></param>
 [Authorize]

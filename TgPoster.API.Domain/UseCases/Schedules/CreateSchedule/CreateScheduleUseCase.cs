@@ -31,7 +31,9 @@ internal sealed class CreateScheduleUseCase(
         var channel = await bot.GetChat(userNameChat, ct);
         var botMember = await bot.GetChatMember(userNameChat, bot.BotId, ct);
         if (botMember is not ChatMemberAdministrator botAdminMember || !botAdminMember.CanPostMessages)
+        {
             throw new TelegramBotNotPermission();
+        }
 
         var newSchedule = await storage.CreateScheduleAsync(
             request.Name,

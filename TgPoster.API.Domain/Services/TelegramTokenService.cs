@@ -15,7 +15,9 @@ public class TelegramTokenService(
         var userId = identity.Current.UserId;
         var telegramBot = await storage.GetApiTokenAsync(id, userId, ct);
         if (telegramBot is null)
+        {
             throw new TelegramBotNotFoundException(id);
+        }
 
         var token = aes.Decrypt(options.SecretKey, telegramBot.ApiTelegram);
         return (token, telegramBot.ChatId);
@@ -26,7 +28,9 @@ public class TelegramTokenService(
         var userId = identity.Current.UserId;
         var telegramBot = await storage.GetTelegramBotByScheduleIdAsync(scheduleId, userId, ct);
         if (telegramBot is null)
+        {
             throw new TelegramBotNotFoundException();
+        }
 
         var token = aes.Decrypt(options.SecretKey, telegramBot.ApiTelegram);
         return (token, telegramBot.ChatId);
@@ -37,7 +41,9 @@ public class TelegramTokenService(
         var userId = identity.Current.UserId;
         var telegramBot = await storage.GetTelegramBotByMessageIdAsync(messageId, userId, ct);
         if (telegramBot is null)
+        {
             throw new TelegramBotNotFoundException();
+        }
 
         var token = aes.Decrypt(options.SecretKey, telegramBot.ApiTelegram);
         return (token, telegramBot.ChatId);

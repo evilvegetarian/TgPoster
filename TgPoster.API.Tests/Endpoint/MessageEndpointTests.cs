@@ -6,9 +6,6 @@ using TgPoster.API.Domain.UseCases.Messages.CreateMessage;
 using TgPoster.API.Domain.UseCases.Messages.ListMessage;
 using TgPoster.API.Models;
 using TgPoster.Endpoint.Tests.Helper;
-using TgPoster.API.Domain.UseCases.Messages.EditMessage;
-using TgPoster.API.Domain.UseCases.Messages.DeleteFileMessage;
-using TgPoster.API.Domain.UseCases.Messages.LoadFilesMessage;
 
 namespace TgPoster.Endpoint.Tests.Endpoint;
 
@@ -31,7 +28,9 @@ public class MessageEndpointTests(EndpointTestFixture fixture) : IClassFixture<E
         var createResponse = await client.PostAsync(Routes.Message.CreateMessagesFromFiles, request.ToMultipartForm());
         createResponse.StatusCode.ShouldBe(HttpStatusCode.Created);
 
-        var message = await client.GetAsync<PagedResponse<MessageResponse>>(Routes.Message.List + "?scheduleId=" + request.ScheduleId);
+        var message = await client.GetAsync<PagedResponse<MessageResponse>>(Routes.Message.List
+                                                                            + "?scheduleId="
+                                                                            + request.ScheduleId);
         message.Data.Count.ShouldBe(files.Count);
     }
 
@@ -210,8 +209,7 @@ public class MessageEndpointTests(EndpointTestFixture fixture) : IClassFixture<E
             ScheduleId = GlobalConst.Worked.ScheduleId
         };
 
-        var ssss=request.ToMultipartForm();
-        var response = await client.PutAsync(Url + "/" + messageId, ssss);
+        var response = await client.PutAsync(Url + "/" + messageId, request.ToMultipartForm());
         var ss=await response.Content.ReadAsStringAsync();
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
 
@@ -252,7 +250,7 @@ public class MessageEndpointTests(EndpointTestFixture fixture) : IClassFixture<E
     [Fact]
     public async Task DeleteFile_WithValidData_ReturnOk()
     {
-        var messageId = await helper.CreateMessage(GlobalConst.Worked.ScheduleId, withFiles: true);
+        var messageId = await helper.CreateMessage(GlobalConst.Worked.ScheduleId, true);
         var message = await client.GetAsync<MessageResponse>(Url + "/" + messageId);
         var fileId = message.Files.First().Id;
 
@@ -273,7 +271,7 @@ public class MessageEndpointTests(EndpointTestFixture fixture) : IClassFixture<E
     [Fact]
     public async Task DeleteFile_WithAnotherUser_ReturnNotFound()
     {
-        var messageId = await helper.CreateMessage(GlobalConst.Worked.ScheduleId, withFiles: true);
+        var messageId = await helper.CreateMessage(GlobalConst.Worked.ScheduleId, true);
         var message = await client.GetAsync<MessageResponse>(Url + "/" + messageId);
         var fileId = message.Files.First().Id;
 
