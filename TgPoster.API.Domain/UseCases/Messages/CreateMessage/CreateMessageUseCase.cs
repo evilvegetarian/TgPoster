@@ -10,8 +10,6 @@ namespace TgPoster.API.Domain.UseCases.Messages.CreateMessage;
 internal sealed class CreateMessageUseCase(
     ICreateMessageStorage storage,
     IIdentityProvider identityProvider,
-    ICryptoAES cryptoAes,
-    TelegramOptions options,
     TelegramService telegramService,
     TelegramTokenService tokenService
 ) : IRequestHandler<CreateMessageCommand, CreateMessageResponse>

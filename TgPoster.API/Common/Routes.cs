@@ -40,6 +40,7 @@ internal static class Routes
         internal const string Create = Root;
         internal const string Get = Root + "/{id:guid}";
         internal const string Delete = Root + "/{id:guid}";
+        internal const string Update = Root + "/{id:guid}";
     }
 
     internal static class Message

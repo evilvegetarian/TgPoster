@@ -10,9 +10,8 @@ public class DeleteTelegramUseCase(IDeleteTelegramBotStorage storage, IIdentityP
     public async Task Handle(DeleteTelegramCommand request, CancellationToken cancellationToken)
     {
         if (!await storage.ExistsAsync(request.Id, identity.Current.UserId, cancellationToken))
-        {
-            throw new TelegramBotNotFoundException();
-        }
+            throw new TelegramBotNotFoundException(request.Id);
+        
 
         await storage.DeleteTelegramBotAsync(request.Id, identity.Current.UserId, cancellationToken);
     }

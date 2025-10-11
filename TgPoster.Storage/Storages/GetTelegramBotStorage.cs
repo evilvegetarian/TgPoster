@@ -7,13 +7,16 @@ namespace TgPoster.Storage.Storages;
 
 internal class GetTelegramBotStorage(PosterContext context) : IGetTelegramBotStorage
 {
-    public Task<string?> GetApiTokenAsync(Guid scheduleId, Guid userId, CancellationToken ct)
+    public Task<TelegramBotDto?> GetApiTokenAsync(Guid id, Guid userId, CancellationToken ct)
     {
-        return context.Schedules
-            .Where(x => x.Id == scheduleId)
-            .Where(x => x.UserId == userId)
-            .Select(x => x.TelegramBot.ApiTelegram)
-            .FirstOrDefaultAsync(ct);
+        return context.TelegramBots
+            .Where(x => x.Id == id)
+            .Where(x => x.OwnerId == userId)
+            .Select(x => new TelegramBotDto
+            {
+                ApiTelegram = x.ApiTelegram,
+                ChatId = x.ChatId
+            }).FirstOrDefaultAsync(ct);
     }
 
     public Task<TelegramBotDto?> GetTelegramBotByScheduleIdAsync(Guid scheduleId, Guid userId, CancellationToken ct)

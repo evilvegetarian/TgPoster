@@ -21,7 +21,7 @@ internal sealed class CreateScheduleUseCase(
         var encryptedToken = await storage.GetApiTokenAsync(request.TelegramBotId, userId, ct);
         if (encryptedToken is null)
         {
-            throw new TelegramNotFoundException();
+            throw new TelegramBotNotFoundException(request.TelegramBotId);
         }
 
         var token = aes.Decrypt(options.SecretKey, encryptedToken);
@@ -32,7 +32,7 @@ internal sealed class CreateScheduleUseCase(
         var botMember = await bot.GetChatMember(userNameChat, bot.BotId, ct);
         if (botMember is not ChatMemberAdministrator botAdminMember || !botAdminMember.CanPostMessages)
             throw new TelegramBotNotPermission();
-        
+
         var newSchedule = await storage.CreateScheduleAsync(
             request.Name,
             identity.Current.UserId,

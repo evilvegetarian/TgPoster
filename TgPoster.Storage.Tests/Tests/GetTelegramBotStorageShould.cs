@@ -18,7 +18,6 @@ public class GetTelegramBotStorageShould(StorageTestFixture fixture) : IClassFix
         var result = await sut.GetApiTokenAsync(schedule.Id, schedule.UserId, CancellationToken.None);
 
         result.ShouldNotBeNull();
-        result.ShouldNotBeEmpty();
     }
 
     [Fact]
