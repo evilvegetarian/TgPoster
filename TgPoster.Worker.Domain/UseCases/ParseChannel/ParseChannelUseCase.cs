@@ -150,7 +150,25 @@ internal class ParseChannelUseCase(
                         {
                             var fileType = "image/jpeg";
                             using var stream = new MemoryStream();
-                            await client.DownloadFileAsync(photo, stream);
+
+                            try
+                            {
+                                await client.DownloadFileAsync(photo, stream);
+                            }
+                            catch (RpcException ex) when (ex.Message == "FILE_REFERENCE_EXPIRED")
+                            {
+                                var refreshedMessages = await client.Channels_GetMessages(new InputChannel(channel.id, channel.access_hash), message.ID);
+
+                                if (refreshedMessages.Messages.FirstOrDefault() is Message { media: MessageMediaPhoto { photo: Photo refreshedPhoto } })
+                                {
+                                    await client.DownloadFileAsync(refreshedPhoto, stream);
+                                }
+                                else
+                                {
+                                    throw;
+                                }
+                            }
+
                             stream.Position = 0;
                             var photoMessage = await telegramBot.SendPhoto(chatId,
                                 new InputFileStream(stream),
@@ -173,7 +191,23 @@ internal class ParseChannelUseCase(
                             if (fileType == "video")
                             {
                                 using var stream = new MemoryStream();
-                                await client.DownloadFileAsync(doc, stream);
+                                try
+                                {
+                                    await client.DownloadFileAsync(doc, stream);
+                                }
+                                catch (RpcException ex) when (ex.Message == "FILE_REFERENCE_EXPIRED")
+                                {
+                                    var refreshedMessages = await client.Channels_GetMessages(new InputChannel(channel.id, channel.access_hash), message.ID);
+            
+                                    if (refreshedMessages.Messages.FirstOrDefault() is Message { media: MessageMediaDocument { document: Document refreshedDoc } })
+                                    {
+                                        await client.DownloadFileAsync(refreshedDoc, stream);
+                                    }
+                                    else
+                                    {
+                                        throw;
+                                    }
+                                }
                                 stream.Position = 0;
                                 var inputFile = new InputFileStream(stream, "file.FileName");
                                 List<IAlbumInputMedia> album =
