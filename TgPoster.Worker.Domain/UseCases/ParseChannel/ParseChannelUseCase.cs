@@ -9,6 +9,7 @@ using WTelegram;
 using Document = TL.Document;
 using InputMediaPhoto = Telegram.Bot.Types.InputMediaPhoto;
 using Message = TL.Message;
+using MessageEntity = Telegram.Bot.Types.MessageEntity;
 
 namespace TgPoster.Worker.Domain.UseCases.ParseChannel;
 
@@ -19,6 +20,7 @@ internal class ParseChannelUseCase(
     TelegramOptions telegramOptions,
     ICryptoAES cryptoAes,
     TimePostingService timePostingService,
+    TelegramExecuteServices telegramExecuteServices,
     ILogger<ParseChannelUseCase> logger)
 {
     public async Task Handle(Guid id, CancellationToken ct)
@@ -30,7 +32,7 @@ internal class ParseChannelUseCase(
             return;
         }
 
-        logger.LogInformation("Начали парсить данный канал с данными настройками: {@parameters}", parameters);
+        logger.LogInformation("Начали парсить данный канал: {@parameters}", parameters.ChannelName);
         await storage.UpdateInHandleStatusAsync(id, ct);
 
         var channelName = parameters.ChannelName;
@@ -56,7 +58,7 @@ internal class ParseChannelUseCase(
         List<Message> allMessages = [];
         var tempLastParseId = 0;
         const int limit = 100;
-        var offset = 0;
+        var offset = lastParseId ?? 0;
         while (true)
         {
             var history = await client.Messages_GetHistory(
@@ -150,29 +152,10 @@ internal class ParseChannelUseCase(
                         {
                             var fileType = "image/jpeg";
                             using var stream = new MemoryStream();
-
-                            try
-                            {
-                                await client.DownloadFileAsync(photo, stream);
-                            }
-                            catch (RpcException ex) when (ex.Message == "FILE_REFERENCE_EXPIRED")
-                            {
-                                var refreshedMessages = await client.Channels_GetMessages(new InputChannel(channel.id, channel.access_hash), message.ID);
-
-                                if (refreshedMessages.Messages.FirstOrDefault() is Message { media: MessageMediaPhoto { photo: Photo refreshedPhoto } })
-                                {
-                                    await client.DownloadFileAsync(refreshedPhoto, stream);
-                                }
-                                else
-                                {
-                                    throw;
-                                }
-                            }
-
+                            await telegramExecuteServices.DownloadPhotoAsync(client, channel, photo, stream, message.ID);
                             stream.Position = 0;
-                            var photoMessage = await telegramBot.SendPhoto(chatId,
-                                new InputFileStream(stream),
-                                cancellationToken: ct);
+                            var photoStream = new InputFileStream(stream);
+                            var photoMessage = await telegramExecuteServices.SendPhoto(telegramBot,chatId, photoStream,3,ct);
                             var photoId = photoMessage.Photo?
                                 .OrderByDescending(x => x.FileSize)
                                 .Select(x => x.FileId)
@@ -191,23 +174,9 @@ internal class ParseChannelUseCase(
                             if (fileType == "video")
                             {
                                 using var stream = new MemoryStream();
-                                try
-                                {
-                                    await client.DownloadFileAsync(doc, stream);
-                                }
-                                catch (RpcException ex) when (ex.Message == "FILE_REFERENCE_EXPIRED")
-                                {
-                                    var refreshedMessages = await client.Channels_GetMessages(new InputChannel(channel.id, channel.access_hash), message.ID);
-            
-                                    if (refreshedMessages.Messages.FirstOrDefault() is Message { media: MessageMediaDocument { document: Document refreshedDoc } })
-                                    {
-                                        await client.DownloadFileAsync(refreshedDoc, stream);
-                                    }
-                                    else
-                                    {
-                                        throw;
-                                    }
-                                }
+
+                                await telegramExecuteServices.DownloadVideoAsync(client, channel, doc, stream, message.ID);
+
                                 stream.Position = 0;
                                 var inputFile = new InputFileStream(stream, "file.FileName");
                                 List<IAlbumInputMedia> album =
@@ -219,11 +188,7 @@ internal class ParseChannelUseCase(
                                     previews.Select<MemoryStream, InputMediaPhoto>(preview =>
                                         new InputMediaPhoto(preview)));
 
-                                var messages = await telegramBot.SendMediaGroup(
-                                    chatId,
-                                    album,
-                                    disableNotification: true,
-                                    cancellationToken: ct);
+                                var messages = await telegramExecuteServices.SendMedia(telegramBot, chatId, album,3,ct);
                                 var previewPhotoIds = messages
                                     .Select(m => m.Photo?
                                         .OrderByDescending(x => x.FileSize)
@@ -288,5 +253,215 @@ internal class ParseChannelUseCase(
             nameof(settings.phone_number) => settings.phone_number,
             _ => null
         };
+    }
+}
+
+public class TelegramExecuteServices(ILogger<TelegramExecuteServices> logger)
+{
+    public async Task<Telegram.Bot.Types.Message[]> SendMedia(TelegramBotClient telegramBot, long chatId, List<IAlbumInputMedia> album, int maxRetries, CancellationToken ct)
+    {
+        var retryCount = 0;
+        while (true)
+        {
+            try
+            {
+                var messages = await telegramBot.SendMediaGroup(
+                    chatId,
+                    album,
+                    disableNotification: true,
+                    cancellationToken: ct);
+                return messages;
+            }
+            catch (Telegram.Bot.Exceptions.ApiRequestException ex) when (ex.ErrorCode == 429)
+            {
+                retryCount++;
+                if (retryCount > maxRetries)
+                {
+                    logger.LogError(ex, "Достигнуто максимальное количество попыток для API вызова. Отказ.");
+                    throw;
+                }
+
+                var retryAfter = ex.Parameters?.RetryAfter ?? 30;
+                var waitTime = TimeSpan.FromSeconds(retryAfter + 1);
+
+                logger.LogWarning(
+                    "Получен лимит запросов от Telegram API. Ожидание: {WaitTime} сек. Попытка {RetryCount}/{MaxRetries}",
+                    retryAfter, retryCount, maxRetries);
+
+                await Task.Delay(waitTime, ct);
+            }
+        }
+    }
+
+    public async Task<Telegram.Bot.Types.Message> SendPhoto(TelegramBotClient telegramBot, long chatId, InputFileStream photoStream, int maxRetries, CancellationToken ct)
+    {
+        var retryCount = 0;
+        while (true)
+        {
+            try
+            {
+                var photoMessage = await telegramBot.SendPhoto(chatId, photoStream, cancellationToken: ct);
+                return photoMessage;
+            }
+            catch (Telegram.Bot.Exceptions.ApiRequestException ex) when (ex.ErrorCode == 429)
+            {
+                retryCount++;
+                if (retryCount > maxRetries)
+                {
+                    logger.LogError(ex, "Достигнуто максимальное количество попыток для API вызова. Отказ.");
+                    throw;
+                }
+
+                var retryAfter = ex.Parameters?.RetryAfter ?? 30;
+                var waitTime = TimeSpan.FromSeconds(retryAfter + 1);
+
+                logger.LogWarning(
+                    "Получен лимит запросов от Telegram API. Ожидание: {WaitTime} сек. Попытка {RetryCount}/{MaxRetries}",
+                    retryAfter, retryCount, maxRetries);
+
+                await Task.Delay(waitTime, ct);
+            }
+        }
+    }
+
+public async Task DownloadVideoAsync(
+        Client client,
+        Channel channel,
+        Document video,
+        Stream stream,
+        int messageId
+    )
+    {
+        try
+        {
+            await client.DownloadFileAsync(video, stream);
+        }
+        catch (RpcException ex) when (ex.Message == "FILE_REFERENCE_EXPIRED")
+        {
+            var refreshedMessages = await client.Channels_GetMessages(new InputChannel(channel.id, channel.access_hash), messageId);
+
+            if (refreshedMessages.Messages.FirstOrDefault() is Message
+                {
+                    media: MessageMediaDocument { document: Document refreshedDoc }
+                })
+            {
+                await client.DownloadFileAsync(refreshedDoc, stream);
+            }
+            else
+            {
+                throw;
+            }
+        }
+    }
+    
+    public async Task DownloadPhotoAsync(
+        Client client,
+        Channel channel,
+        Photo photo,
+        Stream stream,
+        int messageId
+    )
+    {
+        try
+        {
+            await client.DownloadFileAsync(photo, stream);
+        }
+        catch (RpcException ex) when (ex.Message == "FILE_REFERENCE_EXPIRED")
+        {
+            var refreshedMessages = await client.Channels_GetMessages(new InputChannel(channel.id, channel.access_hash), messageId);
+
+            if (refreshedMessages.Messages.FirstOrDefault() is Message
+                {
+                    media: MessageMediaPhoto { photo: Photo refreshedPhoto }
+                })
+            {
+                await client.DownloadFileAsync(refreshedPhoto, stream);
+            }
+            else
+            {
+                throw;
+            }
+        }
+    }
+
+
+
+    /// <summary>
+    /// Выполняет асинхронную операцию с обработкой ошибок ограничения скорости Telegram.
+    /// </summary>
+    /// <param name="apiCall">Функция, представляющая вызов API Telegram, не возвращающая результат.</param>
+    /// <param name="maxRetries">Максимальное количество повторных попыток.</param>
+    /// <param name="ct">Токен отмены.</param>
+    private async Task ExecuteWithRetryAsync(Func<Task> apiCall, int maxRetries = 3, CancellationToken ct = default)
+    {
+        var retryCount = 0;
+        while (true)
+        {
+            try
+            {
+                await apiCall();
+                return;
+            }
+            catch (Telegram.Bot.Exceptions.ApiRequestException ex) when (ex.ErrorCode == 429)
+            {
+                retryCount++;
+                if (retryCount > maxRetries)
+                {
+                    logger.LogError(ex, "Достигнуто максимальное количество попыток для API вызова. Отказ.");
+                    throw;
+                }
+
+                var retryAfter = ex.Parameters?.RetryAfter ?? 30;
+                var waitTime = TimeSpan.FromSeconds(retryAfter + 1);
+
+                logger.LogWarning(
+                    "Получен лимит запросов от Telegram API. Ожидание: {WaitTime} сек. Попытка {RetryCount}/{MaxRetries}",
+                    retryAfter, retryCount, maxRetries);
+
+                await Task.Delay(waitTime, ct);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Выполняет асинхронную операцию с обработкой ошибок ограничения скорости Telegram.
+    /// </summary>
+    /// <typeparam name="T">Тип возвращаемого значения.</typeparam>
+    /// <param name="apiCall">Функция, представляющая вызов API Telegram, возвращающая результат типа T.</param>
+    /// <param name="maxRetries">Максимальное количество повторных попыток.</param>
+    /// <param name="ct">Токен отмены.</param>
+    /// <returns>Результат выполнения API вызова.</returns>
+    private async Task<T> ExecuteWithRetryAsync<T>(
+        Func<Task<T>> apiCall,
+        int maxRetries = 3,
+        CancellationToken ct = default
+    )
+    {
+        var retryCount = 0;
+        while (true)
+        {
+            try
+            {
+                return await apiCall();
+            }
+            catch (Telegram.Bot.Exceptions.ApiRequestException ex) when (ex.ErrorCode == 429)
+            {
+                retryCount++;
+                if (retryCount > maxRetries)
+                {
+                    logger.LogError(ex, "Достигнуто максимальное количество попыток для API вызова. Отказ.");
+                    throw;
+                }
+
+                var retryAfter = ex.Parameters?.RetryAfter ?? 30;
+                var waitTime = TimeSpan.FromSeconds(retryAfter + 1);
+
+                logger.LogWarning(
+                    "Получен лимит запросов от Telegram API. Ожидание: {WaitTime} сек. Попытка {RetryCount}/{MaxRetries}",
+                    retryAfter, retryCount, maxRetries);
+
+                await Task.Delay(waitTime, ct);
+            }
+        }
     }
 }

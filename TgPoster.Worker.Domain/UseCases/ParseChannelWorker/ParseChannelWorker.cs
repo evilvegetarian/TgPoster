@@ -12,7 +12,7 @@ internal class ParseChannelWorker(
     {
         logger.LogInformation("Начали парсинг каналов");
         var ids = await storage.GetChannelParsingParametersAsync();
-        if (ids.Count == 0)
+        if (ids.Count == 0) 
         {
             logger.LogInformation("Нет каналов которые нужно парсить");
             return;
