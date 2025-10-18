@@ -3,7 +3,7 @@ using TgPoster.Storage.Data.Entities;
 
 namespace TgPoster.Storage.Data.Configurations;
 
-internal class SessionConfiguration : BaseEntityConfig<RefreshSession>
+internal class SessionConfiguration : BaseEntityConfiguration<RefreshSession>
 {
     public override void Configure(EntityTypeBuilder<RefreshSession> builder)
     {

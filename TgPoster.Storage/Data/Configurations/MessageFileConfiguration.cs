@@ -3,7 +3,7 @@ using TgPoster.Storage.Data.Entities;
 
 namespace TgPoster.Storage.Data.Configurations;
 
-internal class MessageFileConfiguration : BaseEntityConfig<MessageFile>
+internal class MessageFileConfiguration : BaseEntityConfiguration<MessageFile>
 {
     public override void Configure(EntityTypeBuilder<MessageFile> builder)
     {

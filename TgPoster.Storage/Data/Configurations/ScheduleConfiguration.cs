@@ -4,7 +4,7 @@ using TgPoster.Storage.Data.Entities;
 
 namespace TgPoster.Storage.Data.Configurations;
 
-internal class ScheduleConfiguration : BaseEntityConfig<Schedule>
+internal class ScheduleConfiguration : BaseEntityConfiguration<Schedule>
 {
     public override void Configure(EntityTypeBuilder<Schedule> builder)
     {

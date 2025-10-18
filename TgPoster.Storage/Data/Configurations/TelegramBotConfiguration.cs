@@ -3,7 +3,7 @@ using TgPoster.Storage.Data.Entities;
 
 namespace TgPoster.Storage.Data.Configurations;
 
-internal class TelegramBotConfiguration : BaseEntityConfig<TelegramBot>
+internal class TelegramBotConfiguration : BaseEntityConfiguration<TelegramBot>
 {
     public override void Configure(EntityTypeBuilder<TelegramBot> builder)
     {

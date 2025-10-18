@@ -4,7 +4,7 @@ using TgPoster.Storage.Data.Entities;
 
 namespace TgPoster.Storage.Data.Configurations;
 
-internal class MessageConfiguration : BaseEntityConfig<Message>
+internal class MessageConfiguration : BaseEntityConfiguration<Message>
 {
     public override void Configure(EntityTypeBuilder<Message> builder)
     {

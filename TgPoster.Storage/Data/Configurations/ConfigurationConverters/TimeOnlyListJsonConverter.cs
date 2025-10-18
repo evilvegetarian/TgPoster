@@ -1,7 +1,7 @@
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
-namespace TgPoster.Storage.Data.Configurations;
+namespace TgPoster.Storage.Data.Configurations.ConfigurationConverters;
 
 internal class TimeOnlyListJsonConverter : ValueConverter<ICollection<TimeOnly>, string>
 {

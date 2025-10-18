@@ -1,10 +1,12 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using TgPoster.Storage.Data.Configurations.Comparers;
+using TgPoster.Storage.Data.Configurations.ConfigurationConverters;
 using TgPoster.Storage.Data.Entities;
 
 namespace TgPoster.Storage.Data.Configurations;
 
-internal class DayConfiguration : BaseEntityConfig<Day>
+internal class DayConfiguration : BaseEntityConfiguration<Day>
 {
     public override void Configure(EntityTypeBuilder<Day> builder)
     {
@@ -24,6 +26,7 @@ internal class DayConfiguration : BaseEntityConfig<Day>
 
         builder.Property(x => x.TimePostings)
             .HasConversion(new TimeOnlyListJsonConverter())
-            .HasColumnType("json");
+            .HasColumnType("json")
+            .Metadata.SetValueComparer(new TimeOnlyCollectionValueComparer());
     }
 }

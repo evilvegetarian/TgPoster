@@ -1,4 +1,4 @@
-namespace TgPoster.Storage.Data.VO;
+namespace TgPoster.Storage.Data.Configurations;
 
 public static class GlobalSettings
 {

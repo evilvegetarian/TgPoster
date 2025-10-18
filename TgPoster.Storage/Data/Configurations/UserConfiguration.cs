@@ -1,10 +1,11 @@
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using TgPoster.Storage.Data.Configurations.ConfigurationConverters;
 using TgPoster.Storage.Data.Entities;
 using TgPoster.Storage.Data.VO;
 
 namespace TgPoster.Storage.Data.Configurations;
 
-internal class UserConfiguration : BaseEntityConfig<User>
+internal class UserConfiguration : BaseEntityConfiguration<User>
 {
     public override void Configure(EntityTypeBuilder<User> builder)
     {

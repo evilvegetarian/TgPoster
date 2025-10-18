@@ -1,3 +1,5 @@
+using TgPoster.Storage.Data.Configurations;
+
 namespace TgPoster.Storage.Data.VO;
 
 public sealed record Email

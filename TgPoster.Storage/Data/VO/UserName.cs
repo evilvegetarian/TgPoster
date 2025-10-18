@@ -1,3 +1,4 @@
+using TgPoster.Storage.Data.Configurations;
 using TgPoster.Storage.Exception;
 
 namespace TgPoster.Storage.Data.VO;
