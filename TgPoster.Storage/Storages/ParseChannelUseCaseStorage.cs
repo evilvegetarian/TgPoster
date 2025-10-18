@@ -86,30 +86,28 @@ internal class ParseChannelUseCaseStorage(PosterContext context, GuidFactory gui
         var parametrs = await context.ChannelParsingParameters
             .Where(x => x.Id == id)
             .FirstOrDefaultAsync(ct);
-        parametrs!.Status = status;
+        parametrs.Status = status;
         parametrs.LastParseId = offsetId;
         parametrs.LastParseDate = DateTime.UtcNow;
         await context.SaveChangesAsync(ct);
     }
 
-    public Task UpdateInHandleStatusAsync(Guid id, CancellationToken ct)
+    public async Task UpdateInHandleStatusAsync(Guid id, CancellationToken ct)
     {
-        return context.ChannelParsingParameters
+        var parametr = await context.ChannelParsingParameters
             .Where(x => x.Id == id)
-            .ExecuteUpdateAsync(updater =>
-                    updater
-                        .SetProperty(x => x.Status, ParsingStatus.InHandle),
-                ct);
+            .FirstOrDefaultAsync(ct);
+        parametr.Status = ParsingStatus.InHandle;
+        await context.SaveChangesAsync(ct);
     }
 
-    public Task UpdateErrorStatusAsync(Guid id, CancellationToken ct)
+    public async Task UpdateErrorStatusAsync(Guid id, CancellationToken ct)
     {
-        return context.ChannelParsingParameters
+        var parametr = await context.ChannelParsingParameters
             .Where(x => x.Id == id)
-            .ExecuteUpdateAsync(updater =>
-                    updater
-                        .SetProperty(x => x.Status, ParsingStatus.Failed),
-                ct);
+            .FirstOrDefaultAsync(ct);
+        parametr.Status = ParsingStatus.Failed;
+        await context.SaveChangesAsync(ct);
     }
 
     public Task<Dictionary<DayOfWeek, List<TimeOnly>>> GetScheduleTimeAsync(Guid scheduleId, CancellationToken ct)
