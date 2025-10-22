@@ -1,3 +1,4 @@
+using Hangfire;
 using Microsoft.Extensions.Logging;
 using TgPoster.Worker.Domain.UseCases.ParseChannel;
 
@@ -8,11 +9,15 @@ internal class ParseChannelWorker(
     ParseChannelUseCase parseChannelUseCase,
     ILogger<ParseChannelWorker> logger)
 {
+    /// <summary>
+    /// Раз в 4 дня
+    /// </summary>
+    [DisableConcurrentExecution(timeoutInSeconds: 96 * 60 * 60)]
     public async Task ProcessMessagesAsync()
     {
         logger.LogInformation("Начали парсинг каналов");
         var ids = await storage.GetChannelParsingParametersAsync();
-        if (ids.Count == 0) 
+        if (ids.Count == 0)
         {
             logger.LogInformation("Нет каналов которые нужно парсить");
             return;

@@ -39,10 +39,7 @@ public class SignOnUseCaseShould
         var command = new SignOnCommand("Test", "qwerty");
         await sut.Handle(command, CancellationToken.None);
 
-        storage.Verify(
-            s => s.HaveUserNameAsync(command.Login, CancellationToken.None),
-            Times.Once);
-
+        storage.Verify(s => s.HaveUserNameAsync(command.Login, CancellationToken.None), Times.Once);
         storage.Verify(s => s.CreateUserAsync(command.Login, hash, It.IsAny<CancellationToken>()), Times.Once);
         storage.VerifyNoOtherCalls();
     }
@@ -54,7 +51,7 @@ public class SignOnUseCaseShould
         generatePasswordPartsSetup.Returns("asf3r23faefa");
         createUserSetup.ReturnsAsync(id);
 
-        var actual = await sut.Handle(new SignOnCommand("Test", "password"));
+        var actual = await sut.Handle(new SignOnCommand("Test", "password"), CancellationToken.None);
         actual.UserId.ShouldBe(id);
     }
 
@@ -66,10 +63,9 @@ public class SignOnUseCaseShould
 
         var command = new SignOnCommand("ExistingUser", "password123");
 
-        await Should.ThrowAsync<Exception>(async () =>
-            await sut.Handle(command, It.IsAny<CancellationToken>()));
+        await Should.ThrowAsync<Exception>(async () => await sut.Handle(command, It.IsAny<CancellationToken>()));
 
-        storage.Verify(s => s.CreateUserAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()),
-            Times.Never);
+        storage.Verify(s =>
+            s.CreateUserAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 }

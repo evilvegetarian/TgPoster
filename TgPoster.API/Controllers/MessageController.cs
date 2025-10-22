@@ -38,8 +38,7 @@ public class MessageController(ISender sender) : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
     [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
     [ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
-    public async Task<IActionResult> CreateMessagesFromFiles(
-        [FromForm] CreateMessagesFromFilesRequest request,
+    public async Task<IActionResult> CreateMessagesFromFiles([FromForm] CreateMessagesFromFilesRequest request,
         CancellationToken ct
     )
     {

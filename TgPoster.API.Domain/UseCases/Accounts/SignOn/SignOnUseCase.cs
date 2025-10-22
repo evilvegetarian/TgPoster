@@ -7,7 +7,7 @@ namespace TgPoster.API.Domain.UseCases.Accounts.SignOn;
 internal sealed class SignOnUseCase(IPasswordHasher passwordHasher, ISignOnStorage storage)
     : IRequestHandler<SignOnCommand, SignOnResponse>
 {
-    public async Task<SignOnResponse> Handle(SignOnCommand command, CancellationToken ct = default)
+    public async Task<SignOnResponse> Handle(SignOnCommand command, CancellationToken ct )
     {
         var passwordHash = passwordHasher.Generate(command.Password);
 

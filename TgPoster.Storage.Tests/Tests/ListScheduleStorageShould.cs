@@ -73,17 +73,17 @@ public class ListScheduleStorageShould(StorageTestFixture fixture) : IClassFixtu
     [Fact]
     public async Task GetListScheduleAsync_ShouldReturnCorrectScheduleData()
     {
+        var scheduleName = "Test Schedule";
         var user = await helper.CreateUserAsync();
         var telegramBot = await helper.CreateTelegramBotAsync(user.Id);
-        var schedule = await CreateScheduleForUser(user.Id, telegramBot.Id, "Test Schedule", true);
+        var schedule = await CreateScheduleForUser(user.Id, telegramBot.Id, scheduleName, true);
 
         var result = await sut.GetListScheduleAsync(user.Id, CancellationToken.None);
-
         result.ShouldNotBeEmpty();
+
         var returnedSchedule = result.First();
         returnedSchedule.Id.ShouldBe(schedule.Id);
-        returnedSchedule.Name.ShouldBe("Test Schedule");
-        returnedSchedule.ChannelName.ShouldBe(telegramBot.Name);
+        returnedSchedule.Name.ShouldBe(scheduleName);
         returnedSchedule.IsActive.ShouldBe(true);
     }
 

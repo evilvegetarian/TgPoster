@@ -145,7 +145,7 @@ internal class ParseChannelUseCase(
             {
                 foreach (var message in al.Value)
                 {
-                    await Task.Delay(2000, ct);
+                    await Task.Delay(5000, ct);
                     if (message.media is not null && !deleteMedia)
                     {
                         if (message.media is MessageMediaPhoto { photo: Photo photo })
