@@ -5,23 +5,23 @@ namespace TgPoster.Storage.Data.Configurations;
 
 internal class MessageFileConfiguration : BaseEntityConfiguration<MessageFile>
 {
-    public override void Configure(EntityTypeBuilder<MessageFile> builder)
-    {
-        base.Configure(builder);
+	public override void Configure(EntityTypeBuilder<MessageFile> builder)
+	{
+		base.Configure(builder);
 
-        builder.Property(x => x.Caption)
-            .HasMaxLength(1024);
+		builder.Property(x => x.Caption)
+			.HasMaxLength(1024);
 
-        builder.Property(x => x.ContentType)
-            .HasMaxLength(100);
+		builder.Property(x => x.ContentType)
+			.HasMaxLength(100);
 
-        builder.HasIndex(x => x.MessageId);
+		builder.HasIndex(x => x.MessageId);
 
-        builder.Property(x => x.TgFileId)
-            .HasMaxLength(1000);
+		builder.Property(x => x.TgFileId)
+			.HasMaxLength(1000);
 
-        builder.HasOne(x => x.Message)
-            .WithMany(x => x.MessageFiles)
-            .HasForeignKey(x => x.MessageId);
-    }
+		builder.HasOne(x => x.Message)
+			.WithMany(x => x.MessageFiles)
+			.HasForeignKey(x => x.MessageId);
+	}
 }

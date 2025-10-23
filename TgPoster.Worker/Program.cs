@@ -16,13 +16,13 @@ var telegramOptions = builder.Configuration.GetSection(nameof(TelegramOptions)).
 builder.Services.AddSingleton(telegramOptions);
 GlobalFFOptions.Configure(options =>
 {
-    options.LogLevel = FFMpegLogLevel.Debug;
+	options.LogLevel = FFMpegLogLevel.Debug;
 });
 
 builder.Services.AddScoped<ICryptoAES, CryptoAES>();
 builder.Services
-    .AddDomain(builder.Configuration)
-    .AddStorage(builder.Configuration);
+	.AddDomain(builder.Configuration)
+	.AddStorage(builder.Configuration);
 
 var app = builder.Build();
 app.AddHangfire();

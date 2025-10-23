@@ -6,13 +6,13 @@ namespace TgPoster.API.Middlewares;
 /// </summary>
 internal static class LoggingMiddleware
 {
-    /// <summary>
-    ///     Метод добавляет логирование
-    /// </summary>
-    /// <param name="builder"></param>
-    public static void AddLogging(this WebApplicationBuilder builder)
-    {
-        builder.Host.UseSerilog((context, configuration) =>
-            configuration.ReadFrom.Configuration(context.Configuration));
-    }
+	/// <summary>
+	///     Метод добавляет логирование
+	/// </summary>
+	/// <param name="builder"></param>
+	public static void AddLogging(this WebApplicationBuilder builder)
+	{
+		builder.Host.UseSerilog((context, configuration) =>
+			configuration.ReadFrom.Configuration(context.Configuration));
+	}
 }

@@ -10,47 +10,47 @@ namespace Security;
 
 public static class DependencyInjection
 {
-    public static IServiceCollection AddSecurity(this IServiceCollection services, IConfiguration configuration)
-    {
-        var jwtOptions = configuration.GetSection(nameof(JwtOptions)).Get<JwtOptions>()!;
-        services.AddSingleton(jwtOptions);
-        services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-            .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme,
-                opt =>
-                {
-                    opt.TokenValidationParameters = new TokenValidationParameters
-                    {
-                        ValidateIssuer = false,
-                        ValidateAudience = false,
-                        ValidateLifetime = true,
-                        ValidateIssuerSigningKey = true,
-                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.SecretKey))
-                    };
-                    opt.Events = new JwtBearerEvents
-                    {
-                        OnMessageReceived = context =>
-                        {
-                            string authorizationHeader = context.Request.Headers["Authorization"];
-                            if (!string.IsNullOrEmpty(authorizationHeader)
-                                && authorizationHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
-                            {
-                                context.Token = authorizationHeader.Substring("Bearer ".Length).Trim();
-                            }
-                            else if (string.IsNullOrEmpty(context.Token))
-                            {
-                                context.Token = context.Request.Cookies[jwtOptions.NameCookie];
-                            }
+	public static IServiceCollection AddSecurity(this IServiceCollection services, IConfiguration configuration)
+	{
+		var jwtOptions = configuration.GetSection(nameof(JwtOptions)).Get<JwtOptions>()!;
+		services.AddSingleton(jwtOptions);
+		services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+			.AddJwtBearer(JwtBearerDefaults.AuthenticationScheme,
+				opt =>
+				{
+					opt.TokenValidationParameters = new TokenValidationParameters
+					{
+						ValidateIssuer = false,
+						ValidateAudience = false,
+						ValidateLifetime = true,
+						ValidateIssuerSigningKey = true,
+						IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.SecretKey))
+					};
+					opt.Events = new JwtBearerEvents
+					{
+						OnMessageReceived = context =>
+						{
+							string authorizationHeader = context.Request.Headers["Authorization"];
+							if (!string.IsNullOrEmpty(authorizationHeader)
+							    && authorizationHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
+							{
+								context.Token = authorizationHeader.Substring("Bearer ".Length).Trim();
+							}
+							else if (string.IsNullOrEmpty(context.Token))
+							{
+								context.Token = context.Request.Cookies[jwtOptions.NameCookie];
+							}
 
-                            return Task.CompletedTask;
-                        }
-                    };
-                });
-        services.AddAuthorization();
+							return Task.CompletedTask;
+						}
+					};
+				});
+		services.AddAuthorization();
 
-        services.AddScoped<IPasswordHasher, PasswordHasher>();
-        services.AddScoped<IJwtProvider, JwtProvider>();
-        services.AddScoped<IIdentityProvider, IdentityProvider>();
-        services.AddScoped<ICryptoAES, CryptoAES>();
-        return services;
-    }
+		services.AddScoped<IPasswordHasher, PasswordHasher>();
+		services.AddScoped<IJwtProvider, JwtProvider>();
+		services.AddScoped<IIdentityProvider, IdentityProvider>();
+		services.AddScoped<ICryptoAES, CryptoAES>();
+		return services;
+	}
 }

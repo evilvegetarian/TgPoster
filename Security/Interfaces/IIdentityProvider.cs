@@ -4,7 +4,7 @@ namespace Security.Interfaces;
 
 public interface IIdentityProvider
 {
-    Identity Current { get; }
+	Identity Current { get; }
 
-    void Set(Identity identity);
+	void Set(Identity identity);
 }

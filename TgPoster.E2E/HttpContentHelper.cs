@@ -5,11 +5,11 @@ namespace TgPoster.E2E;
 
 public static class HttpContentHelper
 {
-    public static HttpContent GetJsonContent(object obj)
-    {
-        return new StringContent(
-            JsonSerializer.Serialize(obj),
-            Encoding.UTF8,
-            "application/json");
-    }
+	public static HttpContent GetJsonContent(object obj)
+	{
+		return new StringContent(
+			JsonSerializer.Serialize(obj),
+			Encoding.UTF8,
+			"application/json");
+	}
 }

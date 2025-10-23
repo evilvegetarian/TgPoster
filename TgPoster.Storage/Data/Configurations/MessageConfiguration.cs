@@ -6,24 +6,24 @@ namespace TgPoster.Storage.Data.Configurations;
 
 internal class MessageConfiguration : BaseEntityConfiguration<Message>
 {
-    public override void Configure(EntityTypeBuilder<Message> builder)
-    {
-        base.Configure(builder);
+	public override void Configure(EntityTypeBuilder<Message> builder)
+	{
+		base.Configure(builder);
 
-        builder.Property(x => x.TextMessage)
-            .HasMaxLength(4096);
+		builder.Property(x => x.TextMessage)
+			.HasMaxLength(4096);
 
-        builder.Property(x => x.IsVerified)
-            .HasDefaultValue(true);
+		builder.Property(x => x.IsVerified)
+			.HasDefaultValue(true);
 
-        builder.HasIndex(x => x.ScheduleId);
+		builder.HasIndex(x => x.ScheduleId);
 
-        builder.HasOne(x => x.Schedule)
-            .WithMany(x => x.Messages)
-            .HasForeignKey(x => x.ScheduleId);
+		builder.HasOne(x => x.Schedule)
+			.WithMany(x => x.Messages)
+			.HasForeignKey(x => x.ScheduleId);
 
-        builder.HasMany(x => x.MessageFiles)
-            .WithOne(x => x.Message)
-            .HasForeignKey(x => x.MessageId);
-    }
+		builder.HasMany(x => x.MessageFiles)
+			.WithOne(x => x.Message)
+			.HasForeignKey(x => x.MessageId);
+	}
 }

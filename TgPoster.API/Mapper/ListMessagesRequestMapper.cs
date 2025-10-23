@@ -8,20 +8,20 @@ namespace TgPoster.API.Mapper;
 
 public static class ListMessagesRequestMapper
 {
-    public static ListMessageQuery ToDomain(this ListMessagesRequest request)
-    {
-        var status = (MessageStatus)request.Status;
-        var sortBy = (MessageSortBy)request.SortBy;
-        var sortDirection = (SortDirection)request.SortDirection;
+	public static ListMessageQuery ToDomain(this ListMessagesRequest request)
+	{
+		var status = (MessageStatus)request.Status;
+		var sortBy = (MessageSortBy)request.SortBy;
+		var sortDirection = (SortDirection)request.SortDirection;
 
-        return new ListMessageQuery(
-            request.ScheduleId,
-            request.PageNumber,
-            request.PageSize,
-            sortBy,
-            sortDirection,
-            request.SearchText,
-            status
-        );
-    }
+		return new ListMessageQuery(
+			request.ScheduleId,
+			request.PageNumber,
+			request.PageSize,
+			sortBy,
+			sortDirection,
+			request.SearchText,
+			status
+		);
+	}
 }

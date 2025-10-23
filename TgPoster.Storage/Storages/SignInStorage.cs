@@ -9,33 +9,33 @@ namespace TgPoster.Storage.Storages;
 
 internal sealed class SignInStorage(PosterContext context, GuidFactory guidFactory) : ISignInStorage
 {
-    public Task<UserDto?> GetUserAsync(string login, CancellationToken token)
-    {
-        return context.Users.Where(x => x.UserName == new UserName(login))
-            .Select(x => new UserDto
-            {
-                Id = x.Id,
-                Username = x.UserName.Value,
-                PasswordHash = x.PasswordHash
-            })
-            .FirstOrDefaultAsync(token);
-    }
+	public Task<UserDto?> GetUserAsync(string login, CancellationToken token)
+	{
+		return context.Users.Where(x => x.UserName == new UserName(login))
+			.Select(x => new UserDto
+			{
+				Id = x.Id,
+				Username = x.UserName.Value,
+				PasswordHash = x.PasswordHash
+			})
+			.FirstOrDefaultAsync(token);
+	}
 
-    public async Task CreateRefreshSessionAsync(
-        Guid userId,
-        Guid refreshToken,
-        DateTimeOffset refreshDate,
-        CancellationToken token
-    )
-    {
-        var refresh = new RefreshSession
-        {
-            Id = guidFactory.New(),
-            UserId = userId,
-            RefreshToken = refreshToken,
-            ExpiresAt = refreshDate
-        };
-        await context.RefreshSessions.AddAsync(refresh, token);
-        await context.SaveChangesAsync(token);
-    }
+	public async Task CreateRefreshSessionAsync(
+		Guid userId,
+		Guid refreshToken,
+		DateTimeOffset refreshDate,
+		CancellationToken token
+	)
+	{
+		var refresh = new RefreshSession
+		{
+			Id = guidFactory.New(),
+			UserId = userId,
+			RefreshToken = refreshToken,
+			ExpiresAt = refreshDate
+		};
+		await context.RefreshSessions.AddAsync(refresh, token);
+		await context.SaveChangesAsync(token);
+	}
 }

@@ -5,11 +5,11 @@ namespace TgPoster.Storage.Data.Configurations.ConfigurationConverters;
 
 internal class UserNameConverter : ValueConverter<UserName, string>
 {
-    public UserNameConverter(ConverterMappingHints? mappingHints = null)
-        : base(
-            name => name.Value,
-            str => new UserName(str),
-            mappingHints)
-    {
-    }
+	public UserNameConverter(ConverterMappingHints? mappingHints = null)
+		: base(
+			name => name.Value,
+			str => new UserName(str),
+			mappingHints)
+	{
+	}
 }

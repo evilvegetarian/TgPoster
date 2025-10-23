@@ -6,24 +6,24 @@ namespace TgPoster.Storage.Tests;
 
 public class StorageTestFixture : IAsyncLifetime
 {
-    private readonly PostgreSqlContainer dbContainer = new PostgreSqlBuilder().Build();
+	private readonly PostgreSqlContainer dbContainer = new PostgreSqlBuilder().Build();
 
-    public virtual async Task InitializeAsync()
-    {
-        await dbContainer.StartAsync();
-        var forumDbContext = new PosterContext(new DbContextOptionsBuilder<PosterContext>()
-            .UseNpgsql(dbContainer.GetConnectionString()).Options);
-        await forumDbContext.Database.MigrateAsync();
-    }
+	public virtual async Task InitializeAsync()
+	{
+		await dbContainer.StartAsync();
+		var forumDbContext = new PosterContext(new DbContextOptionsBuilder<PosterContext>()
+			.UseNpgsql(dbContainer.GetConnectionString()).Options);
+		await forumDbContext.Database.MigrateAsync();
+	}
 
-    public async Task DisposeAsync()
-    {
-        await dbContainer.StopAsync();
-    }
+	public async Task DisposeAsync()
+	{
+		await dbContainer.StopAsync();
+	}
 
-    public PosterContext GetDbContext()
-    {
-        return new PosterContext(new DbContextOptionsBuilder<PosterContext>()
-            .UseNpgsql(dbContainer.GetConnectionString()).Options);
-    }
+	public PosterContext GetDbContext()
+	{
+		return new PosterContext(new DbContextOptionsBuilder<PosterContext>()
+			.UseNpgsql(dbContainer.GetConnectionString()).Options);
+	}
 }

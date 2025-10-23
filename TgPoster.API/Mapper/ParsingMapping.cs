@@ -8,36 +8,36 @@ namespace TgPoster.API.Mapper;
 /// </summary>
 public static class ParsingMapping
 {
-    /// <summary>
-    /// </summary>
-    /// <param name="request"></param>
-    /// <returns></returns>
-    public static CreateParseChannelCommand ToCommand(this CreateParseChannelRequest request)
-    {
-        return new CreateParseChannelCommand(
-            request.Channel,
-            request.AlwaysCheckNewPosts,
-            request.ScheduleId,
-            request.DeleteText,
-            request.DeleteMedia,
-            request.AvoidWords,
-            request.NeedVerifiedPosts,
-            request.DateFrom,
-            request.DateTo);
-    }
+	/// <summary>
+	/// </summary>
+	/// <param name="request"></param>
+	/// <returns></returns>
+	public static CreateParseChannelCommand ToCommand(this CreateParseChannelRequest request)
+	{
+		return new CreateParseChannelCommand(
+			request.Channel,
+			request.AlwaysCheckNewPosts,
+			request.ScheduleId,
+			request.DeleteText,
+			request.DeleteMedia,
+			request.AvoidWords,
+			request.NeedVerifiedPosts,
+			request.DateFrom,
+			request.DateTo);
+	}
 
-    public static UpdateParseChannelCommand ToCommand(this UpdateParseChannelRequest request, Guid id)
-    {
-        return new UpdateParseChannelCommand(
-            id,
-            request.Channel,
-            request.AlwaysCheckNewPosts,
-            request.ScheduleId,
-            request.DeleteText,
-            request.DeleteMedia,
-            request.AvoidWords,
-            request.NeedVerifiedPosts,
-            request.DateFrom,
-            request.DateTo);
-    }
+	public static UpdateParseChannelCommand ToCommand(this UpdateParseChannelRequest request, Guid id)
+	{
+		return new UpdateParseChannelCommand(
+			id,
+			request.Channel,
+			request.AlwaysCheckNewPosts,
+			request.ScheduleId,
+			request.DeleteText,
+			request.DeleteMedia,
+			request.AvoidWords,
+			request.NeedVerifiedPosts,
+			request.DateFrom,
+			request.DateTo);
+	}
 }

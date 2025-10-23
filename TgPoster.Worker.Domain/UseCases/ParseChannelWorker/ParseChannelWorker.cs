@@ -5,38 +5,38 @@ using TgPoster.Worker.Domain.UseCases.ParseChannel;
 namespace TgPoster.Worker.Domain.UseCases.ParseChannelWorker;
 
 internal class ParseChannelWorker(
-    IParseChannelWorkerStorage storage,
-    ParseChannelUseCase parseChannelUseCase,
-    ILogger<ParseChannelWorker> logger)
+	IParseChannelWorkerStorage storage,
+	ParseChannelUseCase parseChannelUseCase,
+	ILogger<ParseChannelWorker> logger)
 {
-    /// <summary>
-    /// Раз в 4 дня
-    /// </summary>
-    [DisableConcurrentExecution(timeoutInSeconds: 96 * 60 * 60)]
-    public async Task ProcessMessagesAsync()
-    {
-        logger.LogInformation("Начали парсинг каналов");
-        var ids = await storage.GetChannelParsingParametersAsync();
-        if (ids.Count == 0)
-        {
-            logger.LogInformation("Нет каналов которые нужно парсить");
-            return;
-        }
+	/// <summary>
+	///     Раз в 4 дня
+	/// </summary>
+	[DisableConcurrentExecution(96 * 60 * 60)]
+	public async Task ProcessMessagesAsync()
+	{
+		logger.LogInformation("Начали парсинг каналов");
+		var ids = await storage.GetChannelParsingParametersAsync();
+		if (ids.Count == 0)
+		{
+			logger.LogInformation("Нет каналов которые нужно парсить");
+			return;
+		}
 
-        await storage.SetInHandleStatusAsync(ids);
+		await storage.SetInHandleStatusAsync(ids);
 
-        foreach (var id in ids)
-        {
-            try
-            {
-                await parseChannelUseCase.Handle(id, CancellationToken.None);
-                await storage.SetWaitingStatusAsync(id);
-            }
-            catch (Exception e)
-            {
-                logger.LogError(e, "Во время парсинга произошла ошибка. Id настроек парсинга: {Id}.", id);
-                await storage.SetErrorStatusAsync(id);
-            }
-        }
-    }
+		foreach (var id in ids)
+		{
+			try
+			{
+				await parseChannelUseCase.Handle(id, CancellationToken.None);
+				await storage.SetWaitingStatusAsync(id);
+			}
+			catch (Exception e)
+			{
+				logger.LogError(e, "Во время парсинга произошла ошибка. Id настроек парсинга: {Id}.", id);
+				await storage.SetErrorStatusAsync(id);
+			}
+		}
+	}
 }

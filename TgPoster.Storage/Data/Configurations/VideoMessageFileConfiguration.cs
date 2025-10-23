@@ -8,11 +8,11 @@ namespace TgPoster.Storage.Data.Configurations;
 
 internal class VideoMessageFileConfiguration : BaseEntityConfiguration<VideoMessageFile>
 {
-    public override void Configure(EntityTypeBuilder<VideoMessageFile> builder)
-    {
-        builder.Property(x => x.ThumbnailIds)
-            .HasConversion(new StringListJsonConverter())
-            .HasColumnType("json")
-            .Metadata.SetValueComparer(new StringCollectionValueComparer());
-    }
+	public override void Configure(EntityTypeBuilder<VideoMessageFile> builder)
+	{
+		builder.Property(x => x.ThumbnailIds)
+			.HasConversion(new StringListJsonConverter())
+			.HasColumnType("json")
+			.Metadata.SetValueComparer(new StringCollectionValueComparer());
+	}
 }

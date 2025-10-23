@@ -17,77 +17,77 @@ namespace TgPoster.Worker.Domain;
 
 public static class DependencyInjection
 {
-    public static IServiceCollection AddDomain(this IServiceCollection services, IConfiguration configuration)
-    {
-        var telegramSettings = configuration.GetSection(nameof(TelegramSettings)).Get<TelegramSettings>()!;
-        services.AddSingleton(telegramSettings);
+	public static IServiceCollection AddDomain(this IServiceCollection services, IConfiguration configuration)
+	{
+		var telegramSettings = configuration.GetSection(nameof(TelegramSettings)).Get<TelegramSettings>()!;
+		services.AddSingleton(telegramSettings);
 
-        var telegramOptions = configuration.GetSection(nameof(TelegramOptions)).Get<TelegramOptions>()!;
-        services.AddSingleton(telegramOptions);
+		var telegramOptions = configuration.GetSection(nameof(TelegramOptions)).Get<TelegramOptions>()!;
+		services.AddSingleton(telegramOptions);
 
-        services.AddMassTransient(configuration);
+		services.AddMassTransient(configuration);
 
-        services.AddHangfire(cfg =>
-        {
-            cfg.SetDataCompatibilityLevel(CompatibilityLevel.Version_170)
-                .UseSimpleAssemblyNameTypeSerializer()
-                .UseRecommendedSerializerSettings()
-                .UseMemoryStorage();
-        });
-        services.AddHangfireServer();
-        services.AddScoped<SenderMessageWorker>();
-        services.AddScoped<ParseChannelWorker>();
-        services.AddScoped<ParseChannelUseCase>();
-        services.AddScoped<TimePostingService>();
-        services.AddScoped<VideoService>();
-        services.AddScoped<TelegramExecuteServices>();
+		services.AddHangfire(cfg =>
+		{
+			cfg.SetDataCompatibilityLevel(CompatibilityLevel.Version_170)
+				.UseSimpleAssemblyNameTypeSerializer()
+				.UseRecommendedSerializerSettings()
+				.UseMemoryStorage();
+		});
+		services.AddHangfireServer();
+		services.AddScoped<SenderMessageWorker>();
+		services.AddScoped<ParseChannelWorker>();
+		services.AddScoped<ParseChannelUseCase>();
+		services.AddScoped<TimePostingService>();
+		services.AddScoped<VideoService>();
+		services.AddScoped<TelegramExecuteServices>();
 
-        return services;
-    }
+		return services;
+	}
 
 
-    private static void AddMassTransient(this IServiceCollection services, IConfiguration configuration)
-    {
-        services.AddMassTransit(x =>
-        {
-            x.AddConsumer<ParseChannelConsumer>();
+	private static void AddMassTransient(this IServiceCollection services, IConfiguration configuration)
+	{
+		services.AddMassTransit(x =>
+		{
+			x.AddConsumer<ParseChannelConsumer>();
 
-            x.UsingPostgres((context, cfg) =>
-            {
-                cfg.ConfigureEndpoints(context);
-            });
-            var dataBase = configuration.GetSection(nameof(DataBase)).Get<DataBase>()!;
-            x.ConfigureMassTransient(dataBase.ConnectionString);
-            x.AddPostgresMigrationHostedService();
-        });
-    }
+			x.UsingPostgres((context, cfg) =>
+			{
+				cfg.ConfigureEndpoints(context);
+			});
+			var dataBase = configuration.GetSection(nameof(DataBase)).Get<DataBase>()!;
+			x.ConfigureMassTransient(dataBase.ConnectionString);
+			x.AddPostgresMigrationHostedService();
+		});
+	}
 
-    public static void AddHangfire(this WebApplication app)
-    {
-        app.UseHangfireDashboard("/hangfire", new DashboardOptions
-        {
-            Authorization = [new AllowAllAuthorizationFilter()]
-        });
+	public static void AddHangfire(this WebApplication app)
+	{
+		app.UseHangfireDashboard("/hangfire", new DashboardOptions
+		{
+			Authorization = [new AllowAllAuthorizationFilter()]
+		});
 
-        using var scope = app.Services.CreateScope();
-        var recurringJobManager = scope.ServiceProvider.GetRequiredService<IRecurringJobManager>();
+		using var scope = app.Services.CreateScope();
+		var recurringJobManager = scope.ServiceProvider.GetRequiredService<IRecurringJobManager>();
 
-        recurringJobManager.AddOrUpdate<SenderMessageWorker>(
-            "process-sender-message-job",
-            worker => worker.ProcessMessagesAsync(),
-            Cron.Minutely());
+		recurringJobManager.AddOrUpdate<SenderMessageWorker>(
+			"process-sender-message-job",
+			worker => worker.ProcessMessagesAsync(),
+			Cron.Minutely());
 
-        recurringJobManager.AddOrUpdate<ParseChannelWorker>(
-            "process-parse-channel-job",
-            worker => worker.ProcessMessagesAsync(),
-            Cron.Daily());
-    }
+		recurringJobManager.AddOrUpdate<ParseChannelWorker>(
+			"process-parse-channel-job",
+			worker => worker.ProcessMessagesAsync(),
+			Cron.Daily());
+	}
 
-    public class AllowAllAuthorizationFilter : IDashboardAuthorizationFilter
-    {
-        public bool Authorize(DashboardContext context)
-        {
-            return true;
-        }
-    }
+	public class AllowAllAuthorizationFilter : IDashboardAuthorizationFilter
+	{
+		public bool Authorize(DashboardContext context)
+		{
+			return true;
+		}
+	}
 }

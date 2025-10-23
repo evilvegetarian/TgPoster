@@ -8,25 +8,25 @@ namespace TgPoster.Storage.Data.Configurations;
 
 internal class DayConfiguration : BaseEntityConfiguration<Day>
 {
-    public override void Configure(EntityTypeBuilder<Day> builder)
-    {
-        base.Configure(builder);
+	public override void Configure(EntityTypeBuilder<Day> builder)
+	{
+		base.Configure(builder);
 
-        builder.Property(x => x.ScheduleId)
-            .IsRequired();
+		builder.Property(x => x.ScheduleId)
+			.IsRequired();
 
-        builder.Property(x => x.DayOfWeek)
-            .IsRequired();
+		builder.Property(x => x.DayOfWeek)
+			.IsRequired();
 
-        builder.HasKey(x => new { x.ScheduleId, x.DayOfWeek });
+		builder.HasKey(x => new { x.ScheduleId, x.DayOfWeek });
 
-        builder.HasOne(x => x.Schedule)
-            .WithMany(x => x.Days)
-            .HasForeignKey(x => x.ScheduleId);
+		builder.HasOne(x => x.Schedule)
+			.WithMany(x => x.Days)
+			.HasForeignKey(x => x.ScheduleId);
 
-        builder.Property(x => x.TimePostings)
-            .HasConversion(new TimeOnlyListJsonConverter())
-            .HasColumnType("json")
-            .Metadata.SetValueComparer(new TimeOnlyCollectionValueComparer());
-    }
+		builder.Property(x => x.TimePostings)
+			.HasConversion(new TimeOnlyListJsonConverter())
+			.HasColumnType("json")
+			.Metadata.SetValueComparer(new TimeOnlyCollectionValueComparer());
+	}
 }

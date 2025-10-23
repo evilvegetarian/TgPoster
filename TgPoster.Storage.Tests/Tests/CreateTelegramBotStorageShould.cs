@@ -6,40 +6,40 @@ namespace TgPoster.Storage.Tests.Tests;
 
 public class CreateTelegramBotStorageShould(StorageTestFixture fixture) : IClassFixture<StorageTestFixture>
 {
-    private readonly PosterContext context = fixture.GetDbContext();
-    private readonly Helper helper = new(fixture.GetDbContext());
-    private readonly CreateTelegramBotStorage sut = new(fixture.GetDbContext(), new GuidFactory());
+	private readonly PosterContext context = fixture.GetDbContext();
+	private readonly Helper helper = new(fixture.GetDbContext());
+	private readonly CreateTelegramBotStorage sut = new(fixture.GetDbContext(), new GuidFactory());
 
-    [Fact]
-    public async Task CreateTelegramBotAsync_WithValidData_ShouldCreateBot()
-    {
-        var botName = "nameBot";
-        var user = await helper.CreateUserAsync();
-        var botId = await sut.CreateTelegramBotAsync(
-            "Api Token",
-            long.MaxValue,
-            user.Id,
-            botName,
-            CancellationToken.None);
+	[Fact]
+	public async Task CreateTelegramBotAsync_WithValidData_ShouldCreateBot()
+	{
+		var botName = "nameBot";
+		var user = await helper.CreateUserAsync();
+		var botId = await sut.CreateTelegramBotAsync(
+			"Api Token",
+			long.MaxValue,
+			user.Id,
+			botName,
+			CancellationToken.None);
 
-        var bot = await context.TelegramBots.FindAsync(botId);
-        botId.ShouldBe(bot!.Id);
-        botName.ShouldBe(bot.Name);
-    }
+		var bot = await context.TelegramBots.FindAsync(botId);
+		botId.ShouldBe(bot!.Id);
+		botName.ShouldBe(bot.Name);
+	}
 
-    [Fact]
-    public async Task CreateTelegramBotAsync_WithDuplicate_ShouldCreateBot()
-    {
-        var telegramBot = await helper.CreateTelegramBotAsync();
-        var botId = await sut.CreateTelegramBotAsync(
-            telegramBot.ApiTelegram,
-            telegramBot.ChatId,
-            telegramBot.OwnerId,
-            telegramBot.Name,
-            CancellationToken.None);
+	[Fact]
+	public async Task CreateTelegramBotAsync_WithDuplicate_ShouldCreateBot()
+	{
+		var telegramBot = await helper.CreateTelegramBotAsync();
+		var botId = await sut.CreateTelegramBotAsync(
+			telegramBot.ApiTelegram,
+			telegramBot.ChatId,
+			telegramBot.OwnerId,
+			telegramBot.Name,
+			CancellationToken.None);
 
-        var bot = await context.TelegramBots.FindAsync(botId);
-        botId.ShouldBe(bot!.Id);
-        telegramBot.Name.ShouldBe(bot.Name);
-    }
+		var bot = await context.TelegramBots.FindAsync(botId);
+		botId.ShouldBe(bot!.Id);
+		telegramBot.Name.ShouldBe(bot.Name);
+	}
 }

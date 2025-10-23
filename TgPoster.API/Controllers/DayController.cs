@@ -15,76 +15,76 @@ namespace TgPoster.API.Controllers;
 [ApiController]
 public class DayController(ISender sender) : ControllerBase
 {
-    /// <summary>
-    ///     Получение дней недели
-    /// </summary>
-    /// <param name="ct"></param>
-    /// <returns></returns>
-    [HttpGet(Routes.Day.DayOfWeek)]
-    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(List<DayOfWeekResponse>))]
-    [ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
-    public async Task<IActionResult> GetDayOfWeek(CancellationToken ct)
-    {
-        var response = await sender.Send(new DayOfWeekQuery(), ct);
-        return Ok(response);
-    }
+	/// <summary>
+	///     Получение дней недели
+	/// </summary>
+	/// <param name="ct"></param>
+	/// <returns></returns>
+	[HttpGet(Routes.Day.DayOfWeek)]
+	[ProducesResponseType(StatusCodes.Status200OK, Type = typeof(List<DayOfWeekResponse>))]
+	[ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
+	public async Task<IActionResult> GetDayOfWeek(CancellationToken ct)
+	{
+		var response = await sender.Send(new DayOfWeekQuery(), ct);
+		return Ok(response);
+	}
 
-    /// <summary>
-    ///     Создание дней недели
-    /// </summary>
-    /// <param name="request"></param>
-    /// <param name="ct"></param>
-    /// <returns></returns>
-    [HttpPost(Routes.Day.Create)]
-    [ProducesResponseType(StatusCodes.Status201Created)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
-    [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
-    [ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
-    public async Task<IActionResult> Create(CreateDaysRequest request, CancellationToken ct)
-    {
-        var command = new CreateDaysCommand(
-            request.ScheduleId,
-            request.DaysOfWeek
-                .Select(x => new DayOfWeekForm(
-                    x.DayOfWeekPosting,
-                    x.StartPosting,
-                    x.EndPosting,
-                    x.Interval)
-                ).ToList()
-        );
-        await sender.Send(command, ct);
-        return Created();
-    }
+	/// <summary>
+	///     Создание дней недели
+	/// </summary>
+	/// <param name="request"></param>
+	/// <param name="ct"></param>
+	/// <returns></returns>
+	[HttpPost(Routes.Day.Create)]
+	[ProducesResponseType(StatusCodes.Status201Created)]
+	[ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
+	[ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
+	[ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
+	public async Task<IActionResult> Create(CreateDaysRequest request, CancellationToken ct)
+	{
+		var command = new CreateDaysCommand(
+			request.ScheduleId,
+			request.DaysOfWeek
+				.Select(x => new DayOfWeekForm(
+					x.DayOfWeekPosting,
+					x.StartPosting,
+					x.EndPosting,
+					x.Interval)
+				).ToList()
+		);
+		await sender.Send(command, ct);
+		return Created();
+	}
 
-    /// <summary>
-    ///     Получение дней
-    /// </summary>
-    /// <param name="scheduleId"></param>
-    /// <param name="ct"></param>
-    /// <returns></returns>
-    [HttpGet(Routes.Day.GetBySchedule)]
-    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(List<GetDaysResponse>))]
-    [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
-    [ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
-    public async Task<IActionResult> Get([FromQuery] [Required] Guid scheduleId, CancellationToken ct)
-    {
-        var response = await sender.Send(new GetDaysQuery(scheduleId), ct);
-        return Ok(response);
-    }
+	/// <summary>
+	///     Получение дней
+	/// </summary>
+	/// <param name="scheduleId"></param>
+	/// <param name="ct"></param>
+	/// <returns></returns>
+	[HttpGet(Routes.Day.GetBySchedule)]
+	[ProducesResponseType(StatusCodes.Status200OK, Type = typeof(List<GetDaysResponse>))]
+	[ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
+	[ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
+	public async Task<IActionResult> Get([FromQuery] [Required] Guid scheduleId, CancellationToken ct)
+	{
+		var response = await sender.Send(new GetDaysQuery(scheduleId), ct);
+		return Ok(response);
+	}
 
-    /// <summary>
-    ///     Обновление времени для определенного дня
-    /// </summary>
-    /// <param name="request"></param>
-    /// <param name="ct"></param>
-    /// <returns></returns>
-    [HttpPatch(Routes.Day.UpdateTime)]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
-    [ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
-    public async Task<IActionResult> UpdateTime(UpdateTimeRequest request, CancellationToken ct)
-    {
-        await sender.Send(new UpdateTimeCommand(request.ScheduleId, request.DayOfWeek, request.Times), ct);
-        return Ok();
-    }
+	/// <summary>
+	///     Обновление времени для определенного дня
+	/// </summary>
+	/// <param name="request"></param>
+	/// <param name="ct"></param>
+	/// <returns></returns>
+	[HttpPatch(Routes.Day.UpdateTime)]
+	[ProducesResponseType(StatusCodes.Status200OK)]
+	[ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
+	[ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
+	public async Task<IActionResult> UpdateTime(UpdateTimeRequest request, CancellationToken ct)
+	{
+		await sender.Send(new UpdateTimeCommand(request.ScheduleId, request.DayOfWeek, request.Times), ct);
+		return Ok();
+	}
 }

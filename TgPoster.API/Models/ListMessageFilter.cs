@@ -2,5 +2,5 @@ namespace TgPoster.API.Models;
 
 public class ListMessageFilter
 {
-    public required Guid ScheduleId { get; set; }
+	public required Guid ScheduleId { get; set; }
 }

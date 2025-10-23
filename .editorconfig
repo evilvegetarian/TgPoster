@@ -9,3 +9,9 @@ dotnet_naming_symbols.private_fields.applicable_accessibilities = private
 dotnet_naming_symbols.private_fields.required_modifiers =
 
 dotnet_naming_style.any_style.capitalization = camel_case
+indent_style = tab
+indent_size = tab
+tab_width = 4
+
+# ReSharper properties
+resharper_csharp_indent_style = tab

@@ -7,27 +7,27 @@ namespace TgPoster.Endpoint.Tests.Seeder;
 
 internal class UserSeeder(PosterContext context, string hash) : BaseSeeder
 {
-    public override async Task Seed()
-    {
-        if (await context.Users.AnyAsync())
-        {
-            return;
-        }
+	public override async Task Seed()
+	{
+		if (await context.Users.AnyAsync())
+		{
+			return;
+		}
 
-        var user = new User
-        {
-            Id = GlobalConst.UserId,
-            UserName = new UserName("Kuper"),
-            PasswordHash = "PasswordHash"
-        };
+		var user = new User
+		{
+			Id = GlobalConst.UserId,
+			UserName = new UserName("Kuper"),
+			PasswordHash = "PasswordHash"
+		};
 
-        var defaultUser = new User
-        {
-            Id = GlobalConst.Worked.UserId,
-            PasswordHash = hash,
-            UserName = new UserName(GlobalConst.Worked.UserName)
-        };
+		var defaultUser = new User
+		{
+			Id = GlobalConst.Worked.UserId,
+			PasswordHash = hash,
+			UserName = new UserName(GlobalConst.Worked.UserName)
+		};
 
-        await context.Users.AddRangeAsync(user, defaultUser);
-    }
+		await context.Users.AddRangeAsync(user, defaultUser);
+	}
 }
