@@ -5,19 +5,12 @@ public sealed class TimePostingService
 	public List<DateTimeOffset> GetTimeForPosting(
 		int messageCount,
 		Dictionary<DayOfWeek, List<TimeOnly>> scheduleTime,
-		List<DateTimeOffset> existMessageTimePosting
+		DateTimeOffset existMessageTimePosting
 	)
 	{
-		if (!scheduleTime.Any())
-		{
-			throw new ArgumentNullException("Расписание не заполнено!");
-		}
-
-		var currentDateValue = DateTimeOffset.UtcNow;
-		if (existMessageTimePosting.Any())
-		{
-			currentDateValue = existMessageTimePosting.OrderByDescending(x => x).FirstOrDefault();
-		}
+		var currentDateValue = existMessageTimePosting > DateTimeOffset.UtcNow
+			? existMessageTimePosting
+			: DateTimeOffset.UtcNow;
 
 		var currentDayOfWeek = currentDateValue.DayOfWeek;
 		var currentTime = currentDateValue.TimeOfDay;
@@ -35,7 +28,7 @@ public sealed class TimePostingService
 					var timeSpan = time.ToTimeSpan();
 					var potentialNewDateTime = new DateTimeOffset(currentDateValue.Date + timeSpan, TimeSpan.Zero);
 
-					if (timeSpan > currentTime && !existMessageTimePosting.Contains(potentialNewDateTime))
+					if (timeSpan > currentTime)
 					{
 						dateTimes.Add(potentialNewDateTime);
 						index++;
@@ -53,5 +46,15 @@ public sealed class TimePostingService
 		}
 
 		return dateTimes;
+	}
+
+	public List<DateTimeOffset> GetTimeForPosting(
+		int messageCount,
+		Dictionary<DayOfWeek, List<TimeOnly>> scheduleTime,
+		List<DateTimeOffset> existMessageTimePosting
+	)
+	{
+		var lastTime = existMessageTimePosting.OrderByDescending(x => x).FirstOrDefault();
+		return GetTimeForPosting(messageCount, scheduleTime, lastTime);
 	}
 }

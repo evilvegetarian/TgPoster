@@ -8,6 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Shared;
 using Shared.Contracts;
 using TgPoster.Worker.Domain.ConfigModels;
+using TgPoster.Worker.Domain.UseCases;
 using TgPoster.Worker.Domain.UseCases.ParseChannel;
 using TgPoster.Worker.Domain.UseCases.ParseChannelConsumer;
 using TgPoster.Worker.Domain.UseCases.ParseChannelWorker;
@@ -19,12 +20,11 @@ public static class DependencyInjection
 {
 	public static IServiceCollection AddDomain(this IServiceCollection services, IConfiguration configuration)
 	{
-		var telegramSettings = configuration.GetSection(nameof(TelegramSettings)).Get<TelegramSettings>()!;
-		services.AddSingleton(telegramSettings);
-
 		var telegramOptions = configuration.GetSection(nameof(TelegramOptions)).Get<TelegramOptions>()!;
 		services.AddSingleton(telegramOptions);
-
+		
+		services.AddTelegramSession(configuration);
+		
 		services.AddMassTransient(configuration);
 
 		services.AddHangfire(cfg =>
@@ -45,12 +45,44 @@ public static class DependencyInjection
 		return services;
 	}
 
+	public static void AddTelegramSession(this IServiceCollection services, IConfiguration configuration)
+	{
+		var telegramSettings = configuration.GetSection(nameof(TelegramSettings)).Get<TelegramSettings>()!;
+		services.AddSingleton(telegramSettings);
+
+		services.AddSingleton(sp =>
+		{
+			string? Config(string key) => key switch
+			{
+				"api_id" => telegramSettings.api_id,
+				"api_hash" => telegramSettings.api_hash,
+				"phone_number" => telegramSettings.phone_number,
+				_ => null
+			};
+
+			var client = new WTelegram.Client(Config);
+
+			Console.WriteLine("Logging in to Telegram...");
+			client.LoginUserIfNeeded().GetAwaiter().GetResult();
+			Console.WriteLine("Login successful. Application is starting.");
+
+			return client;
+		});
+	}
+
 
 	private static void AddMassTransient(this IServiceCollection services, IConfiguration configuration)
 	{
 		services.AddMassTransit(x =>
 		{
-			x.AddConsumer<ParseChannelConsumer>();
+			x.AddConsumer<ParseChannelConsumer>(opt =>
+			{
+				opt.ConcurrentMessageLimit = 1;
+			});
+			x.AddConsumer<ProcessMessageConsumer>(opt =>
+			{
+				opt.ConcurrentMessageLimit = 1;
+			});
 
 			x.UsingPostgres((context, cfg) =>
 			{
