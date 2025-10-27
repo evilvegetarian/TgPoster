@@ -8,8 +8,8 @@ namespace TgPoster.Worker.Domain.UseCases.ParseChannel;
 
 internal class ParseChannelUseCase(
 	IParseChannelUseCaseStorage storage,
-	TelegramSettings settings,
 	IPublishEndpoint publishEndpoint,
+	Client client,
 	ILogger<ParseChannelUseCase> logger)
 {
 	public async Task Handle(Guid id, CancellationToken ct)
@@ -30,9 +30,6 @@ internal class ParseChannelUseCase(
 		var avoidWords = parameters.AvoidWords;
 		var lastParseId = parameters.LastParsedId;
 		var checkNewPosts = parameters.CheckNewPosts;
-
-		await using var client = new Client(Settings);
-		await client.LoginUserIfNeeded();
 
 		var resolveResult = await client.Contacts_ResolveUsername(channelName);
 		if (resolveResult.Chat is not Channel channel)
@@ -128,17 +125,6 @@ internal class ParseChannelUseCase(
 		await storage.UpdateChannelParsingParametersAsync(id, tempLastParseId, checkNewPosts, ct);
 		logger.LogInformation("Парсинг канала завершен. Задачи на обработку ({count}) отправлены в очередь.",
 			validGroups.Count);
-	}
-
-	private string? Settings(string key)
-	{
-		return key switch
-		{
-			nameof(settings.api_id) => settings.api_id,
-			nameof(settings.api_hash) => settings.api_hash,
-			nameof(settings.phone_number) => settings.phone_number,
-			_ => null
-		};
 	}
 }
 
