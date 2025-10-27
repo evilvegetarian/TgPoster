@@ -12,6 +12,7 @@ using TgPoster.Worker.Domain.UseCases;
 using TgPoster.Worker.Domain.UseCases.ParseChannel;
 using TgPoster.Worker.Domain.UseCases.ParseChannelConsumer;
 using TgPoster.Worker.Domain.UseCases.ParseChannelWorker;
+using TgPoster.Worker.Domain.UseCases.ProcessMessageConsumer;
 using TgPoster.Worker.Domain.UseCases.SenderMessageWorker;
 
 namespace TgPoster.Worker.Domain;

@@ -13,7 +13,7 @@ using InputMediaPhoto = Telegram.Bot.Types.InputMediaPhoto;
 using Message = TL.Message;
 using TelegramBotClient = Telegram.Bot.TelegramBotClient;
 
-namespace TgPoster.Worker.Domain.UseCases;
+namespace TgPoster.Worker.Domain.UseCases.ProcessMessageConsumer;
 
 internal sealed class ProcessMessageConsumer(
 	VideoService videoService,
@@ -61,80 +61,84 @@ internal sealed class ProcessMessageConsumer(
 		{
 			foreach (var part in command.Messages)
 			{
-				await Task.Delay(7000, ct);
-				var refreshedMessages =
-					await client.Channels_GetMessages(new InputChannel(channel.ID, channel.access_hash), part.Id);
+				await Task.Delay(10000, ct);
+				var refreshedMessages = await client.Channels_GetMessages(new InputChannel(channel.ID, channel.access_hash), part.Id);
 				if (refreshedMessages.Messages.FirstOrDefault() is not Message message)
 				{
 					continue;
 				}
 
-				if (!deleteMedia)
+				var stream = new MemoryStream();
+
+				try
 				{
-					if (part.IsPhoto && message is { media: MessageMediaPhoto { photo: Photo photo } })
+					if (!deleteMedia)
 					{
-						using var stream = new MemoryStream();
-
-						await client.DownloadFileAsync(photo, stream);
-
-						stream.Position = 0;
-
-						var photoMessage = await telegramExecuteServices.SendPhoto(telegramBot, chatId,
-							new InputFileStream(stream), 3, ct);
-
-						var photoId = photoMessage.Photo?
-							.OrderByDescending(x => x.FileSize)
-							.Select(x => x.FileId)
-							.FirstOrDefault();
-						if (photoId is not null)
+						if (part.IsPhoto && message is { media: MessageMediaPhoto { photo: Photo photo } })
 						{
-							messageDto.Media.Add(new MediaDto { FileId = photoId, MimeType = "image/jpeg" });
-						}
+							await client.DownloadFileAsync(photo, stream);
 
-						await telegramBot.DeleteMessage(chatId, photoMessage.MessageId, ct);
-					}
-					else if (part.IsVideo && message is { media: MessageMediaDocument { document: Document doc } })
-					{
-						using var stream = new MemoryStream();
+							stream.Position = 0;
 
-						await client.DownloadFileAsync(doc, stream);
+							var photoMessage = await telegramExecuteServices.SendPhoto(telegramBot, chatId,
+								new InputFileStream(stream), 3, ct);
 
-						stream.Position = 0;
-
-						var inputFile = new InputFileStream(stream, "video.mp4");
-						var previews = await videoService.ExtractScreenshotsAsync(stream, 3);
-
-						List<IAlbumInputMedia> album = [new InputMediaVideo(inputFile)];
-						album.AddRange(
-							previews.Select<MemoryStream, InputMediaPhoto>(preview =>
-								new InputMediaPhoto(preview)));
-
-						var messages = await telegramExecuteServices.SendMedia(telegramBot, chatId, album, 3, ct);
-
-						var previewPhotoIds = messages
-							.Select(m => m.Photo?
+							var photoId = photoMessage.Photo?
 								.OrderByDescending(x => x.FileSize)
 								.Select(x => x.FileId)
-								.FirstOrDefault())
-							.Where(x => x != null)
-							.Distinct().ToList();
-						var videoId = messages.Select(m => m.Video?.FileId).FirstOrDefault(v => v != null);
-
-						foreach (var mess in messages)
-						{
-							await telegramBot.DeleteMessage(chatId, mess.MessageId, ct);
-						}
-
-						if (videoId is not null)
-						{
-							messageDto.Media.Add(new MediaDto
+								.FirstOrDefault();
+							if (photoId is not null)
 							{
-								MimeType = doc.mime_type,
-								FileId = videoId,
-								PreviewPhotoIds = previewPhotoIds!
-							});
+								messageDto.Media.Add(new MediaDto { FileId = photoId, MimeType = "image/jpeg" });
+							}
+
+							await telegramBot.DeleteMessage(chatId, photoMessage.MessageId, ct);
+						}
+						else if (part.IsVideo && message is { media: MessageMediaDocument { document: Document doc } })
+						{
+							await client.DownloadFileAsync(doc, stream);
+
+							stream.Position = 0;
+
+							var inputFile = new InputFileStream(stream, "video.mp4");
+							var previews = await videoService.ExtractScreenshotsAsync(stream, 3);
+
+							List<IAlbumInputMedia> album = [new InputMediaVideo(inputFile)];
+							album.AddRange(
+								previews.Select<MemoryStream, InputMediaPhoto>(preview =>
+									new InputMediaPhoto(preview)));
+
+							var messages = await telegramExecuteServices.SendMedia(telegramBot, chatId, album, 3, ct);
+
+							var previewPhotoIds = messages
+								.Select(m => m.Photo?
+									.OrderByDescending(x => x.FileSize)
+									.Select(x => x.FileId)
+									.FirstOrDefault())
+								.Where(x => x != null)
+								.Distinct().ToList();
+							var videoId = messages.Select(m => m.Video?.FileId).FirstOrDefault(v => v != null);
+
+							foreach (var mess in messages)
+							{
+								await telegramBot.DeleteMessage(chatId, mess.MessageId, ct);
+							}
+
+							if (videoId is not null)
+							{
+								messageDto.Media.Add(new MediaDto
+								{
+									MimeType = doc.mime_type,
+									FileId = videoId,
+									PreviewPhotoIds = previewPhotoIds!
+								});
+							}
 						}
 					}
+				}
+				finally
+				{
+					await stream.DisposeAsync();
 				}
 
 				messageDto.Text = !deleteText && !string.IsNullOrEmpty(message.message) ? message.message : null;
@@ -161,14 +165,4 @@ internal sealed class ProcessMessageConsumer(
 				scheduleId);
 		}
 	}
-}
-
-public interface IProcessMessageConsumerStorage
-{
-	Task<ParametersDto?> GetChannelParsingParametersAsync(Guid id, CancellationToken ct);
-	Task CreateMessagesAsync(List<MessageDto> messageDtos, CancellationToken ct);
-	Task CreateMessageAsync(MessageDto messageDto, CancellationToken ct);
-	Task<List<DateTimeOffset>> GetExistMessageTimePostingAsync(Guid scheduleId, CancellationToken ct);
-	Task<DateTimeOffset> GeLastMessageTimePostingAsync(Guid scheduleId, CancellationToken ct);
-	Task<Dictionary<DayOfWeek, List<TimeOnly>>> GetScheduleTimeAsync(Guid scheduleId, CancellationToken ct);
 }

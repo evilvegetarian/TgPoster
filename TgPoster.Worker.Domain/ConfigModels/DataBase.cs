@@ -1,4 +1,4 @@
-namespace TgPoster.Worker.Domain;
+namespace TgPoster.Worker.Domain.ConfigModels;
 
 internal class DataBase
 {

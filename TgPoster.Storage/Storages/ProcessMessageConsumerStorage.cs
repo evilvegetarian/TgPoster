@@ -4,6 +4,7 @@ using TgPoster.Storage.Data.Entities;
 using TgPoster.Storage.Data.Enum;
 using TgPoster.Worker.Domain.UseCases;
 using TgPoster.Worker.Domain.UseCases.ParseChannel;
+using TgPoster.Worker.Domain.UseCases.ProcessMessageConsumer;
 
 namespace TgPoster.Storage.Storages;
 
