@@ -30,6 +30,7 @@ internal class ParseChannelUseCase(
 		var avoidWords = parameters.AvoidWords;
 		var lastParseId = parameters.LastParsedId;
 		var checkNewPosts = parameters.CheckNewPosts;
+		var telegramBotId = parameters.TelegramBotId;
 
 		var resolveResult = await client.Contacts_ResolveUsername(channelName);
 		if (resolveResult.Chat is not Channel channel)
@@ -106,6 +107,7 @@ internal class ParseChannelUseCase(
 			var command = new ProcessMessageCommand
 			{
 				Id = id,
+				TelegramBotId = telegramBotId,
 				Messages = group.Value.Select(m => new MessageCommand
 				{
 					Id = m.ID,
@@ -130,7 +132,8 @@ internal class ParseChannelUseCase(
 
 public record ProcessMessageCommand
 {
-	public Guid Id { get; init; }
+	public required Guid Id { get; init; }
+	public required Guid TelegramBotId { get; init; }
 	public List<MessageCommand> Messages { get; init; } = [];
 }
 

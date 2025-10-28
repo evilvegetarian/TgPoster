@@ -19,6 +19,7 @@ internal sealed class ProcessMessageConsumerStorage(PosterContext context, GuidF
 			{
 				Token = ch.Schedule.TelegramBot.ApiTelegram,
 				ChatId = ch.Schedule.TelegramBot.ChatId,
+				TelegramBotId = ch.Schedule.TelegramBot.Id,
 				AvoidWords = ch.AvoidWords,
 				ChannelName = ch.Channel,
 				DeleteMedia = ch.DeleteMedia,

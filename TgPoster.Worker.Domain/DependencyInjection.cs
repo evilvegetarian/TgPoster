@@ -23,9 +23,9 @@ public static class DependencyInjection
 	{
 		var telegramOptions = configuration.GetSection(nameof(TelegramOptions)).Get<TelegramOptions>()!;
 		services.AddSingleton(telegramOptions);
-		
+
 		services.AddTelegramSession(configuration);
-		
+
 		services.AddMassTransient(configuration);
 
 		services.AddHangfire(cfg =>
@@ -84,10 +84,20 @@ public static class DependencyInjection
 			{
 				opt.ConcurrentMessageLimit = 1;
 			});
+			const string queueName = "process-message-queue";
 
 			x.UsingPostgres((context, cfg) =>
 			{
 				cfg.ConfigureEndpoints(context);
+				cfg.ReceiveEndpoint(queueName, e =>
+				{
+					var partition = e.CreatePartitioner(50);
+					e.ConfigureConsumer<ProcessMessageConsumer>(context, c =>
+					{
+						c.Message<ProcessMessageCommand>(m =>
+							m.UsePartitioner(partition, p => p.Message.TelegramBotId));
+					});
+				});
 			});
 			var dataBase = configuration.GetSection(nameof(DataBase)).Get<DataBase>()!;
 			x.ConfigureMassTransient(dataBase.ConnectionString);

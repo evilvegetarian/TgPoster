@@ -16,6 +16,7 @@ internal class ParseChannelUseCaseStorage(PosterContext context, GuidFactory gui
 			{
 				Token = ch.Schedule.TelegramBot.ApiTelegram,
 				ChatId = ch.Schedule.TelegramBot.ChatId,
+				TelegramBotId = ch.Schedule.TelegramBot.Id,
 				AvoidWords = ch.AvoidWords,
 				ChannelName = ch.Channel,
 				DeleteMedia = ch.DeleteMedia,
@@ -25,7 +26,7 @@ internal class ParseChannelUseCaseStorage(PosterContext context, GuidFactory gui
 				ToDate = ch.DateTo,
 				IsNeedVerified = ch.NeedVerifiedPosts,
 				ScheduleId = ch.ScheduleId,
-				CheckNewPosts = ch.CheckNewPosts
+				CheckNewPosts = ch.CheckNewPosts,
 			})
 			.FirstOrDefaultAsync(ct);
 	}

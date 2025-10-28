@@ -14,4 +14,5 @@ public class ParametersDto
 	public int? LastParsedId { get; set; }
 	public Guid ScheduleId { get; set; }
 	public bool CheckNewPosts { get; set; }
+	public required Guid TelegramBotId { get; set; }
 }
