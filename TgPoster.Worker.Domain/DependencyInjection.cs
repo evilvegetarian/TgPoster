@@ -46,12 +46,12 @@ public static class DependencyInjection
 		return services;
 	}
 
-	public static void AddTelegramSession(this IServiceCollection services, IConfiguration configuration)
+	private static void AddTelegramSession(this IServiceCollection services, IConfiguration configuration)
 	{
 		var telegramSettings = configuration.GetSection(nameof(TelegramSettings)).Get<TelegramSettings>()!;
 		services.AddSingleton(telegramSettings);
 
-		services.AddSingleton(sp =>
+		services.AddSingleton(_ =>
 		{
 			string? Config(string key) => key switch
 			{
@@ -70,7 +70,6 @@ public static class DependencyInjection
 			return client;
 		});
 	}
-
 
 	private static void AddMassTransient(this IServiceCollection services, IConfiguration configuration)
 	{
@@ -94,7 +93,7 @@ public static class DependencyInjection
 					var partition = e.CreatePartitioner(50);
 					e.ConfigureConsumer<ProcessMessageConsumer>(context, c =>
 					{
-						c.Message<ProcessMessageCommand>(m =>
+						c.Message<ProcessMessage>(m =>
 							m.UsePartitioner(partition, p => p.Message.TelegramBotId));
 					});
 				});

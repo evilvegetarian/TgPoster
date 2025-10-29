@@ -2,7 +2,7 @@ namespace TgPoster.Worker.Domain.UseCases.ParseChannel;
 
 public interface IParseChannelUseCaseStorage
 {
-	Task<ParametersDto?> GetChannelParsingParametersAsync(Guid id, CancellationToken ct);
+	Task<ParseChannelParsingSettings?> GetChannelParsingParametersAsync(Guid id, CancellationToken ct);
 	Task CreateMessagesAsync(List<MessageDto> messages, CancellationToken ct);
 	Task UpdateChannelParsingParametersAsync(Guid id, int offsetId, bool checkNewPosts, CancellationToken ct);
 	Task UpdateInHandleStatusAsync(Guid id, CancellationToken ct);

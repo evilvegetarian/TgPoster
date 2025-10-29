@@ -104,15 +104,15 @@ internal class ParseChannelUseCase(
 
 		foreach (var group in validGroups)
 		{
-			var command = new ProcessMessageCommand
+			var command = new ProcessMessage
 			{
 				Id = id,
 				TelegramBotId = telegramBotId,
 				Messages = group.Value.Select(m => new MessageCommand
 				{
 					Id = m.ID,
-					IsPhoto = m.media is MessageMediaPhoto ,
-					IsVideo = m.media is MessageMediaDocument 
+					IsPhoto = m.media is MessageMediaPhoto,
+					IsVideo = m.media is MessageMediaDocument
 				}).ToList()
 			};
 
@@ -130,7 +130,7 @@ internal class ParseChannelUseCase(
 	}
 }
 
-public record ProcessMessageCommand
+public record ProcessMessage
 {
 	public required Guid Id { get; init; }
 	public required Guid TelegramBotId { get; init; }

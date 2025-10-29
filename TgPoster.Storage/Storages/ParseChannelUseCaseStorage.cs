@@ -8,24 +8,18 @@ namespace TgPoster.Storage.Storages;
 
 internal class ParseChannelUseCaseStorage(PosterContext context, GuidFactory guidFactory) : IParseChannelUseCaseStorage
 {
-	public Task<ParametersDto?> GetChannelParsingParametersAsync(Guid id, CancellationToken ct)
+	public Task<ParseChannelParsingSettings?> GetChannelParsingParametersAsync(Guid id, CancellationToken ct)
 	{
 		return context.ChannelParsingParameters
 			.Where(x => x.Id == id)
-			.Select(ch => new ParametersDto
+			.Select(ch => new ParseChannelParsingSettings
 			{
-				Token = ch.Schedule.TelegramBot.ApiTelegram,
-				ChatId = ch.Schedule.TelegramBot.ChatId,
 				TelegramBotId = ch.Schedule.TelegramBot.Id,
 				AvoidWords = ch.AvoidWords,
 				ChannelName = ch.Channel,
-				DeleteMedia = ch.DeleteMedia,
-				DeleteText = ch.DeleteText,
 				FromDate = ch.DateFrom,
 				LastParsedId = ch.LastParseId,
 				ToDate = ch.DateTo,
-				IsNeedVerified = ch.NeedVerifiedPosts,
-				ScheduleId = ch.ScheduleId,
 				CheckNewPosts = ch.CheckNewPosts,
 			})
 			.FirstOrDefaultAsync(ct);

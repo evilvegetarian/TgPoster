@@ -32,12 +32,7 @@ public class ParseChannelUseCaseStorageShould(StorageTestFixture fixture) : ICla
 
 		result.ShouldNotBeNull();
 		result.ChannelName.ShouldBe(cpp.Channel);
-		result.Token.ShouldNotBeNullOrWhiteSpace();
-		result.ScheduleId.ShouldBe(schedule.Id);
 		result.AvoidWords.ShouldBe(cpp.AvoidWords);
-		result.IsNeedVerified.ShouldBeTrue();
-		result.DeleteMedia.ShouldBe(cpp.DeleteMedia);
-		result.DeleteText.ShouldBe(cpp.DeleteText);
 		result.LastParsedId.ShouldBe(cpp.LastParseId);
 	}
 

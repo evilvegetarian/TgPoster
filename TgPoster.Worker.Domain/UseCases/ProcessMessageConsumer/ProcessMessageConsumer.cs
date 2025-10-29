@@ -24,9 +24,9 @@ internal sealed class ProcessMessageConsumer(
 	IProcessMessageConsumerStorage storage,
 	Client client,
 	ILogger<ProcessMessageConsumer> logger
-) : IConsumer<ProcessMessageCommand>
+) : IConsumer<ProcessMessage>
 {
-	public async Task Consume(ConsumeContext<ProcessMessageCommand> context)
+	public async Task Consume(ConsumeContext<ProcessMessage> context)
 	{
 		var command = context.Message;
 
