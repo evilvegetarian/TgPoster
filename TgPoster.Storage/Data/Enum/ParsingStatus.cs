@@ -56,8 +56,8 @@ public static class ParsingStatusExtensions
 		return status != ParsingStatus.Finished && status != ParsingStatus.Canceled;
 	}
 
-	public static IQueryable<ChannelParsingParameters> IsActiveAndDontUse(
-		this IQueryable<ChannelParsingParameters> queryable
+	public static IQueryable<ChannelParsingSetting> IsActiveAndDontUse(
+		this IQueryable<ChannelParsingSetting> queryable
 	)
 	{
 		return queryable.Where(x => x.Status != ParsingStatus.Finished

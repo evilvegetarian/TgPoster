@@ -31,6 +31,7 @@ public sealed class Schedule : BaseEntity
 	///     Обозначает активность канала
 	/// </summary>
 	public bool IsActive { get; set; }
+	public Guid PromptSettingId { get; set; }
 
 	#region Навигация
 
@@ -50,8 +51,18 @@ public sealed class Schedule : BaseEntity
 	/// </summary>
 	public ICollection<Day> Days { get; set; } = [];
 
+	/// <summary>
+	/// Сообщение этого расписания
+	/// </summary>
 	public ICollection<Message> Messages { get; set; } = [];
-	public ICollection<ChannelParsingParameters> Parameters { get; set; } = [];
+	/// <summary>
+	/// Настройки парсинга каналов для этого расписания
+	/// </summary>
+	public ICollection<ChannelParsingSetting> Parameters { get; set; } = [];
+	/// <summary>
+	/// Настройки промптов для этого расписания
+	/// </summary>
+	public PromptSetting PromptSetting { get; set; } = null!;
 
 	#endregion
 }

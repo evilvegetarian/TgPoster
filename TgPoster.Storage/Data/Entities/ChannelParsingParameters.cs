@@ -2,7 +2,7 @@ using TgPoster.Storage.Data.Enum;
 
 namespace TgPoster.Storage.Data.Entities;
 
-public class ChannelParsingParameters : BaseEntity
+public class ChannelParsingSetting : BaseEntity
 {
 	/// <summary>
 	///     Канал c которого будут парсится сообщения.

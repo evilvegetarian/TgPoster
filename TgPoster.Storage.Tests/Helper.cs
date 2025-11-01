@@ -94,7 +94,7 @@ public class Helper(PosterContext context)
 		return await CreateTelegramBotAsync(user.Id);
 	}
 
-	public async Task<ChannelParsingParameters> CreateChannelParsingParametersAsync(
+	public async Task<ChannelParsingSetting> CreateChannelParsingParametersAsync(
 		Guid? scheduleId = null,
 		ParsingStatus status = ParsingStatus.New,
 		bool checkNewPosts = false
@@ -105,7 +105,7 @@ public class Helper(PosterContext context)
 			? await context.Schedules.FindAsync(scheduleId.Value)
 			: await CreateScheduleAsync();
 
-		var cpp = new ChannelParsingParameters
+		var cpp = new ChannelParsingSetting
 		{
 			Id = id,
 			AvoidWords = ["spam", "ban"],

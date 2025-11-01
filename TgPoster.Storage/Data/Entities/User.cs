@@ -27,6 +27,8 @@ public sealed class User : BaseEntity
 	/// </summary>
 	public required string PasswordHash { get; set; }
 
+	#region Navigation
+
 	/// <summary>
 	///     Сессии пользователя.
 	/// </summary>
@@ -38,7 +40,11 @@ public sealed class User : BaseEntity
 	public ICollection<Schedule> Schedules { get; set; } = [];
 
 	/// <summary>
-	///     телеграм боты.
+	///     Телеграм боты.
 	/// </summary>
 	public ICollection<TelegramBot> TelegramBots { get; set; } = [];
+
+	public ICollection<OpenRouterSetting> OpenRouterSettings { get; set; } = [];
+
+	#endregion
 }

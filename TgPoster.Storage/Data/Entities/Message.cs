@@ -36,6 +36,8 @@ public class Message : BaseEntity
 	/// </summary>
 	public bool IsVerified { get; set; }
 
+	#region Navigtion
+
 	/// <summary>
 	///     Расписание
 	/// </summary>
@@ -45,6 +47,8 @@ public class Message : BaseEntity
 	///     Файлы сообщения
 	/// </summary>
 	public ICollection<MessageFile> MessageFiles { get; set; } = [];
+
+	#endregion
 }
 
 public static class MessageExtenstion

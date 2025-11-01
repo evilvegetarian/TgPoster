@@ -36,5 +36,9 @@ internal class UserConfiguration : BaseEntityConfiguration<User>
 		builder.HasMany(x => x.RefreshSessions)
 			.WithOne(x => x.User)
 			.HasForeignKey(x => x.UserId);
+
+		builder.HasMany(x => x.OpenRouterSettings)
+			.WithOne(x => x.User)
+			.HasForeignKey(x => x.UserId);
 	}
 }

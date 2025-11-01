@@ -22,7 +22,7 @@ internal class ParseChannelStorage(PosterContext context, GuidFactory factory) :
 	)
 	{
 		var id = factory.New();
-		var param = new ChannelParsingParameters
+		var param = new ChannelParsingSetting
 		{
 			Id = id,
 			ScheduleId = scheduleId,

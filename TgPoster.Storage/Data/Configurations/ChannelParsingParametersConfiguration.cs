@@ -3,9 +3,9 @@ using TgPoster.Storage.Data.Entities;
 
 namespace TgPoster.Storage.Data.Configurations;
 
-internal class ChannelParsingParametersConfiguration : BaseEntityConfiguration<ChannelParsingParameters>
+internal class ChannelParsingParametersConfiguration : BaseEntityConfiguration<ChannelParsingSetting>
 {
-	public override void Configure(EntityTypeBuilder<ChannelParsingParameters> builder)
+	public override void Configure(EntityTypeBuilder<ChannelParsingSetting> builder)
 	{
 		base.Configure(builder);
 
