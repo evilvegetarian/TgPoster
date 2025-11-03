@@ -1,4 +1,4 @@
-name: Deploy infrastructure
+name: Build and deploy infrastructure
 
 on:
   workflow_dispatch:
@@ -10,7 +10,7 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-      
+
       - name: Upload docker-compose.infra.yml
         uses: actions/upload-artifact@v4
         with:
@@ -22,12 +22,23 @@ jobs:
         with:
           name: loki-config
           path: docker/loki-config.yml
-      
-  deploy:
-    needs: [build]
-    runs-on: [self-hosted, runner] 
 
+      - name: Upload prometheus.yml
+        uses: actions/upload-artifact@v4
+        with:
+          name: prometheus
+          path: docker/prometheus.yml
+  
+  deploy:
+    needs: [ build ]
+    runs-on: [ self-hosted, runner ]
+    
     steps:
+      - name: Download prometheus.yml
+        uses: actions/download-artifact@v4
+        with:
+          name: prometheus
+
       - name: Download docker-compose.infra.yml
         uses: actions/download-artifact@v4
         with:
@@ -42,8 +53,8 @@ jobs:
         run: |
           echo "POSTGRES_USER=${{ secrets.POSTGRES_USER }}" >> .env
           echo "POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}" >> .env
-          
+
       - name: Pull infrastructure stack and deploy
-        run: | 
+        run: |
           docker compose -f docker-compose.infra.yml pull
           docker compose -f docker-compose.infra.yml up -d
