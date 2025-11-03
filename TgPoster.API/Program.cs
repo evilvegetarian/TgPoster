@@ -7,6 +7,7 @@ using Shared.Contracts;
 using TgPoster.API.ConfigModels;
 using TgPoster.API.Domain;
 using TgPoster.API.Middlewares;
+using TgPoster.API.Telemetry;
 using TgPoster.Storage;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -51,6 +52,7 @@ builder.Services.AddSwaggerGen(options =>
 });
 
 builder.Services.AddControllers();
+builder.Services.AddPrometheusMetrics();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddMemoryCache();
@@ -78,6 +80,7 @@ app.UseAuthentication();
 app.UseMiddleware<AuthenticationMiddleware>();
 app.UseAuthorization();
 app.MapControllers();
+app.UseOpenTelemetryPrometheusScrapingEndpoint();
 app.Run();
 
 public partial class Program

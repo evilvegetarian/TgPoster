@@ -4,8 +4,11 @@ using TgPoster.API.Models;
 
 namespace TgPoster.API.Controllers;
 
+/// <summary>
+/// Общий роут для всех опций
+/// </summary>
 [ApiController]
-[Route("api/options")] // Общий роут для всех опций
+[Route("api/options")]
 public class OptionsController : ControllerBase
 {
 	[HttpGet("message-statuses")]
