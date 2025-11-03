@@ -3,7 +3,7 @@ scrape_configs:
     scrape_interval: 10s
     scrape_timeout: 5s
     static_configs:
-      - targets: ['host.docker.internal:5059']
+      - targets: ['host.docker.internal:5059','host.docker.internal:5000']
         labels:
           app: tgposter-local
       - targets:

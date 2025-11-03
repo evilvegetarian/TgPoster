@@ -1,20 +1,10 @@
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
-using OpenTelemetry.Instrumentation.EntityFrameworkCore.Implementation;
-using TgPoster.API.Domain.Monitoring;
 
-namespace TgPoster.API.Telemetry;
+namespace TgPoster.Worker.Telemetry;
 
-/// <summary>
-/// Метрики через Prometheus
-/// </summary>
 public static class PrometheusMetrics
 {
-	/// <summary>
-	/// Добавляет метрики
-	/// </summary>
-	/// <param name="services"></param>
-	/// <returns></returns>
 	public static IServiceCollection AddPrometheusMetrics(this IServiceCollection services)
 	{
 		services.AddOpenTelemetry()
@@ -28,7 +18,6 @@ public static class PrometheusMetrics
 				.AddHttpClientInstrumentation()
 				.AddRuntimeInstrumentation()
 				.AddProcessInstrumentation()
-				.AddMeter(DomainMetrics.ApplicationName)
 				.AddPrometheusExporter()
 			);
 		return services;
