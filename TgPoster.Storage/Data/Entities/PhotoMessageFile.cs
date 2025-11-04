@@ -1,5 +1,5 @@
 namespace TgPoster.Storage.Data.Entities;
 
-public class PhotoMessageFile : MessageFile
+public sealed class PhotoMessageFile : MessageFile
 {
 }

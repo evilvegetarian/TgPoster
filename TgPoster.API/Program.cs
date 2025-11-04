@@ -15,7 +15,6 @@ const string MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
 
 builder.AddLogging();
 builder.AddCors(MyAllowSpecificOrigins);
-
 builder.Services.AddSwaggerGen(options =>
 {
 	options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
@@ -56,6 +55,7 @@ builder.Services.AddMonitors(tracingConfiguration);
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddHttpContextAccessor();
+builder.Services.AddHttpClient();
 builder.Services.AddMemoryCache();
 builder.Services.AddSingleton<FileExtensionContentTypeProvider>();
 builder.Services

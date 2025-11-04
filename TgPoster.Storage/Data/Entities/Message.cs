@@ -2,7 +2,7 @@ using TgPoster.Storage.Data.Enum;
 
 namespace TgPoster.Storage.Data.Entities;
 
-public class Message : BaseEntity
+public sealed class Message : BaseEntity
 {
 	/// <summary>
 	///     Id расписания

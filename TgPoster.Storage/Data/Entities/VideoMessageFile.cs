@@ -1,6 +1,6 @@
 namespace TgPoster.Storage.Data.Entities;
 
-public class VideoMessageFile : MessageFile
+public sealed class VideoMessageFile : MessageFile
 {
 	/// <summary>
 	///     Превью видео

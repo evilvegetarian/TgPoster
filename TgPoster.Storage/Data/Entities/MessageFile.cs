@@ -1,6 +1,6 @@
 namespace TgPoster.Storage.Data.Entities;
 
-public class MessageFile : BaseEntity
+public  class MessageFile : BaseEntity
 {
 	/// <summary>
 	///     Id сообщения

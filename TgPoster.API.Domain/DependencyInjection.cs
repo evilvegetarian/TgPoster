@@ -6,6 +6,7 @@ using Shared;
 using TgPoster.API.Domain.ConfigModels;
 using TgPoster.API.Domain.Monitoring;
 using TgPoster.API.Domain.Services;
+using TgPoster.API.Domain.UseCases.OpenRouterSetting.CreateOpenRouterSetting;
 
 namespace TgPoster.API.Domain;
 
@@ -21,23 +22,25 @@ public static class DependencyInjection
 		var telegramOptions = configuration.GetSection(nameof(TelegramOptions)).Get<TelegramOptions>()!;
 		services.AddSingleton(telegramOptions);
 
+		var routerOptions = configuration.GetSection(nameof(OpenRouterOptions)).Get<OpenRouterOptions>()!;
+		services.AddSingleton(routerOptions);
+
 		var s3Options = configuration.GetSection(nameof(S3Options)).Get<S3Options>()!;
 		services.AddSingleton(s3Options);
 
 		services.AddSingleton<IAmazonS3>(sp =>
-		{
-			return new AmazonS3Client(s3Options.AccessKey, s3Options.SecretKey, new AmazonS3Config
+			new AmazonS3Client(s3Options.AccessKey, s3Options.SecretKey, new AmazonS3Config
 			{
 				ServiceURL = s3Options.ServiceUrl,
 				ForcePathStyle = true
-			});
-		});
-		services.AddScoped<TelegramService>();
-		services.AddScoped<VideoService>();
-		services.AddScoped<FileService>();
-		services.AddScoped<TimePostingService>();
-		services.AddScoped<TelegramTokenService>();
-		services.AddSingleton<DomainMetrics>();
+			}));
+		services
+			.AddScoped<TelegramService>().AddScoped<VideoService>()
+			.AddScoped<FileService>()
+			.AddScoped<TimePostingService>()
+			.AddScoped<TelegramTokenService>()
+			.AddScoped<OpenRouterClient>()
+			.AddSingleton<DomainMetrics>();
 		return services;
 	}
 }

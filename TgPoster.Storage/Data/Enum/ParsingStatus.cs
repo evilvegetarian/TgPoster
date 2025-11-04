@@ -5,7 +5,7 @@ namespace TgPoster.Storage.Data.Enum;
 public enum ParsingStatus
 {
 	/// <summary>
-	///     Только что созданое заданxие на парсинг
+	///     Только что созданое задание на парсинг
 	/// </summary>
 	New = 0,
 
