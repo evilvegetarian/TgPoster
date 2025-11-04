@@ -10,7 +10,6 @@ internal class PromptSettingsConfiguration : BaseEntityConfiguration<PromptSetti
 		base.Configure(builder);
 
 		builder.HasIndex(x => x.ScheduleId);
-		builder.HasIndex(x => x.OpenRouterSettingId);
 
 		builder.Property(x => x.VideoPrompt).HasMaxLength(5000).IsRequired();
 		builder.Property(x => x.PicturePrompt).HasMaxLength(5000).IsRequired();
@@ -20,8 +19,5 @@ internal class PromptSettingsConfiguration : BaseEntityConfiguration<PromptSetti
 			.WithOne(x => x.PromptSetting)
 			.HasForeignKey<PromptSetting>(d => d.ScheduleId);
 
-		builder.HasOne(x => x.OpenRouterSetting)
-			.WithMany(x => x.PromptSettings)
-			.HasForeignKey(x => x.OpenRouterSettingId);
 	}
 }

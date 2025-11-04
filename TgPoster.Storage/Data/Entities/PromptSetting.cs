@@ -22,15 +22,9 @@ public sealed class PromptSetting : BaseEntity
 	/// </summary>
 	public required Guid ScheduleId { get; set; }
 
-	/// <summary>
-	/// ЛЛМ к которой обращаются
-	/// </summary>
-	public required Guid OpenRouterSettingId { get; set; }
-
 	#region Navigtion
 
 	public Schedule Schedule { get; set; } = null!;
-	public OpenRouterSetting OpenRouterSetting { get; set; } = null!;
 
 	#endregion
 }

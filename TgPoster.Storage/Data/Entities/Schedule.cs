@@ -30,8 +30,10 @@ public sealed class Schedule : BaseEntity
 	/// <summary>
 	///     Обозначает активность канала
 	/// </summary>
-	public bool IsActive { get; set; }
-	public Guid PromptSettingId { get; set; }
+	public required bool IsActive { get; set; }
+	
+	public Guid? PromptSettingId { get; set; }
+	public Guid? OpenRouterSettingId { get; set; }
 
 	#region Навигация
 
@@ -55,14 +57,17 @@ public sealed class Schedule : BaseEntity
 	/// Сообщение этого расписания
 	/// </summary>
 	public ICollection<Message> Messages { get; set; } = [];
+
 	/// <summary>
 	/// Настройки парсинга каналов для этого расписания
 	/// </summary>
 	public ICollection<ChannelParsingSetting> Parameters { get; set; } = [];
+
 	/// <summary>
 	/// Настройки промптов для этого расписания
 	/// </summary>
-	public PromptSetting PromptSetting { get; set; } = null!;
+	public PromptSetting? PromptSetting { get; set; }
+	public OpenRouterSetting? OpenRouterSetting { get; set; }
 
 	#endregion
 }

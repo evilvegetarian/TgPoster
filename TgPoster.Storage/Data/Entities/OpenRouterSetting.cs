@@ -17,10 +17,15 @@ public sealed class OpenRouterSetting : BaseEntity
 	/// </summary>
 	public required Guid UserId { get; set; }
 
+	/// <summary>
+	/// Владелец OpenRouter
+	/// </summary>
+	public Guid? ScheduleId { get; set; }
+
 	#region Navigtion
 
+	public Schedule? Schedule { get; set; } = null!;
 	public User User { get; set; } = null!;
-	public ICollection<PromptSetting> PromptSettings { get; set; } = [];
 
 	#endregion
 }
