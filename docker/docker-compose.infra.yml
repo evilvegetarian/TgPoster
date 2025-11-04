@@ -58,3 +58,16 @@ services:
       - tg-prom:/prometheus
     extra_hosts:
       - "host.docker.internal:host-gateway"
+  
+  jaeger:
+    container_name: 'tg-jaeger'
+    image: 'jaegertracing/all-in-one:latest'
+    environment:
+      - COLLECTOR_ZIPKIN_HOST_PORT=:9411
+      - COLLECTOR_OTLP_ENABLED=true
+    ports:
+      - '4318:4318'
+      - '4317:4317'
+      - '16686:16686'
+      - '14268:14268'
+      - '9411:9411'

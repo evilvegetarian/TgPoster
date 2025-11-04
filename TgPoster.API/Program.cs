@@ -50,9 +50,10 @@ builder.Services.AddSwaggerGen(options =>
 	var xmlFilename = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
 	options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, xmlFilename));
 });
+var tracingConfiguration = builder.Configuration.GetSection(nameof(TracingConfiguration)).Get<TracingConfiguration>()!;
 
+builder.Services.AddMonitors(tracingConfiguration);
 builder.Services.AddControllers();
-builder.Services.AddPrometheusMetrics();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddMemoryCache();
@@ -63,7 +64,6 @@ builder.Services
 	.AddSecurity(builder.Configuration);
 
 var dataBase = builder.Configuration.GetSection(nameof(DataBase)).Get<DataBase>()!;
-
 builder.Services.AddMassTransit(x =>
 {
 	x.UsingPostgres();
