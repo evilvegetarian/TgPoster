@@ -7,6 +7,7 @@ using TgPoster.API.Domain.ConfigModels;
 using TgPoster.API.Domain.Monitoring;
 using TgPoster.API.Domain.Services;
 using TgPoster.API.Domain.UseCases.OpenRouterSetting.CreateOpenRouterSetting;
+using OpenRouterClient = TgPoster.API.Domain.Services.OpenRouterClient;
 
 namespace TgPoster.API.Domain;
 

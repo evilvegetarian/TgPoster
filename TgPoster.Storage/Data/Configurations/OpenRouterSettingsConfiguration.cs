@@ -11,7 +11,7 @@ internal class OpenRouterSettingsConfiguration : BaseEntityConfiguration<OpenRou
 
 		builder.HasIndex(x => x.UserId);
 		builder.Property(x => x.Model).HasMaxLength(50).IsRequired();
-		builder.Property(x => x.TokenHash).HasMaxLength(100).IsRequired();
+		builder.Property(x => x.TokenHash).HasMaxLength(500).IsRequired();
 
 		builder.HasOne(x => x.User)
 			.WithMany(x => x.OpenRouterSettings)

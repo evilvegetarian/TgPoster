@@ -12,7 +12,7 @@ using TgPoster.Storage.Data;
 namespace TgPoster.Storage.Data.Migrations
 {
     [DbContext(typeof(PosterContext))]
-    [Migration("20251104134142_ChangeReletionshipOpenRouterAndPrompt")]
+    [Migration("20251104183626_ChangeReletionshipOpenRouterAndPrompt")]
     partial class ChangeReletionshipOpenRouterAndPrompt
     {
         /// <inheritdoc />
@@ -294,8 +294,8 @@ namespace TgPoster.Storage.Data.Migrations
 
                     b.Property<string>("TokenHash")
                         .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
 
                     b.Property<DateTime?>("Updated")
                         .HasColumnType("timestamp with time zone");

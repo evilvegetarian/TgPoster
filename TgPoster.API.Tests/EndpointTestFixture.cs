@@ -24,6 +24,8 @@ public class EndpointTestFixture : WebApplicationFactory<Program>, IAsyncLifetim
 		.WithDatabase("testdb")
 		.Build();
 
+	public string? Token;
+
 	private IMemoryCache? memoryCache;
 	public HttpClient AuthClient { get; private set; } = null!;
 
@@ -94,7 +96,7 @@ public class EndpointTestFixture : WebApplicationFactory<Program>, IAsyncLifetim
 
 	private async Task InsertSeed(PosterContext context)
 	{
-		IConfiguration configuration = new ConfigurationBuilder()
+		var configuration = new ConfigurationBuilder()
 			.SetBasePath(AppContext.BaseDirectory)
 			.AddJsonFile("appsettingsTest.json", false, true)
 			.Build();
@@ -102,6 +104,7 @@ public class EndpointTestFixture : WebApplicationFactory<Program>, IAsyncLifetim
 		var apiValue = configuration["Api"]!;
 
 		var hash = configuration["Hash"]!;
+		Token = configuration["Token"]!;
 		var seeders = new BaseSeeder[]
 		{
 			new TelegramBotSeeder(context, apiValue),

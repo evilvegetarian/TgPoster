@@ -41,6 +41,16 @@ namespace TgPoster.Storage.Data.Migrations
                 type: "uuid",
                 nullable: true);
 
+            migrationBuilder.AlterColumn<string>(
+                name: "TokenHash",
+                table: "OpenRouterSettings",
+                type: "character varying(500)",
+                maxLength: 500,
+                nullable: false,
+                oldClrType: typeof(string),
+                oldType: "character varying(100)",
+                oldMaxLength: 100);
+
             migrationBuilder.AddColumn<Guid>(
                 name: "ScheduleId",
                 table: "OpenRouterSettings",
@@ -107,6 +117,16 @@ namespace TgPoster.Storage.Data.Migrations
                 type: "uuid",
                 nullable: false,
                 defaultValue: new Guid("00000000-0000-0000-0000-000000000000"));
+
+            migrationBuilder.AlterColumn<string>(
+                name: "TokenHash",
+                table: "OpenRouterSettings",
+                type: "character varying(100)",
+                maxLength: 100,
+                nullable: false,
+                oldClrType: typeof(string),
+                oldType: "character varying(500)",
+                oldMaxLength: 500);
 
             migrationBuilder.CreateIndex(
                 name: "IX_PromptSetting_OpenRouterSettingId",

@@ -291,8 +291,8 @@ namespace TgPoster.Storage.Data.Migrations
 
                     b.Property<string>("TokenHash")
                         .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
 
                     b.Property<DateTime?>("Updated")
                         .HasColumnType("timestamp with time zone");
