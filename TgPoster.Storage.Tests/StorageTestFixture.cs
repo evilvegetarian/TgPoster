@@ -25,6 +25,7 @@ public class StorageTestFixture : IAsyncLifetime
 
 	public PosterContext GetDbContext()
 	{
-		return PosterContext;
+		return new PosterContext(new DbContextOptionsBuilder<PosterContext>()
+			.UseNpgsql(dbContainer.GetConnectionString()).Options);
 	}
 }

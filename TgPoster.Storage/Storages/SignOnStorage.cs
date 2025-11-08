@@ -25,6 +25,6 @@ internal sealed class SignOnStorage(PosterContext context, GuidFactory guidFacto
 
 	public Task<bool> HaveUserNameAsync(string userName, CancellationToken token)
 	{
-		return context.Users.AnyAsync(x => x.UserName == new UserName(userName), token);
+		return context.Users.IgnoreQueryFilters().AnyAsync(x => x.UserName == new UserName(userName), token);
 	}
 }

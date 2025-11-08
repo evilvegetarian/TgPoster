@@ -10,17 +10,17 @@ namespace TgPoster.Storage.Tests.Tests;
 public class SignOnStorageShould(StorageTestFixture fixture) : IClassFixture<StorageTestFixture>
 {
 	private readonly PosterContext _context = fixture.GetDbContext();
-	private readonly SignOnStorage sut = new(fixture.GetDbContext(), new GuidFactory());
+	private readonly SignOnStorage sut = new( fixture.GetDbContext(), new GuidFactory());
 
 	[Fact]
 	public async Task CreateUserAsync_WithValidData_ShouldAddUserAndReturnId()
 	{
-		var username = "testuser";
+		var username = "testUserss";
 		var password = "password123";
 
-		var result = await sut.CreateUserAsync(username, password, CancellationToken.None);
-
-		var userInDb = await _context.Users.FindAsync(result);
+		var userId = await sut.CreateUserAsync(username, password, CancellationToken.None);
+		
+		var userInDb = await _context.Users.FirstOrDefaultAsync(x => x.Id == userId);
 		userInDb.ShouldNotBeNull();
 		userInDb.UserName.Value.ShouldBe(username);
 		userInDb.PasswordHash.ShouldBe(password);
@@ -68,15 +68,17 @@ public class SignOnStorageShould(StorageTestFixture fixture) : IClassFixture<Sto
 	[Fact]
 	public async Task HaveUserNameAsync_WithExistingUsername_ShouldReturnTrue()
 	{
+		var username = "Mickle";
 		var user = new User
 		{
 			Id = Guid.Parse("55d75f74-5c1b-43a3-8cae-777e80b68aaf"),
-			UserName = new UserName("Mickle"),
+			UserName = new UserName(username),
 			PasswordHash = "password123"
 		};
 		await _context.Users.AddAsync(user);
 		await _context.SaveChangesAsync();
-		var haveUser = await sut.HaveUserNameAsync("Mickle", CancellationToken.None);
+
+		var haveUser = await sut.HaveUserNameAsync(username, CancellationToken.None);
 		haveUser.ShouldBeTrue();
 	}
 
@@ -86,31 +88,35 @@ public class SignOnStorageShould(StorageTestFixture fixture) : IClassFixture<Sto
 		var haveUser = await sut.HaveUserNameAsync("FIlimon", CancellationToken.None);
 		haveUser.ShouldBeFalse();
 	}
-
-	//[Fact]
-	//public async Task HaveUserNameAsync_ShouldBeCaseInsensitive()
-	//{
-	//    var username = "CaseUser";
-	//    var password = "password";
-	//    await sut.CreateUserAsync(username, password, CancellationToken.None);
-//
-	//    var existsLower = await sut.HaveUserNameAsync("caseuser", CancellationToken.None);
-	//    var existsUpper = await sut.HaveUserNameAsync("CASEUSER", CancellationToken.None);
-	//    var existsMixed = await sut.HaveUserNameAsync("CaSeUsEr", CancellationToken.None);
-//
-	//    existsLower.ShouldBeTrue();
-	//    existsUpper.ShouldBeTrue();
-	//    existsMixed.ShouldBeTrue();
-	//}
+	
+	[Fact]
+	public async Task HaveUserNameAsync_WithDeliteUser_ShouldReturnTrue()
+	{
+		var username = "dickle121";
+		var user = new User
+		{
+			Id = Guid.Parse("55d75f74-5c1b-43a3-8cae-777e80b68aaf"),
+			UserName = new UserName(username),
+			PasswordHash = "password123"
+		};
+		await _context.Users.AddAsync(user);
+		await _context.SaveChangesAsync();
+		_context.Users.Remove(user);
+		await _context.SaveChangesAsync();
+		
+		var haveUser = await sut.HaveUserNameAsync(username, CancellationToken.None);
+		haveUser.ShouldBeTrue();
+	}
 
 	[Fact]
 	public async Task CreateUserAsync_WithSpecialCharactersInUsername_ShouldSucceed()
 	{
-		var username = "user!@#";
-		var password = "password";
+		var username = "user!@#1";
+		var password = "passwordssda";
+    
 		var id = await sut.CreateUserAsync(username, password, CancellationToken.None);
-
-		var user = await _context.Users.FindAsync(id);
+    
+		var user = await _context.Users.FirstOrDefaultAsync(x => x.Id == id);
 		user.ShouldNotBeNull();
 		user.UserName.Value.ShouldBe(username);
 	}
