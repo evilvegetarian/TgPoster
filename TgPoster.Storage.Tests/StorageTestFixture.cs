@@ -7,12 +7,14 @@ namespace TgPoster.Storage.Tests;
 public class StorageTestFixture : IAsyncLifetime
 {
 	private readonly PostgreSqlContainer dbContainer = new PostgreSqlBuilder().Build();
+	private PosterContext PosterContext { get; set; } = null!;
 
 	public virtual async Task InitializeAsync()
 	{
 		await dbContainer.StartAsync();
 		var forumDbContext = new PosterContext(new DbContextOptionsBuilder<PosterContext>()
 			.UseNpgsql(dbContainer.GetConnectionString()).Options);
+		PosterContext = forumDbContext;
 		await forumDbContext.Database.MigrateAsync();
 	}
 
@@ -23,7 +25,6 @@ public class StorageTestFixture : IAsyncLifetime
 
 	public PosterContext GetDbContext()
 	{
-		return new PosterContext(new DbContextOptionsBuilder<PosterContext>()
-			.UseNpgsql(dbContainer.GetConnectionString()).Options);
+		return PosterContext;
 	}
 }

@@ -61,12 +61,11 @@ internal sealed class ListMessageStorage(PosterContext context) : IListMessageSt
 				throw new ArgumentOutOfRangeException();
 		}
 
-
 		if (!string.IsNullOrEmpty(request.SearchText))
 		{
+			var pattern = $"%{request.SearchText.Trim()}%";
 			query = query.Where(message =>
-				message.TextMessage != null
-				&& message.TextMessage.Contains(request.SearchText, StringComparison.CurrentCultureIgnoreCase));
+				message.TextMessage != null && EF.Functions.ILike(message.TextMessage, pattern));
 		}
 
 		var totalCount = await query.CountAsync(ct);

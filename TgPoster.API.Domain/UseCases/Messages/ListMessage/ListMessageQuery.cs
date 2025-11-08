@@ -13,20 +13,49 @@ public sealed record ListMessageQuery(
 
 public enum MessageStatus
 {
-	All, // Все
-	Planed, // Запланировано
-	NotApproved, // Не подтверждено
-	Delivered // Доставлено
+	/// <summary>
+	/// Все
+	/// </summary>
+	All,
+
+	/// <summary>
+	/// Запланировано
+	/// </summary>
+	Planed,
+
+	/// <summary>
+	/// Не подтверждено
+	/// </summary>
+	NotApproved,
+
+	/// <summary>
+	/// Доставлено
+	/// </summary>
+	Delivered
 }
 
 public enum MessageSortBy
 {
-	CreatedAt, // По дате создания
-	SentAt // По дате отправки
+	/// <summary>
+	/// По дате создания
+	/// </summary>
+	CreatedAt,
+
+	/// <summary>
+	/// По дате отправки
+	/// </summary>
+	SentAt
 }
 
 public enum SortDirection
 {
-	Asc, // По возрастанию
-	Desc // По убыванию
+	/// <summary>
+	/// По возрастанию
+	/// </summary>
+	Asc,
+
+	/// <summary>
+	/// По убыванию
+	/// </summary>
+	Desc
 }
