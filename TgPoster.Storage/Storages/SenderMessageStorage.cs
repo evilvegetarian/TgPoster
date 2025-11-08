@@ -40,15 +40,6 @@ internal class SenderMessageStorage(PosterContext context) : ISenderMessageStora
 			.ToListAsync();
 	}
 
-	public Task UpdateErrorStatusMessageAsync(Guid id)
-	{
-		return context.Messages
-			.Where(m => m.Id == id)
-			.ExecuteUpdateAsync(m =>
-				m.SetProperty(msg => msg.Status, MessageStatus.Error)
-			);
-	}
-
 	public Task UpdateStatusInHandleMessageAsync(List<Guid> ids)
 	{
 		return context.Messages

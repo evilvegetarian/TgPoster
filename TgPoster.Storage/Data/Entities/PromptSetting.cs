@@ -5,17 +5,17 @@ public sealed class PromptSetting : BaseEntity
 	/// <summary>
 	/// Промпт для фото
 	/// </summary>
-	public required string VideoPrompt { get; set; }
+	public string? VideoPrompt { get; set; }
 
 	/// <summary>
 	/// Промпт для картинок
 	/// </summary>
-	public required string PicturePrompt { get; set; }
+	public string? PicturePrompt { get; set; }
 
 	/// <summary>
 	/// Промпт для видео
 	/// </summary>
-	public required string TextPrompt { get; set; }
+	public string? TextPrompt { get; set; }
 
 	/// <summary>
 	/// Владелец OpenRouter

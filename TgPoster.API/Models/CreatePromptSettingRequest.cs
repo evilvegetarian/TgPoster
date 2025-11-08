@@ -1,21 +1,27 @@
-using System.ComponentModel.DataAnnotations;
-
 namespace TgPoster.API.Models;
 
 /// <summary>
-/// Request Соз
+/// Request создания промптов
 /// </summary>
-public class CreateOpenRouterSettingRequest
+public class CreatePromptSettingRequest
 {
 	/// <summary>
-	/// Модель в Open Router
+	/// Id расписания для которого Промпты
 	/// </summary>
-	[MinLength(3)]
-	public required string Model { get; set; }
+	public required Guid ScheduleId { get; set; }
 
 	/// <summary>
-	/// Токен для авторизации Open Router
+	/// Промпт для текста
 	/// </summary>
-	[MinLength(5)]
-	public required string Token { get; set; }
+	public string? TextPrompt { get; set; }
+
+	/// <summary>
+	/// Промпт для видео
+	/// </summary>
+	public string? VideoPrompt { get; set; }
+
+	/// <summary>
+	/// Промпт для фото 
+	/// </summary>
+	public string? PhotoPrompt { get; set; }
 }

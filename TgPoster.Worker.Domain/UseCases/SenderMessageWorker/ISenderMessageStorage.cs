@@ -4,6 +4,5 @@ public interface ISenderMessageStorage
 {
 	Task<List<MessageDetail>> GetMessagesAsync();
 	Task UpdateSendStatusMessageAsync(Guid id);
-	Task UpdateErrorStatusMessageAsync(Guid id);
 	Task UpdateStatusInHandleMessageAsync(List<Guid> ids);
 }

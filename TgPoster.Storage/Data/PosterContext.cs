@@ -19,6 +19,7 @@ public class PosterContext(DbContextOptions<PosterContext> options) : DbContext(
 	public DbSet<PhotoMessageFile> PhotoMessageFiles { get; set; }
 	public DbSet<ChannelParsingSetting> ChannelParsingParameters { get; set; }
 	public DbSet<OpenRouterSetting> OpenRouterSettings { get; set; }
+	public DbSet<PromptSetting> PromptSettings { get; set; }
 
 	public override Task<int> SaveChangesAsync(CancellationToken ct = new())
 	{

@@ -11,13 +11,12 @@ internal class PromptSettingsConfiguration : BaseEntityConfiguration<PromptSetti
 
 		builder.HasIndex(x => x.ScheduleId);
 
-		builder.Property(x => x.VideoPrompt).HasMaxLength(5000).IsRequired();
-		builder.Property(x => x.PicturePrompt).HasMaxLength(5000).IsRequired();
-		builder.Property(x => x.TextPrompt).HasMaxLength(5000).IsRequired();
-
+		builder.Property(x => x.VideoPrompt).HasMaxLength(5000);
+		builder.Property(x => x.PicturePrompt).HasMaxLength(5000);
+		builder.Property(x => x.TextPrompt).HasMaxLength(5000);
+		
 		builder.HasOne(x => x.Schedule)
 			.WithOne(x => x.PromptSetting)
 			.HasForeignKey<PromptSetting>(d => d.ScheduleId);
-
 	}
 }
