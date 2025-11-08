@@ -118,7 +118,8 @@ public class Helper(PosterContext context)
 			NeedVerifiedPosts = true,
 			ScheduleId = schedule!.Id,
 			Status = status,
-			CheckNewPosts = checkNewPosts
+			CheckNewPosts = checkNewPosts,
+			Schedule = schedule
 		};
 
 		await context.ChannelParsingParameters.AddAsync(cpp);

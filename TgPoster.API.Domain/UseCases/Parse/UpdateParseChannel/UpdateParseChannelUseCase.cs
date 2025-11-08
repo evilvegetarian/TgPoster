@@ -15,7 +15,6 @@ internal class UpdateParseChannelUseCase(IIdentityProvider provider, IUpdatePars
 			throw new ParseChannelNotFoundException();
 		}
 
-
 		await storage.UpdateParseChannelAsync(request, cancellationToken);
 	}
 }
