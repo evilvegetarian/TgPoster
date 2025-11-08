@@ -23,47 +23,6 @@ internal sealed class ListMessageStorage(PosterContext context) : IListMessageSt
 			.FirstOrDefaultAsync(ct);
 	}
 
-	public async Task<PagedList<MessageDto>> GetMessagesAsync(
-		Guid scheduleId,
-		int pageNumber,
-		int pageSize,
-		string? requestSearchText,
-		CancellationToken ct
-	)
-	{
-		var query = context.Messages
-			.Where(message => message.ScheduleId == scheduleId)
-			.OrderByDescending(m => m.TimePosting);
-
-		var totalCount = await query.CountAsync(ct);
-
-		var messages = await query
-			.Skip((pageNumber - 1) * pageSize)
-			.Take(pageSize)
-			.Include(message => message.MessageFiles)
-			.ToListAsync(ct);
-
-		var messageDtos = messages.Select(message => new MessageDto
-		{
-			Id = message.Id,
-			TextMessage = message.TextMessage,
-			ScheduleId = message.ScheduleId,
-			TimePosting = message.TimePosting,
-			IsVerified = message.IsVerified,
-			Files = message.MessageFiles.Select(file => new FileDto
-			{
-				Id = file.Id,
-				ContentType = file.ContentType,
-				TgFileId = file.TgFileId,
-				PreviewIds = file is VideoMessageFile videoFile
-					? videoFile.ThumbnailIds.ToList()
-					: []
-			}).ToList()
-		}).ToList();
-
-		return new PagedList<MessageDto>(messageDtos, totalCount);
-	}
-
 	public async Task<PagedList<MessageDto>> GetMessagesAsync(ListMessageQuery request, CancellationToken ct)
 	{
 		var query = context.Messages
@@ -125,6 +84,8 @@ internal sealed class ListMessageStorage(PosterContext context) : IListMessageSt
 			ScheduleId = message.ScheduleId,
 			TimePosting = message.TimePosting,
 			IsVerified = message.IsVerified,
+			Created = message.Created,
+			IsSent = message.Status == Data.Enum.MessageStatus.Send,
 			Files = message.MessageFiles.Select(file => new FileDto
 			{
 				Id = file.Id,

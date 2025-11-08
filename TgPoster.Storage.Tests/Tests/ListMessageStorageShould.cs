@@ -45,9 +45,7 @@ public class ListMessageStorageShould(StorageTestFixture fixture) : IClassFixtur
 	public async Task GetApiTokenAsync_WithNonExistingSchedule_ShouldReturnNull()
 	{
 		var nonExistingScheduleId = Guid.NewGuid();
-
 		var result = await sut.GetApiTokenAsync(nonExistingScheduleId, CancellationToken.None);
-
 		result.ShouldBeNull();
 	}
 
@@ -97,7 +95,7 @@ public class ListMessageStorageShould(StorageTestFixture fixture) : IClassFixtur
 	}
 
 	[Fact]
-	public async Task GetMessagesAsync_ShouldReturnMessagesWithFiles()
+	public async Task GetMessagesAsync_WithFiles_ShouldReturnMessagesWithFiles()
 	{
 		var schedule = await helper.CreateScheduleAsync();
 		var message = await helper.CreateMessageAsync(schedule.Id);
@@ -135,4 +133,72 @@ public class ListMessageStorageShould(StorageTestFixture fixture) : IClassFixtur
 		returnedMessage.TextMessage.ShouldBe(message.TextMessage);
 		returnedMessage.ScheduleId.ShouldBe(message.ScheduleId);
 	}
+	
+	[Fact]
+	public async Task GetMessagesAsync_SortByCreatedAtAsc_ShouldReturnSortedMessages()
+	{
+		var schedule = await helper.CreateScheduleAsync();
+		var message = await helper.CreateMessageAsync(schedule.Id, 4);
+		var request = new ListMessageQuery(schedule.Id, 1, 10, MessageSortBy.CreatedAt, SortDirection.Asc, null, MessageStatus.All);
+		var result = await sut.GetMessagesAsync(request, CancellationToken.None);
+		var returnedMessages = result.Items;
+
+		returnedMessages.ShouldNotBeEmpty();
+		returnedMessages.Select(x => x.Id).ShouldBe(message.Select(x => x.Id));
+		returnedMessages.Select(m => m.Created).ShouldBeInOrder(Shouldly.SortDirection.Ascending);
+	}
+	
+	[Fact]
+	public async Task GetMessagesAsync_SortByCreatedAtDesc_ShouldReturnSortedMessages()
+	{
+		var schedule = await helper.CreateScheduleAsync();
+		var message = await helper.CreateMessageAsync(schedule.Id, 4);
+		var request = new ListMessageQuery(schedule.Id, 1, 10, MessageSortBy.CreatedAt, SortDirection.Desc, null, MessageStatus.All);
+		var result = await sut.GetMessagesAsync(request, CancellationToken.None);
+		var returnedMessages = result.Items;
+
+		returnedMessages.ShouldNotBeEmpty();
+		returnedMessages.Select(x => x.Id).ShouldBe(message.OrderByDescending(m => m.Created).Select(m => m.Id));
+		returnedMessages.Select(m => m.Created).ShouldBeInOrder(Shouldly.SortDirection.Descending);
+	}
+
+	[Fact]
+	public async Task GetMessagesAsync_FilteredByMessageStatusDelivered_ShouldReturnFilteredMessages()
+	{
+		var schedule = await helper.CreateScheduleAsync();
+		var message = await helper.CreateMessageAsync(schedule.Id, 4);
+
+		var request = new ListMessageQuery(schedule.Id, 1, 10, MessageSortBy.CreatedAt, SortDirection.Desc, null, MessageStatus.Delivered);
+		var result = await sut.GetMessagesAsync(request, CancellationToken.None);
+		var returnedMessages = result.Items;
+
+		returnedMessages.ShouldAllBe(x => x.IsSent);
+	}
+	
+	[Fact]
+	public async Task GetMessagesAsync_FilteredByMessageStatusNotApproved_ShouldReturnFilteredMessages()
+	{
+		var schedule = await helper.CreateScheduleAsync();
+		var message = await helper.CreateMessageAsync(schedule.Id, 4);
+
+		var request = new ListMessageQuery(schedule.Id, 1, 10, MessageSortBy.CreatedAt, SortDirection.Desc, null, MessageStatus.NotApproved);
+		var result = await sut.GetMessagesAsync(request, CancellationToken.None);
+		var returnedMessages = result.Items;
+
+		returnedMessages.ShouldAllBe(x => !x.IsVerified);
+	}
+	
+	[Fact]
+	public async Task GetMessagesAsync_FilteredByMessageStatusPlaned_ShouldReturnFilteredMessages()
+	{
+		var schedule = await helper.CreateScheduleAsync();
+		var message = await helper.CreateMessageAsync(schedule.Id, 4);
+
+		var request = new ListMessageQuery(schedule.Id, 1, 10, MessageSortBy.CreatedAt, SortDirection.Desc, null, MessageStatus.Planed);
+		var result = await sut.GetMessagesAsync(request, CancellationToken.None);
+		var returnedMessages = result.Items;
+
+		returnedMessages.ShouldAllBe(x => x.IsVerified);
+	}
+	
 }

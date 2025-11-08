@@ -141,10 +141,21 @@ public class Helper(PosterContext context)
 			TextMessage = faker.Lorem.Sentence(),
 			TimePosting = DateTimeOffset.UtcNow.AddHours(faker.Random.Int(1, 24)),
 			IsTextMessage = true,
-			Status = MessageStatus.Register
+			Status = faker.Random.Enum<MessageStatus>(),
 		};
 		await context.Messages.AddAsync(message);
 		await context.SaveChangesAsync();
+		return message;
+	}
+
+	public async Task<List<Message>> CreateMessageAsync(Guid scheduleId, int countMessages)
+	{
+		var message = new List<Message>();
+		for (var i = 0; i < countMessages; i++)
+		{
+			message.Add(await CreateMessageAsync(scheduleId));
+		}
+
 		return message;
 	}
 

@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using Shouldly;
 using TgPoster.Storage.Data;
 using TgPoster.Storage.Data.Enum;
@@ -95,5 +96,19 @@ public class ParseChannelWorkerStorageShould(StorageTestFixture fixture) : IClas
 
 		// Assert
 		cpp.Status.ShouldBe(ParsingStatus.Waiting);
+	}
+	
+	[Fact]
+	public async Task SetErrorStatusAsync_ShouldUpdateStatusForExistingId()
+	{
+		var cpp = await helper.CreateChannelParsingParametersAsync();
+		cpp.Status = ParsingStatus.InHandle;
+		await context.SaveChangesAsync();
+
+		await sut.SetErrorStatusAsync(cpp.Id);
+		
+		var channelParsingParameters = await context.ChannelParsingParameters.FirstOrDefaultAsync(x => x.Id == cpp.Id);
+		channelParsingParameters.ShouldNotBeNull();
+		channelParsingParameters.Status.ShouldBe(ParsingStatus.Failed);
 	}
 }

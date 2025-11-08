@@ -19,7 +19,6 @@ public enum MessageStatus
 	Delivered // Доставлено
 }
 
-// Для примера определим поля для сортировки
 public enum MessageSortBy
 {
 	CreatedAt, // По дате создания

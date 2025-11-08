@@ -23,12 +23,12 @@ public sealed class Message : BaseEntity
 	///     Если в TextMessage больше 1024 символов, в нем не могут быть файлы,
 	///     Если меньше или равно 1024 то, текст становится caption к первому файлу.
 	/// </summary>
-	public required bool IsTextMessage { get; init; }
+	public required bool IsTextMessage { get; set; }
 
 	/// <summary>
 	///     Статус сообщения
 	/// </summary>
-	public MessageStatus Status { get; init; }
+	public MessageStatus Status { get; set; }
 
 	/// <summary>
 	///     Сообщение верифицировано
