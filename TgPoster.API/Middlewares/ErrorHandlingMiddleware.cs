@@ -1,6 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
+using Shared.SharedException;
 using Telegram.Bot.Exceptions;
 using TgPoster.API.Domain.Exceptions;
 
@@ -29,7 +30,7 @@ internal sealed class ErrorHandlingMiddleware(RequestDelegate next)
 			ProblemDetails problemDetails;
 			switch (exception)
 			{
-				case ArgumentException or ValidationException or DomainException:
+				case ArgumentException or ValidationException or DomainException or SharedException:
 					problemDetails = problemDetailsFactory.CreateProblemDetails(
 						context,
 						StatusCodes.Status400BadRequest,

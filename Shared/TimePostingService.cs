@@ -1,3 +1,5 @@
+using Shared.SharedException;
+
 namespace Shared;
 
 public sealed class TimePostingService
@@ -8,6 +10,9 @@ public sealed class TimePostingService
 		DateTimeOffset existMessageTimePosting
 	)
 	{
+		if (scheduleTime.Count == 0)
+			throw new NotFoundTimeException();
+		
 		var currentDateValue = existMessageTimePosting > DateTimeOffset.UtcNow
 			? existMessageTimePosting
 			: DateTimeOffset.UtcNow;

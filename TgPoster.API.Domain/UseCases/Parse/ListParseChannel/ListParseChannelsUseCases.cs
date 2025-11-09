@@ -8,6 +8,6 @@ internal sealed class ListParseChannelsUseCases(IListParseChannelsStorage storag
 {
 	public Task<List<ParseChannelsResponse>> Handle(ListParseChannelsQuery request, CancellationToken ct)
 	{
-		return storage.GetChannelAsync(identity.Current.UserId, ct);
+		return storage.GetChannelParsingParametersAsync(identity.Current.UserId, ct);
 	}
 }

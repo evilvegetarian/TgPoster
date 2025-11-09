@@ -7,11 +7,11 @@ public sealed class TimePostingServiceShould
 	private readonly TimePostingService sut = new();
 
 	[Fact]
-	public void GetTimeForPosting_ScheduleTimeNull_ThrowsArgumentNullException()
+	public void GetTimeForPosting_ScheduleTimeNull_ThrowsException()
 	{
 		var scheduleTime = new Dictionary<DayOfWeek, List<TimeOnly>>();
 		var existingTimes = new List<DateTimeOffset>();
-		Should.Throw<ArgumentNullException>(() => sut.GetTimeForPosting(5, scheduleTime, existingTimes));
+		Should.Throw<SharedException.SharedException>(() => sut.GetTimeForPosting(5, scheduleTime, existingTimes));
 	}
 
 	[Fact]
