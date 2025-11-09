@@ -6,13 +6,13 @@ public abstract class BaseEntity
 	public required Guid Id { get; set; }
 
 	/// <summary>Дата и время создания сущности.</summary>
-	public DateTime? Created { get; set; }
+	public DateTimeOffset? Created { get; set; }
 
 	/// <summary>Дата и время последнего обновления сущности.</summary>
-	public DateTime? Updated { get; set; }
+	public DateTimeOffset? Updated { get; set; }
 
 	/// <summary>Дата и время удаления (мягкого удаления) сущности.</summary>
-	public DateTime? Deleted { get; set; }
+	public DateTimeOffset? Deleted { get; set; }
 
 	/// <summary>ID пользователя создавшего запись.</summary>
 	public Guid? CreatedById { get; set; }

@@ -41,7 +41,7 @@ public sealed class Message : BaseEntity
 	/// <summary>
 	///     Расписание
 	/// </summary>
-	public Schedule Schedule { get; init; } = null!;
+	public Schedule Schedule { get; set; } = null!;
 
 	/// <summary>
 	///     Файлы сообщения

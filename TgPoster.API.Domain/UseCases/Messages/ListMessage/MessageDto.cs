@@ -8,6 +8,6 @@ public sealed class MessageDto
 	public string? TextMessage { get; set; }
 	public bool IsVerified { get; set; }
 	public List<FileDto> Files { get; set; } = [];
-	public DateTime? Created { get; set; }
+	public DateTimeOffset? Created { get; set; }
 	public bool IsSent { get; set; }
 }

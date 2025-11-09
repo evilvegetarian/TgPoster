@@ -1,16 +1,15 @@
 using Microsoft.EntityFrameworkCore;
 using Shouldly;
 using TgPoster.Storage.Data;
-using TgPoster.Storage.Data.Entities;
-using TgPoster.Storage.Data.VO;
 using TgPoster.Storage.Storages;
+using TgPoster.Storage.Tests.Builders;
 
 namespace TgPoster.Storage.Tests.Tests;
 
 public class SignOnStorageShould(StorageTestFixture fixture) : IClassFixture<StorageTestFixture>
 {
 	private readonly PosterContext _context = fixture.GetDbContext();
-	private readonly SignOnStorage sut = new( fixture.GetDbContext(), new GuidFactory());
+	private readonly SignOnStorage sut = new(fixture.GetDbContext(), new GuidFactory());
 
 	[Fact]
 	public async Task CreateUserAsync_WithValidData_ShouldAddUserAndReturnId()
@@ -19,7 +18,7 @@ public class SignOnStorageShould(StorageTestFixture fixture) : IClassFixture<Sto
 		var password = "password123";
 
 		var userId = await sut.CreateUserAsync(username, password, CancellationToken.None);
-		
+
 		var userInDb = await _context.Users.FirstOrDefaultAsync(x => x.Id == userId);
 		userInDb.ShouldNotBeNull();
 		userInDb.UserName.Value.ShouldBe(username);
@@ -69,14 +68,9 @@ public class SignOnStorageShould(StorageTestFixture fixture) : IClassFixture<Sto
 	public async Task HaveUserNameAsync_WithExistingUsername_ShouldReturnTrue()
 	{
 		var username = "Mickle";
-		var user = new User
-		{
-			Id = Guid.Parse("55d75f74-5c1b-43a3-8cae-777e80b68aaf"),
-			UserName = new UserName(username),
-			PasswordHash = "password123"
-		};
-		await _context.Users.AddAsync(user);
-		await _context.SaveChangesAsync();
+		new UserBuilder(_context)
+			.WithName(username)
+			.Create();
 
 		var haveUser = await sut.HaveUserNameAsync(username, CancellationToken.None);
 		haveUser.ShouldBeTrue();
@@ -88,22 +82,18 @@ public class SignOnStorageShould(StorageTestFixture fixture) : IClassFixture<Sto
 		var haveUser = await sut.HaveUserNameAsync("FIlimon", CancellationToken.None);
 		haveUser.ShouldBeFalse();
 	}
-	
+
 	[Fact]
-	public async Task HaveUserNameAsync_WithDeliteUser_ShouldReturnTrue()
+	public async Task HaveUserNameAsync_WithDelitedUser_ShouldReturnTrue()
 	{
 		var username = "dickle121";
-		var user = new User
-		{
-			Id = Guid.Parse("55d75f74-5c1b-43a3-8cae-777e80b68aaf"),
-			UserName = new UserName(username),
-			PasswordHash = "password123"
-		};
-		await _context.Users.AddAsync(user);
-		await _context.SaveChangesAsync();
+		var user = new UserBuilder(_context)
+			.WithName(username)
+			.Create();
+
 		_context.Users.Remove(user);
 		await _context.SaveChangesAsync();
-		
+
 		var haveUser = await sut.HaveUserNameAsync(username, CancellationToken.None);
 		haveUser.ShouldBeTrue();
 	}
@@ -113,9 +103,9 @@ public class SignOnStorageShould(StorageTestFixture fixture) : IClassFixture<Sto
 	{
 		var username = "user!@#1";
 		var password = "passwordssda";
-    
+
 		var id = await sut.CreateUserAsync(username, password, CancellationToken.None);
-    
+
 		var user = await _context.Users.FirstOrDefaultAsync(x => x.Id == id);
 		user.ShouldNotBeNull();
 		user.UserName.Value.ShouldBe(username);

@@ -5,44 +5,22 @@ using TgPoster.Storage.Data;
 using TgPoster.Storage.Data.Entities;
 using TgPoster.Storage.Data.Enum;
 using TgPoster.Storage.Storages;
+using TgPoster.Storage.Tests.Builders;
 
 namespace TgPoster.Storage.Tests.Tests;
 
 public class CreateMessagesFromFilesUseCaseStorageShould(StorageTestFixture fixture) : IClassFixture<StorageTestFixture>
 {
 	private readonly PosterContext _context = fixture.GetDbContext();
-	private readonly Helper _helper = new(fixture.GetDbContext());
 	private readonly CreateMessagesFromFilesUseCaseStorage _sut = new(fixture.GetDbContext(), new GuidFactory());
 
 	[Fact]
 	public async Task GetTelegramBot_WithMatchingScheduleAndUser_ShouldReturnTelegramBotDto()
 	{
-		var user = await _helper.CreateUserAsync();
-		var telegramBot = new TelegramBot
-		{
-			Id = Guid.Parse("0dae0ada-72aa-4b01-a6d8-75ce91e111b2"),
-			ApiTelegram = "TestApiToken",
-			ChatId = 123456789,
-			OwnerId = user.Id,
-			Name = "TestBot"
-		};
+		var telegramBot = new TelegramBotBuilder(_context).Create();
+		var schedule = new ScheduleBuilder(_context).WithUserId(telegramBot.OwnerId).WithTelegramBotId(telegramBot.Id).Create();
 
-		var schedule = new Schedule
-		{
-			Id = Guid.Parse("94e4b510-ab21-48c1-9f57-4f77865cb59b"),
-			Name = "schedule",
-			UserId = user.Id,
-			TelegramBotId = telegramBot.Id,
-			ChannelId = -102044234502040,
-			ChannelName = "TestChannel",
-			IsActive = true
-		};
-
-		await _context.TelegramBots.AddAsync(telegramBot);
-		await _context.Schedules.AddAsync(schedule);
-		await _context.SaveChangesAsync();
-
-		var result = await _sut.GetTelegramBotAsync(schedule.Id, user.Id, CancellationToken.None);
+		var result = await _sut.GetTelegramBotAsync(schedule.Id, schedule.UserId, CancellationToken.None);
 
 		result.ShouldNotBeNull();
 		result.ApiTelegram.ShouldBe(telegramBot.ApiTelegram);
@@ -52,31 +30,9 @@ public class CreateMessagesFromFilesUseCaseStorageShould(StorageTestFixture fixt
 	[Fact]
 	public async Task GetTelegramBot_WithScheduleNotFoundOrUserMismatch_ShouldReturnNull()
 	{
-		var user = await _helper.CreateUserAsync();
+		var telegramBot = new TelegramBotBuilder(_context).Create();
+		var schedule = new ScheduleBuilder(_context).WithTelegramBotId(telegramBot.Id).Create();
 
-		var telegramBot = new TelegramBot
-		{
-			Id = Guid.Parse("73515119-d27b-4316-8b73-fc9f9731fd95"),
-			ApiTelegram = "AnotherApiToken",
-			ChatId = 987654321,
-			OwnerId = user.Id,
-			Name = "AnotherBot"
-		};
-
-		var schedule = new Schedule
-		{
-			Id = Guid.Parse("94e4b510-ab21-48c1-9f57-4f77865cb593"),
-			Name = "schedule",
-			UserId = user.Id,
-			ChannelId = -102044234502052,
-			TelegramBotId = telegramBot.Id,
-			ChannelName = "TestChannel",
-			IsActive = true
-		};
-
-		await _context.TelegramBots.AddAsync(telegramBot);
-		await _context.Schedules.AddAsync(schedule);
-		await _context.SaveChangesAsync();
 		var anotherUser = Guid.Parse("b498cffb-ec28-4c27-a757-3192e2064e38");
 		var result = await _sut.GetTelegramBotAsync(schedule.Id, anotherUser, CancellationToken.None);
 
@@ -84,74 +40,60 @@ public class CreateMessagesFromFilesUseCaseStorageShould(StorageTestFixture fixt
 	}
 
 	[Fact]
-	public async Task GetExistMessageTimePosting_WithFutureAndPastMessages_ShouldReturnOnlyFutureRegisterMessages()
+	public async Task GetExistMessageTimePosting_WithFutureAndRegisterMessage_ShouldReturnOnlyFutureRegisterMessages()
 	{
-		var schedule = await _helper.CreateScheduleAsync();
+		var schedule = new ScheduleBuilder(_context).Create();
+
 		var futureTime1 = DateTimeOffset.UtcNow.AddHours(1);
 		var futureTime2 = DateTimeOffset.UtcNow.AddHours(2);
 		var futureTime3 = DateTimeOffset.UtcNow.AddHours(5);
+
 		var pastTime1 = DateTimeOffset.UtcNow.AddHours(-1);
 		var pastTime2 = DateTimeOffset.UtcNow.AddHours(-2);
 
 		var messages = new List<Message>
 		{
-			new()
-			{
-				Id = Guid.Parse("344863e2-9d4e-4b80-ade6-4fb9f26ff9d0"),
-				ScheduleId = schedule.Id,
-				TimePosting = futureTime1,
-				Status = MessageStatus.Register,
-				IsTextMessage = true,
-				TextMessage = "This is a text message"
-			},
-			new()
-			{
-				Id = Guid.Parse("b2181baa-3347-4d62-b1d2-3a7480393133"),
-				ScheduleId = schedule.Id,
-				TimePosting = futureTime2,
-				Status = MessageStatus.Register,
-				IsTextMessage = false
-			},
-			new()
-			{
-				Id = Guid.Parse("eec8649d-8705-4e8e-9546-c5604781e1f8"),
-				ScheduleId = schedule.Id,
-				TimePosting = pastTime1,
-				Status = MessageStatus.Register,
-				IsTextMessage = false
-			},
-			new()
-			{
-				Id = Guid.Parse("a443de29-9913-4be9-a5e7-295c03f8843f"),
-				ScheduleId = schedule.Id,
-				TimePosting = pastTime2,
-				Status = MessageStatus.Send,
-				IsTextMessage = true,
-				TextMessage = "This is a text message"
-			},
-			new()
-			{
-				Id = Guid.Parse("3e327f1f-000a-4142-905c-d57bc2a467cd"),
-				ScheduleId = schedule.Id,
-				TimePosting = futureTime3,
-				Status = MessageStatus.Error,
-				IsTextMessage = true,
-				TextMessage = "This is a text message"
-			}
+			new MessageBuilder(_context)
+				.WithScheduleId(schedule.Id)
+				.WithTimeMessage(futureTime1)
+				.WithStatus(MessageStatus.Register)
+				.Build(),
+			new MessageBuilder(_context)
+				.WithScheduleId(schedule.Id)
+				.WithTimeMessage(futureTime2)
+				.WithStatus(MessageStatus.Register)
+				.Build(),
+			new MessageBuilder(_context)
+				.WithScheduleId(schedule.Id)
+				.WithTimeMessage(futureTime3)
+				.WithStatus(MessageStatus.Error)
+				.Build(),
+			new MessageBuilder(_context)
+				.WithScheduleId(schedule.Id)
+				.WithTimeMessage(pastTime1)
+				.WithStatus(MessageStatus.Register)
+				.Build(),
+			new MessageBuilder(_context)
+				.WithScheduleId(schedule.Id)
+				.WithTimeMessage(pastTime2)
+				.WithStatus(MessageStatus.Register)
+				.Build()
 		};
 
 		await _context.Messages.AddRangeAsync(messages);
 		await _context.SaveChangesAsync();
 
 		var result = await _sut.GetExistMessageTimePostingAsync(schedule.Id, CancellationToken.None);
-		var ss = result.Select(x => x.DateTime).ToList();
-		ss.Count().ShouldBe(2);
+		result.Count.ShouldBe(2);
+		result.Select(x=>x.ToString()).ShouldContain(futureTime1.ToString());
+		result.Select(x=>x.ToString()).ShouldContain(futureTime2.ToString());
 	}
 
 	[Fact]
 	public async Task GetScheduleTime_WithValidScheduleId_ShouldReturnDictionaryOfDayAndTimePostings()
 	{
-		var schedule = await _helper.CreateScheduleAsync();
+		var schedule = new ScheduleBuilder(_context).Create();
+
 		var day1 = new Day
 		{
 			Id = Guid.Parse("94a850f1-cdaa-4ec5-a3da-e1d6351708bd"),
@@ -183,7 +125,7 @@ public class CreateMessagesFromFilesUseCaseStorageShould(StorageTestFixture fixt
 	[Fact]
 	public async Task CreateMessages_WithValidData_ShouldCreateMessagesWithProperFiles()
 	{
-		var schedule = await _helper.CreateScheduleAsync();
+		var schedule = new ScheduleBuilder(_context).Create();
 
 		var file1 = new MediaFileResult
 		{

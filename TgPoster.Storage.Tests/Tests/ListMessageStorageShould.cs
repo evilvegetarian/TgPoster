@@ -1,7 +1,9 @@
 using Shouldly;
 using TgPoster.API.Domain.UseCases.Messages.ListMessage;
 using TgPoster.Storage.Data;
+using TgPoster.Storage.Data.Entities;
 using TgPoster.Storage.Storages;
+using TgPoster.Storage.Tests.Builders;
 using SortDirection = TgPoster.API.Domain.UseCases.Messages.ListMessage.SortDirection;
 
 namespace TgPoster.Storage.Tests.Tests;
@@ -165,8 +167,15 @@ public sealed class ListMessageStorageShould(StorageTestFixture fixture) : IClas
 	[Fact]
 	public async Task GetMessagesAsync_WithPagination_ShouldReturnExpectedPageAndTotalCount()
 	{
-		var schedule = await helper.CreateScheduleAsync();
-		var messages = (await helper.CreateMessagesAsync(schedule.Id, 5)).OrderBy(m => m.Created).ToList();
+		var schedule = await new ScheduleBuilder(context).CreateAsync();
+		var messages = new List<Message>
+		{
+			await new MessageBuilder(context).WithSchedule(schedule).CreateAsync(),
+			await new MessageBuilder(context).WithSchedule(schedule).CreateAsync(),
+			await new MessageBuilder(context).WithSchedule(schedule).CreateAsync(),
+			await new MessageBuilder(context).WithSchedule(schedule).CreateAsync(),
+			await new MessageBuilder(context).WithSchedule(schedule).CreateAsync(),
+		};
 
 		var request = CreateQuery(
 			schedule.Id,
@@ -188,13 +197,12 @@ public sealed class ListMessageStorageShould(StorageTestFixture fixture) : IClas
 	[InlineData(SortDirection.Desc)]
 	public async Task GetMessagesAsync_SortBySentAt_ShouldRespectDirection(SortDirection direction)
 	{
-		var schedule = await helper.CreateScheduleAsync();
-		var earlier = await helper.CreateMessageAsync(schedule.Id);
-		var later = await helper.CreateMessageAsync(schedule.Id);
-		var now = DateTime.UtcNow;
-		earlier.TimePosting = now.AddHours(-1);
-		later.TimePosting = now.AddHours(1);
-		await context.SaveChangesAsync();
+		var schedule = await new ScheduleBuilder(context).CreateAsync();
+
+		var earlier = await new MessageBuilder(context).WithSchedule(schedule)
+			.WithTimeMessage(DateTime.UtcNow.AddDays(1)).CreateAsync();
+		var later = await new MessageBuilder(context).WithSchedule(schedule).WithTimeMessage(DateTime.UtcNow.AddDays(5))
+			.CreateAsync();
 
 		var request = CreateQuery(schedule.Id, sortBy: MessageSortBy.SentAt, sortDirection: direction);
 
@@ -210,8 +218,14 @@ public sealed class ListMessageStorageShould(StorageTestFixture fixture) : IClas
 	[Fact]
 	public async Task GetMessagesAsync_SortByCreatedAtAsc_ShouldReturnSortedMessages()
 	{
-		var schedule = await helper.CreateScheduleAsync();
-		var messages = (await helper.CreateMessagesAsync(schedule.Id, 4)).OrderBy(m => m.Created).ToList();
+		var schedule = await new ScheduleBuilder(context).CreateAsync();
+		var messages = new List<Message>
+		{
+			await new MessageBuilder(context).WithSchedule(schedule).CreateAsync(),
+			await new MessageBuilder(context).WithSchedule(schedule).CreateAsync(),
+			await new MessageBuilder(context).WithSchedule(schedule).CreateAsync(),
+			await new MessageBuilder(context).WithSchedule(schedule).CreateAsync(),
+		};
 		var request = CreateQuery(schedule.Id, sortBy: MessageSortBy.CreatedAt, sortDirection: SortDirection.Asc);
 
 		var result = await sut.GetMessagesAsync(request, Ct);
@@ -224,8 +238,12 @@ public sealed class ListMessageStorageShould(StorageTestFixture fixture) : IClas
 	[Fact]
 	public async Task GetMessagesAsync_SortByCreatedAtDesc_ShouldReturnSortedMessages()
 	{
-		var schedule = await helper.CreateScheduleAsync();
-		var messages = (await helper.CreateMessagesAsync(schedule.Id, 4)).OrderByDescending(m => m.Created).ToList();
+		var schedule = await new ScheduleBuilder(context).CreateAsync();
+		var message1 = await new MessageBuilder(context).WithSchedule(schedule).CreateAsync();
+		var message2 = await new MessageBuilder(context).WithSchedule(schedule).CreateAsync();
+		var message3 = await new MessageBuilder(context).WithSchedule(schedule).CreateAsync();
+		var message4 = await new MessageBuilder(context).WithSchedule(schedule).CreateAsync();
+		var messages = new List<Message> { message4, message3, message2, message1 };
 		var request = CreateQuery(schedule.Id, sortBy: MessageSortBy.CreatedAt, sortDirection: SortDirection.Desc);
 
 		var result = await sut.GetMessagesAsync(request, Ct);
@@ -238,13 +256,13 @@ public sealed class ListMessageStorageShould(StorageTestFixture fixture) : IClas
 	[Fact]
 	public async Task GetMessagesAsync_FilteredByMessageStatusDelivered_ShouldReturnFilteredMessages()
 	{
-		var schedule = await helper.CreateScheduleAsync();
-		var messages = await helper.CreateMessagesAsync(schedule.Id, 2);
-		messages[0].Status = Data.Enum.MessageStatus.Send;
 		var notSendStatus = Enum.GetValues<TgPoster.Storage.Data.Enum.MessageStatus>()
 			.First(status => status != Data.Enum.MessageStatus.Send);
-		messages[1].Status = notSendStatus;
-		await context.SaveChangesAsync();
+		var schedule = await new ScheduleBuilder(context).CreateAsync();
+		var sendMessage = await new MessageBuilder(context).WithSchedule(schedule)
+			.WithStatus(Data.Enum.MessageStatus.Send).CreateAsync();
+		var notSendMessage = await new MessageBuilder(context).WithSchedule(schedule).WithStatus(notSendStatus)
+			.CreateAsync();
 
 		var request = CreateQuery(schedule.Id, status: MessageStatus.Delivered, sortBy: MessageSortBy.CreatedAt,
 			sortDirection: SortDirection.Desc);
@@ -252,19 +270,20 @@ public sealed class ListMessageStorageShould(StorageTestFixture fixture) : IClas
 		var result = await sut.GetMessagesAsync(request, Ct);
 
 		result.Items.ShouldNotBeEmpty();
-		result.Items.Select(x => x.Id).ShouldBe([messages[0].Id]);
+		result.Items.Select(x => x.Id).ShouldContain(sendMessage.Id);
 		result.Items.ShouldAllBe(x => x.IsSent);
 	}
 
 	[Fact]
 	public async Task GetMessagesAsync_FilteredByMessageStatusNotApproved_ShouldReturnFilteredMessages()
 	{
-		var schedule = await helper.CreateScheduleAsync();
-		var messages = await helper.CreateMessagesAsync(schedule.Id, 3);
-		messages[0].IsVerified = false;
-		messages[1].IsVerified = true;
-		messages[2].IsVerified = false;
-		await context.SaveChangesAsync();
+		var schedule = await new ScheduleBuilder(context).CreateAsync();
+		var messages = new List<Message>
+		{
+			await new MessageBuilder(context).WithSchedule(schedule).WithIsVerified(false).CreateAsync(),
+			await new MessageBuilder(context).WithSchedule(schedule).WithIsVerified(true).CreateAsync(),
+			await new MessageBuilder(context).WithSchedule(schedule).WithIsVerified(false).CreateAsync(),
+		};
 
 		var request = CreateQuery(schedule.Id, status: MessageStatus.NotApproved, sortBy: MessageSortBy.CreatedAt,
 			sortDirection: SortDirection.Desc);
@@ -283,12 +302,14 @@ public sealed class ListMessageStorageShould(StorageTestFixture fixture) : IClas
 	[Fact]
 	public async Task GetMessagesAsync_FilteredByMessageStatusPlaned_ShouldReturnFilteredMessages()
 	{
-		var schedule = await helper.CreateScheduleAsync();
-		var messages = await helper.CreateMessagesAsync(schedule.Id, 3);
-		messages[0].IsVerified = true;
-		messages[1].IsVerified = false;
-		messages[2].IsVerified = true;
-		await context.SaveChangesAsync();
+		var schedule = await new ScheduleBuilder(context).CreateAsync();
+
+		var messages = new List<Message>
+		{
+			await new MessageBuilder(context).WithSchedule(schedule).WithIsVerified(true).CreateAsync(),
+			await new MessageBuilder(context).WithSchedule(schedule).WithIsVerified(false).CreateAsync(),
+			await new MessageBuilder(context).WithSchedule(schedule).WithIsVerified(true).CreateAsync(),
+		};
 
 		var request = CreateQuery(schedule.Id, status: MessageStatus.Planed, sortBy: MessageSortBy.CreatedAt,
 			sortDirection: SortDirection.Desc);

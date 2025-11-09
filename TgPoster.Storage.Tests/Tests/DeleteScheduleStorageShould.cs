@@ -2,19 +2,19 @@ using Microsoft.EntityFrameworkCore;
 using Shouldly;
 using TgPoster.Storage.Data;
 using TgPoster.Storage.Storages;
+using TgPoster.Storage.Tests.Builders;
 
 namespace TgPoster.Storage.Tests.Tests;
 
 public class DeleteScheduleStorageShould(StorageTestFixture fixture) : IClassFixture<StorageTestFixture>
 {
 	private readonly PosterContext context = fixture.GetDbContext();
-	private readonly Helper helper = new(fixture.GetDbContext());
 	private readonly DeleteScheduleStorage sut = new(fixture.GetDbContext());
 
 	[Fact]
 	public async Task ScheduleExist_WithExistingSchedule_ShouldReturnTrue()
 	{
-		var schedule = await helper.CreateScheduleAsync();
+		var schedule = new ScheduleBuilder(context).Create();
 		var exist = await sut.ScheduleExistAsync(schedule.Id, schedule.UserId);
 		exist.ShouldBeTrue();
 	}
@@ -30,8 +30,9 @@ public class DeleteScheduleStorageShould(StorageTestFixture fixture) : IClassFix
 	[Fact]
 	public async Task DeleteSchedule_WithValidId_ShouldMarkAsDeleted()
 	{
-		var newSchedule = await helper.CreateScheduleAsync();
+		var newSchedule = new ScheduleBuilder(context).Create();
 		await sut.DeleteScheduleAsync(newSchedule.Id);
+		context.ChangeTracker.Clear();
 		var schedule = await context.Schedules
 			.IgnoreQueryFilters()
 			.FirstOrDefaultAsync(x => x.Id == newSchedule.Id);
