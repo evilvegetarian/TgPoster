@@ -1,0 +1,20 @@
+using Microsoft.EntityFrameworkCore;
+using TgPoster.API.Domain.UseCases.OpenRouterSetting.GetOpenRouterSetting;
+using TgPoster.Storage.Data;
+
+namespace TgPoster.Storage.Storages;
+
+public class GetOpenRouterSettingStorage(PosterContext context) : IGetOpenRouterSettingStorage
+{
+	public Task<OpenRouterSettingDto?> Get(Guid id, Guid userId, CancellationToken ctx)
+	{
+		return context.OpenRouterSettings
+			.Where(o => o.Id == id)
+			.Where(o => o.UserId == userId)
+			.Select(x => new OpenRouterSettingDto
+			{
+				Model = x.Model,
+			})
+			.FirstOrDefaultAsync(ctx);
+	}
+}

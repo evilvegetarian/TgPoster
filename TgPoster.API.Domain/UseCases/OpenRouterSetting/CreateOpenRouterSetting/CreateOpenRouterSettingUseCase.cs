@@ -12,14 +12,17 @@ public class CreateOpenRouterSettingUseCase(
 	ICryptoAES cryptoAes,
 	IIdentityProvider provider,
 	OpenRouterClient openRouterClient
-) : IRequestHandler<CreateOpenRouterSettingCommand>
+) : IRequestHandler<CreateOpenRouterSettingCommand, CreateOpenRouterSettingResponse>
 {
-	public async Task Handle(CreateOpenRouterSettingCommand request, CancellationToken cancellationToken)
+	public async Task<CreateOpenRouterSettingResponse> Handle(
+		CreateOpenRouterSettingCommand request,
+		CancellationToken cancellationToken
+	)
 	{
 		var userId = provider.Current.UserId;
 		var response = await openRouterClient.SendMessageAsync(request.Token, "Работаешь?", request.Model);
 		var tokenEncrypted = cryptoAes.Encrypt(options.SecretKey, request.Token);
-
-		await storage.Create(tokenEncrypted, request.Model, userId, cancellationToken);
+		var id = await storage.Create(tokenEncrypted, request.Model, userId, cancellationToken);
+		return new CreateOpenRouterSettingResponse(id);
 	}
 }

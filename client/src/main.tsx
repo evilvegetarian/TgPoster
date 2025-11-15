@@ -10,13 +10,13 @@ import {ProtectedRoute} from "@/protected-route.tsx";
 import {HomePage} from "@/pages/home-page.tsx";
 import {App} from "@/app.tsx";
 import {PublicRoute} from "@/public-route.tsx";
-import {SchedulePage} from "@/pages/schedule-page.tsx";
 import {TelegramBotPage} from "@/pages/telegram-bot-page.tsx";
 import {ErrorPage} from "@/pages/error-page.tsx";
 import {ApproveMessagesPage} from "@/pages/approve-messages-page.tsx";
 import {ParseChannelPage} from "@/pages/parse-channel-page.tsx";
 import {MessagesPage} from "@/pages/messages-page.tsx";
 import {LogOutPage} from "@/pages/logout-page.tsx";
+import {SchedulePage} from "@/pages/schedule-page.tsx";
 
 const router = createBrowserRouter([
     {

@@ -19,9 +19,6 @@ namespace TgPoster.Endpoint.Tests;
 public class EndpointTestFixture : WebApplicationFactory<Program>, IAsyncLifetime
 {
 	private readonly PostgreSqlContainer dbContainer = new PostgreSqlBuilder()
-		.WithUsername("postgres")
-		.WithPassword("postgres")
-		.WithDatabase("testdb")
 		.Build();
 
 	public string? Token;

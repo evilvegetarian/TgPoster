@@ -7,7 +7,7 @@ namespace TgPoster.Storage.Storages;
 internal class CreateOpenRouterSettingStorage(PosterContext context, GuidFactory guidFactory)
 	: ICreateOpenRouterSettingStorage
 {
-	public async Task Create(string token, string model, Guid userId, CancellationToken cancellationToken)
+	public async Task<Guid> Create(string token, string model, Guid userId, CancellationToken cancellationToken)
 	{
 		var setting = new OpenRouterSetting
 		{
@@ -18,5 +18,6 @@ internal class CreateOpenRouterSettingStorage(PosterContext context, GuidFactory
 		};
 		await context.OpenRouterSettings.AddAsync(setting, cancellationToken);
 		await context.SaveChangesAsync(cancellationToken);
+		return setting.Id;
 	}
 }

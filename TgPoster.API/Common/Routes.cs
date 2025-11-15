@@ -72,15 +72,17 @@ internal static class Routes
 		internal const string Update = Root + "/{id:guid}";
 		internal const string Delete = Root + "/{id:guid}";
 	}
+
 	internal static class OpenRouterSetting
 	{
 		internal const string Root = Base + "/open-router-setting";
+		internal const string Get = Root + "/{id:guid}";
 		internal const string Create = Root;
 		internal const string List = Root;
 		internal const string Update = Root + "/{id:guid}";
 		internal const string Delete = Root + "/{id:guid}";
 	}
-	
+
 	internal static class PromptSetting
 	{
 		internal const string Root = Base + "/prompt-setting";
