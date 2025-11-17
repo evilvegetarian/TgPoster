@@ -8,17 +8,15 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="AutoBogus" Version="2.13.1"/>
+        <PackageReference Include="AutoBogus" Version="2.13.1" />
         <PackageReference Include="coverlet.collector" Version="6.0.4">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.4"/>
-        <PackageReference Include="Microsoft.Extensions.Configuration" Version="9.0.4"/>
-        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.13.0"/>
-        <PackageReference Include="Shouldly" Version="4.3.0"/>
-        <PackageReference Include="Testcontainers.PostgreSql" Version="4.3.0"/>
-        <PackageReference Include="xunit" Version="2.9.3"/>
+        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.13.0" />
+        <PackageReference Include="Shouldly" Version="4.3.0" />
+        <PackageReference Include="Testcontainers.PostgreSql" Version="4.3.0" />
+        <PackageReference Include="xunit" Version="2.9.3" />
         <PackageReference Include="xunit.runner.visualstudio" Version="3.0.2">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -26,11 +24,11 @@
     </ItemGroup>
 
     <ItemGroup>
-        <Using Include="Xunit"/>
+        <Using Include="Xunit" />
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\TgPoster.Storage\TgPoster.Storage.csproj"/>
+        <ProjectReference Include="..\TgPoster.Storage\TgPoster.Storage.csproj" />
     </ItemGroup>
 
 </Project>

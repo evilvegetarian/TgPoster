@@ -1,7 +1,7 @@
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
-using TgPoster.API.ConfigModels;
+using TgPoster.API.Configuration;
 
 namespace TgPoster.API.Telemetry;
 

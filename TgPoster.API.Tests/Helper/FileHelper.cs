@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.StaticFiles;
 
-namespace TgPoster.Endpoint.Tests;
+namespace TgPoster.Endpoint.Tests.Helper;
 
 public class FileHelper
 {

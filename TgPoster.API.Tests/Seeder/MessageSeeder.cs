@@ -1,3 +1,4 @@
+using TgPoster.Endpoint.Tests.Helper;
 using TgPoster.Storage.Data;
 using TgPoster.Storage.Data.Entities;
 

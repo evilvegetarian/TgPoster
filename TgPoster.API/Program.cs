@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.OpenApi.Models;
 using Security;
 using Shared.Contracts;
-using TgPoster.API.ConfigModels;
+using TgPoster.API.Configuration;
 using TgPoster.API.Domain;
 using TgPoster.API.Middlewares;
 using TgPoster.API.Telemetry;

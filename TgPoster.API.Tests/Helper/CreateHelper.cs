@@ -7,6 +7,7 @@ using TgPoster.API.Domain.UseCases.Messages.CreateMessage;
 using TgPoster.API.Domain.UseCases.Parse.CreateParseChannel;
 using TgPoster.API.Domain.UseCases.Schedules.CreateSchedule;
 using TgPoster.API.Models;
+using TgPoster.Endpoint.Tests.Helper;
 
 namespace TgPoster.Endpoint.Tests.Helper;
 

@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
     <PropertyGroup>
         <TargetFramework>net9.0</TargetFramework>
@@ -9,39 +9,25 @@
         <GenerateDocumentationFile>true</GenerateDocumentationFile>
     </PropertyGroup>
     <ItemGroup>
-        <PackageReference Include="OpenTelemetry.Exporter.Console" Version="1.14.0-rc.1"/>
-        <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.14.0-rc.1"/>
-        <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.14.0-rc.1"/>
-        <PackageReference Include="OpenTelemetry.Exporter.Prometheus.AspNetCore" Version="1.13.1-beta.1"/>
-        <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.13.0"/>
-        <PackageReference Include="OpenTelemetry.Instrumentation.EntityFrameworkCore" Version="1.12.0-beta.2"/>
-        <PackageReference Include="OpenTelemetry.Instrumentation.Hangfire" Version="1.13.0-beta.1"/>
-        <PackageReference Include="OpenTelemetry.Instrumentation.Http" Version="1.13.0"/>
-        <PackageReference Include="OpenTelemetry.Instrumentation.Process" Version="1.13.0-beta.1"/>
-        <PackageReference Include="OpenTelemetry.Instrumentation.Runtime" Version="1.13.0"/>
-        <PackageReference Include="OpenTelemetry.Exporter.Jaeger" Version="1.6.0-rc.1"/>
+        <PackageReference Include="OpenTelemetry.Exporter.Console" Version="1.14.0-rc.1" />
+        <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.14.0-rc.1" />
+        <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.14.0-rc.1" />
+        <PackageReference Include="OpenTelemetry.Exporter.Prometheus.AspNetCore" Version="1.13.1-beta.1" />
+        <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.13.0" />
+        <PackageReference Include="OpenTelemetry.Instrumentation.EntityFrameworkCore" Version="1.12.0-beta.2" />
+        <PackageReference Include="OpenTelemetry.Instrumentation.Hangfire" Version="1.13.0-beta.1" />
+        <PackageReference Include="OpenTelemetry.Instrumentation.Http" Version="1.13.0" />
+        <PackageReference Include="OpenTelemetry.Instrumentation.Process" Version="1.13.0-beta.1" />
+        <PackageReference Include="OpenTelemetry.Instrumentation.Runtime" Version="1.13.0" />
 
-        <PackageReference Include="Serilog.AspNetCore" Version="8.0.3"/>
-        <PackageReference Include="Serilog.Sinks.File" Version="7.0.0"/>
-        <PackageReference Include="Serilog.Sinks.Grafana.Loki" Version="8.3.0"/>
-
-        <PackageReference Include="MassTransit" Version="8.3.7"/>
-        <PackageReference Include="MassTransit.SqlTransport.PostgreSQL" Version="8.3.7"/>
-        <PackageReference Include="MediatR" Version="12.4.1"/>
-        <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.1">
-            <PrivateAssets>all</PrivateAssets>
-            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-        </PackageReference>
-        <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="9.0.1">
-            <PrivateAssets>all</PrivateAssets>
-            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-        </PackageReference>
-        <PackageReference Include="Swashbuckle.AspNetCore" Version="7.2.0"/>
-        <PackageReference Include="Swashbuckle.AspNetCore.Filters" Version="8.0.2"/>
+        <PackageReference Include="Serilog.AspNetCore" Version="8.0.3" />
+        <PackageReference Include="Serilog.Sinks.File" Version="7.0.0" />
+        <PackageReference Include="Swashbuckle.AspNetCore" Version="7.2.0" />
+        <PackageReference Include="Swashbuckle.AspNetCore.Filters" Version="8.0.2" />
     </ItemGroup>
     <ItemGroup>
-        <ProjectReference Include="..\TgPoster.API.Domain\TgPoster.API.Domain.csproj"/>
-        <ProjectReference Include="..\TgPoster.Storage\TgPoster.Storage.csproj"/>
+        <ProjectReference Include="..\TgPoster.API.Domain\TgPoster.API.Domain.csproj" />
+        <ProjectReference Include="..\TgPoster.Storage\TgPoster.Storage.csproj" />
     </ItemGroup>
 
     <ItemGroup>

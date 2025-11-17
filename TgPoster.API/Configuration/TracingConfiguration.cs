@@ -1,4 +1,4 @@
-namespace TgPoster.API.ConfigModels;
+namespace TgPoster.API.Configuration;
 
 public class TracingConfiguration
 {

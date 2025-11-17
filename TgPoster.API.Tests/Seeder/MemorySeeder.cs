@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Caching.Memory;
 using TgPoster.API.Domain.Services;
+using TgPoster.Endpoint.Tests.Helper;
 
 namespace TgPoster.Endpoint.Tests.Seeder;
 

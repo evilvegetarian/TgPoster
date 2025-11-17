@@ -11,6 +11,7 @@ using NSubstitute;
 using Security.Interfaces;
 using Security.Models;
 using Testcontainers.PostgreSql;
+using TgPoster.Endpoint.Tests.Helper;
 using TgPoster.Endpoint.Tests.Seeder;
 using TgPoster.Storage.Data;
 

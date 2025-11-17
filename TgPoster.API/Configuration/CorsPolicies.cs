@@ -1,3 +1,3 @@
-namespace TgPoster.API.ConfigModels;
+namespace TgPoster.API.Configuration;
 
 public record CorsPolicies(List<string> AllowedOrigins);

@@ -1,4 +1,4 @@
-using TgPoster.API.ConfigModels;
+using TgPoster.API.Configuration;
 
 namespace TgPoster.API.Middlewares;
 
