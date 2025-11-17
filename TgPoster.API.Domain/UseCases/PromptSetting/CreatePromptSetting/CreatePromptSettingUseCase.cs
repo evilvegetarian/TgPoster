@@ -1,15 +1,19 @@
 using MediatR;
+using Security.Interfaces;
 using TgPoster.API.Domain.Exceptions;
+using TgPoster.API.Domain.UseCases.OpenRouterSetting.GetOpenRouterSetting;
 
 namespace TgPoster.API.Domain.UseCases.PromptSetting.CreatePromptSetting;
 
-public class CreatePromptSettingUseCase(ICreatePromptSettingStorage storage) : IRequestHandler<CreatePromptSettingCommand>
+public class CreatePromptSettingUseCase(ICreatePromptSettingStorage storage,IIdentityProvider provider)
+	: IRequestHandler<CreatePromptSettingCommand, CreatePromptSettingResponse>
 {
-	public async Task Handle(CreatePromptSettingCommand request, CancellationToken ctx)
+	public async Task<CreatePromptSettingResponse> Handle(CreatePromptSettingCommand request, CancellationToken ctx)
 	{
-		if (!await storage.ExistScheduleAsync(request.Schedule, ctx))
+		if (!await storage.ExistScheduleAsync(request.Schedule, provider.Current.UserId, ctx))
 			throw new ScheduleNotFoundException(request.Schedule);
 
-		await storage.CreatePromptSettingAsync(request.Schedule, request.TextPrompt, request.VideoPrompt, request.PhotoPrompt, ctx);
+		var id = await storage.CreatePromptSettingAsync(request.Schedule, request.TextPrompt, request.VideoPrompt, request.PhotoPrompt, ctx);
+		return new CreatePromptSettingResponse(id);
 	}
 }

@@ -28,7 +28,7 @@ public class PromptSettingController(ISender sender) : ControllerBase
 	public async Task<IActionResult> CreatePromptSetting(CreatePromptSettingRequest request, CancellationToken ctx)
 	{
 		var command = new CreatePromptSettingCommand(request.ScheduleId, request.TextPrompt, request.VideoPrompt, request.PhotoPrompt);
-		await sender.Send(command, ctx);
-		return Created();
+		var response = await sender.Send(command, ctx);
+		return Created(Routes.PromptSetting.Create, response);
 	}
 }

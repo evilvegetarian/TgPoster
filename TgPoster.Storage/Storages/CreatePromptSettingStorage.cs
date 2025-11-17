@@ -7,12 +7,12 @@ namespace TgPoster.Storage.Storages;
 
 internal class CreatePromptSettingStorage(PosterContext context, GuidFactory guidFactory) : ICreatePromptSettingStorage
 {
-	public Task<bool> ExistScheduleAsync(Guid scheduleId, CancellationToken ctx)
+	public Task<bool> ExistScheduleAsync(Guid scheduleId, Guid userId, CancellationToken ctx)
 	{
-		return context.Schedules.AnyAsync(x => x.Id == scheduleId, ctx);
+		return context.Schedules.AnyAsync(x => x.Id == scheduleId && x.UserId == userId, ctx);
 	}
 
-	public async Task CreatePromptSettingAsync(
+	public async Task<Guid> CreatePromptSettingAsync(
 		Guid scheduleId,
 		string? textPrompt,
 		string? videoPrompt,
@@ -30,5 +30,6 @@ internal class CreatePromptSettingStorage(PosterContext context, GuidFactory gui
 		};
 		await context.PromptSettings.AddAsync(entity, ctx);
 		await context.SaveChangesAsync(ctx);
+		return entity.Id;
 	}
 }
