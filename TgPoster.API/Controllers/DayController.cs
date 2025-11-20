@@ -11,6 +11,10 @@ using TgPoster.API.Models;
 
 namespace TgPoster.API.Controllers;
 
+/// <summary>
+/// Контроллер управления дней
+/// </summary>
+/// <param name="sender"></param>
 [Authorize]
 [ApiController]
 public class DayController(ISender sender) : ControllerBase

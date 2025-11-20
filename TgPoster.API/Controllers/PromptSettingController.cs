@@ -2,13 +2,16 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TgPoster.API.Common;
+using TgPoster.API.Domain.UseCases.Messages.ListMessage;
 using TgPoster.API.Domain.UseCases.PromptSetting.CreatePromptSetting;
+using TgPoster.API.Domain.UseCases.PromptSetting.GetPromptSetting;
+using TgPoster.API.Domain.UseCases.PromptSetting.ListPromptSetting;
 using TgPoster.API.Models;
 
 namespace TgPoster.API.Controllers;
 
 /// <summary>
-/// Контроллер создания промптов
+/// Контроллер управления промптов
 /// </summary>
 /// <param name="sender"></param>
 [Authorize]
@@ -31,4 +34,41 @@ public class PromptSettingController(ISender sender) : ControllerBase
 		var response = await sender.Send(command, ctx);
 		return Created(Routes.PromptSetting.Create, response);
 	}
+
+	/// <summary>
+	/// Получение промпта по id
+	/// </summary>
+	/// <param name="id"></param>
+	/// <param name="ctx"></param>
+	/// <returns></returns>
+	[HttpGet(Routes.PromptSetting.Get)]
+	[ProducesResponseType(StatusCodes.Status200OK, Type = typeof(PromptSettingResponse))]
+	[ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
+	[ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
+	[ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
+	public async Task<IActionResult> GetPromptSetting(Guid id, CancellationToken ctx)
+	{
+		var query = new GetPromptSettingQuery(id);
+		var response = await sender.Send(query, ctx);
+		return Ok(response);
+	}
+
+	/// <summary>
+	/// Получение списка промтов
+	/// </summary>
+	/// <param name="request"></param>
+	/// <param name="ctx"></param>
+	/// <returns></returns>
+	[HttpGet(Routes.PromptSetting.List)]
+	[ProducesResponseType(StatusCodes.Status200OK, Type = typeof(PagedResponse<PromptSettingResponse>))]
+	[ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
+	[ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
+	[ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
+	public async Task<IActionResult> ListPromptSetting(ListPromptSettingRequest request,CancellationToken ctx)
+	{
+		var query = new ListPromptSettingQuery(request.PageNumber, request.PageSize);
+		var response = await sender.Send(query, ctx);
+		return Ok(response);
+	}
 }
+

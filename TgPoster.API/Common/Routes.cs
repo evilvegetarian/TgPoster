@@ -86,6 +86,7 @@ internal static class Routes
 	internal static class PromptSetting
 	{
 		internal const string Root = Base + "/prompt-setting";
+		internal const string Get = Root + "/{id:guid}";
 		internal const string Create = Root;
 		internal const string List = Root;
 		internal const string Update = Root + "/{id:guid}";
