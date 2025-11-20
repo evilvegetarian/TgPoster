@@ -17,7 +17,8 @@ public class GetOpenRouterSettingUseCase(IGetOpenRouterSettingStorage storage, I
 
 		return new GetOpenRouterSettingResponse
 		{
-			Model = settings.Model
+			Model = settings.Model,
+			Id = settings.Id,
 		};
 	}
 }

@@ -13,6 +13,7 @@ public class GetOpenRouterSettingStorage(PosterContext context) : IGetOpenRouter
 			.Where(o => o.UserId == userId)
 			.Select(x => new OpenRouterSettingDto
 			{
+				Id = x.Id,
 				Model = x.Model,
 			})
 			.FirstOrDefaultAsync(ctx);

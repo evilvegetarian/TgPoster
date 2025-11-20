@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using TgPoster.API.Common;
 using TgPoster.API.Domain.UseCases.OpenRouterSetting.CreateOpenRouterSetting;
 using TgPoster.API.Domain.UseCases.OpenRouterSetting.GetOpenRouterSetting;
+using TgPoster.API.Domain.UseCases.OpenRouterSetting.ListOpenRouterSetting;
 using TgPoster.API.Models;
 
 namespace TgPoster.API.Controllers;
@@ -50,6 +51,22 @@ public class OpenRouterSettingController(ISender sender) : ControllerBase
 	public async Task<IActionResult> GetOpenRouterSetting(Guid id, CancellationToken ctx)
 	{
 		var command = new GetOpenRouterSettingQuery(id);
+		var response = await sender.Send(command, ctx);
+		return Ok(response);
+	}
+
+	/// <summary>
+	/// Получение настроек OpenRouter
+	/// </summary>
+	/// <param name="ctx"></param>
+	/// <returns>null</returns>
+	[HttpGet(Routes.OpenRouterSetting.List)]
+	[ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ListOpenRouterSettingResponse))]
+	[ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
+	[ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
+	public async Task<IActionResult> GetOpenRouterSetting(CancellationToken ctx)
+	{
+		var command = new ListOpenRouterSettingQuery();
 		var response = await sender.Send(command, ctx);
 		return Ok(response);
 	}

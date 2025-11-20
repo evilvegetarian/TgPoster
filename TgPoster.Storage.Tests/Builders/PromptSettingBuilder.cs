@@ -28,6 +28,7 @@ public class PromptSettingBuilder(PosterContext context)
 		setting.ScheduleId = scheduleId;
 		return this;
 	}
+
 	public PromptSettingBuilder WithSchedule(Schedule schedule)
 	{
 		setting.ScheduleId = schedule.Id;
