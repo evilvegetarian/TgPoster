@@ -42,7 +42,7 @@ export function TelegramBotListComponent() {
                 queryClient.invalidateQueries({queryKey: getGetApiV1TelegramBotQueryKey()});
             },
             onError: (error) => {
-                toast.error("Ошибка",{description:error.title||'Ошибка при удалении бота'});
+                toast.error("Ошибка", {description: error.title || 'Ошибка при удалении бота'});
             }
         }
     });
@@ -154,9 +154,6 @@ export function TelegramBotListComponent() {
                                                 Активен
                                             </Badge>
                                         </div>
-                                        <p className="text-sm text-muted-foreground">
-                                            ID: {bot.id}
-                                        </p>
                                     </div>
                                     <DropdownMenu>
                                         <DropdownMenuTrigger asChild>

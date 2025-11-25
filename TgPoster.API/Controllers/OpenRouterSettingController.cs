@@ -1,8 +1,11 @@
+using System.ComponentModel.DataAnnotations;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TgPoster.API.Common;
+using TgPoster.API.Domain.UseCases.OpenRouterSetting.AddScheduleOpenRouterSetting;
 using TgPoster.API.Domain.UseCases.OpenRouterSetting.CreateOpenRouterSetting;
+using TgPoster.API.Domain.UseCases.OpenRouterSetting.DeleteOpenRouterSetting;
 using TgPoster.API.Domain.UseCases.OpenRouterSetting.GetOpenRouterSetting;
 using TgPoster.API.Domain.UseCases.OpenRouterSetting.ListOpenRouterSetting;
 using TgPoster.API.Models;
@@ -48,12 +51,13 @@ public class OpenRouterSettingController(ISender sender) : ControllerBase
 	[ProducesResponseType(StatusCodes.Status200OK, Type = typeof(GetOpenRouterSettingResponse))]
 	[ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
 	[ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
-	public async Task<IActionResult> GetOpenRouterSetting(Guid id, CancellationToken ctx)
+	public async Task<IActionResult> GetOpenRouterSetting([Required] Guid id, CancellationToken ctx)
 	{
 		var command = new GetOpenRouterSettingQuery(id);
 		var response = await sender.Send(command, ctx);
 		return Ok(response);
 	}
+
 
 	/// <summary>
 	/// Получение настроек OpenRouter
@@ -69,5 +73,40 @@ public class OpenRouterSettingController(ISender sender) : ControllerBase
 		var command = new ListOpenRouterSettingQuery();
 		var response = await sender.Send(command, ctx);
 		return Ok(response);
+	}
+
+	/// <summary>
+	/// Получение настроек OpenRouter
+	/// </summary>
+	/// <param name="id"></param>
+	/// <param name="ctx"></param>
+	/// <returns>null</returns>
+	[HttpDelete(Routes.OpenRouterSetting.Delete)]
+	[ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ListOpenRouterSettingResponse))]
+	[ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
+	[ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
+	public async Task<IActionResult> Delete(Guid id, CancellationToken ctx)
+	{
+		var command = new DeleteOpenRouterSettingCommand(id);
+		await sender.Send(command, ctx);
+		return Ok();
+	}
+
+	/// <summary>
+	/// Добавление расписания к настройкам OpenRouter
+	/// </summary>
+	/// <param name="id"></param>
+	/// <param name="scheduleId"></param>
+	/// <param name="ctx"></param>
+	/// <returns>null</returns>
+	[HttpPatch(Routes.OpenRouterSetting.AddSchedule)]
+	[ProducesResponseType(StatusCodes.Status200OK)]
+	[ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
+	[ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
+	public async Task<IActionResult> AddSchedule(Guid id, Guid scheduleId, CancellationToken ctx)
+	{
+		var command = new AddScheduleOpenRouterSettingCommand(id, scheduleId);
+		await sender.Send(command, ctx);
+		return Ok();
 	}
 }

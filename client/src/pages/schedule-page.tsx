@@ -28,6 +28,7 @@ import {
     DialogHeader,
     DialogTitle,
 } from "@/components/ui/dialog.tsx"
+import {EditIiComponent} from "@/pages/edit-ii-component.tsx";
 
 interface NewTimeSlot {
     hour: string
@@ -335,8 +336,9 @@ export function SchedulePage() {
                                 <Separator/>
 
                                 <div className="flex items-center justify-between">
-                                    <span className="text-xs text-muted-foreground">ID: {schedule.id}</span>
                                     <div className="flex gap-2">
+                                        <EditIiComponent scheduleId={schedule.id} openRouterId={schedule.openRouterId}
+                                                         promptId={schedule.promptId}/>
                                         <Button
                                             variant="outline"
                                             size="sm"
@@ -810,3 +812,6 @@ export function SchedulePage() {
         </div>
     )
 }
+
+
+

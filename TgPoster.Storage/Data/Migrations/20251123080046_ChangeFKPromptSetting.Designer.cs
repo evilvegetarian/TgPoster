@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using TgPoster.Storage.Data;
@@ -11,9 +12,11 @@ using TgPoster.Storage.Data;
 namespace TgPoster.Storage.Data.Migrations
 {
     [DbContext(typeof(PosterContext))]
-    partial class PosterContextModelSnapshot : ModelSnapshot
+    [Migration("20251123080046_ChangeFKPromptSetting")]
+    partial class ChangeFKPromptSetting
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -309,9 +312,6 @@ namespace TgPoster.Storage.Data.Migrations
 
                     b.HasIndex("DeletedById");
 
-                    b.HasIndex("ScheduleId")
-                        .IsUnique();
-
                     b.HasIndex("UpdatedById");
 
                     b.HasIndex("UserId");
@@ -458,6 +458,9 @@ namespace TgPoster.Storage.Data.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
+                    b.Property<Guid?>("OpenRouterSettingId")
+                        .HasColumnType("uuid");
+
                     b.Property<Guid>("TelegramBotId")
                         .HasColumnType("uuid");
 
@@ -475,6 +478,9 @@ namespace TgPoster.Storage.Data.Migrations
                     b.HasIndex("CreatedById");
 
                     b.HasIndex("DeletedById");
+
+                    b.HasIndex("OpenRouterSettingId")
+                        .IsUnique();
 
                     b.HasIndex("TelegramBotId");
 
@@ -741,10 +747,6 @@ namespace TgPoster.Storage.Data.Migrations
                         .WithMany()
                         .HasForeignKey("DeletedById");
 
-                    b.HasOne("TgPoster.Storage.Data.Entities.Schedule", "Schedule")
-                        .WithOne("OpenRouterSetting")
-                        .HasForeignKey("TgPoster.Storage.Data.Entities.OpenRouterSetting", "ScheduleId");
-
                     b.HasOne("TgPoster.Storage.Data.Entities.User", "UpdatedBy")
                         .WithMany()
                         .HasForeignKey("UpdatedById");
@@ -758,8 +760,6 @@ namespace TgPoster.Storage.Data.Migrations
                     b.Navigation("CreatedBy");
 
                     b.Navigation("DeletedBy");
-
-                    b.Navigation("Schedule");
 
                     b.Navigation("UpdatedBy");
 
@@ -834,6 +834,10 @@ namespace TgPoster.Storage.Data.Migrations
                         .WithMany()
                         .HasForeignKey("DeletedById");
 
+                    b.HasOne("TgPoster.Storage.Data.Entities.OpenRouterSetting", "OpenRouterSetting")
+                        .WithOne("Schedule")
+                        .HasForeignKey("TgPoster.Storage.Data.Entities.Schedule", "OpenRouterSettingId");
+
                     b.HasOne("TgPoster.Storage.Data.Entities.TelegramBot", "TelegramBot")
                         .WithMany("Schedules")
                         .HasForeignKey("TelegramBotId")
@@ -853,6 +857,8 @@ namespace TgPoster.Storage.Data.Migrations
                     b.Navigation("CreatedBy");
 
                     b.Navigation("DeletedBy");
+
+                    b.Navigation("OpenRouterSetting");
 
                     b.Navigation("TelegramBot");
 
@@ -916,13 +922,16 @@ namespace TgPoster.Storage.Data.Migrations
                     b.Navigation("MessageFiles");
                 });
 
+            modelBuilder.Entity("TgPoster.Storage.Data.Entities.OpenRouterSetting", b =>
+                {
+                    b.Navigation("Schedule");
+                });
+
             modelBuilder.Entity("TgPoster.Storage.Data.Entities.Schedule", b =>
                 {
                     b.Navigation("Days");
 
                     b.Navigation("Messages");
-
-                    b.Navigation("OpenRouterSetting");
 
                     b.Navigation("Parameters");
 

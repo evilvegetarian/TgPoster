@@ -24,7 +24,7 @@ public sealed class OpenRouterSetting : BaseEntity
 
 	#region Navigtion
 
-	public Schedule? Schedule { get; set; } = null!;
+	public Schedule? Schedule { get; set; }
 	public User User { get; set; } = null!;
 
 	#endregion

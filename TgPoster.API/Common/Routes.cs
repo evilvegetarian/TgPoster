@@ -81,6 +81,8 @@ internal static class Routes
 		internal const string List = Root;
 		internal const string Update = Root + "/{id:guid}";
 		internal const string Delete = Root + "/{id:guid}";
+		internal const string UpdateScheduleId = Root + "/{id:guid}";
+		internal const string AddSchedule = Root + "/{id:guid}/schedule/{scheduleId:guid}";
 	}
 
 	internal static class PromptSetting

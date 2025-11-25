@@ -23,6 +23,28 @@ export interface CreateMessageResponse {
   id: string;
 }
 
+/**
+ * Request создания OpenRouter
+ */
+export interface CreateOpenRouterSettingRequest {
+  /**
+   * Модель в Open Router
+   * @minLength 3
+   * @nullable
+   */
+  model: string | null;
+  /**
+   * Токен для авторизации Open Router
+   * @minLength 5
+   * @nullable
+   */
+  token: string | null;
+}
+
+export interface CreateOpenRouterSettingResponse {
+  id?: string;
+}
+
 export interface CreateParseChannelRequest {
   /**
    * Канал который парсят.
@@ -60,6 +82,29 @@ export interface CreateParseChannelRequest {
 
 export interface CreateParseChannelResponse {
   id: string;
+}
+
+/**
+ * Request создания промптов
+ */
+export interface CreatePromptSettingRequest {
+  /** Id расписания для которого Промпты */
+  scheduleId: string;
+  /**
+   * Промпт для текста
+   * @nullable
+   */
+  textPrompt?: string | null;
+  /**
+   * Промпт для видео
+   * @nullable
+   */
+  videoPrompt?: string | null;
+  /**
+   * Промпт для фото
+   * @nullable
+   */
+  photoPrompt?: string | null;
 }
 
 export interface CreateScheduleRequest {
@@ -161,9 +206,29 @@ export interface GetDaysResponse {
   timePostings?: string[] | null;
 }
 
+export interface GetOpenRouterSettingResponse {
+  /** @nullable */
+  model: string | null;
+  id?: string;
+}
+
 export interface GetTimeResponse {
   /** @nullable */
   postingTimes?: string[] | null;
+}
+
+export interface ListOpenRouterSettingResponse {
+  openRouterSettingResponses: OpenRouterSettingResponse[];
+}
+
+/**
+ * Запрос на получение списка промптов.
+ */
+export interface ListPromptSettingRequest {
+  /** Номер страницы. */
+  pageNumber?: number;
+  /** Размер страницы. */
+  pageSize?: number;
 }
 
 export interface MessageResponse {
@@ -233,6 +298,12 @@ export interface MessageStatusEnumViewModel {
   name: string | null;
 }
 
+export interface OpenRouterSettingResponse {
+  /** @nullable */
+  model: string | null;
+  id: string;
+}
+
 export interface ParseChannelsResponse {
   id: string;
   scheduleId: string;
@@ -268,6 +339,27 @@ export interface ProblemDetails {
   [key: string]: unknown;
 }
 
+export interface PromptSettingResponse {
+  id: string;
+  /** @nullable */
+  videoPrompt?: string | null;
+  /** @nullable */
+  picturePrompt?: string | null;
+  /** @nullable */
+  textPrompt?: string | null;
+}
+
+export interface PromptSettingResponsePagedResponse {
+  currentPage?: number;
+  readonly totalPages?: number;
+  pageSize?: number;
+  totalCount?: number;
+  readonly hasPreviousPage?: boolean;
+  readonly hasNextPage?: boolean;
+  /** @nullable */
+  data?: PromptSettingResponse[] | null;
+}
+
 export interface RefreshTokenRequest {
   refreshToken: string;
 }
@@ -288,6 +380,10 @@ export interface ScheduleResponse {
   channelName: string | null;
   /** @nullable */
   botName: string | null;
+  /** @nullable */
+  openRouterId?: string | null;
+  /** @nullable */
+  promptId?: string | null;
 }
 
 /**

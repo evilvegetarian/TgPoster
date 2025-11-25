@@ -26,4 +26,14 @@ public sealed class ScheduleResponse
 	///     Название телеграмм бота
 	/// </summary>
 	public required string BotName { get; init; }
+
+	/// <summary>
+	/// Id настройки подключения к open router
+	/// </summary>
+	public Guid? OpenRouterId { get; init; }
+
+	/// <summary>
+	/// Id промтов
+	/// </summary>
+	public Guid? PromptId { get; init; }
 }

@@ -15,7 +15,9 @@ internal sealed class ListScheduleStorage(PosterContext context) : IListSchedule
 				Name = x.Name,
 				ChannelName = x.ChannelName,
 				IsActive = x.IsActive,
-				BotName = x.TelegramBot.Name
+				BotName = x.TelegramBot.Name,
+				OpenRouterId = x.OpenRouterSetting != null ? x.OpenRouterSetting.Id : null,
+				PromptId = x.PromptSetting != null ? x.PromptSetting.Id : null
 			}).ToListAsync(ct);
 	}
 }

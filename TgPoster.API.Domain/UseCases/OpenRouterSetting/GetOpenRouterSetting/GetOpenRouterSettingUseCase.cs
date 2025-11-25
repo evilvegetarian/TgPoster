@@ -11,14 +11,12 @@ public class GetOpenRouterSettingUseCase(IGetOpenRouterSettingStorage storage, I
 	{
 		var settings = await storage.Get(query.Id, provider.Current.UserId, ctx);
 		if (settings is null)
-		{
 			throw new OpenRouterSettingNotFoundException();
-		}
 
 		return new GetOpenRouterSettingResponse
 		{
 			Model = settings.Model,
-			Id = settings.Id,
+			Id = settings.Id
 		};
 	}
 }

@@ -31,9 +31,6 @@ public sealed class Schedule : BaseEntity
 	///     Обозначает активность канала
 	/// </summary>
 	public required bool IsActive { get; set; }
-	
-	public Guid? PromptSettingId { get; set; }
-	public Guid? OpenRouterSettingId { get; set; }
 
 	#region Навигация
 
@@ -67,6 +64,10 @@ public sealed class Schedule : BaseEntity
 	/// Настройки промптов для этого расписания
 	/// </summary>
 	public PromptSetting? PromptSetting { get; set; }
+
+	/// <summary>
+	/// Настройки подключения к OpenRouter для этого расписания
+	/// </summary>
 	public OpenRouterSetting? OpenRouterSetting { get; set; }
 
 	#endregion

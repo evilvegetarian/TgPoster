@@ -60,6 +60,11 @@ export function SideBar() {
                 title: "Спарсить канал",
                 path: "/parse-channel",
                 icon: MessageCircleMore
+            },
+            {
+                title: "OpenRouter",
+                path: "/open-router",
+                icon: MessageCircleMore
             }
         ]
         : [
