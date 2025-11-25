@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using TgPoster.API.Common;
 using TgPoster.API.Domain.UseCases.Messages.ListMessage;
 using TgPoster.API.Domain.UseCases.PromptSetting.CreatePromptSetting;
+using TgPoster.API.Domain.UseCases.PromptSetting.EditPromptSetting;
 using TgPoster.API.Domain.UseCases.PromptSetting.GetPromptSetting;
 using TgPoster.API.Domain.UseCases.PromptSetting.ListPromptSetting;
 using TgPoster.API.Models;
@@ -30,7 +31,8 @@ public class PromptSettingController(ISender sender) : ControllerBase
 	[ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
 	public async Task<IActionResult> CreatePromptSetting(CreatePromptSettingRequest request, CancellationToken ctx)
 	{
-		var command = new CreatePromptSettingCommand(request.ScheduleId, request.TextPrompt, request.VideoPrompt, request.PhotoPrompt);
+		var command = new CreatePromptSettingCommand(request.ScheduleId, request.TextPrompt, request.VideoPrompt,
+			request.PhotoPrompt);
 		var response = await sender.Send(command, ctx);
 		return Created(Routes.PromptSetting.Create, response);
 	}
@@ -64,11 +66,28 @@ public class PromptSettingController(ISender sender) : ControllerBase
 	[ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
 	[ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
 	[ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
-	public async Task<IActionResult> ListPromptSetting(ListPromptSettingRequest request,CancellationToken ctx)
+	public async Task<IActionResult> ListPromptSetting(ListPromptSettingRequest request, CancellationToken ctx)
 	{
 		var query = new ListPromptSettingQuery(request.PageNumber, request.PageSize);
 		var response = await sender.Send(query, ctx);
 		return Ok(response);
 	}
-}
 
+	/// <summary>
+	/// Изменение промптов для расписания
+	/// </summary>
+	/// <param name="id"></param>
+	/// <param name="request"></param>
+	/// <param name="ctx"></param>
+	/// <returns></returns>
+	[HttpPut(Routes.PromptSetting.Update)]
+	[ProducesResponseType(StatusCodes.Status201Created)]
+	[ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
+	[ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
+	public async Task<IActionResult> EditPromptSetting(Guid id, EditPromptSettingRequest request, CancellationToken ctx)
+	{
+		var command = new EditPromptSettingCommand(id, request.TextPrompt, request.VideoPrompt, request.PhotoPrompt);
+		await sender.Send(command, ctx);
+		return Ok();
+	}
+}

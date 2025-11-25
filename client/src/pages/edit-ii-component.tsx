@@ -3,11 +3,14 @@ import {
     useGetApiV1OpenRouterSetting,
     usePatchApiV1OpenRouterSettingIdScheduleScheduleId
 } from "@/api/endpoints/open-router-setting/open-router-setting.ts";
-import {useGetApiV1PromptSettingId, usePostApiV1PromptSetting} from "@/api/endpoints/prompt-setting/prompt-setting.ts";
+import {
+    useGetApiV1PromptSettingId,
+    usePostApiV1PromptSetting, usePutApiV1PromptSettingId
+} from "@/api/endpoints/prompt-setting/prompt-setting.ts";
 import {useForm} from "react-hook-form";
 import {zodResolver} from "@hookform/resolvers/zod";
 import {toast} from "sonner";
-import type {CreatePromptSettingRequest} from "@/api/endpoints/tgPosterAPI.schemas.ts";
+import type {CreatePromptSettingRequest, EditPromptSettingRequest} from "@/api/endpoints/tgPosterAPI.schemas.ts";
 import {Dialog, DialogContent, DialogFooter, DialogTitle, DialogTrigger} from "@/components/ui/dialog.tsx";
 import {Button} from "@/components/ui/button.tsx";
 import {Form, FormControl, FormField, FormItem, FormLabel, FormMessage} from "@/components/ui/form.tsx";
@@ -98,7 +101,7 @@ export function EditIiComponent({
         }
     });
 
-    const {mutate, isPending} = usePostApiV1PromptSetting({
+    const {mutate: promptCreateMutate, isPending} = usePostApiV1PromptSetting({
         mutation: {
             onSuccess: () => {
                 toast.success(`Настройки успешно добавлены!`);
@@ -111,17 +114,41 @@ export function EditIiComponent({
         }
     });
 
-    function onSubmit(value: FormValues) {
-        const appData: CreatePromptSettingRequest = {
-            textPrompt: value.text,
-            photoPrompt: value.photo,
-            videoPrompt: value.video,
-            scheduleId: value.scheduleId,
-        };
+    const {mutate: promptEditMutate} = usePutApiV1PromptSettingId({
+        mutation: {
+            onSuccess: () => {
+                toast.success(`Настройки успешно обновлены!`);
+                form.reset();
+                setOpen(false);
+            },
+            onError: (error) => {
+                toast.error("Ошибка", {description: error.title || "Ошибка обновления"});
+            }
+        }
+    });
 
-        // Логика: если это редактирование, возможно нужен другой endpoint (PUT/PATCH)
-        // но пока оставляем как в оригинале mutate (POST)
-        mutate({data: appData});
+    function onSubmit(value: FormValues) {
+
+
+        if (promptId!) {
+            const appData: EditPromptSettingRequest = {
+                textPrompt: value.text,
+                photoPrompt: value.photo,
+                videoPrompt: value.video,
+            };
+            promptEditMutate({
+                data: appData,
+                id: promptId
+            })
+        } else {
+            const appData: CreatePromptSettingRequest = {
+                textPrompt: value.text,
+                photoPrompt: value.photo,
+                videoPrompt: value.video,
+                scheduleId: value.scheduleId,
+            };
+            promptCreateMutate({data: appData});
+        }
 
         if (newOpenRouter && newOpenRouter !== openRouterId) {
             mutatePatch({id: newOpenRouter, scheduleId: value.scheduleId});

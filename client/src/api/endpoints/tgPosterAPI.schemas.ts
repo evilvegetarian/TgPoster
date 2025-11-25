@@ -171,6 +171,27 @@ export interface DayOfWeekResponse {
   name?: string | null;
 }
 
+/**
+ * Request создания промптов
+ */
+export interface EditPromptSettingRequest {
+  /**
+   * Промпт для текста
+   * @nullable
+   */
+  textPrompt?: string | null;
+  /**
+   * Промпт для видео
+   * @nullable
+   */
+  videoPrompt?: string | null;
+  /**
+   * Промпт для фото
+   * @nullable
+   */
+  photoPrompt?: string | null;
+}
+
 export interface FileResponse {
   id: string;
   fileType?: FileTypes;

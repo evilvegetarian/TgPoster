@@ -25,3 +25,25 @@ public class CreatePromptSettingRequest
 	/// </summary>
 	public string? PhotoPrompt { get; set; }
 }
+
+
+/// <summary>
+/// Request создания промптов
+/// </summary>
+public class EditPromptSettingRequest
+{
+	/// <summary>
+	/// Промпт для текста
+	/// </summary>
+	public string? TextPrompt { get; set; }
+
+	/// <summary>
+	/// Промпт для видео
+	/// </summary>
+	public string? VideoPrompt { get; set; }
+
+	/// <summary>
+	/// Промпт для фото 
+	/// </summary>
+	public string? PhotoPrompt { get; set; }
+}

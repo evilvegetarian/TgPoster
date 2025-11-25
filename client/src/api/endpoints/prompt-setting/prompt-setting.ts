@@ -25,6 +25,7 @@ import type {
 
 import type {
   CreatePromptSettingRequest,
+  EditPromptSettingRequest,
   ListPromptSettingRequest,
   ProblemDetails,
   PromptSettingResponse,
@@ -275,3 +276,68 @@ export function useGetApiV1PromptSettingId<TData = Awaited<ReturnType<typeof get
 
 
 
+/**
+ * @summary Изменение промптов для расписания
+ */
+export const putApiV1PromptSettingId = (
+    id: string,
+    editPromptSettingRequest: EditPromptSettingRequest,
+ ) => {
+      
+      
+      return customInstance<void>(
+      {url: `/api/v1/prompt-setting/${id}`, method: 'PUT',
+      headers: {'Content-Type': 'application/json', },
+      data: editPromptSettingRequest
+    },
+      );
+    }
+  
+
+
+export const getPutApiV1PromptSettingIdMutationOptions = <TError = ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof putApiV1PromptSettingId>>, TError,{id: string;data: EditPromptSettingRequest}, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof putApiV1PromptSettingId>>, TError,{id: string;data: EditPromptSettingRequest}, TContext> => {
+
+const mutationKey = ['putApiV1PromptSettingId'];
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof putApiV1PromptSettingId>>, {id: string;data: EditPromptSettingRequest}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  putApiV1PromptSettingId(id,data,)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type PutApiV1PromptSettingIdMutationResult = NonNullable<Awaited<ReturnType<typeof putApiV1PromptSettingId>>>
+    export type PutApiV1PromptSettingIdMutationBody = EditPromptSettingRequest
+    export type PutApiV1PromptSettingIdMutationError = ProblemDetails
+
+    /**
+ * @summary Изменение промптов для расписания
+ */
+export const usePutApiV1PromptSettingId = <TError = ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof putApiV1PromptSettingId>>, TError,{id: string;data: EditPromptSettingRequest}, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof putApiV1PromptSettingId>>,
+        TError,
+        {id: string;data: EditPromptSettingRequest},
+        TContext
+      > => {
+
+      const mutationOptions = getPutApiV1PromptSettingIdMutationOptions(options);
+
+      return useMutation(mutationOptions , queryClient);
+    }
+    
