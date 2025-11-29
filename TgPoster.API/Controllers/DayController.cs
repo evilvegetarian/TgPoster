@@ -75,7 +75,7 @@ public class DayController(ISender sender) : ControllerBase
 		var response = await sender.Send(new GetDaysQuery(scheduleId), ct);
 		return Ok(response);
 	}
-
+	
 	/// <summary>
 	///     Обновление времени для определенного дня
 	/// </summary>

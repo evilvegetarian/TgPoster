@@ -26,7 +26,7 @@ import type {
 import type {
   CreatePromptSettingRequest,
   EditPromptSettingRequest,
-  ListPromptSettingRequest,
+  GetApiV1PromptSettingParams,
   ProblemDetails,
   PromptSettingResponse,
   PromptSettingResponsePagedResponse
@@ -105,34 +105,34 @@ export const usePostApiV1PromptSetting = <TError = ProblemDetails,
  * @summary Получение списка промтов
  */
 export const getApiV1PromptSetting = (
-    listPromptSettingRequest: ListPromptSettingRequest,
+    params?: GetApiV1PromptSettingParams,
  signal?: AbortSignal
 ) => {
       
       
       return customInstance<PromptSettingResponsePagedResponse>(
       {url: `/api/v1/prompt-setting`, method: 'GET',
-      headers: {'Content-Type': 'application/json', }, signal
+        params, signal
     },
       );
     }
   
 
-export const getGetApiV1PromptSettingQueryKey = (listPromptSettingRequest: ListPromptSettingRequest,) => {
-    return [`/api/v1/prompt-setting`, listPromptSettingRequest] as const;
+export const getGetApiV1PromptSettingQueryKey = (params?: GetApiV1PromptSettingParams,) => {
+    return [`/api/v1/prompt-setting`, ...(params ? [params]: [])] as const;
     }
 
     
-export const getGetApiV1PromptSettingQueryOptions = <TData = Awaited<ReturnType<typeof getApiV1PromptSetting>>, TError = ProblemDetails>(listPromptSettingRequest: ListPromptSettingRequest, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1PromptSetting>>, TError, TData>>, }
+export const getGetApiV1PromptSettingQueryOptions = <TData = Awaited<ReturnType<typeof getApiV1PromptSetting>>, TError = ProblemDetails>(params?: GetApiV1PromptSettingParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1PromptSetting>>, TError, TData>>, }
 ) => {
 
 const {query: queryOptions} = options ?? {};
 
-  const queryKey =  queryOptions?.queryKey ?? getGetApiV1PromptSettingQueryKey(listPromptSettingRequest);
+  const queryKey =  queryOptions?.queryKey ?? getGetApiV1PromptSettingQueryKey(params);
 
   
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getApiV1PromptSetting>>> = ({ signal }) => getApiV1PromptSetting(listPromptSettingRequest, signal);
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getApiV1PromptSetting>>> = ({ signal }) => getApiV1PromptSetting(params, signal);
 
       
 
@@ -146,7 +146,7 @@ export type GetApiV1PromptSettingQueryError = ProblemDetails
 
 
 export function useGetApiV1PromptSetting<TData = Awaited<ReturnType<typeof getApiV1PromptSetting>>, TError = ProblemDetails>(
- listPromptSettingRequest: ListPromptSettingRequest, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1PromptSetting>>, TError, TData>> & Pick<
+ params: undefined |  GetApiV1PromptSettingParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1PromptSetting>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof getApiV1PromptSetting>>,
           TError,
@@ -156,7 +156,7 @@ export function useGetApiV1PromptSetting<TData = Awaited<ReturnType<typeof getAp
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useGetApiV1PromptSetting<TData = Awaited<ReturnType<typeof getApiV1PromptSetting>>, TError = ProblemDetails>(
- listPromptSettingRequest: ListPromptSettingRequest, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1PromptSetting>>, TError, TData>> & Pick<
+ params?: GetApiV1PromptSettingParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1PromptSetting>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof getApiV1PromptSetting>>,
           TError,
@@ -166,7 +166,7 @@ export function useGetApiV1PromptSetting<TData = Awaited<ReturnType<typeof getAp
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useGetApiV1PromptSetting<TData = Awaited<ReturnType<typeof getApiV1PromptSetting>>, TError = ProblemDetails>(
- listPromptSettingRequest: ListPromptSettingRequest, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1PromptSetting>>, TError, TData>>, }
+ params?: GetApiV1PromptSettingParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1PromptSetting>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
@@ -174,11 +174,11 @@ export function useGetApiV1PromptSetting<TData = Awaited<ReturnType<typeof getAp
  */
 
 export function useGetApiV1PromptSetting<TData = Awaited<ReturnType<typeof getApiV1PromptSetting>>, TError = ProblemDetails>(
- listPromptSettingRequest: ListPromptSettingRequest, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1PromptSetting>>, TError, TData>>, }
+ params?: GetApiV1PromptSettingParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1PromptSetting>>, TError, TData>>, }
  , queryClient?: QueryClient 
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
-  const queryOptions = getGetApiV1PromptSettingQueryOptions(listPromptSettingRequest,options)
+  const queryOptions = getGetApiV1PromptSettingQueryOptions(params,options)
 
   const query = useQuery(queryOptions , queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 

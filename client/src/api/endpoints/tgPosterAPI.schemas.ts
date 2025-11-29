@@ -242,16 +242,6 @@ export interface ListOpenRouterSettingResponse {
   openRouterSettingResponses: OpenRouterSettingResponse[];
 }
 
-/**
- * Запрос на получение списка промптов.
- */
-export interface ListPromptSettingRequest {
-  /** Номер страницы. */
-  pageNumber?: number;
-  /** Размер страницы. */
-  pageSize?: number;
-}
-
 export interface MessageResponse {
   id: string;
   /** @nullable */
@@ -609,5 +599,16 @@ export type PutApiV1MessageIdBody = {
 
 export type PatchApiV1MessageIdFileBody = {
   files?: Blob[];
+};
+
+export type GetApiV1PromptSettingParams = {
+/**
+ * Номер страницы.
+ */
+PageNumber?: number;
+/**
+ * Размер страницы.
+ */
+PageSize?: number;
 };
 

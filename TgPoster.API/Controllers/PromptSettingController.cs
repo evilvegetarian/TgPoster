@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -29,7 +30,10 @@ public class PromptSettingController(ISender sender) : ControllerBase
 	[ProducesResponseType(StatusCodes.Status201Created)]
 	[ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
 	[ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
-	public async Task<IActionResult> CreatePromptSetting(CreatePromptSettingRequest request, CancellationToken ctx)
+	public async Task<IActionResult> CreatePromptSetting(
+		[FromBody] CreatePromptSettingRequest request,
+		CancellationToken ctx
+	)
 	{
 		var command = new CreatePromptSettingCommand(request.ScheduleId, request.TextPrompt, request.VideoPrompt,
 			request.PhotoPrompt);
@@ -48,7 +52,7 @@ public class PromptSettingController(ISender sender) : ControllerBase
 	[ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
 	[ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
 	[ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
-	public async Task<IActionResult> GetPromptSetting(Guid id, CancellationToken ctx)
+	public async Task<IActionResult> GetPromptSetting([FromRoute] Guid id, CancellationToken ctx)
 	{
 		var query = new GetPromptSettingQuery(id);
 		var response = await sender.Send(query, ctx);
@@ -66,7 +70,10 @@ public class PromptSettingController(ISender sender) : ControllerBase
 	[ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
 	[ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
 	[ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
-	public async Task<IActionResult> ListPromptSetting(ListPromptSettingRequest request, CancellationToken ctx)
+	public async Task<IActionResult> ListPromptSetting(
+		[FromQuery] ListPromptSettingRequest request,
+		CancellationToken ctx
+	)
 	{
 		var query = new ListPromptSettingQuery(request.PageNumber, request.PageSize);
 		var response = await sender.Send(query, ctx);
@@ -84,7 +91,11 @@ public class PromptSettingController(ISender sender) : ControllerBase
 	[ProducesResponseType(StatusCodes.Status201Created)]
 	[ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
 	[ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
-	public async Task<IActionResult> EditPromptSetting(Guid id, EditPromptSettingRequest request, CancellationToken ctx)
+	public async Task<IActionResult> EditPromptSetting(
+		[FromRoute] Guid id,
+		[FromBody] EditPromptSettingRequest request,
+		CancellationToken ctx
+	)
 	{
 		var command = new EditPromptSettingCommand(id, request.TextPrompt, request.VideoPrompt, request.PhotoPrompt);
 		await sender.Send(command, ctx);
