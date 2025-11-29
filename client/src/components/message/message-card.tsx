@@ -31,7 +31,7 @@ export function MessageCard({message, isSelected, onSelectionChange, availableTi
         if (isSent) {
             return <Badge variant="outline" className="text-blue-600 border-blue-600">Отправлено</Badge>
         }
-        return <Badge variant="default" className="bg-green-600 hover:bg-green-700">Подтверждено</Badge>
+        return <Badge variant="default" className="bg-green-600 hover:bg-green-700">Ожидает отправки</Badge>
     }
 
     return (

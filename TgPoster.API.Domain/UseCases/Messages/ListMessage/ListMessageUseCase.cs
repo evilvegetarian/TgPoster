@@ -17,16 +17,14 @@ internal sealed class ListMessageUseCase(
 	public async Task<PagedResponse<MessageResponse>> Handle(ListMessageQuery request, CancellationToken ct)
 	{
 		if (!await storage.ExistScheduleAsync(request.ScheduleId, provider.Current.UserId, ct))
-		{
 			throw new ScheduleNotFoundException(request.ScheduleId);
-		}
 
 		var (token, _) = await tokenService.GetTokenByScheduleIdAsync(request.ScheduleId, ct);
 		var pagedMessages = await storage.GetMessagesAsync(request, ct);
 		var botClient = new TelegramBotClient(token);
 		var files = pagedMessages.Items.SelectMany(x => x.Files).ToList();
 
-		await fileService.CacheFileToS3(botClient, files, ct);
+		//await fileService.CacheFileToS3(botClient, files, ct);
 
 		var messageResponses = pagedMessages.Items.Select(m => new MessageResponse
 		{
