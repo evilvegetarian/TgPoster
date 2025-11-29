@@ -194,7 +194,6 @@ export function MessagesPage() {
                     />}
             </div>
 
-            {/* Панель фильтров */}
             <FiltersPanel
                 scheduleId={scheduleId}
                 status={status}
@@ -235,7 +234,6 @@ export function MessagesPage() {
                 </Card>
             )}
 
-            {/* Основной контент */}
             {!scheduleId ? (
                 <Alert>
                     <AlertCircle className="h-4 w-4"/>
@@ -282,7 +280,6 @@ export function MessagesPage() {
                 </Alert>
             ) : (
                 <div className="space-y-4">
-                    {/* Чекбокс "Выбрать все" */}
                     <div className="flex items-center gap-3">
                         <Checkbox
                             checked={messagesData.data.length > 0 && selectedMessageIds.length === messagesData.data.length}
@@ -291,7 +288,6 @@ export function MessagesPage() {
                         <span className="text-sm font-medium">Выбрать все</span>
                     </div>
 
-                    {/* Список сообщений */}
                     {messagesData.data.map((message) => (
                         <MessageCard
                             key={message.id}
@@ -303,7 +299,6 @@ export function MessagesPage() {
                         />
                     ))}
 
-                    {/* Пагинация */}
                     <div className="flex justify-center">{renderPagination()}</div>
                 </div>
             )}

@@ -252,6 +252,7 @@ export interface MessageResponse {
   canApprove: boolean;
   /** @nullable */
   files?: FileResponse[] | null;
+  isSent: boolean;
 }
 
 export interface MessageResponsePagedResponse {
@@ -595,10 +596,6 @@ export type PutApiV1MessageIdBody = {
   OldFiles?: string[];
   /** Новые файлы сообщения */
   NewFiles?: Blob[];
-};
-
-export type PatchApiV1MessageIdFileBody = {
-  files?: Blob[];
 };
 
 export type GetApiV1PromptSettingParams = {

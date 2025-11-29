@@ -56,16 +56,20 @@ export function CreateMessageDialog({scheduleId, availableTimes, onTimeSelect}: 
             return
         }
 
+        const utcTimeForServer = new Date(timePosting).toISOString();
+
         createMessage.mutate({
             data: {
                 ScheduleId: scheduleId,
-                TimePosting: timePosting,
+                TimePosting: utcTimeForServer, // Отправляем UTC
                 TextMessage: textMessage || undefined,
                 Files: files.length > 0 ? files : undefined,
             },
         })
     }
-
+    const handleTimeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setTimePosting(e.target.value)
+    }
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files) {
             setFiles((prev) => [...prev, ...Array.from(e.target.files!)])
@@ -108,7 +112,7 @@ export function CreateMessageDialog({scheduleId, availableTimes, onTimeSelect}: 
                             id="time"
                             type="datetime-local"
                             value={timePosting}
-                            onChange={(e) => setTimePosting(e.target.value)}
+                            onChange={handleTimeChange}
                             required
                         />
                     </div>

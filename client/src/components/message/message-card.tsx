@@ -21,14 +21,17 @@ interface MessageCardProps {
 export function MessageCard({message, isSelected, onSelectionChange, availableTimes, onTimeSelect}: MessageCardProps) {
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
 
-    const getStatusBadge = (needApprove: boolean, canApprove: boolean) => {
+    const getStatusBadge = (needApprove: boolean, canApprove: boolean, isSent: boolean) => {
         if (needApprove && !canApprove) {
-            return <Badge variant="secondary">Ожидает подтверждения</Badge>
+            return <Badge variant="secondary" className="bg-gray-200 text-gray-700 hover:bg-gray-200">Ожидает подтверждения</Badge>
         }
         if (needApprove && canApprove) {
-            return <Badge variant="outline">Готов к подтверждению</Badge>
+            return <Badge variant="default" className="bg-blue-600 hover:bg-blue-700">Готов к подтверждению</Badge>
         }
-        return <Badge variant="default">Подтверждено</Badge>
+        if (isSent) {
+            return <Badge variant="outline" className="text-blue-600 border-blue-600">Отправлено</Badge>
+        }
+        return <Badge variant="default" className="bg-green-600 hover:bg-green-700">Подтверждено</Badge>
     }
 
     return (
@@ -36,14 +39,12 @@ export function MessageCard({message, isSelected, onSelectionChange, availableTi
             <Card className={`transition-colors ${isSelected ? "ring-2 ring-primary" : ""}`}>
                 <CardContent className="p-4">
                     <div className="flex items-start gap-3">
-                        {/* Checkbox для выбора */}
                         <Checkbox checked={isSelected} onCheckedChange={onSelectionChange} className="mt-1"/>
 
                         <div className="flex-1 space-y-3">
-                            {/* Заголовок со статусом и кнопкой редактирования */}
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-2">
-                                    {getStatusBadge(message.needApprove, message.canApprove)}
+                                    {getStatusBadge(message.needApprove, message.canApprove, message.isSent)}
                                     <div className="flex items-center gap-1 text-sm text-muted-foreground">
                                         <Clock className="h-3 w-3"/>
                                         {message.timePosting && format(new Date(message.timePosting), "dd.MM.yyyy HH:mm", {locale: ru})}
@@ -55,14 +56,12 @@ export function MessageCard({message, isSelected, onSelectionChange, availableTi
                                 </Button>
                             </div>
 
-                            {/* Текст сообщения */}
                             {message.textMessage && (
                                 <div className="prose prose-sm max-w-none">
                                     <p className="text-sm leading-relaxed">{message.textMessage}</p>
                                 </div>
                             )}
 
-                            {/* Файлы */}
                             {message.files && message.files.length > 0 && (
                                 <div className="space-y-2">
                                     <p className="text-sm font-medium text-muted-foreground">Файлы
