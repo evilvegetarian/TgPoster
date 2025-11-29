@@ -41,7 +41,7 @@ public class ScheduleController(ISender sender) : ControllerBase
 	[ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
 	[ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
 	[ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
-	public async Task<IActionResult> Create([FromBody] CreateScheduleRequest request, CancellationToken ct)
+	public async Task<IActionResult> Create([FromBody] [Required] CreateScheduleRequest request, CancellationToken ct)
 	{
 		var response =
 			await sender.Send(new CreateScheduleCommand(request.Name, request.TelegramBotId, request.Channel), ct);
@@ -58,7 +58,7 @@ public class ScheduleController(ISender sender) : ControllerBase
 	[ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ScheduleResponse))]
 	[ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
 	[ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
-	public async Task<IActionResult> Get([Required] Guid id, CancellationToken ct)
+	public async Task<IActionResult> Get([FromRoute] [Required] Guid id, CancellationToken ct)
 	{
 		var response = await sender.Send(new GetScheduleCommand(id), ct);
 		return Ok(response);
@@ -74,7 +74,7 @@ public class ScheduleController(ISender sender) : ControllerBase
 	[ProducesResponseType(StatusCodes.Status200OK)]
 	[ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
 	[ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
-	public async Task<IActionResult> Delete([Required] Guid id, CancellationToken ct)
+	public async Task<IActionResult> Delete([FromRoute] [Required] Guid id, CancellationToken ct)
 	{
 		await sender.Send(new DeleteScheduleCommand(id), ct);
 		return Ok();
@@ -90,7 +90,7 @@ public class ScheduleController(ISender sender) : ControllerBase
 	[ProducesResponseType(StatusCodes.Status200OK)]
 	[ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
 	[ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
-	public async Task<IActionResult> UpdateStatus([Required] Guid id, CancellationToken ct)
+	public async Task<IActionResult> UpdateStatus([FromRoute] [Required] Guid id, CancellationToken ct)
 	{
 		await sender.Send(new UpdateStatusScheduleCommand(id), ct);
 		return Ok();

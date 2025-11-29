@@ -29,6 +29,7 @@ internal sealed class GetMessageUseCase(
 			TimePosting = message.TimePosting,
 			CanApprove = true,
 			NeedApprove = !message.IsVerified,
+			IsSent = message.IsSent,
 			Files = message.Files.Select(file => new FileResponse
 			{
 				Id = file.Id,

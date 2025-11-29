@@ -32,7 +32,7 @@ public class OpenRouterSettingController(ISender sender) : ControllerBase
 	[ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
 	[ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
 	public async Task<IActionResult> CreateOpenRouterSetting(
-		CreateOpenRouterSettingRequest request,
+		[FromBody] [Required] CreateOpenRouterSettingRequest request,
 		CancellationToken ctx
 	)
 	{
@@ -51,7 +51,7 @@ public class OpenRouterSettingController(ISender sender) : ControllerBase
 	[ProducesResponseType(StatusCodes.Status200OK, Type = typeof(GetOpenRouterSettingResponse))]
 	[ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
 	[ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
-	public async Task<IActionResult> GetOpenRouterSetting([Required] Guid id, CancellationToken ctx)
+	public async Task<IActionResult> GetOpenRouterSetting([FromRoute] [Required] Guid id, CancellationToken ctx)
 	{
 		var command = new GetOpenRouterSettingQuery(id);
 		var response = await sender.Send(command, ctx);
@@ -85,7 +85,7 @@ public class OpenRouterSettingController(ISender sender) : ControllerBase
 	[ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ListOpenRouterSettingResponse))]
 	[ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
 	[ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
-	public async Task<IActionResult> Delete(Guid id, CancellationToken ctx)
+	public async Task<IActionResult> Delete([FromRoute] [Required] Guid id, CancellationToken ctx)
 	{
 		var command = new DeleteOpenRouterSettingCommand(id);
 		await sender.Send(command, ctx);
@@ -103,7 +103,11 @@ public class OpenRouterSettingController(ISender sender) : ControllerBase
 	[ProducesResponseType(StatusCodes.Status200OK)]
 	[ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
 	[ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
-	public async Task<IActionResult> AddSchedule(Guid id, Guid scheduleId, CancellationToken ctx)
+	public async Task<IActionResult> AddSchedule(
+		[FromRoute] [Required] Guid id,
+		[FromRoute] [Required] Guid scheduleId,
+		CancellationToken ctx
+	)
 	{
 		var command = new AddScheduleOpenRouterSettingCommand(id, scheduleId);
 		await sender.Send(command, ctx);

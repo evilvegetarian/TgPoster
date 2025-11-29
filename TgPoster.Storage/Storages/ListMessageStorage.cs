@@ -33,7 +33,7 @@ internal sealed class ListMessageStorage(PosterContext context) : IListMessageSt
 			case MessageStatus.All:
 				break;
 			case MessageStatus.Planed:
-				query = query.Where(message => message.IsVerified);
+				query = query.Where(message => message.IsVerified && message.Status != Data.Enum.MessageStatus.Send);
 				break;
 			case MessageStatus.NotApproved:
 				query = query.Where(message => !message.IsVerified);

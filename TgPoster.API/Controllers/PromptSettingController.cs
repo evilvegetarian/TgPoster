@@ -31,7 +31,7 @@ public class PromptSettingController(ISender sender) : ControllerBase
 	[ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
 	[ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
 	public async Task<IActionResult> CreatePromptSetting(
-		[FromBody] CreatePromptSettingRequest request,
+		[FromBody] [Required] CreatePromptSettingRequest request,
 		CancellationToken ctx
 	)
 	{
@@ -52,7 +52,7 @@ public class PromptSettingController(ISender sender) : ControllerBase
 	[ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
 	[ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
 	[ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
-	public async Task<IActionResult> GetPromptSetting([FromRoute] Guid id, CancellationToken ctx)
+	public async Task<IActionResult> GetPromptSetting([FromRoute] [Required] Guid id, CancellationToken ctx)
 	{
 		var query = new GetPromptSettingQuery(id);
 		var response = await sender.Send(query, ctx);
@@ -92,8 +92,8 @@ public class PromptSettingController(ISender sender) : ControllerBase
 	[ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
 	[ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
 	public async Task<IActionResult> EditPromptSetting(
-		[FromRoute] Guid id,
-		[FromBody] EditPromptSettingRequest request,
+		[FromRoute] [Required] Guid id,
+		[FromBody] [Required] EditPromptSettingRequest request,
 		CancellationToken ctx
 	)
 	{

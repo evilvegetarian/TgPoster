@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -28,7 +29,10 @@ public class TelegramBotController(ISender sender) : ControllerBase
 	[ProducesResponseType(StatusCodes.Status200OK, Type = typeof(CreateTelegramBotResponse))]
 	[ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
 	[ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
-	public async Task<IActionResult> Create(CreateTelegramBotRequest request, CancellationToken ct)
+	public async Task<IActionResult> Create(
+		[FromBody] [Required] CreateTelegramBotRequest request,
+		CancellationToken ct
+	)
 	{
 		var response = await sender.Send(new CreateTelegramBotCommand(request.Token), ct);
 		return Ok(response);
@@ -45,7 +49,11 @@ public class TelegramBotController(ISender sender) : ControllerBase
 	[ProducesResponseType(StatusCodes.Status200OK)]
 	[ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
 	[ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
-	public async Task<IActionResult> Update(Guid id, UpdateTelegramBotRequest request, CancellationToken ct)
+	public async Task<IActionResult> Update(
+		[FromRoute] [Required] Guid id,
+		[FromBody] [Required] UpdateTelegramBotRequest request,
+		CancellationToken ct
+	)
 	{
 		await sender.Send(new UpdateTelegramBotCommand(id, request.Name, request.IsActive), ct);
 		return Ok();
@@ -76,7 +84,7 @@ public class TelegramBotController(ISender sender) : ControllerBase
 	[ProducesResponseType(StatusCodes.Status200OK)]
 	[ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
 	[ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
-	public async Task<IActionResult> Delete(Guid id, CancellationToken ct)
+	public async Task<IActionResult> Delete([FromRoute] [Required] Guid id, CancellationToken ct)
 	{
 		await sender.Send(new DeleteTelegramCommand(id), ct);
 		return Ok();

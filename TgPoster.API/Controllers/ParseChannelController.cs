@@ -28,7 +28,10 @@ public class ParseChannelController(ISender sender) : ControllerBase
 	[ProducesResponseType(StatusCodes.Status201Created, Type = typeof(CreateParseChannelResponse))]
 	[ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
 	[ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
-	public async Task<IActionResult> Create([FromBody] CreateParseChannelRequest request, CancellationToken ct)
+	public async Task<IActionResult> Create(
+		[FromBody] [Required] CreateParseChannelRequest request,
+		CancellationToken ct
+	)
 	{
 		var response = await sender.Send(request.ToCommand(), ct);
 		return Created(Routes.ParseChannel.List, response);
@@ -60,8 +63,8 @@ public class ParseChannelController(ISender sender) : ControllerBase
 	[ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
 	[ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
 	public async Task<IActionResult> Update(
-		[Required] Guid id,
-		[FromBody] UpdateParseChannelRequest request,
+		[FromRoute] [Required] Guid id,
+		[FromBody] [Required] UpdateParseChannelRequest request,
 		CancellationToken ct
 	)
 	{
@@ -72,7 +75,6 @@ public class ParseChannelController(ISender sender) : ControllerBase
 	/// <summary>
 	///     Удаления задачи на парсинг
 	/// </summary>
-	/// <param name="request"></param>
 	/// <param name="ct"></param>
 	/// <param name="id"></param>
 	/// <returns></returns>
@@ -80,7 +82,7 @@ public class ParseChannelController(ISender sender) : ControllerBase
 	[ProducesResponseType(StatusCodes.Status200OK)]
 	[ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
 	[ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
-	public async Task<IActionResult> Delete([Required] Guid id, CancellationToken ct)
+	public async Task<IActionResult> Delete([FromRoute] [Required] Guid id, CancellationToken ct)
 	{
 		await sender.Send(new DeleteParseChannelCommand(id), ct);
 		return Ok();

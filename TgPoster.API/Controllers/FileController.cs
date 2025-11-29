@@ -23,7 +23,7 @@ public class FileController(ISender sender) : ControllerBase
 	[ProducesResponseType(StatusCodes.Status200OK, Type = typeof(FileContentResult))]
 	[ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
 	[ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
-	public async Task<IActionResult> Get(Guid id, CancellationToken ct)
+	public async Task<IActionResult> Get([FromRoute] Guid id, CancellationToken ct)
 	{
 		var response = await sender.Send(new GetFileCommand(id), ct);
 		return File(response.Data, response.ContentType);

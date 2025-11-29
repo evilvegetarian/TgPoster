@@ -73,7 +73,7 @@ public class MessageController(ISender sender) : ControllerBase
 	[ProducesResponseType(StatusCodes.Status200OK, Type = typeof(MessageResponse))]
 	[ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
 	[ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
-	public async Task<IActionResult> Get([Required] Guid id, CancellationToken ct)
+	public async Task<IActionResult> Get([FromRoute] [Required] Guid id, CancellationToken ct)
 	{
 		var response = await sender.Send(new GetMessageQuery(id), ct);
 		return Ok(response);
@@ -113,7 +113,7 @@ public class MessageController(ISender sender) : ControllerBase
 	[ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
 	[ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
 	public async Task<IActionResult> Update(
-		[Required] Guid id,
+		[FromRoute] [Required] Guid id,
 		[FromForm] EditMessageRequest request,
 		CancellationToken ct
 	)
@@ -136,8 +136,8 @@ public class MessageController(ISender sender) : ControllerBase
 	[ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
 	[ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
 	public async Task<IActionResult> DeleteFileMessage(
-		[Required] Guid id,
-		[Required] Guid fileId,
+		[FromRoute] [Required] Guid id,
+		[FromRoute] [Required] Guid fileId,
 		CancellationToken ct
 	)
 	{
@@ -157,8 +157,8 @@ public class MessageController(ISender sender) : ControllerBase
 	[ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
 	[ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
 	public async Task<IActionResult> LoadFiles(
-		[Required] Guid id,
-		List<IFormFile> files,
+		[FromRoute] [Required] Guid id,
+		[FromBody] [Required] List<IFormFile> files,
 		CancellationToken ct
 	)
 	{
@@ -176,7 +176,10 @@ public class MessageController(ISender sender) : ControllerBase
 	[ProducesResponseType(StatusCodes.Status200OK)]
 	[ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
 	[ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
-	public async Task<IActionResult> ApproveMessages(ApproveMessagesRequest request, CancellationToken ct)
+	public async Task<IActionResult> ApproveMessages(
+		[FromBody] [Required] ApproveMessagesRequest request,
+		CancellationToken ct
+	)
 	{
 		await sender.Send(new ApproveMessagesCommand(request.MessagesIds), ct);
 		return Ok();
@@ -192,7 +195,7 @@ public class MessageController(ISender sender) : ControllerBase
 	[ProducesResponseType(StatusCodes.Status200OK)]
 	[ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
 	[ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
-	public async Task<IActionResult> DeleteMessages([Required] List<Guid> ids, CancellationToken ct)
+	public async Task<IActionResult> DeleteMessages([FromBody] [Required] List<Guid> ids, CancellationToken ct)
 	{
 		await sender.Send(new DeleteMessagesCommand(ids), ct);
 		return Ok();
@@ -208,7 +211,7 @@ public class MessageController(ISender sender) : ControllerBase
 	[ProducesResponseType(StatusCodes.Status200OK, Type = typeof(GetTimeResponse))]
 	[ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
 	[ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
-	public async Task<IActionResult> GetTime([Required] Guid scheduleId, CancellationToken ct)
+	public async Task<IActionResult> GetTime([FromRoute] [Required] Guid scheduleId, CancellationToken ct)
 	{
 		var response = await sender.Send(new GetTimeCommand(scheduleId), ct);
 		return Ok(response);

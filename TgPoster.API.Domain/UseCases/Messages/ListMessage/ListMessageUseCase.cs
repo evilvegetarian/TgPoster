@@ -36,6 +36,7 @@ internal sealed class ListMessageUseCase(
 			TimePosting = m.TimePosting,
 			NeedApprove = !m.IsVerified,
 			CanApprove = true,
+			IsSent = m.IsSent,
 			Files = m.Files.Select(file => new FileResponse
 			{
 				Id = file.Id,
