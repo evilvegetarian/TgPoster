@@ -1,4 +1,5 @@
 using Shouldly;
+using Xunit.Sdk;
 
 namespace Shared.Tests;
 

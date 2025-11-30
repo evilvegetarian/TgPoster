@@ -88,15 +88,15 @@ public static class DependencyInjection
 			x.UsingPostgres((context, cfg) =>
 			{
 				cfg.ConfigureEndpoints(context);
-				cfg.ReceiveEndpoint(queueName, e =>
-				{
-					var partition = e.CreatePartitioner(50);
-					e.ConfigureConsumer<ProcessMessageConsumer>(context, c =>
-					{
-						c.Message<ProcessMessage>(m =>
-							m.UsePartitioner(partition, p => p.Message.TelegramBotId));
-					});
-				});
+				//cfg.ReceiveEndpoint(queueName, e =>
+				//{
+				//	var partition = e.CreatePartitioner(50);
+				//	e.ConfigureConsumer<ProcessMessageConsumer>(context, c =>
+				//	{
+				//		c.Message<ProcessMessage>(m =>
+				//			m.UsePartitioner(partition, p => p.Message.TelegramBotId));
+				//	});
+				//});
 			});
 			var dataBase = configuration.GetSection(nameof(DataBase)).Get<DataBase>()!;
 			x.ConfigureMassTransient(dataBase.ConnectionString);
