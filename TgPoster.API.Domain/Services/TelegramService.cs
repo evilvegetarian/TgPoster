@@ -90,6 +90,13 @@ internal sealed class TelegramService(VideoService videoService)
 
 		return media;
 	}
+
+	public async Task<byte[]> GetByteFileAsync(TelegramBotClient client, string fileId, CancellationToken ct)
+	{
+		var stream = new MemoryStream();
+		await client.GetInfoAndDownloadFile(fileId: fileId, stream, ct);
+		return stream.ToArray();
+	}
 }
 
 public class MediaFileResult

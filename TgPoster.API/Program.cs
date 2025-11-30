@@ -11,10 +11,10 @@ using TgPoster.API.Telemetry;
 using TgPoster.Storage;
 
 var builder = WebApplication.CreateBuilder(args);
-const string MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
+const string myAllowSpecificOrigins = "_myAllowSpecificOrigins";
 
 builder.AddLogging();
-builder.AddCors(MyAllowSpecificOrigins);
+builder.AddCors(myAllowSpecificOrigins);
 builder.Services.AddSwaggerGen(options =>
 {
 	options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
@@ -62,7 +62,8 @@ builder.Services
 	.AddStorage(builder.Configuration)
 	.AddDomain(builder.Configuration)
 	.AddSecurity(builder.Configuration);
-
+var openRouterOptions = builder.Configuration.GetSection(nameof(OpenRouterOptions)).Get<OpenRouterOptions>()!;
+builder.Services.AddSingleton(openRouterOptions);
 var dataBase = builder.Configuration.GetSection(nameof(DataBase)).Get<DataBase>()!;
 builder.Services.AddMassTransit(x =>
 {
@@ -75,7 +76,7 @@ app.UseHttpsRedirection();
 app.UseSwagger();
 app.UseSwaggerUI();
 app.UseRouting();
-app.UseCors(MyAllowSpecificOrigins);
+app.UseCors(myAllowSpecificOrigins);
 app.UseAuthentication();
 app.UseMiddleware<AuthenticationMiddleware>();
 app.UseAuthorization();

@@ -7,7 +7,7 @@ import {Input} from "@/components/ui/input"
 import {Label} from "@/components/ui/label"
 import {FilePreview} from "./file-preview"
 import type {MessageResponse} from "@/api/endpoints/tgPosterAPI.schemas.ts";
-import {usePutApiV1MessageId} from "@/api/endpoints/message/message.ts";
+import {useGetApiV1MessageMessageIdAiContent, usePutApiV1MessageId} from "@/api/endpoints/message/message.ts";
 import {Textarea} from "@/components/ui/textarea.tsx";
 import {toast} from "sonner";
 import {Badge} from "@/components/ui/badge.tsx";
@@ -30,6 +30,11 @@ const utcToLocalDatetimeString = (utcString: string): string => {
 };
 
 export function EditMessageDialog({message, isOpen, onClose, availableTimes, onTimeSelect}: EditMessageDialogProps) {
+    const { refetch, isFetching } = useGetApiV1MessageMessageIdAiContent(
+        message.id,
+        { query: { enabled: false } }
+    );
+
     const [textMessage, setTextMessage] = useState("")
     const [timePosting, setTimePosting] = useState("")
     const [oldFiles, setOldFiles] = useState<string[]>([])
@@ -96,6 +101,12 @@ export function EditMessageDialog({message, isOpen, onClose, availableTimes, onT
         setTimePosting(utcToLocalDatetimeString(time))
         onTimeSelect(time)
     }
+    const handleAIContent = async () => {
+        const {data:aicontent} = await refetch();
+        if (aicontent) {
+            setTextMessage(aicontent.content)
+        }
+    };
 
     if (!message)
         return null
@@ -118,7 +129,11 @@ export function EditMessageDialog({message, isOpen, onClose, availableTimes, onT
                             rows={4}
                         />
                     </div>
-
+                    <div>
+                        <Badge onClick={handleAIContent} disabled={isFetching}>
+                            {isFetching ? 'Loading...' : 'фвыфвфы'}
+                        </Badge>
+                    </div>
                     <div className="space-y-2">
                         <Label htmlFor="time">Время публикации (местное время)</Label>
                         <Input
@@ -130,7 +145,6 @@ export function EditMessageDialog({message, isOpen, onClose, availableTimes, onT
                         />
                     </div>
 
-                    {/* Блок с подсказками по времени */}
                     {availableTimes && availableTimes.length > 0 && (
                         <div className="space-y-2 rounded-md border p-3">
                             <Label>Свободное время по расписанию:</Label>

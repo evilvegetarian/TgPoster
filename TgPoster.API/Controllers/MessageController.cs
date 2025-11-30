@@ -9,6 +9,7 @@ using TgPoster.API.Domain.UseCases.Messages.CreateMessagesFromFiles;
 using TgPoster.API.Domain.UseCases.Messages.DeleteFileMessage;
 using TgPoster.API.Domain.UseCases.Messages.DeleteMessages;
 using TgPoster.API.Domain.UseCases.Messages.EditMessage;
+using TgPoster.API.Domain.UseCases.Messages.GenerateAiContent;
 using TgPoster.API.Domain.UseCases.Messages.GetMessageById;
 using TgPoster.API.Domain.UseCases.Messages.GetTime;
 using TgPoster.API.Domain.UseCases.Messages.ListMessage;
@@ -214,6 +215,22 @@ public class MessageController(ISender sender) : ControllerBase
 	public async Task<IActionResult> GetTime([FromRoute] [Required] Guid scheduleId, CancellationToken ct)
 	{
 		var response = await sender.Send(new GetTimeCommand(scheduleId), ct);
+		return Ok(response);
+	}
+
+	/// <summary>
+	///     Создать контент для сообщения
+	/// </summary>
+	/// <param name="messageId"></param>
+	/// <param name="ct"></param>
+	/// <returns></returns>
+	[HttpGet(Routes.Message.GenerateAiContent)]
+	[ProducesResponseType(StatusCodes.Status200OK, Type = typeof(GenerateAiContentResponse))]
+	[ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
+	[ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
+	public async Task<IActionResult> GenerateAiContent([FromRoute] [Required] Guid messageId, CancellationToken ct)
+	{
+		var response = await sender.Send(new GenerateAiContentCommand(messageId), ct);
 		return Ok(response);
 	}
 }

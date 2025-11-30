@@ -9,7 +9,46 @@ public class OpenRouterClient(IHttpClientFactory httpClientFactory)
 {
 	private const string ApiUrl = "https://openrouter.ai/api/v1/chat/completions";
 
-	public async Task<ChatCompletionResponse?> SendMessageAsync(string apiKey, string message, string model)
+	public async Task<ChatCompletionResponse?> SendMessageAsync(string apiKey, string model, string message)
+	{
+		return await SendMessageRawAsync(apiKey, model,
+			[
+				new ChatMessage { Role = "user", Content = message }
+			]
+		);
+	}
+
+	public async Task<ChatCompletionResponse?> SendImageMessageAsync(
+		string apiKey,
+		string model,
+		string textPrompt,
+		string imageUrl
+	)
+	{
+		var contentParts = new List<MessageContentPart>
+		{
+			new() { Type = "text", Text = textPrompt },
+			new()
+			{
+				Type = "image_url",
+				ImageUrl = new ImageUrlInfo { Url = imageUrl }
+			}
+		};
+
+		var message = new ChatMessage
+		{
+			Role = "user",
+			Content = contentParts
+		};
+
+		return await SendMessageRawAsync(apiKey, model, [message]);
+	}
+
+	public async Task<ChatCompletionResponse?> SendMessageRawAsync(
+		string apiKey,
+		string model,
+		List<ChatMessage> messages
+	)
 	{
 		using var client = httpClientFactory.CreateClient();
 		client.DefaultRequestHeaders.Add("Authorization", $"Bearer {apiKey}");
@@ -17,30 +56,38 @@ public class OpenRouterClient(IHttpClientFactory httpClientFactory)
 		var requestData = new ChatRequest
 		{
 			Model = model,
-			Messages =
-			[
-				new ChatMessage
-				{
-					Content = message,
-					Role = "assistant"
-				}
-			]
+			Messages = messages
 		};
 
 		var response = await client.PostAsync(ApiUrl, requestData.ToStringContent());
-		if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
-			throw new OpenRouterNotAuthorizedException();
 
 		var responseBody = await response.Content.ReadAsStringAsync();
 
-		if (response.StatusCode == System.Net.HttpStatusCode.BadRequest)
+		if (!response.IsSuccessStatusCode)
 		{
-			var errorResponse = JsonSerializer.Deserialize<ErrorResponse>(responseBody);
-			throw new OpenRouterException(errorResponse?.Error.Message);
+			if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+				throw new OpenRouterNotAuthorizedException();
+
+			try
+			{
+				var errorResponse = JsonSerializer.Deserialize<ErrorResponse>(responseBody);
+				throw new OpenRouterException(errorResponse?.Error.Message ?? responseBody);
+			}
+			catch (JsonException)
+			{
+				throw new OpenRouterException($"API Error {response.StatusCode}: {responseBody}");
+			}
 		}
 
-		var chatResponse = JsonSerializer.Deserialize<ChatCompletionResponse>(responseBody);
-		return chatResponse;
+		return JsonSerializer.Deserialize<ChatCompletionResponse>(responseBody);
+	}
+
+	public string ToLocalImageExample(byte[] picture)
+	{
+		//var imageBytes = stream.ToArray();
+		var base64Image = Convert.ToBase64String(picture);
+
+		return $"data:image/jpeg;base64,{base64Image}";
 	}
 }
 
@@ -70,15 +117,43 @@ public class ChatRequest
 }
 
 /// <summary>
-/// Представляет одно сообщение в диалоге (как в запросе, так и в ответе).
+/// Представляет одно сообщение.
 /// </summary>
 public class ChatMessage
 {
 	[JsonPropertyName("role")]
 	public string Role { get; set; }
 
+	// ИЗМЕНЕНИЕ: Тип string заменен на object, чтобы поддерживать и строку, и список
 	[JsonPropertyName("content")]
-	public string Content { get; set; }
+	public object Content { get; set; }
+}
+
+// --- НОВЫЕ КЛАССЫ ДЛЯ КАРТИНОК ---
+
+public class MessageContentPart
+{
+	[JsonPropertyName("type")]
+	public string Type { get; set; } // "text" или "image_url"
+
+	[JsonPropertyName("text")]
+	[JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+	public string? Text { get; set; }
+
+	[JsonPropertyName("image_url")]
+	[JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+	public ImageUrlInfo ImageUrl { get; set; }
+}
+
+public class ImageUrlInfo
+{
+	[JsonPropertyName("url")]
+	public string Url { get; set; }
+
+	// Опционально: "auto", "low", "high"
+	[JsonPropertyName("detail")]
+	[JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+	public string Detail { get; set; }
 }
 
 // --- МОДЕЛИ ДЛЯ ОТВЕТА ---

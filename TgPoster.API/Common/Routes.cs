@@ -57,6 +57,7 @@ internal static class Routes
 		internal const string Get = Root + "/{id:guid}";
 		internal const string Delete = Root;
 		internal const string GetTime = Root + "/{scheduleId:guid}/time";
+		internal const string GenerateAiContent = Root + "/{messageId:guid}" + "/ai-content";
 	}
 
 	internal static class File

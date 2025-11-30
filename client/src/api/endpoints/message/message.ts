@@ -26,6 +26,7 @@ import type {
 import type {
   ApproveMessagesRequest,
   CreateMessageResponse,
+  GenerateAiContentResponse,
   GetApiV1MessageParams,
   GetTimeResponse,
   MessageResponse,
@@ -761,6 +762,93 @@ export function useGetApiV1MessageScheduleIdTime<TData = Awaited<ReturnType<type
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getGetApiV1MessageScheduleIdTimeQueryOptions(scheduleId,options)
+
+  const query = useQuery(queryOptions , queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+/**
+ * @summary Создать контент для сообщения
+ */
+export const getApiV1MessageMessageIdAiContent = (
+    messageId: string,
+ signal?: AbortSignal
+) => {
+      
+      
+      return customInstance<GenerateAiContentResponse>(
+      {url: `/api/v1/message/${messageId}/ai-content`, method: 'GET', signal
+    },
+      );
+    }
+  
+
+export const getGetApiV1MessageMessageIdAiContentQueryKey = (messageId: string,) => {
+    return [`/api/v1/message/${messageId}/ai-content`] as const;
+    }
+
+    
+export const getGetApiV1MessageMessageIdAiContentQueryOptions = <TData = Awaited<ReturnType<typeof getApiV1MessageMessageIdAiContent>>, TError = ProblemDetails>(messageId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1MessageMessageIdAiContent>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetApiV1MessageMessageIdAiContentQueryKey(messageId);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getApiV1MessageMessageIdAiContent>>> = ({ signal }) => getApiV1MessageMessageIdAiContent(messageId, signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, enabled: !!(messageId), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getApiV1MessageMessageIdAiContent>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetApiV1MessageMessageIdAiContentQueryResult = NonNullable<Awaited<ReturnType<typeof getApiV1MessageMessageIdAiContent>>>
+export type GetApiV1MessageMessageIdAiContentQueryError = ProblemDetails
+
+
+export function useGetApiV1MessageMessageIdAiContent<TData = Awaited<ReturnType<typeof getApiV1MessageMessageIdAiContent>>, TError = ProblemDetails>(
+ messageId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1MessageMessageIdAiContent>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getApiV1MessageMessageIdAiContent>>,
+          TError,
+          Awaited<ReturnType<typeof getApiV1MessageMessageIdAiContent>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetApiV1MessageMessageIdAiContent<TData = Awaited<ReturnType<typeof getApiV1MessageMessageIdAiContent>>, TError = ProblemDetails>(
+ messageId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1MessageMessageIdAiContent>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getApiV1MessageMessageIdAiContent>>,
+          TError,
+          Awaited<ReturnType<typeof getApiV1MessageMessageIdAiContent>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetApiV1MessageMessageIdAiContent<TData = Awaited<ReturnType<typeof getApiV1MessageMessageIdAiContent>>, TError = ProblemDetails>(
+ messageId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1MessageMessageIdAiContent>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Создать контент для сообщения
+ */
+
+export function useGetApiV1MessageMessageIdAiContent<TData = Awaited<ReturnType<typeof getApiV1MessageMessageIdAiContent>>, TError = ProblemDetails>(
+ messageId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1MessageMessageIdAiContent>>, TError, TData>>, }
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetApiV1MessageMessageIdAiContentQueryOptions(messageId,options)
 
   const query = useQuery(queryOptions , queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 

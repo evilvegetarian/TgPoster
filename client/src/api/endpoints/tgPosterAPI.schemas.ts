@@ -219,6 +219,11 @@ export interface FileTypesEnumViewModel {
   name: string | null;
 }
 
+export interface GenerateAiContentResponse {
+  /** @nullable */
+  content: string | null;
+}
+
 export interface GetDaysResponse {
   id: string;
   scheduleId: string;
