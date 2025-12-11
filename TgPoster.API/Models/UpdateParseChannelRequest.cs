@@ -51,6 +51,11 @@ public class UpdateParseChannelRequest : IValidatableObject
 	/// </summary>
 	public DateTime? DateTo { get; set; }
 
+	/// <summary>
+	/// Использовать аи для постов
+	/// </summary>
+	public bool UseAiForPosts { get; set; }
+
 	public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
 	{
 		var validationResults = new List<ValidationResult>();

@@ -59,6 +59,15 @@ public sealed class ChannelParsingSetting : BaseEntity
 	/// </summary>
 	public ParsingStatus Status { get; set; }
 
-	public Schedule Schedule { get; set; } = null!;
+	/// <summary>
+	/// Последняя дата время
+	/// </summary>
 	public DateTime? LastParseDate { get; set; }
+
+	/// <summary>
+	/// Использование Аи для постов
+	/// </summary>
+	public required bool UseAiForPosts { get; set; }
+
+	public Schedule Schedule { get; set; } = null!;
 }

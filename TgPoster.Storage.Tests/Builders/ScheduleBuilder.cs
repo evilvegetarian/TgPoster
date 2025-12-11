@@ -80,6 +80,7 @@ public sealed class ChannelParsingParameterBuilder
 			ScheduleId = new ScheduleBuilder(context).Create().Id,
 			Status = Faker.Random.Enum<ParsingStatus>(),
 			CheckNewPosts = Faker.Random.Bool(),
+			UseAiForPosts = true
 		};
 	}
 

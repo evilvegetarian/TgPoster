@@ -12,6 +12,7 @@ public class ChannelParsingSettingBuilder(PosterContext context)
 	private readonly ChannelParsingSetting setting = new()
 	{
 		Id = Guid.NewGuid(),
+		UseAiForPosts = true,
 		AvoidWords = ["spam", "ban"],
 		Channel = $"channel_{faker.Random.Int(1, 10_000)}",
 		DeleteMedia = true,

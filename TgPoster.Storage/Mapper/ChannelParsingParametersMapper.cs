@@ -39,7 +39,8 @@ public static class ChannelParsingParametersMapper
 			DeleteText = request.DeleteText,
 			CheckNewPosts = request.AlwaysCheckNewPosts,
 			NeedVerifiedPosts = request.NeedVerifiedPosts,
-			DeleteMedia = request.DeleteMedia
+			DeleteMedia = request.DeleteMedia,
+			UseAiForPosts = request.UseAiForPosts
 		};
 	}
 }

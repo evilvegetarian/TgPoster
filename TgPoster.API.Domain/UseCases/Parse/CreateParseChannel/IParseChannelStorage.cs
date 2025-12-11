@@ -12,6 +12,7 @@ public interface IParseChannelStorage
 		bool needVerifiedPosts,
 		DateTime? dateFrom,
 		DateTime? dateTo,
+		bool useAiForPosts,
 		CancellationToken ct
 	);
 

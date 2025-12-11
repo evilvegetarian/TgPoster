@@ -36,6 +36,7 @@ public class ParseChannelStorageShould(StorageTestFixture fixture) : IClassFixtu
 			needVerifiedPosts,
 			dateFrom,
 			dateTo,
+			true,
 			CancellationToken.None);
 
 		result.ShouldNotBe(Guid.Empty);
@@ -71,6 +72,7 @@ public class ParseChannelStorageShould(StorageTestFixture fixture) : IClassFixtu
 			false,
 			null,
 			null,
+			true,
 			CancellationToken.None);
 
 		result.ShouldNotBe(Guid.Empty);
@@ -100,6 +102,7 @@ public class ParseChannelStorageShould(StorageTestFixture fixture) : IClassFixtu
 			false,
 			null,
 			null,
+			true,
 			CancellationToken.None);
 
 		result.ShouldNotBe(Guid.Empty);

@@ -12,5 +12,6 @@ public record UpdateParseChannelCommand(
 	string[] AvoidWords,
 	bool NeedVerifiedPosts,
 	DateTime? DateFrom,
-	DateTime? DateTo
+	DateTime? DateTo,
+	bool UseAiForPosts
 ) : IRequest;

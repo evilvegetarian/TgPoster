@@ -105,7 +105,8 @@ public sealed class Helper
 			NeedVerifiedPosts = true,
 			ScheduleId = scheduleId,
 			Status = status,
-			CheckNewPosts = checkNewPosts
+			CheckNewPosts = checkNewPosts,
+			UseAiForPosts = true,
 		};
 
 		configure?.Invoke(setting);

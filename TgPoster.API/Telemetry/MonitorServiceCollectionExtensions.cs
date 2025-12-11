@@ -6,7 +6,7 @@ using TgPoster.API.Configuration;
 namespace TgPoster.API.Telemetry;
 
 /// <summary>
-/// 
+/// Расширения для добавление метрик и тресировки
 /// </summary>
 public static class MonitorServiceCollectionExtensions
 {

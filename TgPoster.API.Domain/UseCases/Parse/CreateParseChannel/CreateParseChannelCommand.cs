@@ -11,5 +11,5 @@ public sealed record CreateParseChannelCommand(
 	string[] AvoidWords,
 	bool NeedVerifiedPosts,
 	DateTime? DateFrom,
-	DateTime? DateTo
-) : IRequest<CreateParseChannelResponse>;
+	DateTime? DateTo,
+	bool UseAiForPosts) : IRequest<CreateParseChannelResponse>;

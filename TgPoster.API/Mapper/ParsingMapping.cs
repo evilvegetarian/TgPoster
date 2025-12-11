@@ -23,7 +23,8 @@ public static class ParsingMapping
 			request.AvoidWords,
 			request.NeedVerifiedPosts,
 			request.DateFrom,
-			request.DateTo);
+			request.DateTo,
+			request.UseAiForPosts);
 	}
 
 	public static UpdateParseChannelCommand ToCommand(this UpdateParseChannelRequest request, Guid id)
@@ -38,6 +39,7 @@ public static class ParsingMapping
 			request.AvoidWords,
 			request.NeedVerifiedPosts,
 			request.DateFrom,
-			request.DateTo);
+			request.DateTo,
+			request.UseAiForPosts);
 	}
 }

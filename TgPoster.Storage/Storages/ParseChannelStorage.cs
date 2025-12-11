@@ -18,6 +18,7 @@ internal class ParseChannelStorage(PosterContext context, GuidFactory factory) :
 		bool needVerifiedPosts,
 		DateTime? dateFrom,
 		DateTime? dateTo,
+		bool useAiForPosts,
 		CancellationToken ct
 	)
 	{
@@ -34,7 +35,8 @@ internal class ParseChannelStorage(PosterContext context, GuidFactory factory) :
 			Channel = channel,
 			Status = ParsingStatus.New,
 			DateFrom = dateFrom,
-			DateTo = dateTo
+			DateTo = dateTo,
+			UseAiForPosts = useAiForPosts
 		};
 		await context.AddAsync(param, ct);
 		await context.SaveChangesAsync(ct);
