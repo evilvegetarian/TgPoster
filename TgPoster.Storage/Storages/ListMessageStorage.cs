@@ -33,13 +33,22 @@ internal sealed class ListMessageStorage(PosterContext context) : IListMessageSt
 			case MessageStatus.All:
 				break;
 			case MessageStatus.Planed:
-				query = query.Where(message => message.IsVerified && message.Status != Data.Enum.MessageStatus.Send);
+				query = query.Where(message => message.IsVerified
+				                               && message.TimePosting > DateTimeOffset.UtcNow
+				                               && message.Status != Data.Enum.MessageStatus.Send);
 				break;
 			case MessageStatus.NotApproved:
-				query = query.Where(message => !message.IsVerified);
+				query = query.Where(message => !message.IsVerified
+				                               && message.TimePosting > DateTimeOffset.UtcNow);
 				break;
 			case MessageStatus.Delivered:
 				query = query.Where(message => message.Status == Data.Enum.MessageStatus.Send);
+				break;
+
+			case MessageStatus.NotDelivered:
+				query = query.Where(message =>
+					(message.Status == Data.Enum.MessageStatus.Send || !message.IsVerified)
+					&& message.TimePosting > DateTimeOffset.UtcNow);
 				break;
 			default:
 				throw new ArgumentOutOfRangeException();

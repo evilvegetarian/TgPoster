@@ -31,7 +31,12 @@ public enum MessageStatus
 	/// <summary>
 	/// Доставлено
 	/// </summary>
-	Delivered
+	Delivered,
+
+	/// <summary>
+	/// Не доставлено
+	/// </summary>
+	NotDelivered
 }
 
 public enum MessageSortBy

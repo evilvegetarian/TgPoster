@@ -5,7 +5,8 @@ public enum MessageStatus
 	All,
 	Planed,
 	NotApproved,
-	Delivered
+	Delivered,
+	NotDelivered
 }
 
 // Для примера определим поля для сортировки
@@ -31,6 +32,7 @@ public static class EnumExtensions
 			MessageStatus.Planed => "Запланировано",
 			MessageStatus.NotApproved => "Не подтверждено",
 			MessageStatus.Delivered => "Доставлено",
+			MessageStatus.NotDelivered => "Не доставлено",
 			_ => throw new ArgumentOutOfRangeException(nameof(status), status, null)
 		};
 	}
