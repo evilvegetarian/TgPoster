@@ -45,6 +45,9 @@ export interface CreateOpenRouterSettingResponse {
   id?: string;
 }
 
+/**
+ * Создание запроса на парсинг канала
+ */
 export interface CreateParseChannelRequest {
   /**
    * Канал который парсят.
@@ -78,6 +81,8 @@ export interface CreateParseChannelRequest {
    * @nullable
    */
   dateTo?: string | null;
+  /** Нужно ли анализировать пост через аи */
+  useAiForPosts?: boolean;
 }
 
 export interface CreateParseChannelResponse {
@@ -508,6 +513,8 @@ export interface UpdateParseChannelRequest {
    * @nullable
    */
   dateTo?: string | null;
+  /** Использовать аи для постов */
+  useAiForPosts?: boolean;
 }
 
 export interface UpdateTelegramBotRequest {

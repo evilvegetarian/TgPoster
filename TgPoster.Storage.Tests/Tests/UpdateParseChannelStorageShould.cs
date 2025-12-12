@@ -13,7 +13,6 @@ public class UpdateParseChannelStorageShould(StorageTestFixture fixture) : IClas
 	private readonly CancellationToken ct = CancellationToken.None;
 	private readonly PosterContext _context = fixture.GetDbContext();
 	private readonly UpdateParseChannelStorage sut = new(fixture.GetDbContext());
-	private readonly Helper helper = new(fixture.GetDbContext());
 
 	[Fact]
 	public async Task ExistParseChannelAsync_ExistingParseChannel_ShouldReturnTrue()

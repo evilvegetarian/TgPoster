@@ -9,9 +9,8 @@ namespace TgPoster.Storage.Tests.Tests;
 
 public sealed class ApproveMessagesStorageShould : IClassFixture<StorageTestFixture>
 {
-	private static readonly CancellationToken Ct = CancellationToken.None;
-
 	private readonly PosterContext context;
+	private readonly CancellationToken ct = CancellationToken.None;
 	private readonly ApproveMessagesStorage sut;
 
 	public ApproveMessagesStorageShould(StorageTestFixture fixture)
@@ -25,19 +24,19 @@ public sealed class ApproveMessagesStorageShould : IClassFixture<StorageTestFixt
 	{
 		var messageIds = new List<Message>
 		{
-			await new MessageBuilder(context).WithIsVerified(false).CreateAsync(Ct),
-			await new MessageBuilder(context).WithIsVerified(false).CreateAsync(Ct),
-			await new MessageBuilder(context).WithIsVerified(false).CreateAsync(Ct),
+			await new MessageBuilder(context).WithIsVerified(false).CreateAsync(),
+			await new MessageBuilder(context).WithIsVerified(false).CreateAsync(),
+			await new MessageBuilder(context).WithIsVerified(false).CreateAsync(),
 		}.Select(x => x.Id).ToList();
 
-		await sut.ApproveMessage(messageIds, Ct);
+		await sut.ApproveMessage(messageIds, ct);
 		context.ChangeTracker.Clear();
 
 		var messages = await context.Messages
 			.AsNoTracking()
 			.Where(x => messageIds.Contains(x.Id))
 			.OrderBy(x => x.Id)
-			.ToListAsync(Ct);
+			.ToListAsync();
 
 		messages.Count.ShouldBe(messageIds.Count);
 		messages.ShouldAllBe(m => m.IsVerified);
@@ -47,19 +46,19 @@ public sealed class ApproveMessagesStorageShould : IClassFixture<StorageTestFixt
 	[Fact]
 	public async Task ApproveMessage_WhenSubsetOfIdsProvided_ShouldNotAffectOtherMessages()
 	{
-		var schedule = new ScheduleBuilder(context).Create();
-		var first = new MessageBuilder(context).WithSchedule(schedule).WithIsVerified(false).Create();
-		var second = new MessageBuilder(context).WithSchedule(schedule).WithIsVerified(false).Create();
-		var untouched = new MessageBuilder(context).WithSchedule(schedule).WithIsVerified(false).Create();
+		var schedule = await new ScheduleBuilder(context).CreateAsync();
+		var first = await new MessageBuilder(context).WithSchedule(schedule).WithIsVerified(false).CreateAsync();
+		var second = await new MessageBuilder(context).WithSchedule(schedule).WithIsVerified(false).CreateAsync();
+		var untouched = await new MessageBuilder(context).WithSchedule(schedule).WithIsVerified(false).CreateAsync();
 
-		await sut.ApproveMessage([first.Id, second.Id], Ct);
+		await sut.ApproveMessage([first.Id, second.Id], ct);
 		context.ChangeTracker.Clear();
 
 		var messages = await context.Messages
 			.AsNoTracking()
 			.Where(x => new[] { first.Id, second.Id, untouched.Id }.Contains(x.Id))
 			.OrderBy(x => x.Id)
-			.ToListAsync(Ct);
+			.ToListAsync();
 
 		messages.Where(x => x.Id == first.Id || x.Id == second.Id).ShouldAllBe(m => m.IsVerified);
 		messages.Single(x => x.Id == untouched.Id).IsVerified.ShouldBeFalse();
@@ -68,16 +67,16 @@ public sealed class ApproveMessagesStorageShould : IClassFixture<StorageTestFixt
 	[Fact]
 	public async Task ApproveMessage_WithNonExistingIds_ShouldLeaveExistingMessagesUntouched()
 	{
-		var schedule = await new ScheduleBuilder(context).CreateAsync(Ct);
-		var existing = await new MessageBuilder(context).WithSchedule(schedule).WithIsVerified(false).CreateAsync(Ct);
+		var schedule = await new ScheduleBuilder(context).CreateAsync();
+		var existing = await new MessageBuilder(context).WithSchedule(schedule).WithIsVerified(false).CreateAsync();
 
-		await sut.ApproveMessage([Guid.NewGuid()], Ct);
+		await sut.ApproveMessage([Guid.NewGuid()], ct);
 
 		context.ChangeTracker.Clear();
 
 		var actual = await context.Messages
 			.AsNoTracking()
-			.SingleAsync(x => x.Id == existing.Id, Ct);
+			.SingleAsync(x => x.Id == existing.Id, ct);
 
 		actual.IsVerified.ShouldBeFalse();
 	}
@@ -85,9 +84,9 @@ public sealed class ApproveMessagesStorageShould : IClassFixture<StorageTestFixt
 	[Fact]
 	public async Task ApproveMessage_WithEmptyCollection_ShouldNotChangeVerificationStatus()
 	{
-		var schedule = await new ScheduleBuilder(context).CreateAsync(Ct);
-		var verified = await new MessageBuilder(context).WithSchedule(schedule).WithIsVerified(true).CreateAsync(Ct);
-		var pending = await new MessageBuilder(context).WithSchedule(schedule).WithIsVerified(false).CreateAsync(Ct);
+		var schedule = await new ScheduleBuilder(context).CreateAsync();
+		var verified = await new MessageBuilder(context).WithSchedule(schedule).WithIsVerified(true).CreateAsync();
+		var pending = await new MessageBuilder(context).WithSchedule(schedule).WithIsVerified(false).CreateAsync();
 
 		context.ChangeTracker.Clear();
 
@@ -96,9 +95,9 @@ public sealed class ApproveMessagesStorageShould : IClassFixture<StorageTestFixt
 			.Where(x => x.ScheduleId == schedule.Id && (x.Id == verified.Id || x.Id == pending.Id))
 			.OrderBy(x => x.Id)
 			.Select(x => new { x.Id, x.IsVerified })
-			.ToListAsync(Ct);
+			.ToListAsync();
 
-		await sut.ApproveMessage([], Ct);
+		await sut.ApproveMessage([], ct);
 
 		context.ChangeTracker.Clear();
 
@@ -107,7 +106,7 @@ public sealed class ApproveMessagesStorageShould : IClassFixture<StorageTestFixt
 			.Where(x => x.ScheduleId == schedule.Id && (x.Id == verified.Id || x.Id == pending.Id))
 			.OrderBy(x => x.Id)
 			.Select(x => new { x.Id, x.IsVerified })
-			.ToListAsync(Ct);
+			.ToListAsync();
 
 		after.ShouldBe(before);
 	}

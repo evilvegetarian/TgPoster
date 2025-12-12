@@ -859,3 +859,67 @@ export function useGetApiV1MessageMessageIdAiContent<TData = Awaited<ReturnType<
 
 
 
+/**
+ * @summary     Обновляет время для всех постов.
+Использовать при добавлние дат в расписании.
+ */
+export const putApiV1MessageScheduleIdTimes = (
+    scheduleId: string,
+ ) => {
+      
+      
+      return customInstance<void>(
+      {url: `/api/v1/message/${scheduleId}/times`, method: 'PUT'
+    },
+      );
+    }
+  
+
+
+export const getPutApiV1MessageScheduleIdTimesMutationOptions = <TError = ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof putApiV1MessageScheduleIdTimes>>, TError,{scheduleId: string}, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof putApiV1MessageScheduleIdTimes>>, TError,{scheduleId: string}, TContext> => {
+
+const mutationKey = ['putApiV1MessageScheduleIdTimes'];
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof putApiV1MessageScheduleIdTimes>>, {scheduleId: string}> = (props) => {
+          const {scheduleId} = props ?? {};
+
+          return  putApiV1MessageScheduleIdTimes(scheduleId,)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type PutApiV1MessageScheduleIdTimesMutationResult = NonNullable<Awaited<ReturnType<typeof putApiV1MessageScheduleIdTimes>>>
+    
+    export type PutApiV1MessageScheduleIdTimesMutationError = ProblemDetails
+
+    /**
+ * @summary     Обновляет время для всех постов.
+Использовать при добавлние дат в расписании.
+ */
+export const usePutApiV1MessageScheduleIdTimes = <TError = ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof putApiV1MessageScheduleIdTimes>>, TError,{scheduleId: string}, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof putApiV1MessageScheduleIdTimes>>,
+        TError,
+        {scheduleId: string},
+        TContext
+      > => {
+
+      const mutationOptions = getPutApiV1MessageScheduleIdTimesMutationOptions(options);
+
+      return useMutation(mutationOptions , queryClient);
+    }
+    

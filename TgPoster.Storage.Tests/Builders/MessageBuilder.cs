@@ -47,7 +47,7 @@ public class MessageBuilder(PosterContext context)
 		return this;
 	}
 
-	public MessageBuilder WithCreated(DateTime value)
+	public MessageBuilder WithCreatedDate(DateTime value)
 	{
 		message.Created = value;
 		return this;
@@ -67,11 +67,11 @@ public class MessageBuilder(PosterContext context)
 		return this;
 	}
 
-	public async Task<Message> CreateAsync(CancellationToken ct = default)
+	public async Task<Message> CreateAsync()
 	{
-		await Task.Delay(TimeSpan.FromSeconds(1), ct);
+		await Task.Delay(TimeSpan.FromSeconds(1));
 		await context.Messages.AddRangeAsync(message);
-		await context.SaveChangesAsync(ct);
+		await context.SaveChangesAsync();
 		return message;
 	}
 

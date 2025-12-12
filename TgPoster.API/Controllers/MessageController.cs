@@ -14,6 +14,7 @@ using TgPoster.API.Domain.UseCases.Messages.GetMessageById;
 using TgPoster.API.Domain.UseCases.Messages.GetTime;
 using TgPoster.API.Domain.UseCases.Messages.ListMessage;
 using TgPoster.API.Domain.UseCases.Messages.LoadFilesMessage;
+using TgPoster.API.Domain.UseCases.Messages.UpdateAllTime;
 using TgPoster.API.Mapper;
 using TgPoster.API.Models;
 
@@ -232,5 +233,22 @@ public class MessageController(ISender sender) : ControllerBase
 	{
 		var response = await sender.Send(new GenerateAiContentCommand(messageId), ct);
 		return Ok(response);
+	}
+
+	/// <summary>
+	///     Обновляет время для всех постов.
+	/// Использовать при добавлние дат в расписании.
+	/// </summary>
+	/// <param name="scheduleId"></param>
+	/// <param name="ct"></param>
+	/// <returns></returns>
+	[HttpPut(Routes.Message.UpdateAllTime)]
+	[ProducesResponseType(StatusCodes.Status200OK)]
+	[ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
+	[ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
+	public async Task<IActionResult> UpdateAllTime([Required] [FromRoute] Guid scheduleId, CancellationToken ct)
+	{
+		await sender.Send(new UpdateAllTimeCommand(scheduleId), ct);
+		return Ok();
 	}
 }

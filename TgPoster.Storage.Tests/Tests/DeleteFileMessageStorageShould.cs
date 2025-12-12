@@ -22,7 +22,7 @@ public sealed class DeleteFileMessageStorageShould : IClassFixture<StorageTestFi
 	[Fact]
 	public async Task ExistMessageAsync_MessageOwnedByUser_ReturnsTrue()
 	{
-		var message = await new MessageBuilder(context).CreateAsync(Ct);
+		var message = await new MessageBuilder(context).CreateAsync();
 
 		var exists = await sut.ExistMessageAsync(message.Id, message.Schedule.UserId, Ct);
 
@@ -32,7 +32,7 @@ public sealed class DeleteFileMessageStorageShould : IClassFixture<StorageTestFi
 	[Fact]
 	public async Task ExistMessageAsync_MessageBelongsToAnotherUser_ReturnsFalse()
 	{
-		var message = await new MessageBuilder(context).CreateAsync(Ct);
+		var message = await new MessageBuilder(context).CreateAsync();
 
 		var exists = await sut.ExistMessageAsync(message.Id, Guid.NewGuid(), Ct);
 
@@ -66,7 +66,7 @@ public sealed class DeleteFileMessageStorageShould : IClassFixture<StorageTestFi
 	public async Task DeleteFileAsync_FileMissing_DoesNothing()
 	{
 		await new MessageBuilder(context)
-			.CreateAsync(Ct);
+			.CreateAsync();
 
 		var beforeCount = await context.MessageFiles.CountAsync(Ct);
 

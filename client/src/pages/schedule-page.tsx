@@ -29,6 +29,7 @@ import {
     DialogTitle,
 } from "@/components/ui/dialog.tsx"
 import {EditIiComponent} from "@/pages/edit-ii-component.tsx";
+import { usePutApiV1MessageScheduleIdTimes} from "@/api/endpoints/message/message.ts";
 
 interface NewTimeSlot {
     hour: string
@@ -143,6 +144,22 @@ export function SchedulePage() {
         }
     }
 
+    const {mutate: updateTimeMutate,isPending:updateTimePending} = usePutApiV1MessageScheduleIdTimes({
+        mutation: {
+            onSuccess: () => {
+                toast.success("Успех", {description: `Обновлено время`})
+            },
+            onError: (error) => {
+                toast("Ошибка", {description: error.title || "Не удалось обновить время",})
+            },
+        },
+    })
+
+    const handleUpdateMessages = (scheduleId: string) => {
+        updateTimeMutate({
+            scheduleId: scheduleId,
+        })
+    }
     const handleDeleteSchedule = async (scheduleId: string) => {
         try {
             await deleteScheduleMutation.mutateAsync({id: scheduleId})
@@ -458,7 +475,7 @@ export function SchedulePage() {
                 </DialogContent>
             </Dialog>
 
-            <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+            <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen} >
                 <DialogContent className="max-w-4xl">
                     <DialogHeader className="space-y-1.5">
                         <div className="flex items-center gap-3">
@@ -493,7 +510,6 @@ export function SchedulePage() {
                                             </>
                                         )}
                                     </Badge>
-                                    <span className="text-sm text-muted-foreground">ID: {editingSchedule.id}</span>
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <Label htmlFor="edit-schedule-active" className="text-sm">Активность</Label>
@@ -504,6 +520,7 @@ export function SchedulePage() {
                                         disabled={toggleActiveMutation.isPending}
                                     />
                                 </div>
+
                             </div>
 
                             <Card>
@@ -803,6 +820,9 @@ export function SchedulePage() {
                     )}
 
                     <DialogFooter className="flex justify-end">
+                        <Button className="float-left" variant="outline" onClick={() => handleUpdateMessages(editingSchedule!.id)} disabled={updateTimePending}>
+                            Обновить время сообщений
+                        </Button>
                         <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
                             Закрыть
                         </Button>
