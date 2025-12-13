@@ -65,6 +65,7 @@ jobs:
           export CONNECTIONSTRING='${{ secrets.CONNECTIONSTRING }}' 
           export TGPOSTER_API_JWTOPTIONS_SECRETKEY='${{ secrets.JWTOPTIONS_SECRETKEY }}'
           export TELEGRAMOPTIONS_SECRETKEY='${{ secrets.TELEGRAMOPTIONS_SECRETKEY }}'
+          export OPENROUTEROPTIONS_SECRETKEY='${{ secrets.OPENROUTEROPTIONS_SECRETKEY }}'
           docker compose -f docker-compose.api.yml pull
           docker compose -f docker-compose.api.yml up -d
       

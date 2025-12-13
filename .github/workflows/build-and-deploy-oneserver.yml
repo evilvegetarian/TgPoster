@@ -142,6 +142,7 @@ jobs:
           echo "TELEGRAM_API_HASH=${{ secrets.API_HASH }}" >> .env
           echo "TELEGRAM_PHONE_NUMBER=${{ secrets.PHONE_NUMBER }}" >> .env
           echo "TELEGRAMOPTIONS_SECRETKEY=${{ secrets.TELEGRAMOPTIONS_SECRETKEY }}" >> .env
+          echo "OPENROUTEROPTIONS_SECRETKEY=${{ secrets.OPENROUTEROPTIONS_SECRETKEY }}" >> .env
 
       - name: Pull latest images and restart containers
         run: |

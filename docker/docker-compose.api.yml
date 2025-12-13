@@ -17,3 +17,4 @@ services:
       DataBase__ConnectionString: ${CONNECTIONSTRING:-Host=localhost;Username=admin;Password=admin;Database=tg-db}
       JwtOptions__SecretKey: ${TGPOSTER_API_JWTOPTIONS_SECRETKEY}
       TelegramOptions__SecretKey: ${TELEGRAMOPTIONS_SECRETKEY}
+      OpenRouterOptions__SecretKey: ${OPENROUTEROPTIONS_SECRETKEY}
