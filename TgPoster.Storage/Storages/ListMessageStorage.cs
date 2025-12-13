@@ -47,8 +47,7 @@ internal sealed class ListMessageStorage(PosterContext context) : IListMessageSt
 
 			case MessageStatus.NotDelivered:
 				query = query.Where(message =>
-					(message.Status == Data.Enum.MessageStatus.Send || !message.IsVerified)
-					&& message.TimePosting > DateTimeOffset.UtcNow);
+					(message.Status != Data.Enum.MessageStatus.Send) && message.TimePosting < DateTimeOffset.UtcNow);
 				break;
 			default:
 				throw new ArgumentOutOfRangeException();
