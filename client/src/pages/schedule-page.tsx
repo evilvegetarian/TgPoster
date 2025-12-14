@@ -29,7 +29,62 @@ import {
     DialogTitle,
 } from "@/components/ui/dialog.tsx"
 import {EditIiComponent} from "@/pages/edit-ii-component.tsx";
-import { usePutApiV1MessageScheduleIdTimes} from "@/api/endpoints/message/message.ts";
+import {usePutApiV1MessageScheduleIdTimes} from "@/api/endpoints/message/message.ts";
+
+function convertLocalToIsoTime(time: string) {
+
+    const timeParts = time.split(':');
+    if (timeParts.length < 2) {
+        console.error(`Неверный формат времени: ${time}`);
+        return time;
+    }
+
+    const hours = parseInt(timeParts[0], 10);
+    const minutes = parseInt(timeParts[1], 10);
+    const seconds = parseInt(timeParts[2] || '0', 10);
+
+    if (isNaN(hours) || isNaN(minutes) || isNaN(seconds)) {
+        console.error(`Неверные компоненты времени в: ${time}`);
+        return time;
+    }
+
+    const date = new Date();
+    date.setHours(hours, minutes, seconds, 0);
+    return new Date(date).toLocaleTimeString('ru', {timeStyle: 'short', hour12: false, timeZone: 'UTC'});
+
+}
+
+/**
+ * Преобразует строку времени в UTC в локальную строку времени.
+ * Возвращает исходную строку в случае ошибки, чтобы не ломать интерфейс.
+ * @param utcTimeString - Время в формате "ЧЧ:ММ:СС" (предполагается как время в UTC).
+ * @returns {string} Время в локальной часовой зоне или исходная строка.
+ */
+function convertUtcTimeToLocal(utcTimeString: string): string {
+    if (!utcTimeString || typeof utcTimeString !== 'string') {
+        return 'Invalid Time';
+    }
+
+    const timeParts = utcTimeString.split(':');
+    if (timeParts.length < 2) {
+        console.error(`Неверный формат времени: ${utcTimeString}`);
+        return utcTimeString;
+    }
+
+    const hours = parseInt(timeParts[0], 10);
+    const minutes = parseInt(timeParts[1], 10);
+    const seconds = parseInt(timeParts[2] || '0', 10);
+
+    if (isNaN(hours) || isNaN(minutes) || isNaN(seconds)) {
+        console.error(`Неверные компоненты времени в: ${utcTimeString}`);
+        return utcTimeString;
+    }
+
+    const date = new Date();
+    date.setHours(hours, minutes, seconds, 0);
+
+    return date.toLocaleTimeString();
+}
 
 interface NewTimeSlot {
     hour: string
@@ -101,7 +156,18 @@ export function SchedulePage() {
         {query: {enabled: !!editingSchedule?.id}},
     )
 
-    const scheduleDays = useMemo<ScheduleDay[]>(() => (scheduleDaysData ?? []) as ScheduleDay[], [scheduleDaysData])
+    const scheduleDays = useMemo<ScheduleDay[]>(() => {
+        if (!Array.isArray(scheduleDaysData)) {
+            return [];
+        }
+        return scheduleDaysData.map(day => {
+            const localTimePostings = day.timePostings?.map(utcTime => convertUtcTimeToLocal(utcTime));
+            return {
+                ...day,
+                timePostings: localTimePostings
+            };
+        });
+    }, [scheduleDaysData]);
 
     useEffect(() => {
         if (!isEditDialogOpen) {
@@ -144,7 +210,7 @@ export function SchedulePage() {
         }
     }
 
-    const {mutate: updateTimeMutate,isPending:updateTimePending} = usePutApiV1MessageScheduleIdTimes({
+    const {mutate: updateTimeMutate, isPending: updateTimePending} = usePutApiV1MessageScheduleIdTimes({
         mutation: {
             onSuccess: () => {
                 toast.success("Успех", {description: `Обновлено время`})
@@ -195,11 +261,13 @@ export function SchedulePage() {
 
             if (timeMode === "single") {
                 const time = `${newTimeSlot.hour}:${newTimeSlot.minute}`
+                console.log(time)
+                const allTimes = [...currentTimes, time]?.map(time => convertLocalToIsoTime(time))
                 await updateTimeMutation.mutateAsync({
                     data: {
                         scheduleId: editingSchedule.id,
                         dayOfWeek,
-                        times: [...currentTimes, time],
+                        times: allTimes,
                     },
                 })
             } else {
@@ -224,12 +292,13 @@ export function SchedulePage() {
                     const mins = (minutes % 60).toString().padStart(2, "0")
                     generatedTimes.push(`${hours}:${mins}`)
                 }
+                const allTimes = [...currentTimes, ...generatedTimes]?.map(time => convertLocalToIsoTime(time))
 
                 await updateTimeMutation.mutateAsync({
                     data: {
                         scheduleId: editingSchedule.id,
                         dayOfWeek,
-                        times: [...currentTimes, ...generatedTimes],
+                        times: allTimes,
                     },
                 })
             }
@@ -475,7 +544,7 @@ export function SchedulePage() {
                 </DialogContent>
             </Dialog>
 
-            <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen} >
+            <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
                 <DialogContent className="max-w-4xl">
                     <DialogHeader className="space-y-1.5">
                         <div className="flex items-center gap-3">
@@ -820,7 +889,8 @@ export function SchedulePage() {
                     )}
 
                     <DialogFooter className="flex justify-end">
-                        <Button className="float-left" variant="outline" onClick={() => handleUpdateMessages(editingSchedule!.id)} disabled={updateTimePending}>
+                        <Button className="float-left" variant="outline"
+                                onClick={() => handleUpdateMessages(editingSchedule!.id)} disabled={updateTimePending}>
                             Обновить время сообщений
                         </Button>
                         <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
@@ -832,6 +902,3 @@ export function SchedulePage() {
         </div>
     )
 }
-
-
-
