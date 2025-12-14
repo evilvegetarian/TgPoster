@@ -33,7 +33,6 @@ import {usePutApiV1MessageScheduleIdTimes} from "@/api/endpoints/message/message
 import {convertLocalToIsoTime, convertUtcTimeToLocal} from "@/utils/convertLocalToIsoTime"
 
 
-
 interface NewTimeSlot {
     hour: string
     minute: string
@@ -109,7 +108,7 @@ export function SchedulePage() {
             return [];
         }
         return scheduleDaysData.map(day => {
-            const localTimePostings = day.timePostings?.map(utcTime => convertUtcTimeToLocal(utcTime));
+            const localTimePostings = day.timePostings?.sort().map(utcTime => convertUtcTimeToLocal(utcTime));
             return {
                 ...day,
                 timePostings: localTimePostings
@@ -258,7 +257,27 @@ export function SchedulePage() {
             toast.error("Не удалось добавить время")
         }
     }
+    const removeAllTimeFromDay = async (dayOfWeek: DayOfWeek) => {
+        if (!editingSchedule) return
 
+        try {
+            const existingDay = scheduleDays.find((day) => day.dayOfWeek === dayOfWeek)
+            if (!existingDay) return
+
+            await updateTimeMutation.mutateAsync({
+                data: {
+                    scheduleId: editingSchedule.id,
+                    dayOfWeek,
+                    times: [],
+                },
+            })
+
+            await refetchDays()
+            toast.success("Время удалено")
+        } catch {
+            toast.error("Не удалось удалить время")
+        }
+    }
     const removeTimeFromDay = async (dayOfWeek: DayOfWeek, timeToRemove: string) => {
         if (!editingSchedule) return
 
@@ -564,6 +583,7 @@ export function SchedulePage() {
                                                     <Label className="text-base font-medium">
                                                         {DAY_NAMES[dayOfWeek] ?? "Неизвестный день"}
                                                     </Label>
+                                                    <Button onClick={()=>removeAllTimeFromDay(dayOfWeek)}>Стереть</Button>
                                                     <Popover
                                                         open={popoverOpenForDay === dayOfWeek}
                                                         onOpenChange={(isOpen) => setPopoverOpenForDay(isOpen ? dayOfWeek : null)}
