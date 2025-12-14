@@ -30,61 +30,9 @@ import {
 } from "@/components/ui/dialog.tsx"
 import {EditIiComponent} from "@/pages/edit-ii-component.tsx";
 import {usePutApiV1MessageScheduleIdTimes} from "@/api/endpoints/message/message.ts";
+import {convertLocalToIsoTime, convertUtcTimeToLocal} from "@/utils/convertLocalToIsoTime"
 
-function convertLocalToIsoTime(time: string) {
 
-    const timeParts = time.split(':');
-    if (timeParts.length < 2) {
-        console.error(`Неверный формат времени: ${time}`);
-        return time;
-    }
-
-    const hours = parseInt(timeParts[0], 10);
-    const minutes = parseInt(timeParts[1], 10);
-    const seconds = parseInt(timeParts[2] || '0', 10);
-
-    if (isNaN(hours) || isNaN(minutes) || isNaN(seconds)) {
-        console.error(`Неверные компоненты времени в: ${time}`);
-        return time;
-    }
-
-    const date = new Date();
-    date.setHours(hours, minutes, seconds, 0);
-    return new Date(date).toLocaleTimeString('ru', {timeStyle: 'short', hour12: false, timeZone: 'UTC'});
-
-}
-
-/**
- * Преобразует строку времени в UTC в локальную строку времени.
- * Возвращает исходную строку в случае ошибки, чтобы не ломать интерфейс.
- * @param utcTimeString - Время в формате "ЧЧ:ММ:СС" (предполагается как время в UTC).
- * @returns {string} Время в локальной часовой зоне или исходная строка.
- */
-function convertUtcTimeToLocal(utcTimeString: string): string {
-    if (!utcTimeString || typeof utcTimeString !== 'string') {
-        return 'Invalid Time';
-    }
-
-    const timeParts = utcTimeString.split(':');
-    if (timeParts.length < 2) {
-        console.error(`Неверный формат времени: ${utcTimeString}`);
-        return utcTimeString;
-    }
-
-    const hours = parseInt(timeParts[0], 10);
-    const minutes = parseInt(timeParts[1], 10);
-    const seconds = parseInt(timeParts[2] || '0', 10);
-
-    if (isNaN(hours) || isNaN(minutes) || isNaN(seconds)) {
-        console.error(`Неверные компоненты времени в: ${utcTimeString}`);
-        return utcTimeString;
-    }
-
-    const date = new Date();
-    date.setHours(hours, minutes, seconds, 0);
-
-    return date.toLocaleTimeString();
-}
 
 interface NewTimeSlot {
     hour: string
@@ -902,3 +850,4 @@ export function SchedulePage() {
         </div>
     )
 }
+
