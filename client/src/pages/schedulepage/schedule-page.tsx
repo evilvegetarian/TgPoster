@@ -8,15 +8,13 @@ import {Badge} from "@/components/ui/badge.tsx"
 import {ArrowLeft, Calendar, Clock, Loader2, Plus, Power, PowerOff, Save, Settings, Trash2, X,} from "lucide-react"
 import {Separator} from "@/components/ui/separator.tsx"
 import {toast} from "sonner"
-import {useGetApiV1TelegramBot} from "@/api/endpoints/telegram-bot/telegram-bot.ts"
 import {
     useDeleteApiV1ScheduleId,
     useGetApiV1Schedule,
     usePatchApiV1ScheduleIdStatus,
-    usePostApiV1Schedule,
 } from "@/api/endpoints/schedule/schedule.ts"
 import {useGetApiV1Day, usePatchApiV1DayTime} from "@/api/endpoints/day/day.ts"
-import type {CreateScheduleRequest, DayOfWeek, ScheduleResponse} from "@/api/endpoints/tgPosterAPI.schemas.ts"
+import type {DayOfWeek, ScheduleResponse} from "@/api/endpoints/tgPosterAPI.schemas.ts"
 import {Switch} from "@/components/ui/switch.tsx"
 import {Popover, PopoverContent, PopoverTrigger} from "@/components/ui/popover.tsx"
 import {Tabs, TabsContent, TabsList, TabsTrigger} from "@/components/ui/tabs.tsx"
@@ -30,7 +28,8 @@ import {
 } from "@/components/ui/dialog.tsx"
 import {EditIiComponent} from "@/pages/edit-ii-component.tsx";
 import {usePutApiV1MessageScheduleIdTimes} from "@/api/endpoints/message/message.ts";
-import {convertLocalToIsoTime, convertUtcTimeToLocal} from "@/utils/convertLocalToIsoTime"
+import {convertLocalToIsoTime, convertUtcTimeToLocal} from "@/utils/convertLocalToIsoTime.tsx"
+import {CreateScheduleComponent} from "@/pages/schedulepage/create-schedule-component.tsx";
 
 
 interface NewTimeSlot {
@@ -56,11 +55,6 @@ const MINUTES = Array.from({length: 60}, (_, i) => i.toString().padStart(2, "0")
 const DAY_NAMES = ["Воскресенье", "Понедельник", "Вторник", "Среда", "Четверг", "Пятница", "Суббота"]
 const DAYS_ORDER: DayOfWeek[] = [1, 2, 3, 4, 5, 6, 0]
 
-const DEFAULT_NEW_SCHEDULE: CreateScheduleRequest = {
-    name: "",
-    channel: "",
-    telegramBotId: "",
-}
 
 const DEFAULT_NEW_TIME_SLOT: NewTimeSlot = {
     hour: "09",
@@ -76,17 +70,15 @@ const DEFAULT_INTERVAL_TIME_SLOT: IntervalTimeSlot = {
 }
 
 export function SchedulePage() {
-    const {data: schedules = [], isLoading: schedulesLoading, refetch: refetchSchedules} = useGetApiV1Schedule()
-    const {data: telegramBots = [], isLoading: botsLoading} = useGetApiV1TelegramBot()
-    const createScheduleMutation = usePostApiV1Schedule()
-    const deleteScheduleMutation = useDeleteApiV1ScheduleId()
+    const {data: schedules = [], isLoading: schedulesLoading, refetch: refetchSchedules} = useGetApiV1Schedule();
+
+
+    const deleteScheduleMutation = useDeleteApiV1ScheduleId();
     const toggleActiveMutation = usePatchApiV1ScheduleIdStatus()
     const updateTimeMutation = usePatchApiV1DayTime()
 
-    const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
 
-    const [newSchedule, setNewSchedule] = useState<CreateScheduleRequest>({...DEFAULT_NEW_SCHEDULE})
     const [editingSchedule, setEditingSchedule] = useState<ScheduleResponse | null>(null)
 
     const [timeMode, setTimeMode] = useState<"single" | "interval">("single")
@@ -123,11 +115,6 @@ export function SchedulePage() {
         }
     }, [isEditDialogOpen])
 
-    useEffect(() => {
-        if (!isCreateDialogOpen) {
-            setNewSchedule({...DEFAULT_NEW_SCHEDULE})
-        }
-    }, [isCreateDialogOpen])
 
     const resetTimeInputs = () => {
         setPopoverOpenForDay(null)
@@ -140,22 +127,6 @@ export function SchedulePage() {
         return scheduleDays.find((day) => day.dayOfWeek === dayOfWeek)?.timePostings ?? []
     }
 
-    const handleCreateSchedule = async () => {
-        if (!newSchedule.name || !newSchedule.channel || !newSchedule.telegramBotId) {
-            toast.error("Заполните все обязательные поля")
-            return
-        }
-
-        try {
-            await createScheduleMutation.mutateAsync({data: newSchedule})
-            setNewSchedule({...DEFAULT_NEW_SCHEDULE})
-            setIsCreateDialogOpen(false)
-            await refetchSchedules()
-            toast.success("Расписание создано")
-        } catch {
-            toast.error("Не удалось создать расписание")
-        }
-    }
 
     const {mutate: updateTimeMutate, isPending: updateTimePending} = usePutApiV1MessageScheduleIdTimes({
         mutation: {
@@ -309,10 +280,7 @@ export function SchedulePage() {
                     <h1 className="text-3xl font-bold">Расписания</h1>
                     <p className="text-muted-foreground">Управление расписаниями постинга в Telegram</p>
                 </div>
-                <Button onClick={() => setIsCreateDialogOpen(true)} className="flex items-center gap-2">
-                    <Plus className="h-4 w-4"/>
-                    Создать расписание
-                </Button>
+                <CreateScheduleComponent/>
             </header>
 
             {schedulesLoading ? (
@@ -324,10 +292,7 @@ export function SchedulePage() {
                     <Calendar className="h-12 w-12 mx-auto text-muted-foreground mb-4"/>
                     <h3 className="text-lg font-medium mb-2">Нет расписаний</h3>
                     <p className="text-muted-foreground mb-4">Создайте первое расписание для начала работы</p>
-                    <Button onClick={() => setIsCreateDialogOpen(true)}>
-                        <Plus className="h-4 w-4 mr-2"/>
-                        Создать расписание
-                    </Button>
+                    <CreateScheduleComponent/>
                 </div>
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -419,98 +384,6 @@ export function SchedulePage() {
                 </div>
             )}
 
-            <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-                <DialogContent className="sm:max-w-[520px]">
-                    <DialogHeader className="space-y-1.5">
-                        <div className="flex items-center gap-3">
-                            <Button variant="outline" size="icon" onClick={() => setIsCreateDialogOpen(false)}>
-                                <ArrowLeft className="h-4 w-4"/>
-                            </Button>
-                            <div className="text-left">
-                                <DialogTitle className="text-2xl font-bold leading-tight">Создание
-                                    расписания</DialogTitle>
-                                <DialogDescription>Укажите основную информацию для нового расписания</DialogDescription>
-                            </div>
-                        </div>
-                    </DialogHeader>
-
-                    <div className="space-y-6 py-4">
-                        <div className="space-y-2">
-                            <Label htmlFor="new-schedule-name">Название расписания</Label>
-                            <Input
-                                id="new-schedule-name"
-                                placeholder="Введите название расписания"
-                                value={newSchedule.name}
-                                onChange={(e) => setNewSchedule((prev) => ({...prev, name: e.target.value}))}
-                            />
-                        </div>
-
-                        <div className="space-y-2">
-                            <Label htmlFor="new-schedule-channel">Канал Telegram</Label>
-                            <Input
-                                id="new-schedule-channel"
-                                placeholder="@channel_name или ID канала"
-                                value={newSchedule.channel}
-                                onChange={(e) => setNewSchedule((prev) => ({...prev, channel: e.target.value}))}
-                            />
-                        </div>
-
-                        <div className="space-y-2">
-                            <Label htmlFor="new-schedule-bot">Telegram бот</Label>
-                            <Select
-                                value={newSchedule.telegramBotId}
-                                onValueChange={(value) => setNewSchedule((prev) => ({...prev, telegramBotId: value}))}
-                            >
-                                <SelectTrigger id="new-schedule-bot">
-                                    <SelectValue placeholder="Выберите бота"/>
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {botsLoading ? (
-                                        <SelectItem value="" disabled>
-                                            Загрузка...
-                                        </SelectItem>
-                                    ) : (
-                                        telegramBots.map((bot) => (
-                                            <SelectItem key={bot.id} value={bot.id}>
-                                                {bot.name || `Бот ${bot.id}`}
-                                            </SelectItem>
-                                        ))
-                                    )}
-                                </SelectContent>
-                            </Select>
-                        </div>
-                    </div>
-
-                    <DialogFooter className="flex flex-col gap-2 sm:flex-row sm:justify-end">
-                        <Button
-                            variant="outline"
-                            onClick={() => setIsCreateDialogOpen(false)}
-                            disabled={createScheduleMutation.isPending}
-                        >
-                            Отмена
-                        </Button>
-                        <Button
-                            onClick={handleCreateSchedule}
-                            disabled={
-                                !newSchedule.name ||
-                                !newSchedule.channel ||
-                                !newSchedule.telegramBotId ||
-                                createScheduleMutation.isPending
-                            }
-                        >
-                            {createScheduleMutation.isPending ? (
-                                <>
-                                    <Loader2 className="h-4 w-4 mr-2 animate-spin"/>
-                                    Создание...
-                                </>
-                            ) : (
-                                "Создать"
-                            )}
-                        </Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
-
             <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
                 <DialogContent className="max-w-4xl">
                     <DialogHeader className="space-y-1.5">
@@ -583,7 +456,8 @@ export function SchedulePage() {
                                                     <Label className="text-base font-medium">
                                                         {DAY_NAMES[dayOfWeek] ?? "Неизвестный день"}
                                                     </Label>
-                                                    <Button onClick={()=>removeAllTimeFromDay(dayOfWeek)}>Стереть</Button>
+                                                    <Button
+                                                        onClick={() => removeAllTimeFromDay(dayOfWeek)}>Стереть</Button>
                                                     <Popover
                                                         open={popoverOpenForDay === dayOfWeek}
                                                         onOpenChange={(isOpen) => setPopoverOpenForDay(isOpen ? dayOfWeek : null)}
