@@ -7,8 +7,7 @@ import {
     usePostApiV1OpenRouterSetting
 } from "@/api/endpoints/open-router-setting/open-router-setting.ts";
 import {toast} from "sonner";
-import type {CreateOpenRouterSettingRequest} from "@/api/endpoints/tgPosterAPI.schemas.ts";
-import {Dialog, DialogContent, DialogFooter, DialogTitle, DialogTrigger} from "@/components/ui/dialog.tsx";
+import {Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger} from "@/components/ui/dialog.tsx";
 import {Button} from "@/components/ui/button.tsx";
 import {Loader2, Plus} from "lucide-react";
 import {Form, FormControl, FormField, FormItem, FormLabel, FormMessage} from "@/components/ui/form.tsx";
@@ -27,30 +26,30 @@ export function CreateOpenRouterComponent() {
     const queryClient = useQueryClient();
 
     const form = useForm<FormValues>({
-        resolver: zodResolver(formSchema)
+        resolver: zodResolver(formSchema),
+        defaultValues: {
+            model: "",
+            token: "",
+        }
     });
+
     const {mutate, isPending} = usePostApiV1OpenRouterSetting({
         mutation: {
             onSuccess: () => {
-                toast.success(`OpenRouter  успешно добавлен!`);
-                form.reset()
-                setOpen(false)
+                toast.success(`Настройки OpenRouter успешно добавлены!`);
                 queryClient.invalidateQueries({queryKey: getGetApiV1OpenRouterSettingQueryKey()});
-
+                form.reset();
+                setOpen(false);
             },
             onError: (error) => {
-                console.log(error)
-                toast.error("Ошибка", {description: error.title || "Ошибка при добавлении настроек OpenRouter"});
+                console.error("Ошибка при добавлении OpenRouter:", error);
+                toast.error("Ошибка", {description: error.title || "Что-то пошло не так"});
             }
         }
-    })
+    });
 
-    function onSubmit(value: CreateOpenRouterSettingRequest) {
-        const appData: CreateOpenRouterSettingRequest = {
-            model: value.model,
-            token: value.token
-        }
-        mutate({data: appData})
+    function onSubmit(values: FormValues) {
+        mutate({data: values});
     }
 
     return (
@@ -62,9 +61,11 @@ export function CreateOpenRouterComponent() {
                 </Button>
             </DialogTrigger>
             <DialogContent>
-                <DialogTitle>Добавить </DialogTitle>
+                <DialogHeader>
+                    <DialogTitle>Добавить настройки OpenRouter</DialogTitle>
+                </DialogHeader>
                 <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onSubmit)}>
+                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                         <FormField
                             control={form.control}
                             name="model"
@@ -88,10 +89,11 @@ export function CreateOpenRouterComponent() {
                             name="token"
                             render={({field}) => (
                                 <FormItem>
-                                    <FormLabel>Токен бота</FormLabel>
+                                    <FormLabel>OpenRouter API токен</FormLabel>
                                     <FormControl>
                                         <Input
-                                            placeholder="gpt-4-turbo"
+                                            type="password"
+                                            placeholder="sk-or-..."
                                             {...field}
                                             disabled={isPending}
                                             className="font-mono text-sm"
@@ -101,7 +103,8 @@ export function CreateOpenRouterComponent() {
                                 </FormItem>
                             )}
                         />
-                        <DialogFooter className="gap-2">
+
+                        <DialogFooter className="gap-2 pt-4">
                             <Button
                                 type="button"
                                 variant="outline"
