@@ -23,7 +23,8 @@ internal sealed class ProcessMessageConsumer(
 	TimePostingService timePostingService,
 	IProcessMessageConsumerStorage storage,
 	Client client,
-	ILogger<ProcessMessageConsumer> logger
+	ILogger<ProcessMessageConsumer> logger,
+	OpenRouterClient openRouterClient
 ) : IConsumer<ProcessMessage>
 {
 	public async Task Consume(ConsumeContext<ProcessMessage> context)
@@ -38,6 +39,9 @@ internal sealed class ProcessMessageConsumer(
 		var deleteMedia = parameters.DeleteMedia;
 		var deleteText = parameters.DeleteText;
 		var encryptedToken = parameters.Token;
+		var useAi = parameters.UseAi
+		            && string.IsNullOrWhiteSpace(parameters.TokenOpenRouter)
+		            && string.IsNullOrWhiteSpace(parameters.ModelOpenRouter);
 
 		var ct = context.CancellationToken;
 		logger.LogInformation("Начата обработка поста для ScheduleId: {ScheduleId}", scheduleId);
@@ -56,11 +60,13 @@ internal sealed class ProcessMessageConsumer(
 			IsNeedVerified = isNeedVerified,
 			ScheduleId = scheduleId
 		};
-
+		var list = new List<MediaStreamDto>();
 		try
 		{
 			foreach (var part in command.Messages)
 			{
+				var files = new MediaStreamDto();
+				
 				await Task.Delay(10000, ct);
 				var refreshedMessages = await client.Channels_GetMessages(new InputChannel(channel.ID, channel.access_hash), part.Id);
 				if (refreshedMessages.Messages.FirstOrDefault() is not Message message)
@@ -79,10 +85,10 @@ internal sealed class ProcessMessageConsumer(
 							await client.DownloadFileAsync(photo, stream);
 
 							stream.Position = 0;
+							files.Photo = stream;
 
 							var photoMessage = await telegramExecuteServices.SendPhoto(telegramBot, chatId,
 								new InputFileStream(stream), 3, ct);
-
 							var photoId = photoMessage.Photo?
 								.OrderByDescending(x => x.FileSize)
 								.Select(x => x.FileId)
@@ -102,7 +108,7 @@ internal sealed class ProcessMessageConsumer(
 
 							var inputFile = new InputFileStream(stream, "video.mp4");
 							var previews = await videoService.ExtractScreenshotsAsync(stream, 3);
-
+							files.PreviewPhoto = previews;
 							List<IAlbumInputMedia> album = [new InputMediaVideo(inputFile)];
 							album.AddRange(
 								previews.Select<MemoryStream, InputMediaPhoto>(preview =>
@@ -135,6 +141,7 @@ internal sealed class ProcessMessageConsumer(
 							}
 						}
 					}
+					list.Add(files);
 				}
 				finally
 				{
@@ -142,6 +149,10 @@ internal sealed class ProcessMessageConsumer(
 				}
 
 				messageDto.Text = !deleteText && !string.IsNullOrEmpty(message.message) ? message.message : null;
+				if (useAi)
+				{
+					//openRouterClient.SendMessageAsync()
+				}
 			}
 		}
 		catch (Exception e)

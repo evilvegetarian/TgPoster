@@ -29,7 +29,11 @@ internal sealed class ProcessMessageConsumerStorage(PosterContext context, GuidF
 				ToDate = ch.DateTo,
 				IsNeedVerified = ch.NeedVerifiedPosts,
 				ScheduleId = ch.ScheduleId,
-				CheckNewPosts = ch.CheckNewPosts
+				CheckNewPosts = ch.CheckNewPosts,
+				UseAi = ch.UseAiForPosts,
+				TokenOpenRouter=ch.Schedule.OpenRouterSetting != null ? ch.Schedule.OpenRouterSetting.TokenHash : null,
+				ModelOpenRouter=ch.Schedule.OpenRouterSetting != null ? ch.Schedule.OpenRouterSetting.TokenHash : null,
+				Prompt = ch.Schedule.PromptSetting != null ? ch.Schedule.PromptSetting.TextPrompt : null
 			})
 			.FirstOrDefaultAsync(ct);
 	}

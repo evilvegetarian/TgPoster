@@ -1,6 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using MediatR;
 using Security.Interfaces;
+using Shared;
 using TgPoster.API.Domain.ConfigModels;
 using TgPoster.API.Domain.Services;
 

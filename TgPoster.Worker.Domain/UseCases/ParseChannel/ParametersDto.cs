@@ -15,4 +15,8 @@ public class ParametersDto
 	public Guid ScheduleId { get; set; }
 	public bool CheckNewPosts { get; set; }
 	public required Guid TelegramBotId { get; set; }
+	public required bool UseAi { get; set; }
+	public string? TokenOpenRouter { get; set; }
+	public string? ModelOpenRouter { get; set; }
+	public string? Prompt { get; set; }
 }

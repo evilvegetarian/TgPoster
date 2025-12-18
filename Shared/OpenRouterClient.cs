@@ -3,7 +3,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using TgPoster.API.Domain.Exceptions;
 
-namespace TgPoster.API.Domain.Services;
+namespace Shared;
 
 public class OpenRouterClient(IHttpClientFactory httpClientFactory)
 {

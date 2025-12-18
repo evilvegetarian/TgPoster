@@ -1,24 +1,25 @@
 using System.Drawing;
 using FFMpegCore;
+using FFMpegCore.Pipes;
 
 namespace Shared;
 
 public sealed class VideoService
 {
-	// Рекомендуется настроить путь к ffmpeg глобально при старте приложения, 
-	// если он не находится в PATH или рядом с .exe.
-	// Пример: GlobalFFOptions.Configure(new FFOptions { FfmpegPath = @"C:\ffmpeg\bin\ffmpeg.exe" });
-
 	/// <summary>
 	///     Извлекает указанное количество скриншотов из видеопотока, равномерно распределяя их по длительности.
+	///     Эта версия оптимизирована для минимального использования памяти и дискового I/O.
 	/// </summary>
-	/// <param name="videoStream">Видео в виде MemoryStream.</param>
+	/// <param name="videoStream">Видео в виде MemoryStream. Поток будет прочитан, но не закрыт.</param>
 	/// <param name="screenshotCount">Количество скриншотов для извлечения.</param>
 	/// <param name="outputWidth">
 	///     Желаемая ширина скриншотов. Высота будет подобрана с сохранением пропорций. 0 - исходный
 	///     размер.
 	/// </param>
-	/// <returns>Список MemoryStream, содержащих изображения в формате JPG.</returns>
+	/// <returns>
+	///     Список MemoryStream, содержащих изображения в формате JPG.
+	///     Вызывающий код несет ответственность за освобождение (Dispose) этих потоков.
+	/// </returns>
 	public async Task<List<MemoryStream>> ExtractScreenshotsAsync(
 		MemoryStream videoStream,
 		int screenshotCount,
@@ -35,70 +36,60 @@ public sealed class VideoService
 			throw new ArgumentException("Количество скриншотов должно быть не меньше 1.", nameof(screenshotCount));
 		}
 
-		// FFMpeg работает с файлами, поэтому нам все равно нужно сохранить поток на диск временно.
-		var tempVideoPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid() + ".mp4");
-		await File.WriteAllBytesAsync(tempVideoPath, videoStream.ToArray());
-
+		var tempVideoPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid() + ".tmp");
 		var screenshots = new List<MemoryStream>();
 
 		try
 		{
-			// Получаем информацию о видео (включая длительность и разрешение) с помощью ffprobe.
-			// Это гораздо надежнее, чем расчет через FPS и количество кадров.
+			// 1. Оптимизированная запись потока в файл без создания лишнего массива  памяти
+			videoStream.Position = 0; // Убедимся, что читаем с начала
+			await using (var fileStream =
+			             new FileStream(tempVideoPath, FileMode.Create, FileAccess.Write, FileShare.None, 4096, true))
+			{
+				await videoStream.CopyToAsync(fileStream);
+			}
+
+			// 2. Получаем информацию о видео. Этот шаг остается прежним.
 			var mediaInfo = await FFProbe.AnalyseAsync(tempVideoPath);
 			var duration = mediaInfo.Duration;
 
 			Size? size = null;
 			if (outputWidth > 0 && mediaInfo.PrimaryVideoStream != null)
 			{
-				var originalWidth = mediaInfo.PrimaryVideoStream.Width;
-				var originalHeight = mediaInfo.PrimaryVideoStream.Height;
-				if (originalWidth > 0 && originalHeight > 0)
+				var vs = mediaInfo.PrimaryVideoStream;
+				if (vs.Width > 0 && vs.Height > 0)
 				{
-					var newHeight = (int)Math.Round(originalHeight * (outputWidth / (double)originalWidth));
+					var newHeight = (int)Math.Round(vs.Height * (outputWidth / (double)vs.Width));
 					size = new Size(outputWidth, newHeight);
 				}
 			}
 
-			// Равномерно вычисляем моменты времени для создания скриншотов.
 			for (var i = 1; i <= screenshotCount; i++)
 			{
 				var snapshotTime = TimeSpan.FromSeconds(duration.TotalSeconds * i / (screenshotCount + 1));
 
-				// Создаем скриншот во временный файл изображения
-				var tempScreenshotPath = Path.ChangeExtension(Path.GetTempFileName(), ".jpg");
+				// 3. Готовим MemoryStream, КУДА FFmpeg будет писать данные скриншота
+				var outputStream = new MemoryStream();
+				screenshots.Add(outputStream);
 
-				try
+				// 4. Используем Pipe для вывода напрямую в наш MemoryStream
+				var arguments = FFMpegArguments
+					.FromFileInput(tempVideoPath)
+					.OutputToPipe(new StreamPipeSink(outputStream), options => options
+						.WithFrameOutputCount(1)
+						.Seek(snapshotTime)
+						.Resize(size)
+						.ForceFormat("mjpeg")); // Важно указать формат для потокового вывода
+
+				await arguments.ProcessAsynchronously();
+
+				// После выполнения в outputStream уже содержатся данные изображения.
+				// Временные файлы для скриншотов больше не нужны.
+				if (outputStream.Length == 0)
 				{
-					var arguments = FFMpegArguments
-						.FromFileInput(tempVideoPath)
-						.OutputToFile(tempScreenshotPath, true, options => options
-							.WithFrameOutputCount(1) // Take only one frame
-							.Seek(snapshotTime) // At the specified time
-							.Resize(size) // With the specified size (if any)
-							// Add the CRUCIAL argument for modern FFMpeg versions
-							.WithCustomArgument("-update 1"));
-
-					await arguments.ProcessAsynchronously();
-
-					if (!File.Exists(tempScreenshotPath))
-					{
-						throw new InvalidOperationException(
-							"FFMpeg не смог создать скриншот. Проверьте, что FFMpeg доступен и видеофайл не поврежден.");
-					}
-
-					// Читаем результат из временного файла в MemoryStream
-					var imageBytes = await File.ReadAllBytesAsync(tempScreenshotPath);
-					var screenshotStream = new MemoryStream(imageBytes);
-					screenshots.Add(screenshotStream);
-				}
-				finally
-				{
-					// Удаляем временный файл скриншота
-					if (File.Exists(tempScreenshotPath))
-					{
-						File.Delete(tempScreenshotPath);
-					}
+					// Если что-то пошло не так, поток будет пустым.
+					throw new InvalidOperationException(
+						$"FFMpeg не смог создать скриншот для момента времени {snapshotTime}. Проверьте логи FFmpeg.");
 				}
 			}
 
@@ -106,12 +97,17 @@ public sealed class VideoService
 		}
 		catch (Exception ex)
 		{
+			// Освобождаем память, если в процессе цикла произошла ошибка.
+			foreach (var stream in screenshots)
+			{
+				await stream.DisposeAsync();
+			}
+
 			// Здесь можно добавить логирование ошибки
 			throw new InvalidOperationException("Не удалось обработать видео с помощью FFMpeg.", ex);
 		}
 		finally
 		{
-			// Обязательно удаляем временный видеофайл
 			if (File.Exists(tempVideoPath))
 			{
 				File.Delete(tempVideoPath);

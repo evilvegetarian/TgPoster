@@ -7,8 +7,8 @@ using Serilog;
 using TgPoster.Storage;
 using TgPoster.Worker.Configuration;
 using TgPoster.Worker.Domain;
-using TgPoster.Worker.Domain.ConfigModels;
 using TgPoster.Worker.Telemetry;
+using TelegramOptions = TgPoster.Worker.Domain.ConfigModels.TelegramOptions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -29,7 +29,8 @@ builder.Services.AddScoped<ICryptoAES, CryptoAES>();
 builder.Services
 	.AddDomain(builder.Configuration)
 	.AddStorage(builder.Configuration);
-
+var openRouterOptions = builder.Configuration.GetSection(nameof(OpenRouterOptions)).Get<OpenRouterOptions>()!;
+builder.Services.AddSingleton(openRouterOptions);
 var app = builder.Build();
 app.UseOpenTelemetryPrometheusScrapingEndpoint();
 app.AddHangfire();
