@@ -1,7 +1,7 @@
 using System.Net;
 using Shouldly;
 
-namespace TgPoster.Endpoint.Tests.Helper;
+namespace TgPoster.API.Tests.Helper;
 
 public static class HttpClientHelper
 {

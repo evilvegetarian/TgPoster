@@ -1,5 +1,3 @@
-using Shared.SharedException;
-
-namespace TgPoster.API.Domain.Exceptions;
+namespace Shared.SharedException;
 
 public class OpenRouterSettingNotFoundException() : SharedException("Настройки Open Router не существует");

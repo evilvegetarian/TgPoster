@@ -6,7 +6,7 @@ using Security.Models;
 using Shouldly;
 using TgPoster.API.Common;
 
-namespace TgPoster.Endpoint.Tests.Endpoint;
+namespace TgPoster.API.Tests.Endpoint;
 
 public class UnauthorizedAccessTests : IClassFixture<EndpointTestFixture>
 {

@@ -1,8 +1,8 @@
 using Microsoft.Extensions.Caching.Memory;
 using TgPoster.API.Domain.Services;
-using TgPoster.Endpoint.Tests.Helper;
+using TgPoster.API.Tests.Helper;
 
-namespace TgPoster.Endpoint.Tests.Seeder;
+namespace TgPoster.API.Tests.Seeder;
 
 internal class MemorySeeder(IMemoryCache memoryCache) : BaseSeeder
 {

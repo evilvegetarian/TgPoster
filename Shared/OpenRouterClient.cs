@@ -1,7 +1,7 @@
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using TgPoster.API.Domain.Exceptions;
+using Shared.SharedException;
 
 namespace Shared;
 

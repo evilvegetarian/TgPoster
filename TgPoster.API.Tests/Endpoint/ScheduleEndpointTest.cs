@@ -5,9 +5,9 @@ using TgPoster.API.Common;
 using TgPoster.API.Domain.UseCases.Schedules.CreateSchedule;
 using TgPoster.API.Domain.UseCases.Schedules.ListSchedule;
 using TgPoster.API.Models;
-using TgPoster.Endpoint.Tests.Helper;
+using TgPoster.API.Tests.Helper;
 
-namespace TgPoster.Endpoint.Tests.Endpoint;
+namespace TgPoster.API.Tests.Endpoint;
 
 public class ScheduleEndpointTest(EndpointTestFixture fixture) : IClassFixture<EndpointTestFixture>
 {

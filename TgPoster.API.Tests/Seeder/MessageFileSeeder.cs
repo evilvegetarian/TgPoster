@@ -1,8 +1,8 @@
-using TgPoster.Endpoint.Tests.Helper;
+using TgPoster.API.Tests.Helper;
 using TgPoster.Storage.Data;
 using TgPoster.Storage.Data.Entities;
 
-namespace TgPoster.Endpoint.Tests.Seeder;
+namespace TgPoster.API.Tests.Seeder;
 
 internal class MessageFileSeeder(PosterContext context) : BaseSeeder
 {

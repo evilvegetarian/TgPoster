@@ -2,9 +2,9 @@ using System.Net;
 using Shouldly;
 using TgPoster.API.Common;
 using TgPoster.API.Models;
-using TgPoster.Endpoint.Tests.Helper;
+using TgPoster.API.Tests.Helper;
 
-namespace TgPoster.Endpoint.Tests.Endpoint;
+namespace TgPoster.API.Tests.Endpoint;
 
 public class PromptSettingEndpointTest(EndpointTestFixture fixture) : IClassFixture<EndpointTestFixture>
 {

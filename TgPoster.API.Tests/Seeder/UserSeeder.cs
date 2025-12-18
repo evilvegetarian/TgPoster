@@ -1,10 +1,10 @@
 using Microsoft.EntityFrameworkCore;
-using TgPoster.Endpoint.Tests.Helper;
+using TgPoster.API.Tests.Helper;
 using TgPoster.Storage.Data;
 using TgPoster.Storage.Data.Entities;
 using TgPoster.Storage.Data.VO;
 
-namespace TgPoster.Endpoint.Tests.Seeder;
+namespace TgPoster.API.Tests.Seeder;
 
 internal class UserSeeder(PosterContext context, string hash) : BaseSeeder
 {

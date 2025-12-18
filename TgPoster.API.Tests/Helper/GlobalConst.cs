@@ -1,4 +1,4 @@
-namespace TgPoster.Endpoint.Tests.Helper;
+namespace TgPoster.API.Tests.Helper;
 
 internal static class GlobalConst
 {

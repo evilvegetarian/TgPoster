@@ -1,9 +1,9 @@
 using System.Net;
 using Shouldly;
 using TgPoster.API.Common;
-using TgPoster.Endpoint.Tests.Helper;
+using TgPoster.API.Tests.Helper;
 
-namespace TgPoster.Endpoint.Tests.Endpoint;
+namespace TgPoster.API.Tests.Endpoint;
 
 public class FileEndpointTest(EndpointTestFixture fixture) : IClassFixture<EndpointTestFixture>
 {

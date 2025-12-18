@@ -4,7 +4,7 @@ using TgPoster.Storage.Data.Entities;
 using TgPoster.Storage.Data.Enum;
 using TgPoster.Storage.Data.VO;
 
-
+namespace TgPoster.Storage.Tests;
 
 public sealed class Helper
 {

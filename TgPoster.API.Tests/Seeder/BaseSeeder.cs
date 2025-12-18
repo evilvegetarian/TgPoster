@@ -1,4 +1,4 @@
-namespace TgPoster.Endpoint.Tests.Seeder;
+namespace TgPoster.API.Tests.Seeder;
 
 internal abstract class BaseSeeder
 {

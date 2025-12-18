@@ -5,7 +5,7 @@ using System.Text;
 using System.Text.Json;
 using Microsoft.AspNetCore.Http;
 
-namespace TgPoster.Endpoint.Tests.Helper;
+namespace TgPoster.API.Tests.Helper;
 
 public static class HelperResponse
 {

@@ -11,11 +11,11 @@ using NSubstitute;
 using Security.Interfaces;
 using Security.Models;
 using Testcontainers.PostgreSql;
-using TgPoster.Endpoint.Tests.Helper;
-using TgPoster.Endpoint.Tests.Seeder;
+using TgPoster.API.Tests.Helper;
+using TgPoster.API.Tests.Seeder;
 using TgPoster.Storage.Data;
 
-namespace TgPoster.Endpoint.Tests;
+namespace TgPoster.API.Tests;
 
 public class EndpointTestFixture : WebApplicationFactory<Program>, IAsyncLifetime
 {
