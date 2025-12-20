@@ -154,7 +154,3 @@ jobs:
         run: |
           docker container prune -f
           docker image prune -a -f
-          
-      - name: Remove .env file
-        if: always()
-        run: rm .env
