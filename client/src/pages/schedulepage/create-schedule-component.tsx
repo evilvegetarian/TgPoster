@@ -35,13 +35,9 @@ import {getGetApiV1ScheduleQueryKey, usePostApiV1Schedule} from "@/api/endpoints
 import {useQueryClient} from "@tanstack/react-query";
 
 const formSchema = z.object({
-    name: z.string()
-        .min(2, "Название должно быть не менее 2 символов")
-        .max(30, "Название должно быть не более 30 символов"),
+    name: z.string().min(2, "Название должно быть не менее 2 символов").max(30, "Название должно быть не более 30 символов"),
     channel: z.string().min(5, "ID или @имя канала должно быть не менее 5 символов"),
-    telegramBotId: z.string({
-        required_error: "Необходимо выбрать Telegram бота.",
-    }).min(1, "Необходимо выбрать Telegram бота."),
+    telegramBotId: z.string({required_error: "Необходимо выбрать Telegram бота.",}).min(1, "Необходимо выбрать Telegram бота."),
 });
 
 type CreateScheduleFormValues = z.infer<typeof formSchema>;

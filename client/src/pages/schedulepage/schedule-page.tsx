@@ -28,7 +28,7 @@ import {
 } from "@/components/ui/dialog.tsx"
 import {EditIiComponent} from "@/pages/edit-ii-component.tsx";
 import {usePutApiV1MessageScheduleIdTimes} from "@/api/endpoints/message/message.ts";
-import {convertLocalToIsoTime, convertUtcTimeToLocal} from "@/utils/convertLocalToIsoTime.tsx"
+import {convertLocalToIsoTime, convertUtcTimeToLocalTime} from "@/utils/convertLocalToIsoTime.tsx"
 import {CreateScheduleComponent} from "@/pages/schedulepage/create-schedule-component.tsx";
 
 
@@ -100,7 +100,7 @@ export function SchedulePage() {
             return [];
         }
         return scheduleDaysData.map(day => {
-            const localTimePostings = day.timePostings?.sort().map(utcTime => convertUtcTimeToLocal(utcTime));
+            const localTimePostings = day.timePostings?.sort().map(utcTime => convertUtcTimeToLocalTime(utcTime));
             return {
                 ...day,
                 timePostings: localTimePostings

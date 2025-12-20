@@ -1,4 +1,7 @@
-﻿ export function convertLocalToIsoTime(time: string) {
+﻿import {format} from "date-fns";
+import {ru} from "date-fns/locale";
+
+export function convertLocalToIsoTime(time: string) {
 
     const timeParts = time.split(':');
     if (timeParts.length < 2) {
@@ -21,7 +24,7 @@
 
 }
 
- export function convertUtcTimeToLocal(utcTimeString: string): string {
+ export function convertUtcTimeToLocalTime(utcTimeString: string): string {
     if (!utcTimeString || typeof utcTimeString !== 'string') {
         return 'Invalid Time';
     }
@@ -46,3 +49,12 @@
 
     return date.toLocaleTimeString();
 }
+
+ export function utcToLocalString  (utcString: string): string {
+     const date = new Date(utcString);
+     return format(date, "yyyy-MM-dd'T'HH:mm");
+ };
+
+export function utcToShortLocalString  (utcString: string): string {
+  return   format(new Date(utcString), "dd MMM HH:mm", {locale: ru})
+};
