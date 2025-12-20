@@ -20,4 +20,4 @@ services:
       TelegramSettings__api_hash: ${TELEGRAM_API_HASH}
       TelegramSettings__phone_number: ${TELEGRAM_PHONE_NUMBER}
       TelegramOptions__SecretKey: ${TELEGRAMOPTIONS_SECRETKEY}
-      
+      OpenRouterOptions__SecretKey: ${OPENROUTEROPTIONS_SECRETKEY}
