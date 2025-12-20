@@ -48,7 +48,7 @@ export function CreateMessageDialog({ scheduleId, availableTimes, onTimeSelect, 
             onSuccess: () => {
                 toast.success("Успешно", { description: "Сообщение поставлено в очередь" });
                 setOpen(false);
-                form.reset({ scheduleId, files: [], textMessage: "", timePosting: "" });
+                form.reset();
                 onSuccess?.();
             },
             onError: (error) => {
