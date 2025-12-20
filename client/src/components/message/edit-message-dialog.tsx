@@ -1,7 +1,7 @@
 import React from "react"
-import {Upload, X} from "lucide-react"
+import {Edit, Upload, X} from "lucide-react"
 import {Button} from "@/components/ui/button"
-import {Dialog, DialogContent, DialogHeader, DialogTitle} from "@/components/ui/dialog"
+import {Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger} from "@/components/ui/dialog"
 import {Input} from "@/components/ui/input"
 import {Label} from "@/components/ui/label"
 import {FilePreview} from "./file-preview"
@@ -18,8 +18,6 @@ import {Textarea} from "@/components/ui/textarea.tsx";
 
 interface EditMessageDialogProps {
     message: MessageResponse,
-    isOpen: boolean,
-    onClose: () => void,
     availableTimes?: string[] | null,
     onTimeSelect: (time: string) => void;
 }
@@ -34,7 +32,7 @@ const formSchema = z.object({
 
 type EditMessageFormValues = z.infer<typeof formSchema>;
 
-export function EditMessageDialog({message, isOpen, onClose, availableTimes, onTimeSelect}: EditMessageDialogProps) {
+export function EditMessageDialog({message, availableTimes, onTimeSelect}: EditMessageDialogProps) {
     const form = useForm<EditMessageFormValues>({
         resolver: zodResolver(formSchema),
         values: {
@@ -63,7 +61,6 @@ export function EditMessageDialog({message, isOpen, onClose, availableTimes, onT
             onSuccess: () => {
                 toast.success("Успех", {description: "Сообщение обновлено успешно"})
                 form.reset();
-                onClose();
             },
             onError: (err) => {
                 toast.error("Ошибка", {description: err.title ?? "Не удалось обновить сообщение"})
@@ -115,7 +112,13 @@ export function EditMessageDialog({message, isOpen, onClose, availableTimes, onT
     }
 
     return (
-        <Dialog open={isOpen} onOpenChange={onClose}>
+        <Dialog >
+            <DialogTrigger asChild>
+                <Button variant="ghost" size="sm">
+                    <Edit className="h-4 w-4 mr-1"/>
+                    Редактировать
+                </Button>
+            </DialogTrigger>
             <DialogContent className="max-w-2xl">
                 <DialogHeader>
                     <DialogTitle>Редактирование сообщения</DialogTitle>
@@ -244,7 +247,7 @@ export function EditMessageDialog({message, isOpen, onClose, availableTimes, onT
                         </div>
 
                         <div className="flex justify-end gap-2">
-                            <Button type="button" variant="outline" onClick={onClose}>
+                            <Button type="button" variant="outline">
                                 Отмена
                             </Button>
                             <Button type="submit" disabled={updateIsPending}>

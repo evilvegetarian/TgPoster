@@ -1,9 +1,7 @@
-import {useState} from "react"
-import {Clock, Edit} from "lucide-react"
+import {Clock} from "lucide-react"
 import {format} from "date-fns"
 import {ru} from "date-fns/locale"
 import {Card, CardContent} from "@/components/ui/card"
-import {Button} from "@/components/ui/button"
 import {Checkbox} from "@/components/ui/checkbox"
 import {Badge} from "@/components/ui/badge"
 import {FilePreview} from "./file-preview"
@@ -19,7 +17,6 @@ interface MessageCardProps {
 }
 
 export function MessageCard({message, isSelected, onSelectionChange, availableTimes, onTimeSelect}: MessageCardProps) {
-    const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
 
     const getStatusBadge = (needApprove: boolean, canApprove: boolean, isSent: boolean) => {
         if (needApprove && !canApprove) {
@@ -50,10 +47,11 @@ export function MessageCard({message, isSelected, onSelectionChange, availableTi
                                         {message.timePosting && format(new Date(message.timePosting), "dd.MM.yyyy HH:mm", {locale: ru})}
                                     </div>
                                 </div>
-                                <Button variant="ghost" size="sm" onClick={() => setIsEditDialogOpen(true)}>
-                                    <Edit className="h-4 w-4 mr-1"/>
-                                    Редактировать
-                                </Button>
+                                <EditMessageDialog
+                                    availableTimes={availableTimes}
+                                    message={message}
+                                    onTimeSelect={onTimeSelect}
+                                />
                             </div>
 
                             {message.textMessage && (
@@ -78,13 +76,7 @@ export function MessageCard({message, isSelected, onSelectionChange, availableTi
                 </CardContent>
             </Card>
 
-            <EditMessageDialog
-                availableTimes={availableTimes}
-                message={message}
-                isOpen={isEditDialogOpen}
-                onClose={() => setIsEditDialogOpen(false)}
-                onTimeSelect={onTimeSelect}
-            />
+
         </>
     )
 }
