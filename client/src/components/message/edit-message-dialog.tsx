@@ -8,13 +8,13 @@ import {FilePreview} from "./file-preview"
 import type {MessageResponse} from "@/api/endpoints/tgPosterAPI.schemas.ts";
 import {useGetApiV1MessageMessageIdAiContent, usePutApiV1MessageId} from "@/api/endpoints/message/message.ts";
 import {toast} from "sonner";
-import {Badge} from "@/components/ui/badge.tsx";
 import {z} from "zod";
 import {useForm} from "react-hook-form";
 import {zodResolver} from "@hookform/resolvers/zod";
 import {Form, FormControl, FormField, FormItem, FormLabel, FormMessage} from "@/components/ui/form.tsx";
-import {utcToLocalString, utcToShortLocalString} from "@/utils/convertLocalToIsoTime.tsx";
+import {utcToLocalString} from "@/utils/convertLocalToIsoTime.tsx";
 import {Textarea} from "@/components/ui/textarea.tsx";
+import {TimeSuggestions} from "@/components/message/time-suggestions.tsx";
 
 const formSchema = z.object({
     scheduleId: z.string().min(1, "Необходимо расписание"),
@@ -75,7 +75,6 @@ export function EditMessageDialog({message, availableTimes, onTimeSelect, onSucc
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files?.length) {
             const currentFiles = form.getValues('newFiles');
-            // Можно добавить проверку на дубликаты по имени/размеру здесь
             form.setValue('newFiles', [...currentFiles, ...Array.from(e.target.files)]);
         }
     };
@@ -133,8 +132,6 @@ export function EditMessageDialog({message, availableTimes, onTimeSelect, onSucc
 
                 <Form {...form}>
                     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 py-2">
-
-                        {/* Блок текста и AI */}
                         <div className="space-y-2">
                             <FormField
                                 control={form.control}
@@ -189,22 +186,10 @@ export function EditMessageDialog({message, availableTimes, onTimeSelect, onSucc
                                 )}
                             />
 
-                            {availableTimes && availableTimes.length > 0 && (
-                                <div
-                                    className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground p-3 bg-muted/40 rounded-lg border border-dashed">
-                                    <span>Свободные слоты:</span>
-                                    {availableTimes.slice(0, 4).map((time) => (
-                                        <Badge
-                                            key={time}
-                                            variant="secondary"
-                                            className="cursor-pointer hover:bg-primary hover:text-primary-foreground transition-colors"
-                                            onClick={() => handleTimeSuggestionClick(time)}
-                                        >
-                                            {utcToShortLocalString(time)}
-                                        </Badge>
-                                    ))}
-                                </div>
-                            )}
+                            <TimeSuggestions
+                                availableTimes={availableTimes}
+                                onSelect={handleTimeSuggestionClick}
+                            />
                         </div>
 
                         <div className="space-y-3">
