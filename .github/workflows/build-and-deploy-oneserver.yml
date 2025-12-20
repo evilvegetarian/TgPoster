@@ -124,6 +124,8 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           path: .
+          pattern: docker-compose-*
+          merge-multiple: true
 
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v3
@@ -132,17 +134,17 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Create .env file
+      - name: Export secrets
         run: |
-          echo "API_URL=${{ secrets.API_URL }}" >> .env
-          echo "VITE_API_URL=${{ secrets.API_URL }}" >> .env
-          echo "CONNECTIONSTRING=${{ secrets.CONNECTIONSTRING }}" >> .env
-          echo "TGPOSTER_API_JWTOPTIONS_SECRETKEY=${{ secrets.JWTOPTIONS_SECRETKEY }}" >> .env
-          echo "TELEGRAM_API_ID=${{ secrets.API_ID }}" >> .env
-          echo "TELEGRAM_API_HASH=${{ secrets.API_HASH }}" >> .env
-          echo "TELEGRAM_PHONE_NUMBER=${{ secrets.PHONE_NUMBER }}" >> .env
-          echo "TELEGRAMOPTIONS_SECRETKEY=${{ secrets.TELEGRAMOPTIONS_SECRETKEY }}" >> .env
-          echo "OPENROUTEROPTIONS_SECRETKEY=${{ secrets.OPENROUTEROPTIONS_SECRETKEY }}" >> .env
+          export API_URL='${{ secrets.API_URL }}'
+          export VITE_API_URL='${{ secrets.API_URL }}'
+          export CONNECTIONSTRING='${{ secrets.CONNECTIONSTRING }}'
+          export TGPOSTER_API_JWTOPTIONS_SECRETKEY='${{ secrets.JWTOPTIONS_SECRETKEY }}'
+          export TELEGRAM_API_ID='${{ secrets.API_ID }}'
+          export TELEGRAM_API_HASH='${{ secrets.API_HASH }}'
+          export TELEGRAM_PHONE_NUMBER='${{ secrets.PHONE_NUMBER }}'
+          export TELEGRAMOPTIONS_SECRETKEY='${{ secrets.TELEGRAMOPTIONS_SECRETKEY }}'
+          export OPENROUTEROPTIONS_SECRETKEY='${{ secrets.OPENROUTEROPTIONS_SECRETKEY }}'
 
       - name: Pull latest images and restart containers
         run: |
