@@ -48,16 +48,17 @@ internal static class Routes
 	{
 		internal const string Root = Base + "/message";
 		internal const string List = Root;
-		internal const string CreateMessagesFromFiles = Root + "/batch-from-files";
 		internal const string Create = Root;
+		internal const string Delete = Root;
+		internal const string ApproveMessages = Root;
+		internal const string CreateMessagesFromFiles = Root + "/batch-from-files";
+		internal const string Get = Root + "/{id:guid}";
 		internal const string Update = Root + "/{id:guid}";
 		internal const string DeleteFileMessage = Root + "/{id:guid}/files/{fileId:guid}";
 		internal const string LoadFiles = Root + "/{id:guid}/file";
-		internal const string ApproveMessages = Root;
-		internal const string Get = Root + "/{id:guid}";
-		internal const string Delete = Root;
+		internal const string SendNow = Root + "/{id:guid}";
+		internal const string GenerateAiContent = Root + "/{messageId:guid}/ai-content";
 		internal const string GetTime = Root + "/{scheduleId:guid}/time";
-		internal const string GenerateAiContent = Root + "/{messageId:guid}" + "/ai-content";
 		internal const string UpdateAllTime = Root + "/{scheduleId:guid}/times";
 	}
 
@@ -96,5 +97,12 @@ internal static class Routes
 		internal const string List = Root;
 		internal const string Update = Root + "/{id:guid}";
 		internal const string Delete = Root + "/{id:guid}";
+	}
+
+	internal static class YouTubeAccount
+	{
+		internal const string Root = Base + "/youtube";
+		internal const string Create = Root;
+		internal const string CallBack = Root + "/callback";
 	}
 }
