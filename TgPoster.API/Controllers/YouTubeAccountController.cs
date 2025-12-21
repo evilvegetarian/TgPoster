@@ -1,8 +1,8 @@
-using System.ComponentModel.DataAnnotations;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TgPoster.API.Common;
+using TgPoster.API.Domain.UseCases.YouTubeAccount.CallBackYouTube;
 using TgPoster.API.Domain.UseCases.YouTubeAccount.YouTubeAccountLogin;
 using TgPoster.API.Models;
 
@@ -32,5 +32,14 @@ public class YouTubeAccountController(ISender sender) : ControllerBase
 		var command = new LoginYouTubeCommand(request.JsonFile, request.ClientId, request.ClientSecret, uri);
 		var authUrl = await sender.Send(command, ct);
 		return Redirect(authUrl);
+	}
+
+	[HttpGet(Routes.YouTubeAccount.CallBack)]
+	public async Task<IActionResult> GoogleCallback(string code, string state, string error, CancellationToken ct)
+	{
+		var uri = Routes.YouTubeAccount.CallBack;
+		var command = new CallBackYouTubeQuery(code, state, uri);
+		await sender.Send(command, ct);
+		return Ok();
 	}
 }
