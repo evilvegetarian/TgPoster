@@ -2,13 +2,9 @@ using Google.Apis.Auth.OAuth2;
 using Google.Apis.Auth.OAuth2.Flows;
 using Google.Apis.YouTube.v3;
 using MediatR;
-using Microsoft.AspNetCore.Http;
 using Security.Interfaces;
 
 namespace TgPoster.API.Domain.UseCases.YouTubeAccount.YouTubeAccountLogin;
-
-public record LoginYouTubeCommand(IFormFile? JsonFile, string? ClientId, string? ClientSecret, string RedirectUrl)
-	: IRequest<string>;
 
 public class LoginYouTubeUseCase(ILoginYouTubeStorage storage, IIdentityProvider provider)
 	: IRequestHandler<LoginYouTubeCommand, string>
@@ -37,20 +33,10 @@ public class LoginYouTubeUseCase(ILoginYouTubeStorage storage, IIdentityProvider
 		
 		if (clientSecrets?.ClientSecret is null || clientSecrets.ClientId is null)
 			throw new InvalidOperationException("YouTubeService client secret not found");
-
-		await storage.CreateYouTubeAccountAsync("", clientSecrets.ClientId, clientSecrets.ClientSecret, provider.Current.UserId, ct);
-
-		return flow.CreateAuthorizationCodeRequest(request.RedirectUrl).Build().ToString();
+		var guid = await storage.CreateYouTubeAccountAsync("", clientSecrets.ClientId, clientSecrets.ClientSecret,
+			provider.Current.UserId, ct);
+		var authRequestUrl = flow.CreateAuthorizationCodeRequest(request.RedirectUrl);
+		authRequestUrl.State = guid.ToString();
+		return authRequestUrl.Build().ToString();
 	}
-}
-
-public interface ILoginYouTubeStorage
-{
-	Task<Guid> CreateYouTubeAccountAsync(
-		string name,
-		string clientId,
-		string clientSecret,
-		Guid userId,
-		CancellationToken ct
-	);
 }
