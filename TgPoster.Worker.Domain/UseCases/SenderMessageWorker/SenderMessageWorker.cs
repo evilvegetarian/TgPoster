@@ -36,7 +36,7 @@ public class SenderMessageWorker(
 				try
 				{
 					BackgroundJob.Schedule<SenderMessageWorker>(
-						x => x.SendMessageAsync(message.Id, token, detail.ChannelId, message, message.TimePosting),
+						x => x.SendMessageAsync(message.Id, token, detail.ChannelId, message),
 						message.TimePosting);
 					logger.LogInformation(
 						"Сообщение для чата {channelId} запланировано на {timePosting} сек.", detail.ChannelId,
@@ -51,40 +51,48 @@ public class SenderMessageWorker(
 		}
 	}
 
-
 	[SuppressMessage("ReSharper", "MemberCanBePrivate.Global")]
 	public async Task SendMessageAsync(
 		Guid messageId,
 		string token,
 		long chatId,
-		MessageDto message,
-		DateTimeOffset timePosting
+		MessageDto message
 	)
 	{
 		var bot = new TelegramBotClient(token);
-		var medias = new List<IAlbumInputMedia>();
+		var medias = new List<InputMedia>();
+
 		foreach (var file in message.File)
 		{
 			if (file.ContentType.GetFileType() == FileTypes.Image)
 			{
-				medias.Add(new InputMediaPhoto(file.TgFileId)
-				{
-					Caption = file.Caption
-				});
+				medias.Add(new InputMediaPhoto(file.TgFileId));
 			}
-
-			if (file.ContentType.GetFileType() == FileTypes.Video)
+			else if (file.ContentType.GetFileType() == FileTypes.Video)
 			{
-				medias.Add(new InputMediaVideo(file.TgFileId)
-				{
-					Caption = file.Caption
-				});
+				medias.Add(new InputMediaVideo(file.TgFileId));
 			}
 		}
 
 		if (medias.Any())
 		{
-			await bot.SendMediaGroup(chatId, medias);
+			var captionText = message.Message ?? string.Empty;
+
+			bool isCaptionTooLong = captionText.Length > 1024;
+
+			if (!string.IsNullOrWhiteSpace(captionText) && !isCaptionTooLong)
+			{
+				medias[0].Caption = captionText;
+				medias[0].ParseMode = Telegram.Bot.Types.Enums.ParseMode.Html;
+				await bot.SendMediaGroup(chatId, medias.Select(x => (IAlbumInputMedia)x));
+			}
+			else
+			{
+				await bot.SendMediaGroup(chatId, medias.Select(x => (IAlbumInputMedia)x));
+
+				if (!string.IsNullOrWhiteSpace(captionText))
+					await bot.SendMessage(chatId, captionText);
+			}
 		}
 		else
 		{
