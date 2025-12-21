@@ -45,6 +45,7 @@ public sealed class User : BaseEntity
 	public ICollection<TelegramBot> TelegramBots { get; set; } = [];
 
 	public ICollection<OpenRouterSetting> OpenRouterSettings { get; set; } = [];
+	public ICollection<YouTubeAccount> YouTubeAccounts { get; set; } = [];
 
 	#endregion
 }

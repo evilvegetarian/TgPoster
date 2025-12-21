@@ -40,5 +40,9 @@ internal class UserConfiguration : BaseEntityConfiguration<User>
 		builder.HasMany(x => x.OpenRouterSettings)
 			.WithOne(x => x.User)
 			.HasForeignKey(x => x.UserId);
+		
+		builder.HasMany(x => x.YouTubeAccounts)
+			.WithOne(x => x.User)
+			.HasForeignKey(x => x.UserId);
 	}
 }

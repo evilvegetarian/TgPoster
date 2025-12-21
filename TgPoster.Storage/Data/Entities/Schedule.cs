@@ -32,6 +32,12 @@ public sealed class Schedule : BaseEntity
 	/// </summary>
 	public required bool IsActive { get; set; }
 
+	/// <summary>
+	///     Канал на который будет отправляться сообщения
+	/// </summary>
+	public Guid? YouTubeAccountId { get; set; }
+
+	
 	#region Навигация
 
 	/// <summary>
@@ -69,6 +75,11 @@ public sealed class Schedule : BaseEntity
 	/// Настройки подключения к OpenRouter для этого расписания
 	/// </summary>
 	public OpenRouterSetting? OpenRouterSetting { get; set; }
+	
+	/// <summary>
+	/// Настройки подключения к OpenRouter для этого расписания
+	/// </summary>
+	public YouTubeAccount? YouTubeAccount { get; set; }
 
 	#endregion
 }
