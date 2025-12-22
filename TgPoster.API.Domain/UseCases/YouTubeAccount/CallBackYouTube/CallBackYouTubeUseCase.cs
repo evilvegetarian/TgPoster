@@ -25,7 +25,7 @@ public class CallBackYouTubeUseCase(ICallBackYouTubeStorage storage, IIdentityPr
 			userId: "user-id",
 			code: request.Code,
 			redirectUri: request.CallBack,
-			CancellationToken.None
+			ct
 		);
 		await storage.AddToken(accountYouTubeGuid, token.AccessToken, ct);
 	}

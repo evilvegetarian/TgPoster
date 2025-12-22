@@ -12,7 +12,7 @@ namespace TgPoster.API.Controllers;
 ///     Контроллер Ютуб аккаунта
 /// </summary>
 /// <param name="sender"></param>
-[Authorize]
+//[Authorize]
 [ApiController]
 public class YouTubeAccountController(ISender sender) : ControllerBase
 {
@@ -34,8 +34,16 @@ public class YouTubeAccountController(ISender sender) : ControllerBase
 		return Redirect(authUrl);
 	}
 
+	/// <summary>
+	/// Коллбэк от гугл обратно к нам
+	/// </summary>
+	/// <param name="code"></param>
+	/// <param name="state">Возвращает id записи в бд</param>
+	/// <param name="error"></param>
+	/// <param name="ct"></param>
+	/// <returns></returns>
 	[HttpGet(Routes.YouTubeAccount.CallBack)]
-	public async Task<IActionResult> GoogleCallback(string code, string state, string error, CancellationToken ct)
+	public async Task<IActionResult> GoogleCallback(string code, string state, string? error, CancellationToken ct)
 	{
 		var uri = Routes.YouTubeAccount.CallBack;
 		var command = new CallBackYouTubeQuery(code, state, uri);
