@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TgPoster.API.Common;
 using TgPoster.API.Domain.UseCases.YouTubeAccount.CallBackYouTube;
+using TgPoster.API.Domain.UseCases.YouTubeAccount.SendVideoOnYouTube;
 using TgPoster.API.Domain.UseCases.YouTubeAccount.YouTubeAccountLogin;
 using TgPoster.API.Models;
 
@@ -12,7 +13,7 @@ namespace TgPoster.API.Controllers;
 ///     Контроллер Ютуб аккаунта
 /// </summary>
 /// <param name="sender"></param>
-//[Authorize]
+[Authorize]
 [ApiController]
 public class YouTubeAccountController(ISender sender) : ControllerBase
 {
@@ -28,7 +29,7 @@ public class YouTubeAccountController(ISender sender) : ControllerBase
 		CancellationToken ct
 	)
 	{
-		var uri = Routes.YouTubeAccount.CallBack;
+		var uri = Request.Headers["Origin"].FirstOrDefault() + "/" + Routes.YouTubeAccount.CallBack;
 		var command = new LoginYouTubeCommand(request.JsonFile, request.ClientId, request.ClientSecret, uri);
 		var authUrl = await sender.Send(command, ct);
 		return Redirect(authUrl);
@@ -45,8 +46,22 @@ public class YouTubeAccountController(ISender sender) : ControllerBase
 	[HttpGet(Routes.YouTubeAccount.CallBack)]
 	public async Task<IActionResult> GoogleCallback(string code, string state, string? error, CancellationToken ct)
 	{
-		var uri = Routes.YouTubeAccount.CallBack;
+		var uri = Request.Headers["Origin"].FirstOrDefault() /*"http://localhost:5059"*/ + "/" + Routes.YouTubeAccount.CallBack;
 		var command = new CallBackYouTubeQuery(code, state, uri);
+		await sender.Send(command, ct);
+		return Ok();
+	}
+
+	/// <summary>
+	/// Отправка сообщения с видео в ютуб
+	/// </summary>
+	/// <param name="messageId"></param>
+	/// <param name="ct"></param>
+	/// <returns></returns>
+	[HttpPost(Routes.YouTubeAccount.SendVideo)]
+	public async Task<IActionResult> SendVideoInYoutube(Guid messageId, CancellationToken ct)
+	{
+		var command = new SendVideoOnYouTubeCommand(messageId);
 		await sender.Send(command, ct);
 		return Ok();
 	}

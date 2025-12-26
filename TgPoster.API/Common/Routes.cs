@@ -104,5 +104,6 @@ internal static class Routes
 		internal const string Root = Base + "/youtube";
 		internal const string Create = Root;
 		internal const string CallBack = Root + "/callback";
+		internal const string SendVideo = Root + "/{messageId:guid}";
 	}
 }
