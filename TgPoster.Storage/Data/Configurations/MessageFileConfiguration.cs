@@ -19,7 +19,12 @@ internal class MessageFileConfiguration : BaseEntityConfiguration<MessageFile>
 
 		builder.Property(x => x.TgFileId)
 			.HasMaxLength(1000);
-
+		
+		builder.Property(mf => mf.FileType)
+			.HasConversion<string>()
+			.HasMaxLength(50)
+			.IsRequired();
+		
 		builder.HasOne(x => x.Message)
 			.WithMany(x => x.MessageFiles)
 			.HasForeignKey(x => x.MessageId);

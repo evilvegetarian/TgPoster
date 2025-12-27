@@ -8,10 +8,6 @@ public class ListPromptSettingStorage(PosterContext context) : IListPromptSettin
 {
 	public Task<List<PromptSettingResponse>> GetAsync(Guid userId, CancellationToken cancellationToken)
 	{
-		var sadasas= context.PromptSettings
-			.Where(x => x.Schedule.UserId == userId).ToList();
-		
-		var sadadassdasas= context.PromptSettings.ToList();
 		return context.PromptSettings
 			.Where(x => x.Schedule.UserId == userId)
 			.Select(x => new PromptSettingResponse

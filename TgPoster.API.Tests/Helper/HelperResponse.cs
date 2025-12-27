@@ -3,6 +3,7 @@ using System.Net.Http.Headers;
 using System.Reflection;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Http;
 
 namespace TgPoster.API.Tests.Helper;
@@ -11,7 +12,11 @@ public static class HelperResponse
 {
 	public static async Task<T> ToObject<T>(this HttpResponseMessage response)
 	{
-		var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+		var options = new JsonSerializerOptions
+		{
+			PropertyNameCaseInsensitive = true ,
+			Converters = { new JsonStringEnumConverter() }
+		};
 		var responseString = await response.Content.ReadAsStringAsync();
 		var result = JsonSerializer.Deserialize<T>(responseString, options)!;
 		return result;

@@ -1,6 +1,7 @@
 using Bogus;
 using TgPoster.Storage.Data;
 using TgPoster.Storage.Data.Entities;
+using TgPoster.Storage.Data.Enum;
 
 namespace TgPoster.Storage.Tests.Builders;
 
@@ -11,9 +12,11 @@ public class MessageFileBuilder(PosterContext context)
 	private MessageFile file = new MessageFile
 	{
 		Id = Guid.NewGuid(),
-		MessageId = new MessageBuilder(context).Create().Id,
+		MessageId = new MessageBuilder(context).Create()
+			.Id,
 		ContentType = "image/jpeg",
-		TgFileId = faker.Random.AlphaNumeric(20)
+		TgFileId = faker.Random.AlphaNumeric(20),
+		FileType = faker.Random.Enum<FileTypes>()
 	};
 
 	public async Task<MessageFile> CreateAsync(CancellationToken ct)

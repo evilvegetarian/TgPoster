@@ -71,11 +71,11 @@ internal class GenerateAiContentHandler(
 
 		foreach (var file in messageDto.Files)
 		{
-			if (file.PreviewIds.Count > 0)
+			if (file.Previews.Count > 0)
 			{
-				foreach (var filePreviewId in file.PreviewIds)
+				foreach (var preview in file.Previews)
 				{
-					var bytes = await service.GetByteFileAsync(bot, filePreviewId, ct);
+					var bytes = await service.GetByteFileAsync(bot, preview.TgFileId, ct);
 					contentParts.Add(new MessageContentPart
 						{
 							Text = "Видео " + ss,

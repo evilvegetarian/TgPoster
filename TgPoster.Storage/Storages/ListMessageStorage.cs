@@ -2,7 +2,6 @@ using Microsoft.EntityFrameworkCore;
 using TgPoster.API.Domain.Models;
 using TgPoster.API.Domain.UseCases.Messages.ListMessage;
 using TgPoster.Storage.Data;
-using TgPoster.Storage.Data.Entities;
 using FileDto = TgPoster.API.Domain.UseCases.Messages.ListMessage.FileDto;
 using MessageDto = TgPoster.API.Domain.UseCases.Messages.ListMessage.MessageDto;
 
@@ -82,27 +81,27 @@ internal sealed class ListMessageStorage(PosterContext context) : IListMessageSt
 			.Skip((request.PageNumber - 1) * request.PageSize)
 			.Take(request.PageSize)
 			.Include(message => message.MessageFiles)
-			.ToListAsync(ct);
-
-		var messageDtos = messages.Select(message => new MessageDto
-		{
-			Id = message.Id,
-			TextMessage = message.TextMessage,
-			ScheduleId = message.ScheduleId,
-			TimePosting = message.TimePosting,
-			IsVerified = message.IsVerified,
-			Created = message.Created,
-			IsSent = message.Status == Data.Enum.MessageStatus.Send,
-			Files = message.MessageFiles.Select(file => new FileDto
+			.Select(message => new MessageDto
 			{
-				Id = file.Id,
-				ContentType = file.ContentType,
-				TgFileId = file.TgFileId,
-				PreviewIds = file is VideoMessageFile videoFile
-					? videoFile.ThumbnailIds.ToList()
-					: []
-			}).ToList()
-		}).ToList();
-		return new PagedList<MessageDto>(messageDtos, totalCount);
+				Id = message.Id,
+				TextMessage = message.TextMessage,
+				ScheduleId = message.ScheduleId,
+				TimePosting = message.TimePosting,
+				IsVerified = message.IsVerified,
+				Created = message.Created,
+				IsSent = message.Status == Data.Enum.MessageStatus.Send,
+				Files = message.MessageFiles.Select(file => new FileDto
+				{
+					Id = file.Id,
+					ContentType = file.ContentType,
+					TgFileId = file.TgFileId,
+					Previews = file.Thumbnails.Select(x => new PreviewDto
+					{
+						Id = x.Id,
+						TgFileId = x.TgFileId
+					}).ToList()
+				}).ToList()
+			}).ToListAsync(ct);
+		return new PagedList<MessageDto>(messages, totalCount);
 	}
 }

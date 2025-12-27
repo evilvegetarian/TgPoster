@@ -43,14 +43,17 @@ public class GenerateAiContentStorage(PosterContext context) : IGenerateAiConten
 				Id = x.Id,
 				TextMessage = x.TextMessage,
 				Files = x.MessageFiles.Select(file => new FileDto
-				{
-					Id = file.Id,
-					ContentType = file.ContentType,
-					TgFileId = file.TgFileId,
-					PreviewIds = file is VideoMessageFile
-						? ((VideoMessageFile)file).ThumbnailIds.ToList()
-						: new List<string>()
-				}).ToList()
+					{
+						Id = file.Id,
+						ContentType = file.ContentType,
+						TgFileId = file.TgFileId,
+						Previews = file.Thumbnails.Select(thumbnail => new PreviewDto
+						{
+							Id = thumbnail.Id,
+							TgFileId = thumbnail.TgFileId
+						}).ToList()
+					})
+					.ToList()
 			})
 			.FirstOrDefaultAsync(ct);
 	}

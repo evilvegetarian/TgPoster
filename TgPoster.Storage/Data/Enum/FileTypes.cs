@@ -6,3 +6,30 @@ public enum FileTypes
 	Photo = 1,
 	Video = 2
 }
+
+public static class FileTypesExtensions
+{
+	public static FileTypes GetFileType(this string contentType)
+	{
+		if (contentType.StartsWith("image"))
+		{
+			return FileTypes.Photo;
+		}
+
+		if (contentType.StartsWith("video"))
+		{
+			return FileTypes.Video;
+		}
+
+		return FileTypes.NoOne;
+	}
+	public static string GetContentType(this FileTypes type)
+	{
+		return type switch
+		{
+			FileTypes.Photo => "image/jpeg",
+			FileTypes.Video => "video/mp4",
+			_ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
+		};
+	}
+}

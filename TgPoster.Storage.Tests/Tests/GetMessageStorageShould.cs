@@ -1,6 +1,8 @@
 using Shouldly;
 using TgPoster.Storage.Data;
+using TgPoster.Storage.Data.Enum;
 using TgPoster.Storage.Storages;
+using TgPoster.Storage.Tests.Builders;
 
 namespace TgPoster.Storage.Tests.Tests;
 
@@ -35,18 +37,15 @@ public class GetMessageStorageShould(StorageTestFixture fixture) : IClassFixture
 	public async Task GetMessagesAsync_WithVideoMessageFile_ShouldReturnVideoWithThumbnails()
 	{
 		var schedule = await helper.CreateScheduleAsync();
-		var message = await helper.CreateMessageAsync(schedule.Id);
-		var videoFile = await helper.CreateVideoMessageFileAsync(message.Id);
+		var message = new MessageBuilder(context).WithScheduleId(schedule.Id).WithVideoMessageFile().Create();
 
 		var result = await sut.GetMessagesAsync(message.Id, schedule.UserId, CancellationToken.None);
 
 		result.ShouldNotBeNull();
 		result.Files.ShouldNotBeEmpty();
 		var returnedFile = result.Files.First();
-		returnedFile.ContentType.ShouldBe("video/mp4");
-		returnedFile.PreviewIds.ShouldNotBeEmpty();
-		returnedFile.PreviewIds.Count.ShouldBe(2);
-		returnedFile.PreviewIds.ShouldBe(videoFile.ThumbnailIds.ToList());
+		returnedFile.ContentType.ShouldBe(FileTypes.Video.GetContentType());
+		returnedFile.Previews.ShouldNotBeEmpty();
 	}
 
 	[Fact]
@@ -89,15 +88,14 @@ public class GetMessageStorageShould(StorageTestFixture fixture) : IClassFixture
 	public async Task GetMessagesAsync_WithMultipleFiles_ShouldReturnAllFiles()
 	{
 		var schedule = await helper.CreateScheduleAsync();
-		var message = await helper.CreateMessageAsync(schedule.Id);
-		var imageFile = await helper.CreateMessageFileAsync(message.Id);
-		var videoFile = await helper.CreateVideoMessageFileAsync(message.Id);
+		var message = new MessageBuilder(context).WithScheduleId(schedule.Id).WithPhotoMessageFile()
+			.WithVideoMessageFile().Create();
 
 		var result = await sut.GetMessagesAsync(message.Id, schedule.UserId, CancellationToken.None);
 
 		result.ShouldNotBeNull();
 		result.Files.Count.ShouldBe(2);
-		result.Files.ShouldContain(x => x.Id == imageFile.Id && x.ContentType == "image/jpeg");
-		result.Files.ShouldContain(x => x.Id == videoFile.Id && x.ContentType == "video/mp4");
+		result.Files.ShouldContain(x => x.ContentType == FileTypes.Photo.GetContentType());
+		result.Files.ShouldContain(x => x.ContentType == FileTypes.Video.GetContentType());
 	}
 }

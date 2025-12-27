@@ -32,6 +32,7 @@ internal sealed class TelegramService(VideoService videoService)
 						new InputMediaVideo { Media = inputFile }
 					];
 					var previews = await videoService.ExtractScreenshotsAsync(memoryStream, 3);
+					
 					album.AddRange(previews.Select(preview => new InputMediaPhoto(preview)));
 
 					var messages = await botClient.SendMediaGroup(
@@ -58,7 +59,8 @@ internal sealed class TelegramService(VideoService videoService)
 					{
 						MimeType = file.ContentType,
 						FileId = fileVideoId!,
-						PreviewPhotoIds = previewPhotoIds!
+						PreviewPhotoIds = previewPhotoIds!,
+						FileType = FileTypes.Video
 					});
 					break;
 
@@ -75,7 +77,8 @@ internal sealed class TelegramService(VideoService videoService)
 					media.Add(new MediaFileResult
 					{
 						MimeType = file.ContentType,
-						FileId = photoId!
+						FileId = photoId!,
+						FileType = FileTypes.Image
 					});
 					await botClient.DeleteMessage(chat.Id, message.MessageId, ct);
 					break;
@@ -104,4 +107,5 @@ public class MediaFileResult
 	public required string MimeType { get; set; }
 	public required string FileId { get; set; }
 	public List<string> PreviewPhotoIds { get; set; } = [];
+	public FileTypes FileType { get; set; }
 }

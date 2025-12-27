@@ -1,11 +1,18 @@
+using TgPoster.Storage.Data.Enum;
+
 namespace TgPoster.Storage.Data.Entities;
 
-public  class MessageFile : BaseEntity
+public class MessageFile : BaseEntity
 {
 	/// <summary>
 	///     Id сообщения
 	/// </summary>
 	public required Guid MessageId { get; set; }
+
+	/// <summary>
+	/// Тип файла
+	/// </summary>
+	public required FileTypes FileType { get; set; }
 
 	/// <summary>
 	///     Id файла в телеграме
@@ -21,9 +28,18 @@ public  class MessageFile : BaseEntity
 	///     Тип файла
 	/// </summary>
 	public required string ContentType { get; set; }
+	
+	/// <summary>
+	///     Превью видео
+	/// </summary>
+	public ICollection<FileThumbnail> Thumbnails { get; set; } = [];
+
+	#region Навигация
 
 	/// <summary>
 	///     Сообщение
 	/// </summary>
 	public Message Message { get; set; } = null!;
+
+	#endregion
 }

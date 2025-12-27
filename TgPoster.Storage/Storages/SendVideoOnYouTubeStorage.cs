@@ -8,21 +8,23 @@ namespace TgPoster.Storage.Storages;
 
 public class SendVideoOnYouTubeStorage(PosterContext context) : ISendVideoOnYouTubeStorage
 {
-	public async Task<List<FileDto>> GetVideoFileMessageAsync(Guid messageId, Guid userId, CancellationToken ct)
+	public Task<List<FileDto>> GetVideoFileMessageAsync(Guid messageId, Guid userId, CancellationToken ct)
 	{
-		var files = await context.Messages
+		return context.Messages
 			.Where(x => x.Id == messageId)
 			.SelectMany(x => x.MessageFiles)
+			.Select(file => new FileDto
+			{
+				Id = file.Id,
+				ContentType = file.ContentType,
+				TgFileId = file.TgFileId,
+				Previews = file.Thumbnails.Select(x => new PreviewDto
+				{
+					Id = x.Id,
+					TgFileId = x.TgFileId
+				}).ToList()
+			})
 			.ToListAsync(ct);
-		return files.Select(f => new FileDto
-		{
-			Id = f.Id,
-			ContentType = f.ContentType,
-			TgFileId = f.TgFileId,
-			PreviewIds = f is VideoMessageFile videoFile
-				? videoFile.ThumbnailIds.ToList()
-				: []
-		}).ToList();
 	}
 
 	public Task<string?> GetAccessTokenAsync(Guid messageId, Guid userId, CancellationToken ct)

@@ -56,11 +56,11 @@ internal sealed class FileService(
 
 				case FileTypes.Video:
 				{
-					foreach (var previewFileId in fileDto.PreviewIds)
+					foreach (var preview in fileDto.Previews)
 					{
 						var previewCacheId = await DownloadAndCacheFileAsync(
 							botClient,
-							previewFileId,
+							preview.TgFileId,
 							ct);
 						cacheInfo.PreviewCacheIds.Add(previewCacheId);
 					}
@@ -140,6 +140,7 @@ internal sealed class FileService(
 		{
 			contentType = fileType.GetContentType();
 		}
+
 		var request = new PutObjectRequest
 		{
 			BucketName = s3Options.BucketName,
@@ -211,7 +212,10 @@ internal sealed class FileService(
 
 				case FileTypes.Video:
 				{
-					await DownloadAndCacheS3FileAsync(botClient, fileDto.Id, fileDto.PreviewIds.First(), FileTypes.Video, ct);
+					foreach (var preview in fileDto.Previews)
+					{
+						await DownloadAndCacheS3FileAsync(botClient, fileDto.Id, preview.TgFileId, FileTypes.Video, ct);
+					}
 					break;
 				}
 				case FileTypes.NoOne:

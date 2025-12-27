@@ -19,9 +19,11 @@ public class MessageEndpointTests(EndpointTestFixture fixture) : IClassFixture<E
 	public async Task CreateMessagesFromFiles_WithValidData_ReturnsCreated()
 	{
 		var files = FileHelper.GetTestIFormFiles();
+		var scheduleId = await helper.CreateSchedule();
+		await helper.CreateDay(scheduleId,DayOfWeek.Monday);
 		var request = new CreateMessagesFromFilesRequest
 		{
-			ScheduleId = GlobalConst.Worked.ScheduleId,
+			ScheduleId = scheduleId,
 			Files = files
 		};
 
@@ -91,10 +93,8 @@ public class MessageEndpointTests(EndpointTestFixture fixture) : IClassFixture<E
 		var scheduleId = await helper.CreateSchedule();
 		await helper.CreateMessages(scheduleId);
 
-		var response = await client.GetAsync(Routes.Message.List + "?scheduleId=" + scheduleId);
-		response.StatusCode.ShouldBe(HttpStatusCode.OK);
-		var messages = await response.Content.ReadFromJsonAsync<PagedResponse<MessageResponse>>();
-		messages!.Data.Count.ShouldBeGreaterThan(0);
+		var messages = await client.GetAsync<PagedResponse<MessageResponse>>(Routes.Message.List + "?scheduleId=" + scheduleId);
+		messages.Data.Count.ShouldBeGreaterThan(0);
 		messages.ShouldNotBeNull();
 	}
 

@@ -14,6 +14,7 @@ public class GetPromptSettingStorage(PosterContext context) : IGetPromptSettingS
 	)
 	{
 		return context.PromptSettings
+			.Where(x=> x.Id == id)
 			.Where(x => x.Schedule.UserId == userId)
 			.Select(x => new PromptSettingResponse
 			{

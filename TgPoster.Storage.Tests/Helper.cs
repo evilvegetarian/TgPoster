@@ -141,30 +141,12 @@ public sealed class Helper
 			Id = Guid.NewGuid(),
 			MessageId = messageId,
 			ContentType = contentType,
-			TgFileId = Faker.Random.AlphaNumeric(20)
+			TgFileId = Faker.Random.AlphaNumeric(20),
+			FileType = FileTypes.Photo
 		};
 
 		configure?.Invoke(file);
 		return file;
-	}
-
-	public VideoMessageFile BuildVideoMessageFile(Guid messageId, Action<VideoMessageFile>? configure = null)
-	{
-		var video = new VideoMessageFile
-		{
-			Id = Guid.NewGuid(),
-			MessageId = messageId,
-			ContentType = "video/mp4",
-			TgFileId = Faker.Random.AlphaNumeric(20),
-			ThumbnailIds = new List<string>
-			{
-				Faker.Random.AlphaNumeric(15),
-				Faker.Random.AlphaNumeric(15)
-			}
-		};
-
-		configure?.Invoke(video);
-		return video;
 	}
 
 	public RefreshSession BuildRefreshSession(Guid userId, Action<RefreshSession>? configure = null)
@@ -412,27 +394,6 @@ public sealed class Helper
 		}
 
 		return file;
-	}
-
-	public async Task<VideoMessageFile> CreateVideoMessageFileAsync(
-		Guid messageId,
-		Action<VideoMessageFile>? configure = null,
-		bool saveChanges = true,
-		CancellationToken cancellationToken = default
-	)
-	{
-		var message = await context.Messages.FindAsync([messageId], cancellationToken)
-		              ?? throw new InvalidOperationException($"Message {messageId} not found.");
-
-		var video = BuildVideoMessageFile(message.Id, configure);
-		await context.MessageFiles.AddAsync(video, cancellationToken);
-
-		if (saveChanges)
-		{
-			await context.SaveChangesAsync(cancellationToken);
-		}
-
-		return video;
 	}
 
 	public async Task<RefreshSession> CreateRefreshSessionAsync(

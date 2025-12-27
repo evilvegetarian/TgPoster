@@ -17,7 +17,8 @@ public class MessageBuilder(PosterContext context)
 		TimePosting = DateTimeOffset.UtcNow.AddMinutes(faker.Random.Int(15, 24 * 60)),
 		IsTextMessage = faker.Random.Bool(),
 		Status = faker.Random.Enum<MessageStatus>(),
-		Created = faker.Date.Between(DateTime.UtcNow, DateTime.UtcNow.AddMonths(2))
+		Created = faker.Date.Between(DateTime.UtcNow, DateTime.UtcNow.AddMonths(2)),
+		MessageFiles = new List<MessageFile>()
 	};
 
 	public MessageBuilder WithTimeMessage(DateTimeOffset value)
@@ -41,9 +42,9 @@ public class MessageBuilder(PosterContext context)
 		return message;
 	}
 
-	public MessageBuilder WithStatus(MessageStatus register)
+	public MessageBuilder WithStatus(MessageStatus status)
 	{
-		message.Status = register;
+		message.Status = status;
 		return this;
 	}
 
@@ -78,6 +79,43 @@ public class MessageBuilder(PosterContext context)
 	public MessageBuilder WithTextMessage(string value)
 	{
 		message.TextMessage = value;
+		return this;
+	}
+
+	public MessageBuilder WithPhotoMessageFile()
+	{
+		message.MessageFiles.Add(new MessageFile
+		{
+			Id = Guid.NewGuid(),
+			FileType = FileTypes.Photo,
+			ContentType = FileTypes.Photo.GetContentType(),
+			TgFileId = "fasfs",
+			MessageId = message.Id,
+		});
+		return this;
+	}
+
+	public MessageBuilder WithVideoMessageFile()
+	{
+		var messageFileId = Guid.NewGuid();
+		message.MessageFiles.Add(new MessageFile
+		{
+			Id = messageFileId,
+			FileType = FileTypes.Video,
+			ContentType = FileTypes.Video.GetContentType(),
+			TgFileId = "fadsdssfs",
+			MessageId = message.Id,
+			Thumbnails = new List<FileThumbnail>
+			{
+				new()
+				{
+					Id = Guid.NewGuid(),
+					TgFileId = "asfsafasfs",
+					MessageFileId = messageFileId,
+					ContentType = FileTypes.Photo.GetContentType()
+				}
+			}
+		});
 		return this;
 	}
 }

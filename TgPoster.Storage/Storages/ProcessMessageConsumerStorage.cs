@@ -31,8 +31,10 @@ internal sealed class ProcessMessageConsumerStorage(PosterContext context, GuidF
 				ScheduleId = ch.ScheduleId,
 				CheckNewPosts = ch.CheckNewPosts,
 				UseAi = ch.UseAiForPosts,
-				TokenOpenRouter=ch.Schedule.OpenRouterSetting != null ? ch.Schedule.OpenRouterSetting.TokenHash : null,
-				ModelOpenRouter=ch.Schedule.OpenRouterSetting != null ? ch.Schedule.OpenRouterSetting.TokenHash : null,
+				TokenOpenRouter =
+					ch.Schedule.OpenRouterSetting != null ? ch.Schedule.OpenRouterSetting.TokenHash : null,
+				ModelOpenRouter =
+					ch.Schedule.OpenRouterSetting != null ? ch.Schedule.OpenRouterSetting.TokenHash : null,
 				Prompt = ch.Schedule.PromptSetting != null ? ch.Schedule.PromptSetting.TextPrompt : null
 			})
 			.FirstOrDefaultAsync(ct);
@@ -52,24 +54,24 @@ internal sealed class ProcessMessageConsumerStorage(PosterContext context, GuidF
 			IsTextMessage = messageDto.Text.IsTextMessage(),
 			MessageFiles = messageDto.Media.Select<MediaDto, MessageFile>(m =>
 			{
-				if (m.PreviewPhotoIds.Count != 0)
-				{
-					return new VideoMessageFile
-					{
-						Id = guidFactory.New(),
-						MessageId = id,
-						ContentType = m.MimeType,
-						TgFileId = m.FileId,
-						ThumbnailIds = m.PreviewPhotoIds
-					};
-				}
+				var messageFileId = guidFactory.New();
 
-				return new PhotoMessageFile
+				var thumbnails = m.PreviewPhotoIds.Select(x => new FileThumbnail
+				{
+					Id = guidFactory.New(),
+					MessageFileId = messageFileId,
+					TgFileId = x,
+					ContentType = "image/jpeg"
+				}).ToList();
+
+				return new MessageFile
 				{
 					Id = guidFactory.New(),
 					ContentType = m.MimeType,
 					TgFileId = m.FileId,
-					MessageId = id
+					MessageId = id,
+					Thumbnails = thumbnails,
+					FileType = m.MimeType.GetFileType()
 				};
 			}).ToList()
 		};

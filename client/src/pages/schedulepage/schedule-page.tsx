@@ -52,9 +52,16 @@ interface ScheduleDay {
 
 const HOURS = Array.from({length: 24}, (_, i) => i.toString().padStart(2, "0"))
 const MINUTES = Array.from({length: 60}, (_, i) => i.toString().padStart(2, "0"))
-const DAY_NAMES = ["Воскресенье", "Понедельник", "Вторник", "Среда", "Четверг", "Пятница", "Суббота"]
-const DAYS_ORDER: DayOfWeek[] = [1, 2, 3, 4, 5, 6, 0]
-
+const DAYS_ORDER: DayOfWeek[] = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+export const DAY_NAMES: Record<string, string> = {
+    'Monday': "Понедельник",
+    'Tuesday': "Вторник",
+    'Wednesday': "Среда",
+    'Thursday': "Четверг",
+    'Friday': "Пятница",
+    'Saturday': "Суббота",
+    'Sunday': "Воскресенье",
+};
 
 const DEFAULT_NEW_TIME_SLOT: NewTimeSlot = {
     hour: "09",

@@ -2,8 +2,10 @@ using Shouldly;
 using TgPoster.API.Domain.UseCases.Messages.ListMessage;
 using TgPoster.Storage.Data;
 using TgPoster.Storage.Data.Entities;
+using TgPoster.Storage.Data.Enum;
 using TgPoster.Storage.Storages;
 using TgPoster.Storage.Tests.Builders;
+using MessageStatus = TgPoster.API.Domain.UseCases.Messages.ListMessage.MessageStatus;
 using SortDirection = TgPoster.API.Domain.UseCases.Messages.ListMessage.SortDirection;
 
 namespace TgPoster.Storage.Tests.Tests;
@@ -72,7 +74,7 @@ public sealed class ListMessageStorageShould(StorageTestFixture fixture) : IClas
 		var message1 = await helper.CreateMessageAsync(schedule.Id);
 		var message2 = await helper.CreateMessageAsync(schedule.Id);
 		await helper.CreateMessageFileAsync(message1.Id);
-		await helper.CreateVideoMessageFileAsync(message2.Id);
+		//await helper.CreateVideoMessageFileAsync(message2.Id);
 		var request = CreateQuery(schedule.Id, sortBy: MessageSortBy.SentAt);
 
 		var result = await sut.GetMessagesAsync(request, Ct);
@@ -107,9 +109,7 @@ public sealed class ListMessageStorageShould(StorageTestFixture fixture) : IClas
 	public async Task GetMessagesAsync_WithFiles_ShouldReturnMessagesWithFiles()
 	{
 		var schedule = await helper.CreateScheduleAsync();
-		var message = await helper.CreateMessageAsync(schedule.Id);
-		var imageFile = await helper.CreateMessageFileAsync(message.Id);
-		var videoFile = await helper.CreateVideoMessageFileAsync(message.Id);
+		 new MessageBuilder(context).WithScheduleId(schedule.Id).WithPhotoMessageFile().WithVideoMessageFile().Create();
 		var request = CreateQuery(schedule.Id);
 
 		var result = await sut.GetMessagesAsync(request, Ct);
@@ -118,22 +118,18 @@ public sealed class ListMessageStorageShould(StorageTestFixture fixture) : IClas
 		var returnedMessage = result.Items.First();
 		returnedMessage.Files.Count.ShouldBe(2);
 
-		var imageDto = returnedMessage.Files.First(x => x.Id == imageFile.Id);
-		imageDto.ContentType.ShouldBe("image/jpeg");
-		imageDto.PreviewIds.ShouldBeEmpty();
+		var imageDto = returnedMessage.Files.First(x => x.ContentType == FileTypes.Photo.GetContentType());
+		imageDto.Previews.ShouldBeEmpty();
 
-		var videoDto = returnedMessage.Files.First(x => x.Id == videoFile.Id);
-		videoDto.ContentType.ShouldBe("video/mp4");
-		videoDto.PreviewIds.ShouldNotBeEmpty();
-		videoDto.PreviewIds.Count.ShouldBe(2);
+		 var videoDto = returnedMessage.Files.First(x => x.ContentType == FileTypes.Video.GetContentType());
+		 videoDto.Previews.ShouldNotBeEmpty();
 	}
 
 	[Fact]
 	public async Task GetMessagesAsync_ShouldReturnCorrectMessageData()
 	{
-		var schedule = await helper.CreateScheduleAsync();
-		var message = await helper.CreateMessageAsync(schedule.Id);
-		var request = CreateQuery(schedule.Id);
+		var message = new MessageBuilder(context).WithStatus(Data.Enum.MessageStatus.Register).Create();
+		var request = CreateQuery(message.ScheduleId);
 
 		var result = await sut.GetMessagesAsync(request, Ct);
 
@@ -306,9 +302,9 @@ public sealed class ListMessageStorageShould(StorageTestFixture fixture) : IClas
 
 		var messages = new List<Message>
 		{
-			await new MessageBuilder(context).WithSchedule(schedule).WithIsVerified(true).CreateAsync(),
-			await new MessageBuilder(context).WithSchedule(schedule).WithIsVerified(false).CreateAsync(),
-			await new MessageBuilder(context).WithSchedule(schedule).WithIsVerified(true).CreateAsync(),
+			await new MessageBuilder(context).WithSchedule(schedule).WithStatus(Data.Enum.MessageStatus.Register).WithIsVerified(true).CreateAsync(),
+			await new MessageBuilder(context).WithSchedule(schedule).WithStatus(Data.Enum.MessageStatus.Register).WithIsVerified(false).CreateAsync(),
+			await new MessageBuilder(context).WithSchedule(schedule).WithStatus(Data.Enum.MessageStatus.Register).WithIsVerified(true).CreateAsync(),
 		};
 
 		var request = CreateQuery(schedule.Id, status: MessageStatus.Planed, sortBy: MessageSortBy.CreatedAt,

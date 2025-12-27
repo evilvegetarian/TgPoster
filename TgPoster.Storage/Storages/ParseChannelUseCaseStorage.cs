@@ -41,24 +41,23 @@ internal class ParseChannelUseCaseStorage(PosterContext context, GuidFactory gui
 				IsTextMessage = x.Text.IsTextMessage(),
 				MessageFiles = x.Media.Select<MediaDto, MessageFile>(m =>
 				{
-					if (m.PreviewPhotoIds.Count != 0)
+					var messageFileId=guidFactory.New();
+					var previews = m.PreviewPhotoIds.Select(thumb => new FileThumbnail
 					{
-						return new VideoMessageFile
-						{
-							Id = guidFactory.New(),
-							MessageId = id,
-							ContentType = m.MimeType,
-							TgFileId = m.FileId,
-							ThumbnailIds = m.PreviewPhotoIds
-						};
-					}
-
-					return new PhotoMessageFile
-					{
+						TgFileId = thumb,
 						Id = guidFactory.New(),
+						MessageFileId = messageFileId,
+						ContentType = "image/jpeg",
+					}).ToList();
+
+					return new MessageFile
+					{
+						Id = messageFileId,
 						ContentType = m.MimeType,
 						TgFileId = m.FileId,
-						MessageId = id
+						MessageId = id,
+						FileType = m.MimeType.GetFileType(),
+						Thumbnails = previews
 					};
 				}).ToList()
 			};

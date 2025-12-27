@@ -13,10 +13,6 @@ public class PosterContext(DbContextOptions<PosterContext> options) : DbContext(
 	public DbSet<TelegramBot> TelegramBots { get; set; }
 	public DbSet<Message> Messages { get; set; }
 	public DbSet<MessageFile> MessageFiles { get; set; }
-
-	public DbSet<VideoMessageFile> VideoMessageFiles { get; set; }
-
-	public DbSet<PhotoMessageFile> PhotoMessageFiles { get; set; }
 	public DbSet<ChannelParsingSetting> ChannelParsingParameters { get; set; }
 	public DbSet<OpenRouterSetting> OpenRouterSettings { get; set; }
 	public DbSet<PromptSetting> PromptSettings { get; set; }
