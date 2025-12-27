@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Builder;
 using Security;
 using Security.Interfaces;
 using Serilog;
+using Shared;
 using TgPoster.Storage;
 using TgPoster.Worker.Configuration;
 using TgPoster.Worker.Domain;
@@ -29,6 +30,7 @@ builder.Services.AddScoped<ICryptoAES, CryptoAES>();
 builder.Services
 	.AddDomain(builder.Configuration)
 	.AddStorage(builder.Configuration);
+
 var openRouterOptions = builder.Configuration.GetSection(nameof(OpenRouterOptions)).Get<OpenRouterOptions>()!;
 builder.Services.AddSingleton(openRouterOptions);
 var app = builder.Build();

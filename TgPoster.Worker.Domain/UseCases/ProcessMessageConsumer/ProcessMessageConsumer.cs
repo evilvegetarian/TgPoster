@@ -23,8 +23,7 @@ internal sealed class ProcessMessageConsumer(
 	TimePostingService timePostingService,
 	IProcessMessageConsumerStorage storage,
 	Client client,
-	ILogger<ProcessMessageConsumer> logger,
-	OpenRouterClient openRouterClient
+	ILogger<ProcessMessageConsumer> logger
 ) : IConsumer<ProcessMessage>
 {
 	public async Task Consume(ConsumeContext<ProcessMessage> context)
