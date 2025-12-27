@@ -147,13 +147,13 @@ export type DayOfWeek = typeof DayOfWeek[keyof typeof DayOfWeek];
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const DayOfWeek = {
-  NUMBER_0: 0,
-  NUMBER_1: 1,
-  NUMBER_2: 2,
-  NUMBER_3: 3,
-  NUMBER_4: 4,
-  NUMBER_5: 5,
-  NUMBER_6: 6,
+  Sunday: 'Sunday',
+  Monday: 'Monday',
+  Tuesday: 'Tuesday',
+  Wednesday: 'Wednesday',
+  Thursday: 'Thursday',
+  Friday: 'Friday',
+  Saturday: 'Saturday',
 } as const;
 
 export interface DayOfWeekRequest {
@@ -207,9 +207,9 @@ export type FileTypes = typeof FileTypes[keyof typeof FileTypes];
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const FileTypes = {
-  NUMBER_0: 0,
-  NUMBER_1: 1,
-  NUMBER_2: 2,
+  NoOne: 'NoOne',
+  Image: 'Image',
+  Video: 'Video',
 } as const;
 
 /**
@@ -281,8 +281,8 @@ export type MessageSortBy = typeof MessageSortBy[keyof typeof MessageSortBy];
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const MessageSortBy = {
-  NUMBER_0: 0,
-  NUMBER_1: 1,
+  CreatedAt: 'CreatedAt',
+  SentAt: 'SentAt',
 } as const;
 
 /**
@@ -302,10 +302,11 @@ export type MessageStatus = typeof MessageStatus[keyof typeof MessageStatus];
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const MessageStatus = {
-  NUMBER_0: 0,
-  NUMBER_1: 1,
-  NUMBER_2: 2,
-  NUMBER_3: 3,
+  All: 'All',
+  Planed: 'Planed',
+  NotApproved: 'NotApproved',
+  Delivered: 'Delivered',
+  NotDelivered: 'NotDelivered',
 } as const;
 
 /**
@@ -458,8 +459,8 @@ export type SortDirection = typeof SortDirection[keyof typeof SortDirection];
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const SortDirection = {
-  NUMBER_0: 0,
-  NUMBER_1: 1,
+  Asc: 'Asc',
+  Desc: 'Desc',
 } as const;
 
 /**
@@ -619,5 +620,20 @@ PageNumber?: number;
  * Размер страницы.
  */
 PageSize?: number;
+};
+
+export type PostApiV1YoutubeBody = {
+  JsonFile?: Blob;
+  ClientId?: string;
+  ClientSecret?: string;
+};
+
+export type GetApiV1YoutubeCallbackParams = {
+code?: string;
+/**
+ * Возвращает id записи в бд
+ */
+state?: string;
+error?: string;
 };
 

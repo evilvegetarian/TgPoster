@@ -74,8 +74,8 @@ export function FiltersPanel({
                     <div className="space-y-2">
                         <label className="text-sm font-medium">Статус</label>
                         <Select
-                            value={status.toString()}
-                            onValueChange={(value) => onStatusChange(Number(value) as MessageStatus)}
+                            value={status}
+                            onValueChange={(value) => onStatusChange(value as MessageStatus)}
                             disabled={!scheduleId && statusMessageLoading}
                         >
                             <SelectTrigger>
@@ -83,7 +83,7 @@ export function FiltersPanel({
                             </SelectTrigger>
                             <SelectContent>
                                 {statusMessage?.map((stat) => (
-                                    <SelectItem key={stat.value} value={stat.value.toString()}>
+                                    <SelectItem key={stat.value} value={stat.value}>
                                         {stat.name}
                                     </SelectItem>
                                 ))}
@@ -94,8 +94,8 @@ export function FiltersPanel({
                     <div className="space-y-2">
                         <label className="text-sm font-medium">Сортировка</label>
                         <Select
-                            value={sortBy.toString()}
-                            onValueChange={(value) => onSortByChange(Number(value) as MessageSortBy)}
+                            value={sortBy}
+                            onValueChange={(value) => onSortByChange(value as MessageSortBy)}
                             disabled={!scheduleId && sortFieldsLoading}
                         >
                             <SelectTrigger>
@@ -103,7 +103,7 @@ export function FiltersPanel({
                             </SelectTrigger>
                             <SelectContent>
                                 {sortFields?.map((sortf) => (
-                                    <SelectItem key={sortf.value} value={sortf.value.toString()}>
+                                    <SelectItem key={sortf.value} value={sortf.value}>
                                         {sortf.name}
                                     </SelectItem>
                                 ))}
@@ -115,8 +115,8 @@ export function FiltersPanel({
                     <div className="space-y-2">
                         <label className="text-sm font-medium">Направление</label>
                         <Select
-                            value={sortDirection.toString()}
-                            onValueChange={(value) => onSortDirectionChange(Number(value) as SortDirection)}
+                            value={sortDirection}
+                            onValueChange={(value) => onSortDirectionChange(value as SortDirection)}
                             disabled={!scheduleId && sortDirectionsLoading}
                         >
                             <SelectTrigger>
@@ -124,7 +124,7 @@ export function FiltersPanel({
                             </SelectTrigger>
                             <SelectContent>
                                 {sortDirections?.map((sortD) => (
-                                    <SelectItem key={sortD.value} value={sortD.value.toString()}>
+                                    <SelectItem key={sortD.value} value={sortD.value}>
                                         {sortD.name}
                                     </SelectItem>
                                 ))}

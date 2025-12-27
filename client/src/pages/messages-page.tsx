@@ -28,10 +28,10 @@ import {toast} from "sonner";
 
 export function MessagesPage() {
     const [scheduleId, setScheduleId] = useState("")
-    const [status, setStatus] = useState<MessageStatus>(MessageStatus.NUMBER_0)
+    const [status, setStatus] = useState<MessageStatus>(MessageStatus.Planed)
     const [searchText, setSearchText] = useState("")
-    const [sortBy, setSortBy] = useState<MessageSortBy>(MessageSortBy.NUMBER_1)
-    const [sortDirection, setSortDirection] = useState<SortDirection>(SortDirection.NUMBER_0)
+    const [sortBy, setSortBy] = useState<MessageSortBy>(MessageSortBy.SentAt)
+    const [sortDirection, setSortDirection] = useState<SortDirection>(SortDirection.Asc)
     const [dateRange, setDateRange] = useState<DateRange | undefined>()
     const [currentPage, setCurrentPage] = useState(1)
     const pageSize = 10;
@@ -57,7 +57,7 @@ export function MessagesPage() {
     } = useGetApiV1Message(
         {
             ScheduleId: scheduleId,
-            Status: status !== 0 ? status : 0,
+            Status: status !== MessageStatus.All ? status : MessageStatus.All,
             SearchText: searchText || undefined,
             CreatedFrom: dateRange?.from?.toISOString(),
             CreatedTo: dateRange?.to?.toISOString(),

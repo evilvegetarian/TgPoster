@@ -1,4 +1,5 @@
 using System.Reflection;
+using System.Text.Json.Serialization;
 using MassTransit;
 using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.OpenApi.Models;
@@ -52,7 +53,13 @@ builder.Services.AddSwaggerGen(options =>
 var tracingConfiguration = builder.Configuration.GetSection(nameof(TracingConfiguration)).Get<TracingConfiguration>()!;
 
 builder.Services.AddMonitors(tracingConfiguration);
-builder.Services.AddControllers();
+builder.Services.AddControllers().AddJsonOptions(options =>
+{
+	// В Enum вместо числа используется строка 
+	options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+	// Исключает свойства со значением null из итогового JSON
+	options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
+});
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddHttpClient();
