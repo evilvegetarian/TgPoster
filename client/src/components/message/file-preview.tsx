@@ -11,13 +11,6 @@ interface FilePreviewProps {
     showRemoveButton?: boolean
 }
 
-const S3_BASE_URL = "https://s3.twcstorage.ru/338a572a-1886e1c2-8203-40ea-9dcc-f42334479ebc"
-
-function getS3Url(fileId: string): string {
-    console.log(`${S3_BASE_URL}/${fileId}`)
-    return `${S3_BASE_URL}/${fileId}`
-}
-
 export function FilePreview({file, onRemove, showRemoveButton = false}: FilePreviewProps) {
     const {data: fileTypes, isLoading} = useGetApiOptionsFileType();
     const targetFileType = fileTypes?.find(x => x.value === file.fileType);
@@ -26,7 +19,7 @@ export function FilePreview({file, onRemove, showRemoveButton = false}: FilePrev
         return <div>Загрузка...</div>;
     }
 
-    const mainFileUrl = file.id ? getS3Url(file.id) : null
+    const mainFileUrl = file.url;
 
     if (!mainFileUrl) {
         return (

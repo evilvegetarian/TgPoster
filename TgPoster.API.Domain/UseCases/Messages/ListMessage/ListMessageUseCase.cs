@@ -11,7 +11,8 @@ internal sealed class ListMessageUseCase(
 	IListMessageStorage storage,
 	IIdentityProvider provider,
 	FileService fileService,
-	TelegramTokenService tokenService
+	TelegramTokenService tokenService,
+	S3Options s3Options
 ) : IRequestHandler<ListMessageQuery, PagedResponse<MessageResponse>>
 {
 	public async Task<PagedResponse<MessageResponse>> Handle(ListMessageQuery request, CancellationToken ct)
@@ -24,7 +25,7 @@ internal sealed class ListMessageUseCase(
 		var botClient = new TelegramBotClient(token);
 		var files = pagedMessages.Items.SelectMany(x => x.Files).ToList();
 
-		//await fileService.CacheFileToS3(botClient, files, ct);
+		await fileService.CacheFileToS3(botClient, files, ct);
 
 		var messageResponses = pagedMessages.Items.Select(m => new MessageResponse
 		{
@@ -38,7 +39,8 @@ internal sealed class ListMessageUseCase(
 			Files = m.Files.Select(file => new FileResponse
 			{
 				Id = file.Id,
-				FileType = file.ContentType.GetFileType()
+				FileType = file.ContentType.GetFileType(),
+				Url = s3Options.ServiceUrl + "/" + s3Options.BucketName + "/" + file.Id
 			}).ToList()
 		}).ToList();
 

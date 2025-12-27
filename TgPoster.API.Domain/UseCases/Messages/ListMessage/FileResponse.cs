@@ -13,4 +13,9 @@ public class FileResponse
 	///     Тип файла.
 	/// </summary>
 	public FileTypes FileType { get; set; }
+
+	/// <summary>
+	/// Url картинки
+	/// </summary>
+	public string Url { get; set; }
 }

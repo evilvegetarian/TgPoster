@@ -11,16 +11,22 @@ public static class FileTypesExtensions
 {
 	public static string GetName(this FileTypes type)
 	{
-		switch (type)
+		return type switch
 		{
-			case FileTypes.NoOne:
-				return "NoOne";
-			case FileTypes.Image:
-				return "Фото";
-			case FileTypes.Video:
-				return "Видео";
-			default:
-				throw new ArgumentOutOfRangeException(nameof(type), type, null);
-		}
+			FileTypes.NoOne => "NoOne",
+			FileTypes.Image => "Фото",
+			FileTypes.Video => "Видео",
+			_ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
+		};
+	}
+
+	public static string GetContentType(this FileTypes type)
+	{
+		return type switch
+		{
+			FileTypes.Image => "image/jpeg",
+			FileTypes.Video => "video/mp4",
+			_ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
+		};
 	}
 }

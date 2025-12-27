@@ -200,6 +200,8 @@ export interface EditPromptSettingRequest {
 export interface FileResponse {
   id: string;
   fileType?: FileTypes;
+  /** @nullable */
+  url?: string | null;
 }
 
 export type FileTypes = typeof FileTypes[keyof typeof FileTypes];

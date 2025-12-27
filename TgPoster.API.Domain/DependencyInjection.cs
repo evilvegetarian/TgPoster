@@ -29,12 +29,13 @@ public static class DependencyInjection
 		var s3Options = configuration.GetSection(nameof(S3Options)).Get<S3Options>()!;
 		services.AddSingleton(s3Options);
 
-		services.AddSingleton<IAmazonS3>(sp =>
+		services.AddSingleton<IAmazonS3>(_ =>
 			new AmazonS3Client(s3Options.AccessKey, s3Options.SecretKey, new AmazonS3Config
 			{
 				ServiceURL = s3Options.ServiceUrl,
 				ForcePathStyle = true
 			}));
+		
 		services
 			.AddScoped<TelegramService>().AddScoped<VideoService>()
 			.AddScoped<FileService>()

@@ -12,8 +12,8 @@ namespace TgPoster.API.Domain.Services;
 internal sealed class FileService(
 	IMemoryCache memoryCache,
 	FileExtensionContentTypeProvider contentTypeProvider,
-	IAmazonS3 _s3,
-	S3Options _s3Options)
+	IAmazonS3 s3,
+	S3Options s3Options)
 {
 	/// <summary>
 	///     Обрабатывает список файлов и возвращает список объектов с информацией о кешированном контенте.
@@ -85,7 +85,6 @@ internal sealed class FileService(
 	/// </summary>
 	/// <param name="botClient">Экземпляр TelegramBotClient.</param>
 	/// <param name="telegramFileId">Идентификатор файла в Telegram.</param>
-	/// <param name="mimeType">MIME-тип файла.</param>
 	/// <param name="ct">Токен отмены операции.</param>
 	/// <returns>Идентификатор файла, сохранённого в кеше.</returns>
 	private async Task<Guid> DownloadAndCacheFileAsync(
@@ -106,6 +105,7 @@ internal sealed class FileService(
 	/// <param name="botClient">Экземпляр TelegramBotClient.</param>
 	/// <param name="fileDtoId">Уникальный идентификатор файла, используемый как ключ в S3.</param>
 	/// <param name="telegramFileId">Идентификатор файла в Telegram.</param>
+	/// <param name="image"></param>
 	/// <param name="ct">Токен отмены операции.</param>
 	/// <returns>
 	///     Возвращает true, если файл был успешно скачан и загружен в S3.
@@ -115,6 +115,7 @@ internal sealed class FileService(
 		TelegramBotClient botClient,
 		Guid fileDtoId,
 		string telegramFileId,
+		FileTypes fileType,
 		CancellationToken ct
 	)
 	{
@@ -122,11 +123,10 @@ internal sealed class FileService(
 		{
 			var getObjectRequest = new GetObjectMetadataRequest
 			{
-				BucketName = _s3Options.BucketName,
+				BucketName = s3Options.BucketName,
 				Key = fileDtoId.ToString()
 			};
-			await _s3.GetObjectMetadataAsync(getObjectRequest, ct);
-
+			await s3.GetObjectMetadataAsync(getObjectRequest, ct);
 			return false;
 		}
 		catch (AmazonS3Exception e) when (e.StatusCode == HttpStatusCode.NotFound)
@@ -136,16 +136,19 @@ internal sealed class FileService(
 		await using var memoryStream = new MemoryStream();
 		var file = await botClient.GetInfoAndDownloadFile(telegramFileId, memoryStream, ct);
 		memoryStream.Position = 0;
-		contentTypeProvider.TryGetContentType(file.FilePath, out var contentType);
+		if (file.FilePath == null || !contentTypeProvider.TryGetContentType(file.FilePath, out var contentType))
+		{
+			contentType = fileType.GetContentType();
+		}
 		var request = new PutObjectRequest
 		{
-			BucketName = _s3Options.BucketName,
+			BucketName = s3Options.BucketName,
 			Key = fileDtoId.ToString(),
 			ContentType = contentType,
 			InputStream = memoryStream
 		};
 
-		var response = await _s3.PutObjectAsync(request, ct);
+		var response = await s3.PutObjectAsync(request, ct);
 
 		if (response.HttpStatusCode != HttpStatusCode.OK)
 		{
@@ -202,13 +205,13 @@ internal sealed class FileService(
 			{
 				case FileTypes.Image:
 				{
-					await DownloadAndCacheS3FileAsync(botClient, fileDto.Id, fileDto.TgFileId, ct);
+					await DownloadAndCacheS3FileAsync(botClient, fileDto.Id, fileDto.TgFileId, FileTypes.Image, ct);
 					break;
 				}
 
 				case FileTypes.Video:
 				{
-					await DownloadAndCacheS3FileAsync(botClient, fileDto.Id, fileDto.PreviewIds.First(), ct);
+					await DownloadAndCacheS3FileAsync(botClient, fileDto.Id, fileDto.PreviewIds.First(), FileTypes.Video, ct);
 					break;
 				}
 				case FileTypes.NoOne:

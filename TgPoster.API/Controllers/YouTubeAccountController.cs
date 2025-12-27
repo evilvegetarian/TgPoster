@@ -46,7 +46,9 @@ public class YouTubeAccountController(ISender sender) : ControllerBase
 	[HttpGet(Routes.YouTubeAccount.CallBack)]
 	public async Task<IActionResult> GoogleCallback(string code, string state, string? error, CancellationToken ct)
 	{
-		var uri = Request.Headers["Origin"].FirstOrDefault() /*"http://localhost:5059"*/ + "/" + Routes.YouTubeAccount.CallBack;
+		var uri = Request.Headers["Origin"].FirstOrDefault() /*"http://localhost:5059"*/
+		          + "/"
+		          + Routes.YouTubeAccount.CallBack;
 		var command = new CallBackYouTubeQuery(code, state, uri);
 		await sender.Send(command, ct);
 		return Ok();
