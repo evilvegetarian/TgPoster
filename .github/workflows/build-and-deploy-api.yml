@@ -6,7 +6,7 @@ on:
 permissions:
   contents: read
   packages: write
-  
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -44,8 +44,8 @@ jobs:
           path: docker/docker-compose.api.yml
 
   deploy:
-    needs: [build]
-    runs-on: [self-hosted, runner]
+    needs: [ build ]
+    runs-on: [ self-hosted, runner ]
 
     steps:
       - name: Download docker-compose.api.yml
@@ -66,11 +66,15 @@ jobs:
           export TGPOSTER_API_JWTOPTIONS_SECRETKEY='${{ secrets.JWTOPTIONS_SECRETKEY }}'
           export TELEGRAMOPTIONS_SECRETKEY='${{ secrets.TELEGRAMOPTIONS_SECRETKEY }}'
           export OPENROUTEROPTIONS_SECRETKEY='${{ secrets.OPENROUTEROPTIONS_SECRETKEY }}'
+          export S3OPTIONS_ACESSKEY='${{ secrets.S3OPTIONS_ACESSKEY }}'
+          export S3OPTIONS_SECRETKEY='${{ secrets.S3OPTIONS_SECRETKEY }}'
+          export S3OPTIONS_SERVICEURL='${{ secrets.S3OPTIONS_SERVICEURL }}'
+          export S3OPTIONS_BUCKETNAME='${{ secrets.S3OPTIONS_BUCKETNAME }}'
           docker compose -f docker-compose.api.yml pull
           docker compose -f docker-compose.api.yml up -d
-      
+
       - name: Clean up old docker images and containers
-        if: always() 
+        if: always()
         run: |
           docker container prune -f
           docker image prune -a -f

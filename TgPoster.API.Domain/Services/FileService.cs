@@ -214,7 +214,7 @@ internal sealed class FileService(
 				{
 					foreach (var preview in fileDto.Previews)
 					{
-						await DownloadAndCacheS3FileAsync(botClient, fileDto.Id, preview.TgFileId, FileTypes.Video, ct);
+						await DownloadAndCacheS3FileAsync(botClient, preview.Id, preview.TgFileId, FileTypes.Video, ct);
 					}
 					break;
 				}

@@ -202,6 +202,8 @@ export interface FileResponse {
   fileType?: FileTypes;
   /** @nullable */
   url?: string | null;
+  /** @nullable */
+  previewFiles?: PreviewFileResponse[] | null;
 }
 
 export type FileTypes = typeof FileTypes[keyof typeof FileTypes];
@@ -348,6 +350,11 @@ export interface ParseChannelsResponse {
   channel: string | null;
   /** @nullable */
   lastParseDate?: string | null;
+}
+
+export interface PreviewFileResponse {
+  /** @nullable */
+  url?: string | null;
 }
 
 export interface ProblemDetails {

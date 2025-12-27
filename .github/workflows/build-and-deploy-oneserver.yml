@@ -145,6 +145,10 @@ jobs:
           export TELEGRAM_PHONE_NUMBER='${{ secrets.PHONE_NUMBER }}'
           export TELEGRAMOPTIONS_SECRETKEY='${{ secrets.TELEGRAMOPTIONS_SECRETKEY }}'
           export OPENROUTEROPTIONS_SECRETKEY='${{ secrets.OPENROUTEROPTIONS_SECRETKEY }}'
+          export S3OPTIONS_ACESSKEY='${{ secrets.S3OPTIONS_ACESSKEY }}'
+          export S3OPTIONS_SECRETKEY='${{ secrets.S3OPTIONS_SECRETKEY }}'
+          export S3OPTIONS_SERVICEURL='${{ secrets.S3OPTIONS_SERVICEURL }}'
+          export S3OPTIONS_BUCKETNAME='${{ secrets.S3OPTIONS_BUCKETNAME }}'
 
       - name: Pull latest images and restart containers
         run: |

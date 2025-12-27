@@ -17,5 +17,11 @@ public class FileResponse
 	/// <summary>
 	/// Url картинки
 	/// </summary>
+	public string? Url { get; set; }
+
+	public List<PreviewFileResponse> PreviewFiles { get; set; } = [];
+}
+public sealed class PreviewFileResponse
+{
 	public string Url { get; set; }
 }

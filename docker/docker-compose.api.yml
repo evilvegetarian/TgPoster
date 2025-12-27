@@ -18,3 +18,7 @@ services:
       JwtOptions__SecretKey: ${TGPOSTER_API_JWTOPTIONS_SECRETKEY}
       TelegramOptions__SecretKey: ${TELEGRAMOPTIONS_SECRETKEY}
       OpenRouterOptions__SecretKey: ${OPENROUTEROPTIONS_SECRETKEY}
+      S3Options__AccessKey: ${S3OPTIONS_ACESSKEY}
+      S3Options__SecretKey: ${S3OPTIONS_SECRETKEY}
+      S3Options__ServiceUrl: ${S3OPTIONS_SERVICEURL}
+      S3Options__BucketName: ${S3OPTIONS_BUCKETNAME}

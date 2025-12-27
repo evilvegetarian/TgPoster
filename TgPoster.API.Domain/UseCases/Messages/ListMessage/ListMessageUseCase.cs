@@ -40,7 +40,11 @@ internal sealed class ListMessageUseCase(
 			{
 				Id = file.Id,
 				FileType = file.ContentType.GetFileType(),
-				Url = s3Options.ServiceUrl + "/" + s3Options.BucketName + "/" + file.Id
+				Url = file.ContentType.GetFileType()==FileTypes.Video?null:s3Options.ServiceUrl + "/" + s3Options.BucketName + "/" + file.Id,
+				PreviewFiles = file.Previews.Select(pr=>new PreviewFileResponse
+				{
+					Url = s3Options.ServiceUrl + "/" + s3Options.BucketName + "/" + pr.Id,
+				}).ToList()
 			}).ToList()
 		}).ToList();
 
