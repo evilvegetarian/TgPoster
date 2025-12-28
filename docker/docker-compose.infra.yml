@@ -51,6 +51,7 @@ services:
   prometheus:
     container_name: 'tg-prom'
     image: prom/prometheus
+    restart: unless-stopped
     ports:
       - "9090:9090"
     volumes:
@@ -62,6 +63,7 @@ services:
   jaeger:
     container_name: 'tg-jaeger'
     image: 'jaegertracing/all-in-one:latest'
+    restart: unless-stopped
     environment:
       - COLLECTOR_ZIPKIN_HOST_PORT=:9411
       - COLLECTOR_OTLP_ENABLED=true
