@@ -23,6 +23,7 @@ public static class FileTypesExtensions
 
 		return FileTypes.NoOne;
 	}
+
 	public static string GetContentType(this FileTypes type)
 	{
 		return type switch

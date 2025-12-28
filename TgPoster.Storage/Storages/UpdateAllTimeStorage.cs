@@ -38,10 +38,7 @@ public class UpdateAllTimeStorage(PosterContext context) : IUpdateAllTimeStorage
 			.OrderBy(x => x.TimePosting)
 			.ToListAsync(ct);
 
-		for (int i = 0; i < messageIds.Count; i++)
-		{
-			entities[i].TimePosting = times[i];
-		}
+		for (var i = 0; i < messageIds.Count; i++) entities[i].TimePosting = times[i];
 
 		await context.SaveChangesAsync(ct);
 	}

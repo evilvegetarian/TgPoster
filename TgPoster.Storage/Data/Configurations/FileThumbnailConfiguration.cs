@@ -10,12 +10,12 @@ internal class FileThumbnailConfiguration : BaseEntityConfiguration<FileThumbnai
 		base.Configure(builder);
 		builder.Property(x => x.TgFileId)
 			.HasMaxLength(1000);
-		
+
 		builder.HasIndex(x => x.MessageFileId);
-		
+
 		builder.Property(x => x.ContentType)
 			.HasMaxLength(100);
-		
+
 		builder.HasOne(x => x.MessageFile)
 			.WithMany(x => x.Thumbnails)
 			.HasForeignKey(x => x.MessageFileId);

@@ -18,7 +18,9 @@ internal sealed class ListMessageUseCase(
 	public async Task<PagedResponse<MessageResponse>> Handle(ListMessageQuery request, CancellationToken ct)
 	{
 		if (!await storage.ExistScheduleAsync(request.ScheduleId, provider.Current.UserId, ct))
+		{
 			throw new ScheduleNotFoundException(request.ScheduleId);
+		}
 
 		var (token, _) = await tokenService.GetTokenByScheduleIdAsync(request.ScheduleId, ct);
 		var pagedMessages = await storage.GetMessagesAsync(request, ct);
@@ -40,10 +42,12 @@ internal sealed class ListMessageUseCase(
 			{
 				Id = file.Id,
 				FileType = file.ContentType.GetFileType(),
-				Url = file.ContentType.GetFileType()==FileTypes.Video?null:s3Options.ServiceUrl + "/" + s3Options.BucketName + "/" + file.Id,
-				PreviewFiles = file.Previews.Select(pr=>new PreviewFileResponse
+				Url = file.ContentType.GetFileType() == FileTypes.Video
+					? null
+					: s3Options.ServiceUrl + "/" + s3Options.BucketName + "/" + file.Id,
+				PreviewFiles = file.Previews.Select(pr => new PreviewFileResponse
 				{
-					Url = s3Options.ServiceUrl + "/" + s3Options.BucketName + "/" + pr.Id,
+					Url = s3Options.ServiceUrl + "/" + s3Options.BucketName + "/" + pr.Id
 				}).ToList()
 			}).ToList()
 		}).ToList();

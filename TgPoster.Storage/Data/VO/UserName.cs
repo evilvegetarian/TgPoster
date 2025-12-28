@@ -27,15 +27,10 @@ public sealed record UserName
 
 	public string Value { get; }
 
-	public bool Equals(UserName? other)
-	{
-		return other is not null
-		       && string.Equals(Value, other.Value, StringComparison.OrdinalIgnoreCase);
-	}
+	public bool Equals(UserName? other) =>
+		other is not null
+		&& string.Equals(Value, other.Value, StringComparison.OrdinalIgnoreCase);
 
 
-	public override int GetHashCode()
-	{
-		return StringComparer.OrdinalIgnoreCase.GetHashCode(Value);
-	}
+	public override int GetHashCode() => StringComparer.OrdinalIgnoreCase.GetHashCode(Value);
 }

@@ -1,4 +1,3 @@
-
 namespace TgPoster.API.Domain.UseCases.Messages.ListMessage;
 
 public sealed class FileDto

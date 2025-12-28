@@ -12,7 +12,9 @@ public class GetPromptSettingHandler(IGetPromptSettingStorage storage, IIdentity
 	{
 		var response = await storage.GetAsync(request.Id, provider.Current.UserId, cancellationToken);
 		if (response is null)
+		{
 			throw new PromptSettingNotFoundException(request.Id);
+		}
 
 		return response;
 	}

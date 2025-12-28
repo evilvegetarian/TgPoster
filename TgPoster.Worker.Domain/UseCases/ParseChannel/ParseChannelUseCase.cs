@@ -1,7 +1,7 @@
+using MassTransit;
 using Microsoft.Extensions.Logging;
 using TL;
 using WTelegram;
-using MassTransit;
 using Message = TL.Message;
 
 namespace TgPoster.Worker.Domain.UseCases.ParseChannel;
@@ -65,7 +65,10 @@ internal class ParseChannelUseCase(
 			if (history.Messages.Length is not 0)
 			{
 				var maxId = history.Messages.Max(x => x.ID);
-				if (tempLastParseId < maxId) tempLastParseId = maxId;
+				if (tempLastParseId < maxId)
+				{
+					tempLastParseId = maxId;
+				}
 			}
 
 			if (history.Messages.Length is 0
@@ -85,7 +88,10 @@ internal class ParseChannelUseCase(
 			if (message.grouped_id != 0)
 			{
 				if (!groupedMessages.ContainsKey(message.grouped_id))
+				{
 					groupedMessages[message.grouped_id] = [];
+				}
+
 				groupedMessages[message.grouped_id].Add(message);
 			}
 			else
@@ -95,9 +101,9 @@ internal class ParseChannelUseCase(
 		}
 
 		var validGroups = groupedMessages
-			.Where(group => !group.Value.Any(
-				msg => msg.message != null
-				       && avoidWords.Any(word => msg.message.Contains(word, StringComparison.OrdinalIgnoreCase))
+			.Where(group => !group.Value.Any(msg => msg.message != null
+			                                        && avoidWords.Any(word =>
+				                                        msg.message.Contains(word, StringComparison.OrdinalIgnoreCase))
 			)).ToList();
 
 		logger.LogInformation("Найдено {Count} новых постов для обработки.", validGroups.Count);

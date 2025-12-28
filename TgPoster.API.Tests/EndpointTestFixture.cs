@@ -22,9 +22,9 @@ public class EndpointTestFixture : WebApplicationFactory<Program>, IAsyncLifetim
 	private readonly PostgreSqlContainer dbContainer = new PostgreSqlBuilder()
 		.Build();
 
-	public string? Token;
-
 	private IMemoryCache? memoryCache;
+
+	public string? Token;
 	public HttpClient AuthClient { get; private set; } = null!;
 
 	public async Task InitializeAsync()

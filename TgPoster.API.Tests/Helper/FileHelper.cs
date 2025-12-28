@@ -9,7 +9,7 @@ public class FileHelper
 
 	public static List<IFormFile> GetTestIFormFiles()
 	{
-		string[] filePaths = Directory.GetFiles(path);
+		var filePaths = Directory.GetFiles(path);
 
 		var formFiles = new List<IFormFile>();
 
@@ -35,7 +35,7 @@ public class FileHelper
 
 	public static IFormFile GetTestIFormFile()
 	{
-		string[] filePaths = Directory.GetFiles(path);
+		var filePaths = Directory.GetFiles(path);
 
 		var rnd = new Random();
 		var s = rnd.Next(0, filePaths.Length);

@@ -25,5 +25,4 @@ public class EditPromptSettingStorage(PosterContext context) : IEditPromptSettin
 		entity.TextPrompt = text;
 		await context.SaveChangesAsync(ctx);
 	}
-	
 }

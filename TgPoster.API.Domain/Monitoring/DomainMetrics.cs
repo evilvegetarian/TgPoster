@@ -6,8 +6,8 @@ namespace TgPoster.API.Domain.Monitoring;
 public class DomainMetrics(IMeterFactory meterFactory)
 {
 	public const string ApplicationName = "TgPoster.API.Domain";
-	private readonly Meter meter = meterFactory.Create(ApplicationName);
 	internal static readonly ActivitySource ActivitySource = new(ApplicationName);
+	private readonly Meter meter = meterFactory.Create(ApplicationName);
 
 	public void IncrementCount(string? name, int value, IDictionary<string, object?>? additionalTags = null)
 	{
@@ -15,8 +15,9 @@ public class DomainMetrics(IMeterFactory meterFactory)
 		counter.Add(value, additionalTags?.ToArray() ?? ReadOnlySpan<KeyValuePair<string, object?>>.Empty);
 	}
 
-	public static IDictionary<string, object?> ResultTags(bool success) => new Dictionary<string, object?>
-	{
-		["success"] = success
-	};
+	public static IDictionary<string, object?> ResultTags(bool success) =>
+		new Dictionary<string, object?>
+		{
+			["success"] = success
+		};
 }

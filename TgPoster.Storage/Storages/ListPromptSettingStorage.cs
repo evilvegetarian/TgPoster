@@ -15,7 +15,7 @@ public class ListPromptSettingStorage(PosterContext context) : IListPromptSettin
 				Id = x.Id,
 				VideoPrompt = x.VideoPrompt,
 				PicturePrompt = x.PicturePrompt,
-				TextPrompt = x.TextPrompt,
+				TextPrompt = x.TextPrompt
 			}).ToListAsync(cancellationToken);
 	}
 }

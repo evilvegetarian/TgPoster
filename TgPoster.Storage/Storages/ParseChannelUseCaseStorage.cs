@@ -20,7 +20,7 @@ internal class ParseChannelUseCaseStorage(PosterContext context, GuidFactory gui
 				FromDate = ch.DateFrom,
 				LastParsedId = ch.LastParseId,
 				ToDate = ch.DateTo,
-				CheckNewPosts = ch.CheckNewPosts,
+				CheckNewPosts = ch.CheckNewPosts
 			})
 			.FirstOrDefaultAsync(ct);
 	}
@@ -41,13 +41,13 @@ internal class ParseChannelUseCaseStorage(PosterContext context, GuidFactory gui
 				IsTextMessage = x.Text.IsTextMessage(),
 				MessageFiles = x.Media.Select<MediaDto, MessageFile>(m =>
 				{
-					var messageFileId=guidFactory.New();
+					var messageFileId = guidFactory.New();
 					var previews = m.PreviewPhotoIds.Select(thumb => new FileThumbnail
 					{
 						TgFileId = thumb,
 						Id = guidFactory.New(),
 						MessageFileId = messageFileId,
-						ContentType = "image/jpeg",
+						ContentType = "image/jpeg"
 					}).ToList();
 
 					return new MessageFile

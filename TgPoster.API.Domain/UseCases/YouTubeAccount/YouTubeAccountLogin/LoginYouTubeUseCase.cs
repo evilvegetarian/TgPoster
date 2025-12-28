@@ -28,11 +28,14 @@ public class LoginYouTubeUseCase(ILoginYouTubeStorage storage, IIdentityProvider
 		var flow = new GoogleAuthorizationCodeFlow(new GoogleAuthorizationCodeFlow.Initializer
 		{
 			ClientSecrets = clientSecrets,
-			Scopes = [YouTubeService.Scope.YoutubeUpload],
+			Scopes = [YouTubeService.Scope.YoutubeUpload]
 		});
-		
+
 		if (clientSecrets?.ClientSecret is null || clientSecrets.ClientId is null)
+		{
 			throw new InvalidOperationException("YouTubeService client secret not found");
+		}
+
 		var guid = await storage.CreateYouTubeAccountAsync("", clientSecrets.ClientId, clientSecrets.ClientSecret,
 			provider.Current.UserId, ct);
 		var authRequestUrl = flow.CreateAuthorizationCodeRequest(request.RedirectUrl);

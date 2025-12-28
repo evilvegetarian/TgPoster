@@ -9,7 +9,7 @@ public class MessageFileBuilder(PosterContext context)
 {
 	private static readonly Faker faker = FakerProvider.Instance;
 
-	private MessageFile file = new MessageFile
+	private readonly MessageFile file = new()
 	{
 		Id = Guid.NewGuid(),
 		MessageId = new MessageBuilder(context).Create()

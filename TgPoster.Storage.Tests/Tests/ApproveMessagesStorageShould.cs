@@ -26,7 +26,7 @@ public sealed class ApproveMessagesStorageShould : IClassFixture<StorageTestFixt
 		{
 			await new MessageBuilder(context).WithIsVerified(false).CreateAsync(),
 			await new MessageBuilder(context).WithIsVerified(false).CreateAsync(),
-			await new MessageBuilder(context).WithIsVerified(false).CreateAsync(),
+			await new MessageBuilder(context).WithIsVerified(false).CreateAsync()
 		}.Select(x => x.Id).ToList();
 
 		await sut.ApproveMessage(messageIds, ct);

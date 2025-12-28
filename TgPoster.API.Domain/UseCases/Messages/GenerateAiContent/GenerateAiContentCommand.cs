@@ -23,12 +23,16 @@ internal class GenerateAiContentHandler(
 	{
 		var openApiToken = await storage.GetOpenRouterAsync(request.MessageId, ct);
 		if (openApiToken is null)
+		{
 			throw new ApplicationException("Токен не найден");
+		}
 
 		var token = crypto.Decrypt(options.SecretKey, openApiToken.Token);
 		var messageDto = await storage.GetMessageAsync(request.MessageId, ct);
 		if (messageDto is null)
+		{
 			throw new MessageNotFoundException(request.MessageId);
+		}
 
 		var tk = await tokenService.GetTokenByScheduleIdAsync(openApiToken.ScheduleId, ct);
 		var bot = new TelegramBotClient(tk.token);
@@ -42,30 +46,36 @@ internal class GenerateAiContentHandler(
 					+ " Также возможно будет приложено медиа. Если у сообщения подпись Фото, это означает что изначально медиа было одной фотографией."
 					+ " Если подпись Видео 1, или Видео 2 или Видео 3. Это подпись к фото, которые являются превью видео, но переданы как фото. Причем цифра означает какое именно видео."
 					+ " На выходе должно быть только новое текстовое сообщение на основе всех данных что я предоставил тебе, без каких либо других данных только пост и все",
-				Type = "text",
+				Type = "text"
 			},
-			new() { Type = "text", Text = messageDto.TextMessage },
+			new() { Type = "text", Text = messageDto.TextMessage }
 		};
 		if (prompt?.PhotoPrompt is not null)
+		{
 			contentParts.Add(new MessageContentPart
 			{
 				Type = "text",
 				Text = "Это промпт для Фото: " + prompt.PhotoPrompt
 			});
+		}
 
 		if (prompt?.VideoPrompt is not null)
+		{
 			contentParts.Add(new MessageContentPart
 			{
 				Type = "text",
 				Text = "Это промпт для Видео: " + prompt.VideoPrompt
 			});
+		}
 
 		if (prompt?.TextPrompt is not null)
+		{
 			contentParts.Add(new MessageContentPart
 			{
 				Type = "text",
 				Text = "Это промпт для Текста: " + prompt.TextPrompt
 			});
+		}
 
 		var ss = 1;
 

@@ -13,7 +13,7 @@ using TgPoster.API.Models;
 namespace TgPoster.API.Controllers;
 
 /// <summary>
-/// Контроллер Open Router
+///     Контроллер Open Router
 /// </summary>
 /// <param name="sender"></param>
 [Authorize]
@@ -21,7 +21,7 @@ namespace TgPoster.API.Controllers;
 public class OpenRouterSettingController(ISender sender) : ControllerBase
 {
 	/// <summary>
-	/// Создание настроек OpenRouter
+	///     Создание настроек OpenRouter
 	/// </summary>
 	/// <param name="request"></param>
 	/// <param name="ctx"></param>
@@ -42,7 +42,7 @@ public class OpenRouterSettingController(ISender sender) : ControllerBase
 	}
 
 	/// <summary>
-	/// Получение настроек OpenRouter
+	///     Получение настроек OpenRouter
 	/// </summary>
 	/// <param name="id"></param>
 	/// <param name="ctx"></param>
@@ -60,7 +60,7 @@ public class OpenRouterSettingController(ISender sender) : ControllerBase
 
 
 	/// <summary>
-	/// Получение настроек OpenRouter
+	///     Получение настроек OpenRouter
 	/// </summary>
 	/// <param name="ctx"></param>
 	/// <returns>null</returns>
@@ -76,7 +76,7 @@ public class OpenRouterSettingController(ISender sender) : ControllerBase
 	}
 
 	/// <summary>
-	/// Получение настроек OpenRouter
+	///     Получение настроек OpenRouter
 	/// </summary>
 	/// <param name="id"></param>
 	/// <param name="ctx"></param>
@@ -93,7 +93,7 @@ public class OpenRouterSettingController(ISender sender) : ControllerBase
 	}
 
 	/// <summary>
-	/// Добавление расписания к настройкам OpenRouter
+	///     Добавление расписания к настройкам OpenRouter
 	/// </summary>
 	/// <param name="id"></param>
 	/// <param name="scheduleId"></param>

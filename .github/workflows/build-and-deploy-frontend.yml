@@ -6,7 +6,7 @@ on:
 permissions:
   contents: read
   packages: write
-  
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -44,8 +44,8 @@ jobs:
           path: docker/docker-compose.frontend.yml
 
   deploy:
-    needs: [build]
-    runs-on: [self-hosted, runner]
+    needs: [ build ]
+    runs-on: [ self-hosted, runner ]
 
     steps:
       - name: Download docker-compose artifact
@@ -66,9 +66,9 @@ jobs:
         run: |
           docker compose -f docker-compose.frontend.yml pull
           docker compose -f docker-compose.frontend.yml up -d 
-      
+
       - name: Clean up old docker images and containers
-        if: always() 
+        if: always()
         run: |
           docker container prune -f
           docker image prune -a -f

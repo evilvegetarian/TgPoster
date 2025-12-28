@@ -14,14 +14,14 @@ public class GetPromptSettingStorage(PosterContext context) : IGetPromptSettingS
 	)
 	{
 		return context.PromptSettings
-			.Where(x=> x.Id == id)
+			.Where(x => x.Id == id)
 			.Where(x => x.Schedule.UserId == userId)
 			.Select(x => new PromptSettingResponse
 			{
 				Id = x.Id,
 				VideoPrompt = x.VideoPrompt,
 				PicturePrompt = x.PicturePrompt,
-				TextPrompt = x.TextPrompt,
+				TextPrompt = x.TextPrompt
 			}).FirstOrDefaultAsync(cancellationToken);
 	}
 }

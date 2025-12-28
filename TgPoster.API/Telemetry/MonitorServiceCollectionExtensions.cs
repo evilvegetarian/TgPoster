@@ -1,3 +1,4 @@
+using OpenTelemetry.Exporter;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
@@ -6,7 +7,7 @@ using TgPoster.API.Configuration;
 namespace TgPoster.API.Telemetry;
 
 /// <summary>
-/// Расширения для добавление метрик и тресировки
+///     Расширения для добавление метрик и тресировки
 /// </summary>
 public static class MonitorServiceCollectionExtensions
 {
@@ -53,17 +54,18 @@ public static class MonitorServiceCollectionExtensions
 				.AddOtlpExporter(cfg =>
 				{
 					cfg.Endpoint = new Uri(configuration.Url);
-					cfg.Protocol = OpenTelemetry.Exporter.OtlpExportProtocol.HttpProtobuf;
+					cfg.Protocol = OtlpExportProtocol.HttpProtobuf;
 				})
 			);
 
 		return services;
 	}
 
-	public static IServiceCollection AddMonitors(this IServiceCollection services, TracingConfiguration configuration)
-	{
-		return services
+	public static IServiceCollection AddMonitors(
+		this IServiceCollection services,
+		TracingConfiguration configuration
+	) =>
+		services
 			.AddMetrics()
 			.AddTracing(configuration);
-	}
 }

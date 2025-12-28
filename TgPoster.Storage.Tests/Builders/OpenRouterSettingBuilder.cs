@@ -14,7 +14,7 @@ public class OpenRouterSettingBuilder(PosterContext context)
 		Id = Guid.NewGuid(),
 		Model = faker.Lorem.Word(),
 		TokenHash = faker.Random.Guid().ToString(),
-		UserId = new UserBuilder(context).Create().Id,
+		UserId = new UserBuilder(context).Create().Id
 	};
 
 	public OpenRouterSetting Build() => setting;
@@ -38,13 +38,11 @@ public class OpenRouterSettingBuilder(PosterContext context)
 		setting.Schedule = schedule;
 		return this;
 	}
-	
+
 	public OpenRouterSettingBuilder WithUser(User value)
 	{
 		setting.UserId = value.Id;
 		setting.User = value;
 		return this;
 	}
-	
-
 }

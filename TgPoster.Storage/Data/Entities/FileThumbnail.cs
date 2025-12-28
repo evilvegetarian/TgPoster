@@ -8,7 +8,7 @@ public sealed class FileThumbnail : BaseEntity
 	public required string TgFileId { get; set; }
 
 	/// <summary>
-	/// Ссылка на родительский файл (видео)
+	///     Ссылка на родительский файл (видео)
 	/// </summary>
 	public required Guid MessageFileId { get; set; }
 

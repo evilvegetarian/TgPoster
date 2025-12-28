@@ -4,8 +4,5 @@ namespace TgPoster.Storage;
 
 internal class GuidFactory
 {
-	public Guid New()
-	{
-		return Uuid.NewDatabaseFriendly(Database.PostgreSql);
-	}
+	public Guid New() => Uuid.NewDatabaseFriendly(Database.PostgreSql);
 }

@@ -12,7 +12,7 @@ public sealed class TimePostingService
 	{
 		if (scheduleTime.Count == 0)
 			throw new NotFoundTimeException();
-		
+
 		var currentDateValue = existMessageTimePosting > DateTimeOffset.UtcNow
 			? existMessageTimePosting
 			: DateTimeOffset.UtcNow;

@@ -8,7 +8,7 @@ public class TelegramBotBuilder(PosterContext context)
 {
 	private static readonly Faker faker = FakerProvider.Instance;
 
-	private readonly TelegramBot telegramBot = new TelegramBot
+	private readonly TelegramBot telegramBot = new()
 	{
 		Id = Guid.NewGuid(),
 		ApiTelegram = faker.Company.CompanyName(),

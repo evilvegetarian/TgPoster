@@ -2,7 +2,6 @@ using Microsoft.EntityFrameworkCore;
 using TgPoster.API.Domain.UseCases.Messages.GenerateAiContent;
 using TgPoster.API.Domain.UseCases.Messages.ListMessage;
 using TgPoster.Storage.Data;
-using TgPoster.Storage.Data.Entities;
 
 namespace TgPoster.Storage.Storages;
 
@@ -29,7 +28,7 @@ public class GenerateAiContentStorage(PosterContext context) : IGenerateAiConten
 			{
 				TextPrompt = x.TextPrompt,
 				PhotoPrompt = x.TextPrompt,
-				VideoPrompt = x.TextPrompt,
+				VideoPrompt = x.TextPrompt
 			})
 			.FirstOrDefaultAsync(ct);
 	}

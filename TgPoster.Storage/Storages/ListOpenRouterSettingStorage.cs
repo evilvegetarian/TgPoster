@@ -14,7 +14,7 @@ public class ListOpenRouterSettingStorage(PosterContext context) : IListOpenRout
 			.Select(x => new OpenRouterSettingDto
 			{
 				Id = x.Id,
-				Model = x.Model,
+				Model = x.Model
 			}).ToListAsync(ct);
 	}
 }

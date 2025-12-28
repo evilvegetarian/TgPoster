@@ -10,8 +10,8 @@ namespace TgPoster.Storage.Tests.Tests;
 
 public class UpdateParseChannelStorageShould(StorageTestFixture fixture) : IClassFixture<StorageTestFixture>
 {
-	private readonly CancellationToken ct = CancellationToken.None;
 	private readonly PosterContext _context = fixture.GetDbContext();
+	private readonly CancellationToken ct = CancellationToken.None;
 	private readonly UpdateParseChannelStorage sut = new(fixture.GetDbContext());
 
 	[Fact]
@@ -55,9 +55,8 @@ public class UpdateParseChannelStorageShould(StorageTestFixture fixture) : IClas
 
 public static class UpdateParseChannelStorageShouldExtensions
 {
-	public static UpdateParseChannelCommand ToCommand(this ChannelParsingSetting request)
-	{
-		return new UpdateParseChannelCommand(
+	public static UpdateParseChannelCommand ToCommand(this ChannelParsingSetting request) =>
+		new(
 			request.Id,
 			request.Channel,
 			request.CheckNewPosts,
@@ -69,5 +68,4 @@ public static class UpdateParseChannelStorageShouldExtensions
 			request.DateFrom,
 			request.DateTo,
 			request.UseAiForPosts);
-	}
 }

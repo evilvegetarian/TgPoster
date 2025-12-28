@@ -91,6 +91,7 @@ public sealed class VideoService
 					throw new InvalidOperationException(
 						$"FFMpeg не смог создать скриншот для момента времени {snapshotTime}. Проверьте логи FFmpeg.");
 				}
+
 				outputStream.Position = 0;
 			}
 

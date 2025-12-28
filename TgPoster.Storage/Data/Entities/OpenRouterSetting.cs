@@ -3,22 +3,22 @@ namespace TgPoster.Storage.Data.Entities;
 public sealed class OpenRouterSetting : BaseEntity
 {
 	/// <summary>
-	/// Модель ИИ
+	///     Модель ИИ
 	/// </summary>
 	public required string Model { get; set; }
 
 	/// <summary>
-	/// Захэшированый токен телеграмма
+	///     Захэшированый токен телеграмма
 	/// </summary>
 	public required string TokenHash { get; set; }
 
 	/// <summary>
-	/// Владелец OpenRouter
+	///     Владелец OpenRouter
 	/// </summary>
 	public required Guid UserId { get; set; }
 
 	/// <summary>
-	/// Владелец OpenRouter
+	///     Владелец OpenRouter
 	/// </summary>
 	public Guid? ScheduleId { get; set; }
 

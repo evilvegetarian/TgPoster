@@ -18,7 +18,7 @@ public class PromptSettingEndpointTest(EndpointTestFixture fixture) : IClassFixt
 		var request = new CreatePromptSettingRequest
 		{
 			PhotoPrompt = "",
-			ScheduleId = Guid.NewGuid(),
+			ScheduleId = Guid.NewGuid()
 		};
 		var createResponse = await client.PostAsync(Url, request.ToStringContent());
 		createResponse.StatusCode.ShouldBe(HttpStatusCode.NotFound);
@@ -31,7 +31,7 @@ public class PromptSettingEndpointTest(EndpointTestFixture fixture) : IClassFixt
 		var request = new CreatePromptSettingRequest
 		{
 			PhotoPrompt = "",
-			ScheduleId = scheduleId,
+			ScheduleId = scheduleId
 		};
 		var createResponse = await client.PostAsync(Url, request.ToStringContent());
 		createResponse.StatusCode.ShouldBe(HttpStatusCode.Created);

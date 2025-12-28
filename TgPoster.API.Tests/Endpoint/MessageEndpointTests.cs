@@ -1,5 +1,4 @@
 using System.Net;
-using System.Net.Http.Json;
 using Shouldly;
 using TgPoster.API.Common;
 using TgPoster.API.Domain.UseCases.Messages.CreateMessage;
@@ -20,7 +19,7 @@ public class MessageEndpointTests(EndpointTestFixture fixture) : IClassFixture<E
 	{
 		var files = FileHelper.GetTestIFormFiles();
 		var scheduleId = await helper.CreateSchedule();
-		await helper.CreateDay(scheduleId,DayOfWeek.Monday);
+		await helper.CreateDay(scheduleId, DayOfWeek.Monday);
 		var request = new CreateMessagesFromFilesRequest
 		{
 			ScheduleId = scheduleId,
@@ -93,7 +92,8 @@ public class MessageEndpointTests(EndpointTestFixture fixture) : IClassFixture<E
 		var scheduleId = await helper.CreateSchedule();
 		await helper.CreateMessages(scheduleId);
 
-		var messages = await client.GetAsync<PagedResponse<MessageResponse>>(Routes.Message.List + "?scheduleId=" + scheduleId);
+		var messages =
+			await client.GetAsync<PagedResponse<MessageResponse>>(Routes.Message.List + "?scheduleId=" + scheduleId);
 		messages.Data.Count.ShouldBeGreaterThan(0);
 		messages.ShouldNotBeNull();
 	}

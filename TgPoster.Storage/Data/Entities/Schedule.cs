@@ -37,7 +37,7 @@ public sealed class Schedule : BaseEntity
 	/// </summary>
 	public Guid? YouTubeAccountId { get; set; }
 
-	
+
 	#region Навигация
 
 	/// <summary>
@@ -57,27 +57,27 @@ public sealed class Schedule : BaseEntity
 	public ICollection<Day> Days { get; set; } = [];
 
 	/// <summary>
-	/// Сообщение этого расписания
+	///     Сообщение этого расписания
 	/// </summary>
 	public ICollection<Message> Messages { get; set; } = [];
 
 	/// <summary>
-	/// Настройки парсинга каналов для этого расписания
+	///     Настройки парсинга каналов для этого расписания
 	/// </summary>
 	public ICollection<ChannelParsingSetting> Parameters { get; set; } = [];
 
 	/// <summary>
-	/// Настройки промптов для этого расписания
+	///     Настройки промптов для этого расписания
 	/// </summary>
 	public PromptSetting? PromptSetting { get; set; }
 
 	/// <summary>
-	/// Настройки подключения к OpenRouter для этого расписания
+	///     Настройки подключения к OpenRouter для этого расписания
 	/// </summary>
 	public OpenRouterSetting? OpenRouterSetting { get; set; }
-	
+
 	/// <summary>
-	/// Настройки подключения к OpenRouter для этого расписания
+	///     Настройки подключения к OpenRouter для этого расписания
 	/// </summary>
 	public YouTubeAccount? YouTubeAccount { get; set; }
 

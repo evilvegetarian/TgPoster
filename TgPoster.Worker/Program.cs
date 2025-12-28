@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Builder;
 using Security;
 using Security.Interfaces;
 using Serilog;
-using Shared;
 using TgPoster.Storage;
 using TgPoster.Worker.Configuration;
 using TgPoster.Worker.Domain;

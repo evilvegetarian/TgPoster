@@ -1,3 +1,4 @@
+using System.Net;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -9,14 +10,12 @@ public class OpenRouterClient(IHttpClientFactory httpClientFactory)
 {
 	private const string ApiUrl = "https://openrouter.ai/api/v1/chat/completions";
 
-	public async Task<ChatCompletionResponse?> SendMessageAsync(string apiKey, string model, string message)
-	{
-		return await SendMessageRawAsync(apiKey, model,
+	public async Task<ChatCompletionResponse?> SendMessageAsync(string apiKey, string model, string message) =>
+		await SendMessageRawAsync(apiKey, model,
 			[
 				new ChatMessage { Role = "user", Content = message }
 			]
 		);
-	}
 
 	public async Task<ChatCompletionResponse?> SendImageMessageAsync(
 		string apiKey,
@@ -65,8 +64,10 @@ public class OpenRouterClient(IHttpClientFactory httpClientFactory)
 
 		if (!response.IsSuccessStatusCode)
 		{
-			if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+			if (response.StatusCode == HttpStatusCode.Unauthorized)
+			{
 				throw new OpenRouterNotAuthorizedException();
+			}
 
 			try
 			{
@@ -101,7 +102,7 @@ public static class ContentExtension
 }
 
 /// <summary>
-/// Представляет тело запроса на чат.
+///     Представляет тело запроса на чат.
 /// </summary>
 public class ChatRequest
 {
@@ -117,7 +118,7 @@ public class ChatRequest
 }
 
 /// <summary>
-/// Представляет одно сообщение.
+///     Представляет одно сообщение.
 /// </summary>
 public class ChatMessage
 {
@@ -159,7 +160,7 @@ public class ImageUrlInfo
 // --- МОДЕЛИ ДЛЯ ОТВЕТА ---
 
 /// <summary>
-/// Представляет полный объект ответа от API.
+///     Представляет полный объект ответа от API.
 /// </summary>
 public class ChatCompletionResponse
 {
@@ -177,7 +178,7 @@ public class ChatCompletionResponse
 }
 
 /// <summary>
-/// Представляет один из вариантов ответа, сгенерированных моделью.
+///     Представляет один из вариантов ответа, сгенерированных моделью.
 /// </summary>
 public class Choice
 {
@@ -189,7 +190,7 @@ public class Choice
 }
 
 /// <summary>
-/// Представляет статистику по использованию токенов.
+///     Представляет статистику по использованию токенов.
 /// </summary>
 public class UsageStats
 {

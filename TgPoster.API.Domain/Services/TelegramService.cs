@@ -32,7 +32,7 @@ internal sealed class TelegramService(VideoService videoService)
 						new InputMediaVideo { Media = inputFile }
 					];
 					var previews = await videoService.ExtractScreenshotsAsync(memoryStream, 3);
-					
+
 					album.AddRange(previews.Select(preview => new InputMediaPhoto(preview)));
 
 					var messages = await botClient.SendMediaGroup(
@@ -97,7 +97,7 @@ internal sealed class TelegramService(VideoService videoService)
 	public async Task<byte[]> GetByteFileAsync(TelegramBotClient client, string fileId, CancellationToken ct)
 	{
 		var stream = new MemoryStream();
-		await client.GetInfoAndDownloadFile(fileId: fileId, stream, ct);
+		await client.GetInfoAndDownloadFile(fileId, stream, ct);
 		return stream.ToArray();
 	}
 }

@@ -6,7 +6,6 @@ using Shared;
 using TgPoster.API.Domain.ConfigModels;
 using TgPoster.API.Domain.Monitoring;
 using TgPoster.API.Domain.Services;
-using TgPoster.API.Domain.UseCases.OpenRouterSetting.CreateOpenRouterSetting;
 using OpenRouterClient = Shared.OpenRouterClient;
 
 namespace TgPoster.API.Domain;
@@ -35,7 +34,7 @@ public static class DependencyInjection
 				ServiceURL = s3Options.ServiceUrl,
 				ForcePathStyle = true
 			}));
-		
+
 		services
 			.AddScoped<TelegramService>().AddScoped<VideoService>()
 			.AddScoped<FileService>()

@@ -1,6 +1,5 @@
 using Shouldly;
 using TgPoster.Storage.Data;
-using TgPoster.Storage.Data.Entities;
 using TgPoster.Storage.Storages;
 using TgPoster.Storage.Tests.Builders;
 
@@ -9,8 +8,8 @@ namespace TgPoster.Storage.Tests.Tests;
 public class ListPromptSettingStorageShould(StorageTestFixture fixture) : IClassFixture<StorageTestFixture>
 {
 	private readonly PosterContext context = fixture.GetDbContext();
-	private readonly ListPromptSettingStorage sut = new(fixture.GetDbContext());
 	private readonly CancellationToken ct = CancellationToken.None;
+	private readonly ListPromptSettingStorage sut = new(fixture.GetDbContext());
 
 	[Fact]
 	public async Task GetAsync_WithExist_ShouldValidReturn()

@@ -8,8 +8,8 @@ namespace TgPoster.Storage.Tests.Tests;
 public class ListOpenRouterSettingStorageShould(StorageTestFixture fixture) : IClassFixture<StorageTestFixture>
 {
 	private readonly PosterContext context = fixture.GetDbContext();
-	private readonly ListOpenRouterSettingStorage sut = new(fixture.GetDbContext());
 	private readonly CancellationToken ct = CancellationToken.None;
+	private readonly ListOpenRouterSettingStorage sut = new(fixture.GetDbContext());
 
 	[Fact]
 	public async Task GetAsync_WithExist_ShouldValidReturn()
@@ -19,8 +19,8 @@ public class ListOpenRouterSettingStorageShould(StorageTestFixture fixture) : IC
 		var setting2 = new OpenRouterSettingBuilder(context).WithUser(user).Create();
 
 		var response = await sut.GetAsync(user.Id, ct);
-		response.Select(x=>x.Id).ShouldContain(setting1.Id);
-		response.Select(x=>x.Id).ShouldContain(setting2.Id);
+		response.Select(x => x.Id).ShouldContain(setting1.Id);
+		response.Select(x => x.Id).ShouldContain(setting2.Id);
 		response.Count.ShouldBe(2);
 	}
 

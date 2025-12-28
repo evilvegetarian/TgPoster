@@ -55,8 +55,7 @@ public sealed class VideoServiceTestsShould
 	[Fact]
 	public async Task ExtractScreenshots_NullStream_ThrowsArgumentNullException()
 	{
-		await Should.ThrowAsync<ArgumentNullException>(
-			() => sut.ExtractScreenshotsAsync(null!, 1)
+		await Should.ThrowAsync<ArgumentNullException>(() => sut.ExtractScreenshotsAsync(null!, 1)
 		);
 	}
 
@@ -65,8 +64,7 @@ public sealed class VideoServiceTestsShould
 	{
 		using var stream = new MemoryStream([1, 2, 3]);
 
-		await Should.ThrowAsync<ArgumentException>(
-			() => sut.ExtractScreenshotsAsync(stream, 0)
+		await Should.ThrowAsync<ArgumentException>(() => sut.ExtractScreenshotsAsync(stream, 0)
 		);
 	}
 
@@ -75,8 +73,8 @@ public sealed class VideoServiceTestsShould
 	{
 		using var invalidVideoStream = new MemoryStream([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
 
-		var exception = await Should.ThrowAsync<InvalidOperationException>(
-			() => sut.ExtractScreenshotsAsync(invalidVideoStream, 1)
+		var exception = await Should.ThrowAsync<InvalidOperationException>(() =>
+			sut.ExtractScreenshotsAsync(invalidVideoStream, 1)
 		);
 
 		exception.Message.ShouldBe("Не удалось обработать видео с помощью FFMpeg.");

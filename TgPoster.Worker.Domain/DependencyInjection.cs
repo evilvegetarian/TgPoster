@@ -14,6 +14,7 @@ using TgPoster.Worker.Domain.UseCases.ParseChannelConsumer;
 using TgPoster.Worker.Domain.UseCases.ParseChannelWorker;
 using TgPoster.Worker.Domain.UseCases.ProcessMessageConsumer;
 using TgPoster.Worker.Domain.UseCases.SenderMessageWorker;
+using WTelegram;
 
 namespace TgPoster.Worker.Domain;
 
@@ -53,15 +54,18 @@ public static class DependencyInjection
 
 		services.AddSingleton(_ =>
 		{
-			string? Config(string key) => key switch
+			string? Config(string key)
 			{
-				"api_id" => telegramSettings.api_id,
-				"api_hash" => telegramSettings.api_hash,
-				"phone_number" => telegramSettings.phone_number,
-				_ => null
-			};
+				return key switch
+				{
+					"api_id" => telegramSettings.api_id,
+					"api_hash" => telegramSettings.api_hash,
+					"phone_number" => telegramSettings.phone_number,
+					_ => null
+				};
+			}
 
-			var client = new WTelegram.Client(Config);
+			var client = new Client(Config);
 
 			Console.WriteLine("Logging in to Telegram...");
 			client.LoginUserIfNeeded().GetAwaiter().GetResult();
@@ -127,9 +131,6 @@ public static class DependencyInjection
 
 	public class AllowAllAuthorizationFilter : IDashboardAuthorizationFilter
 	{
-		public bool Authorize(DashboardContext context)
-		{
-			return true;
-		}
+		public bool Authorize(DashboardContext context) => true;
 	}
 }

@@ -1,6 +1,5 @@
 using Shouldly;
 using TgPoster.Storage.Data;
-using TgPoster.Storage.Data.Entities;
 using TgPoster.Storage.Storages;
 using TgPoster.Storage.Tests.Builders;
 
@@ -26,7 +25,7 @@ public class GetPromptSettingStorageShould(StorageTestFixture fixture) : IClassF
 	public async Task GetAsync_WithExistId_ShouldReturnNull()
 	{
 		var schedule = await new ScheduleBuilder(context).CreateAsync(ct);
-		 new PromptSettingBuilder(context).WithScheduleId(schedule.Id).Create();
+		new PromptSettingBuilder(context).WithScheduleId(schedule.Id).Create();
 		var response = await sut.GetAsync(Guid.NewGuid(), schedule.UserId, ct);
 		response.ShouldBeNull();
 	}

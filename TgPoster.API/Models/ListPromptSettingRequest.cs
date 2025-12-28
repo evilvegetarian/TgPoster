@@ -5,5 +5,4 @@ namespace TgPoster.API.Models;
 /// </summary>
 public class ListPromptSettingRequest : PaginationRequest
 {
-
 }

@@ -30,11 +30,9 @@ internal class JwtProvider(JwtOptions options) : IJwtProvider
 		return new JwtSecurityTokenHandler().WriteToken(token);
 	}
 
-	public (Guid RefreshToken, DateTimeOffset RefreshExpireTime) GenerateRefreshToken()
-	{
-		return (Guid.NewGuid(),
+	public (Guid RefreshToken, DateTimeOffset RefreshExpireTime) GenerateRefreshToken() =>
+		(Guid.NewGuid(),
 			DateTime.UtcNow.AddHours(options.RefreshTokenExpiresHours));
-	}
 
 	public void AddTokenToCookie(HttpContext httpContext, string accessToken)
 	{

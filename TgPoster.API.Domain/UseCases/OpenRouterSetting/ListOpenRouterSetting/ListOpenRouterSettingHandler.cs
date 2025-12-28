@@ -17,7 +17,7 @@ public class ListOpenRouterSettingHandler(IListOpenRouterSettingStorage storage,
 			OpenRouterSettingResponses = response.Select(x => new OpenRouterSettingResponse
 			{
 				Id = x.Id,
-				Model = x.Model,
+				Model = x.Model
 			}).ToList()
 		};
 	}

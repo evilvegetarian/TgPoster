@@ -18,9 +18,11 @@ public sealed class Day : BaseEntity
 	public ICollection<TimeOnly> TimePostings { get; set; } = [];
 
 	#region Navigtion
+
 	/// <summary>
 	///     Расписание.
 	/// </summary>
 	public Schedule Schedule { get; set; } = null!;
+
 	#endregion
 }

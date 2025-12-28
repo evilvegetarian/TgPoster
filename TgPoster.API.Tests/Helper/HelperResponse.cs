@@ -14,7 +14,7 @@ public static class HelperResponse
 	{
 		var options = new JsonSerializerOptions
 		{
-			PropertyNameCaseInsensitive = true ,
+			PropertyNameCaseInsensitive = true,
 			Converters = { new JsonStringEnumConverter() }
 		};
 		var responseString = await response.Content.ReadAsStringAsync();
@@ -25,13 +25,11 @@ public static class HelperResponse
 
 public static class HttpContentHelper
 {
-	public static HttpContent ToStringContent<T>(this T request)
-	{
-		return new StringContent(
+	public static HttpContent ToStringContent<T>(this T request) =>
+		new StringContent(
 			JsonSerializer.Serialize(request),
 			Encoding.UTF8,
 			"application/json");
-	}
 
 	public static MultipartFormDataContent ToMultipartForm<T>(this T data)
 	{

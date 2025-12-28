@@ -7,9 +7,8 @@ namespace TgPoster.Storage.Mapper;
 
 public static class ChannelParsingParametersMapper
 {
-	public static ParseChannelsResponse ToDomain(this ChannelParsingSetting entity)
-	{
-		return new ParseChannelsResponse
+	public static ParseChannelsResponse ToDomain(this ChannelParsingSetting entity) =>
+		new()
 		{
 			Id = entity.Id,
 			Status = entity.Status.GetStatus(),
@@ -24,11 +23,9 @@ public static class ChannelParsingParametersMapper
 			Channel = entity.Channel,
 			LastParseDate = entity.LastParseDate
 		};
-	}
 
-	public static ChannelParsingSetting ToEntity(this UpdateParseChannelCommand request)
-	{
-		return new ChannelParsingSetting
+	public static ChannelParsingSetting ToEntity(this UpdateParseChannelCommand request) =>
+		new()
 		{
 			Id = request.Id,
 			Channel = request.Channel,
@@ -42,5 +39,4 @@ public static class ChannelParsingParametersMapper
 			DeleteMedia = request.DeleteMedia,
 			UseAiForPosts = request.UseAiForPosts
 		};
-	}
 }

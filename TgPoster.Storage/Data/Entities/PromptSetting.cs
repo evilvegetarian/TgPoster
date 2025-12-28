@@ -3,22 +3,22 @@ namespace TgPoster.Storage.Data.Entities;
 public sealed class PromptSetting : BaseEntity
 {
 	/// <summary>
-	/// Промпт для видео
+	///     Промпт для видео
 	/// </summary>
 	public string? VideoPrompt { get; set; }
 
 	/// <summary>
-	/// Промпт для картинок
+	///     Промпт для картинок
 	/// </summary>
 	public string? PicturePrompt { get; set; }
 
 	/// <summary>
-	/// Промпт для текста
+	///     Промпт для текста
 	/// </summary>
 	public string? TextPrompt { get; set; }
 
 	/// <summary>
-	/// Владелец OpenRouter
+	///     Владелец OpenRouter
 	/// </summary>
 	public required Guid ScheduleId { get; set; }
 

@@ -13,7 +13,7 @@ using TgPoster.API.Models;
 namespace TgPoster.API.Controllers;
 
 /// <summary>
-/// Контроллер управления промптов
+///     Контроллер управления промптов
 /// </summary>
 /// <param name="sender"></param>
 [Authorize]
@@ -21,7 +21,7 @@ namespace TgPoster.API.Controllers;
 public class PromptSettingController(ISender sender) : ControllerBase
 {
 	/// <summary>
-	/// Создание промптов для расписания
+	///     Создание промптов для расписания
 	/// </summary>
 	/// <param name="request"></param>
 	/// <param name="ctx"></param>
@@ -42,7 +42,7 @@ public class PromptSettingController(ISender sender) : ControllerBase
 	}
 
 	/// <summary>
-	/// Получение промпта по id
+	///     Получение промпта по id
 	/// </summary>
 	/// <param name="id"></param>
 	/// <param name="ctx"></param>
@@ -60,7 +60,7 @@ public class PromptSettingController(ISender sender) : ControllerBase
 	}
 
 	/// <summary>
-	/// Получение списка промтов
+	///     Получение списка промтов
 	/// </summary>
 	/// <param name="request"></param>
 	/// <param name="ctx"></param>
@@ -81,7 +81,7 @@ public class PromptSettingController(ISender sender) : ControllerBase
 	}
 
 	/// <summary>
-	/// Изменение промптов для расписания
+	///     Изменение промптов для расписания
 	/// </summary>
 	/// <param name="id"></param>
 	/// <param name="request"></param>

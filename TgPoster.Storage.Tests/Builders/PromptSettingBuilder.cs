@@ -8,10 +8,10 @@ public class PromptSettingBuilder(PosterContext context)
 {
 	private static readonly Faker faker = FakerProvider.Instance;
 
-	private readonly PromptSetting setting = new PromptSetting
+	private readonly PromptSetting setting = new()
 	{
 		ScheduleId = new ScheduleBuilder(context).Create().Id,
-		Id = Guid.NewGuid(),
+		Id = Guid.NewGuid()
 	};
 
 	public PromptSetting Build() => setting;

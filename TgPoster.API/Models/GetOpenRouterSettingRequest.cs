@@ -3,22 +3,22 @@ using System.ComponentModel.DataAnnotations;
 namespace TgPoster.API.Models;
 
 /// <summary>
-/// Запрос получения Open Router
+///     Запрос получения Open Router
 /// </summary>
 public class GetOpenRouterSettingRequest : IValidatableObject
 {
 	/// <summary>
-	/// Id Open Router
+	///     Id Open Router
 	/// </summary>
 	public Guid? Id { get; set; }
 
 	/// <summary>
-	/// Id расписания 
+	///     Id расписания
 	/// </summary>
 	public Guid? ScheduleId { get; set; }
 
 	/// <summary>
-	/// Валидация GetOpenRouterSettingRequest
+	///     Валидация GetOpenRouterSettingRequest
 	/// </summary>
 	/// <param name="validationContext"></param>
 	/// <returns></returns>

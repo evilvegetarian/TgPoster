@@ -5,7 +5,6 @@ using Google.Apis.YouTube.v3;
 using Google.Apis.YouTube.v3.Data;
 using MediatR;
 using Security.Interfaces;
-using Shared;
 using Telegram.Bot;
 using TgPoster.API.Domain.Exceptions;
 using TgPoster.API.Domain.Services;
@@ -22,12 +21,14 @@ internal class SendVideoOnYouTubeUseCase(
 	{
 		var fileDtos = await storage.GetVideoFileMessageAsync(request.MessageId, provider.Current.UserId, ct);
 		if (fileDtos is [])
+		{
 			throw new MessageNotFoundException(request.MessageId);
+		}
 
 		var accessToken = await storage.GetAccessTokenAsync(request.MessageId, provider.Current.UserId, ct);
 		var telegram = await tokenService.GetTokenByMessageIdAsync(request.MessageId, ct);
 		var bot = new TelegramBotClient(telegram.token, cancellationToken: ct);
-		
+
 		foreach (var fileDto in fileDtos)
 		{
 			using var stream = new MemoryStream();
@@ -42,7 +43,7 @@ internal class SendVideoOnYouTubeUseCase(
 		var credential = GoogleCredential.FromAccessToken(token);
 		// Если токен истек, нужно использовать RefreshToken (в простой реализации опускаем)
 
-		var youtubeService = new YouTubeService(new BaseClientService.Initializer()
+		var youtubeService = new YouTubeService(new BaseClientService.Initializer
 		{
 			HttpClientInitializer = credential,
 			ApplicationName = "MyShortsUploader"
@@ -59,11 +60,11 @@ internal class SendVideoOnYouTubeUseCase(
 			},
 			Status = new VideoStatus { PrivacyStatus = "public" } // video.Status, а не video.Snippet
 		};
-		string videoId = "";
+		var videoId = "";
 
 		var videosInsertRequest = youtubeService.Videos.Insert(video, "snippet,status", stream, "video/*");
 
-		videosInsertRequest.ResponseReceived += (v) =>
+		videosInsertRequest.ResponseReceived += v =>
 		{
 			videoId = v.Id;
 		};

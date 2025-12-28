@@ -18,7 +18,7 @@ namespace TgPoster.API.Controllers;
 public class YouTubeAccountController(ISender sender) : ControllerBase
 {
 	/// <summary>
-	/// Регистрация Аккаунта, редиректит на гугл авторизацию
+	///     Регистрация Аккаунта, редиректит на гугл авторизацию
 	/// </summary>
 	/// <param name="request"></param>
 	/// <param name="ct"></param>
@@ -36,7 +36,7 @@ public class YouTubeAccountController(ISender sender) : ControllerBase
 	}
 
 	/// <summary>
-	/// Коллбэк от гугл обратно к нам
+	///     Коллбэк от гугл обратно к нам
 	/// </summary>
 	/// <param name="code"></param>
 	/// <param name="state">Возвращает id записи в бд</param>
@@ -55,7 +55,7 @@ public class YouTubeAccountController(ISender sender) : ControllerBase
 	}
 
 	/// <summary>
-	/// Отправка сообщения с видео в ютуб
+	///     Отправка сообщения с видео в ютуб
 	/// </summary>
 	/// <param name="messageId"></param>
 	/// <param name="ct"></param>

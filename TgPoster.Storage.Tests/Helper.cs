@@ -8,15 +8,15 @@ namespace TgPoster.Storage.Tests;
 
 public sealed class Helper
 {
-	private readonly PosterContext context;
 	private static readonly ThreadLocal<Faker> threadLocalFaker = new(() => new Faker());
-
-	private Faker Faker => threadLocalFaker.Value;
+	private readonly PosterContext context;
 
 	public Helper(PosterContext context)
 	{
 		this.context = context ?? throw new ArgumentNullException(nameof(context));
 	}
+
+	private Faker Faker => threadLocalFaker.Value;
 
 	public User BuildUser(Action<User>? configure = null)
 	{
@@ -106,7 +106,7 @@ public sealed class Helper
 			ScheduleId = scheduleId,
 			Status = status,
 			CheckNewPosts = checkNewPosts,
-			UseAiForPosts = true,
+			UseAiForPosts = true
 		};
 
 		configure?.Invoke(setting);
@@ -428,7 +428,7 @@ public sealed class Helper
 	private List<TimeOnly> GenerateRandomTimes(int count)
 	{
 		return Enumerable.Range(0, count)
-			.Select(_ => TimeOnly.FromTimeSpan(TimeSpan.FromMinutes(Faker.Random.Int(0, (24 * 60) - 1))))
+			.Select(_ => TimeOnly.FromTimeSpan(TimeSpan.FromMinutes(Faker.Random.Int(0, 24 * 60 - 1))))
 			.Distinct()
 			.OrderBy(time => time)
 			.ToList();

@@ -3,7 +3,6 @@ using Shouldly;
 using TgPoster.Storage.Data;
 using TgPoster.Storage.Data.Enum;
 using TgPoster.Storage.Storages;
-using TgPoster.Worker.Domain.UseCases.ParseChannel;
 
 namespace TgPoster.Storage.Tests.Tests;
 

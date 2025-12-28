@@ -2,7 +2,6 @@ using Microsoft.EntityFrameworkCore;
 using TgPoster.API.Domain.UseCases.Messages.GetMessageById;
 using TgPoster.API.Domain.UseCases.Messages.ListMessage;
 using TgPoster.Storage.Data;
-using TgPoster.Storage.Data.Entities;
 
 namespace TgPoster.Storage.Storages;
 

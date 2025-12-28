@@ -41,7 +41,7 @@ internal class ScheduleConfiguration : BaseEntityConfiguration<Schedule>
 
 		builder.HasOne(x => x.PromptSetting)
 			.WithOne(x => x.Schedule);
-		
+
 		builder.HasOne(x => x.OpenRouterSetting)
 			.WithOne(x => x.Schedule);
 	}

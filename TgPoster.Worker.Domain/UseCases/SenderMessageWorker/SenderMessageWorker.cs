@@ -5,6 +5,7 @@ using Security.Interfaces;
 using Shared;
 using Telegram.Bot;
 using Telegram.Bot.Types;
+using Telegram.Bot.Types.Enums;
 using TgPoster.Worker.Domain.ConfigModels;
 
 namespace TgPoster.Worker.Domain.UseCases.SenderMessageWorker;
@@ -78,12 +79,12 @@ public class SenderMessageWorker(
 		{
 			var captionText = message.Message ?? string.Empty;
 
-			bool isCaptionTooLong = captionText.Length > 1024;
+			var isCaptionTooLong = captionText.Length > 1024;
 
 			if (!string.IsNullOrWhiteSpace(captionText) && !isCaptionTooLong)
 			{
 				medias[0].Caption = captionText;
-				medias[0].ParseMode = Telegram.Bot.Types.Enums.ParseMode.Html;
+				medias[0].ParseMode = ParseMode.Html;
 				await bot.SendMediaGroup(chatId, medias.Select(x => (IAlbumInputMedia)x));
 			}
 			else
@@ -91,7 +92,9 @@ public class SenderMessageWorker(
 				await bot.SendMediaGroup(chatId, medias.Select(x => (IAlbumInputMedia)x));
 
 				if (!string.IsNullOrWhiteSpace(captionText))
+				{
 					await bot.SendMessage(chatId, captionText);
+				}
 			}
 		}
 		else

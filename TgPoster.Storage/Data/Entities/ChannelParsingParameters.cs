@@ -60,12 +60,12 @@ public sealed class ChannelParsingSetting : BaseEntity
 	public ParsingStatus Status { get; set; }
 
 	/// <summary>
-	/// Последняя дата время
+	///     Последняя дата время
 	/// </summary>
 	public DateTime? LastParseDate { get; set; }
 
 	/// <summary>
-	/// Использование Аи для постов
+	///     Использование Аи для постов
 	/// </summary>
 	public required bool UseAiForPosts { get; set; }
 

@@ -52,7 +52,7 @@ public class UpdateParseChannelRequest : IValidatableObject
 	public DateTime? DateTo { get; set; }
 
 	/// <summary>
-	/// Использовать аи для постов
+	///     Использовать аи для постов
 	/// </summary>
 	public bool UseAiForPosts { get; set; }
 

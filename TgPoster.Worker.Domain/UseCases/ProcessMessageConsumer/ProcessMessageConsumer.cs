@@ -65,9 +65,10 @@ internal sealed class ProcessMessageConsumer(
 			foreach (var part in command.Messages)
 			{
 				var files = new MediaStreamDto();
-				
+
 				await Task.Delay(10000, ct);
-				var refreshedMessages = await client.Channels_GetMessages(new InputChannel(channel.ID, channel.access_hash), part.Id);
+				var refreshedMessages =
+					await client.Channels_GetMessages(new InputChannel(channel.ID, channel.access_hash), part.Id);
 				if (refreshedMessages.Messages.FirstOrDefault() is not Message message)
 				{
 					continue;
@@ -140,6 +141,7 @@ internal sealed class ProcessMessageConsumer(
 							}
 						}
 					}
+
 					list.Add(files);
 				}
 				finally

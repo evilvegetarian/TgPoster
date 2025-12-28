@@ -20,7 +20,7 @@ internal class YouTubeAccountConfiguration : BaseEntityConfiguration<YouTubeAcco
 		builder.HasMany(x => x.Schedules)
 			.WithOne(x => x.YouTubeAccount)
 			.HasForeignKey(x => x.YouTubeAccountId);
-		
+
 		builder.HasOne(x => x.User)
 			.WithMany(x => x.YouTubeAccounts)
 			.HasForeignKey(x => x.UserId);

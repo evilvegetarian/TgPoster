@@ -190,12 +190,10 @@ internal sealed class FileService(
 	/// </summary>
 	/// <param name="cacheId">GUID файла в кеше.</param>
 	/// <returns>Объект FileCacheItem, если файл найден; иначе null.</returns>
-	public FileCacheItem? RetrieveFileFromCache(Guid cacheId)
-	{
-		return memoryCache.TryGetValue<FileCacheItem>(cacheId, out var fileCacheItem)
+	public FileCacheItem? RetrieveFileFromCache(Guid cacheId) =>
+		memoryCache.TryGetValue<FileCacheItem>(cacheId, out var fileCacheItem)
 			? fileCacheItem
 			: null;
-	}
 
 	public async Task CacheFileToS3(TelegramBotClient botClient, List<FileDto> files, CancellationToken ct)
 	{
@@ -216,6 +214,7 @@ internal sealed class FileService(
 					{
 						await DownloadAndCacheS3FileAsync(botClient, preview.Id, preview.TgFileId, FileTypes.Video, ct);
 					}
+
 					break;
 				}
 				case FileTypes.NoOne:

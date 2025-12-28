@@ -5,7 +5,7 @@ using TgPoster.API.Models;
 namespace TgPoster.API.Controllers;
 
 /// <summary>
-/// Общий роут для всех опций
+///     Общий роут для всех опций
 /// </summary>
 [ApiController]
 [Route("api/options")]

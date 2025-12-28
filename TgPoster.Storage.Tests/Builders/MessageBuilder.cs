@@ -90,7 +90,7 @@ public class MessageBuilder(PosterContext context)
 			FileType = FileTypes.Photo,
 			ContentType = FileTypes.Photo.GetContentType(),
 			TgFileId = "fasfs",
-			MessageId = message.Id,
+			MessageId = message.Id
 		});
 		return this;
 	}

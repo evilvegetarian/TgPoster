@@ -12,9 +12,8 @@ public static class ParsingMapping
 	/// </summary>
 	/// <param name="request"></param>
 	/// <returns></returns>
-	public static CreateParseChannelCommand ToCommand(this CreateParseChannelRequest request)
-	{
-		return new CreateParseChannelCommand(
+	public static CreateParseChannelCommand ToCommand(this CreateParseChannelRequest request) =>
+		new(
 			request.Channel,
 			request.AlwaysCheckNewPosts,
 			request.ScheduleId,
@@ -25,11 +24,9 @@ public static class ParsingMapping
 			request.DateFrom,
 			request.DateTo,
 			request.UseAiForPosts);
-	}
 
-	public static UpdateParseChannelCommand ToCommand(this UpdateParseChannelRequest request, Guid id)
-	{
-		return new UpdateParseChannelCommand(
+	public static UpdateParseChannelCommand ToCommand(this UpdateParseChannelRequest request, Guid id) =>
+		new(
 			id,
 			request.Channel,
 			request.AlwaysCheckNewPosts,
@@ -41,5 +38,4 @@ public static class ParsingMapping
 			request.DateFrom,
 			request.DateTo,
 			request.UseAiForPosts);
-	}
 }

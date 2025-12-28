@@ -8,10 +8,9 @@ namespace TgPoster.Storage.Tests.Tests;
 
 public sealed class DeleteFileMessageStorageShould : IClassFixture<StorageTestFixture>
 {
+	private static readonly CancellationToken Ct = CancellationToken.None;
 	private readonly PosterContext context;
 	private readonly DeleteFileMessageStorage sut;
-
-	private static readonly CancellationToken Ct = CancellationToken.None;
 
 	public DeleteFileMessageStorageShould(StorageTestFixture fixture)
 	{

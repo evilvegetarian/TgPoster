@@ -10,7 +10,7 @@ public class MessageFile : BaseEntity
 	public required Guid MessageId { get; set; }
 
 	/// <summary>
-	/// Тип файла
+	///     Тип файла
 	/// </summary>
 	public required FileTypes FileType { get; set; }
 
@@ -28,7 +28,7 @@ public class MessageFile : BaseEntity
 	///     Тип файла
 	/// </summary>
 	public required string ContentType { get; set; }
-	
+
 	/// <summary>
 	///     Превью видео
 	/// </summary>

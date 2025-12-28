@@ -1,49 +1,48 @@
 namespace TgPoster.API.Models;
 
 /// <summary>
-/// Request создания промптов
+///     Request создания промптов
 /// </summary>
 public class CreatePromptSettingRequest
 {
 	/// <summary>
-	/// Id расписания для которого Промпты
+	///     Id расписания для которого Промпты
 	/// </summary>
 	public required Guid ScheduleId { get; set; }
 
 	/// <summary>
-	/// Промпт для текста
+	///     Промпт для текста
 	/// </summary>
 	public string? TextPrompt { get; set; }
 
 	/// <summary>
-	/// Промпт для видео
+	///     Промпт для видео
 	/// </summary>
 	public string? VideoPrompt { get; set; }
 
 	/// <summary>
-	/// Промпт для фото 
+	///     Промпт для фото
 	/// </summary>
 	public string? PhotoPrompt { get; set; }
 }
 
-
 /// <summary>
-/// Request создания промптов
+///     Request создания промптов
 /// </summary>
 public class EditPromptSettingRequest
 {
 	/// <summary>
-	/// Промпт для текста
+	///     Промпт для текста
 	/// </summary>
 	public string? TextPrompt { get; set; }
 
 	/// <summary>
-	/// Промпт для видео
+	///     Промпт для видео
 	/// </summary>
 	public string? VideoPrompt { get; set; }
 
 	/// <summary>
-	/// Промпт для фото 
+	///     Промпт для фото
 	/// </summary>
 	public string? PhotoPrompt { get; set; }
 }

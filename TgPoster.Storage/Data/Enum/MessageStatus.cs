@@ -6,13 +6,10 @@ public enum MessageStatus
 	InHandle = 1,
 	Send = 2,
 	Error = 10,
-	Cancel = 20,
+	Cancel = 20
 }
 
 public static class MessageStatusExtensions
 {
-	public static List<MessageStatus> GetBadStatus()
-	{
-		return [MessageStatus.Cancel, MessageStatus.Error];
-	}
+	public static List<MessageStatus> GetBadStatus() => [MessageStatus.Cancel, MessageStatus.Error];
 }

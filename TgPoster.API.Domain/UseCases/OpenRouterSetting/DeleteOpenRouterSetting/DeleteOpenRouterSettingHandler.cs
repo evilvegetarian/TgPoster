@@ -1,10 +1,10 @@
 using MediatR;
 using Shared.SharedException;
-using TgPoster.API.Domain.Exceptions;
 
 namespace TgPoster.API.Domain.UseCases.OpenRouterSetting.DeleteOpenRouterSetting;
 
-public class DeleteOpenRouterSettingHandler(IDeleteOpenRouterSettingStorage storage) : IRequestHandler<DeleteOpenRouterSettingCommand>
+public class DeleteOpenRouterSettingHandler(IDeleteOpenRouterSettingStorage storage)
+	: IRequestHandler<DeleteOpenRouterSettingCommand>
 {
 	public async Task Handle(DeleteOpenRouterSettingCommand request, CancellationToken cancellationToken)
 	{
@@ -12,6 +12,7 @@ public class DeleteOpenRouterSettingHandler(IDeleteOpenRouterSettingStorage stor
 		{
 			throw new OpenRouterNotFoundException(request.Id);
 		}
+
 		await storage.DeleteAsync(request.Id, cancellationToken);
 	}
 }

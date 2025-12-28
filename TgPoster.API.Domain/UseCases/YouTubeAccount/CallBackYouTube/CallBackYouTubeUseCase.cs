@@ -22,9 +22,9 @@ public class CallBackYouTubeUseCase(ICallBackYouTubeStorage storage, IIdentityPr
 		});
 
 		var token = await flow.ExchangeCodeForTokenAsync(
-			userId: "user-id",
-			code: request.Code,
-			redirectUri: request.CallBack,
+			"user-id",
+			request.Code,
+			request.CallBack,
 			ct
 		);
 		await storage.AddToken(accountYouTubeGuid, token.AccessToken, ct);

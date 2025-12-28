@@ -26,8 +26,5 @@ public sealed record Email
 
 	public string Value { get; private set; }
 
-	private bool IsValidEmail(string email)
-	{
-		return email.Contains('@');
-	}
+	private bool IsValidEmail(string email) => email.Contains('@');
 }

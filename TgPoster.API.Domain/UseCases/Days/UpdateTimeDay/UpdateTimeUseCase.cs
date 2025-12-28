@@ -13,7 +13,7 @@ internal class UpdateTimeUseCase(IUpdateTimeStorage storage, IIdentityProvider p
 		{
 			throw new ScheduleNotFoundException(request.ScheduleId);
 		}
-		
+
 		var dayId = await storage.DayIdAsync(request.ScheduleId, request.DayOfWeek, ct);
 		if (dayId == Guid.Empty)
 		{

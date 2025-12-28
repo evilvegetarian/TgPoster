@@ -12,7 +12,7 @@ using TgPoster.API.Models;
 namespace TgPoster.API.Controllers;
 
 /// <summary>
-/// Контроллер управления дней
+///     Контроллер управления дней
 /// </summary>
 /// <param name="sender"></param>
 [Authorize]
@@ -75,7 +75,7 @@ public class DayController(ISender sender) : ControllerBase
 		var response = await sender.Send(new GetDaysQuery(scheduleId), ct);
 		return Ok(response);
 	}
-	
+
 	/// <summary>
 	///     Обновление времени для определенного дня
 	/// </summary>

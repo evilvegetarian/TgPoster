@@ -8,15 +8,16 @@ namespace TgPoster.Storage.Tests.Builders;
 public class UserBuilder(PosterContext context)
 {
 	private static readonly Faker faker = FakerProvider.Instance;
-	private readonly List<User> users = [];
 
 	private readonly User user = new()
 	{
 		Id = Guid.NewGuid(),
 		Email = new Email(faker.Internet.Email()),
 		PasswordHash = faker.Random.Hash(),
-		UserName = new UserName(faker.Internet.UserName()),
+		UserName = new UserName(faker.Internet.UserName())
 	};
+
+	private readonly List<User> users = [];
 
 	public UserBuilder WithName(string value)
 	{
@@ -40,7 +41,7 @@ public class UserBuilder(PosterContext context)
 
 	public List<User> BuildList(int count = 5)
 	{
-		for (int i = 0; i < count; i++)
+		for (var i = 0; i < count; i++)
 		{
 			users.Add(new UserBuilder(context).Build());
 		}
@@ -62,7 +63,7 @@ public class UserBuilder(PosterContext context)
 		return user;
 	}
 
-	public async Task<User> CreateAsync(CancellationToken ct=default)
+	public async Task<User> CreateAsync(CancellationToken ct = default)
 	{
 		await context.Users.AddRangeAsync(user);
 		await context.SaveChangesAsync(ct);

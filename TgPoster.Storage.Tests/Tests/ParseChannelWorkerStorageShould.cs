@@ -97,7 +97,7 @@ public class ParseChannelWorkerStorageShould(StorageTestFixture fixture) : IClas
 		// Assert
 		cpp.Status.ShouldBe(ParsingStatus.Waiting);
 	}
-	
+
 	[Fact]
 	public async Task SetErrorStatusAsync_ShouldUpdateStatusForExistingId()
 	{
@@ -106,7 +106,7 @@ public class ParseChannelWorkerStorageShould(StorageTestFixture fixture) : IClas
 		await context.SaveChangesAsync();
 
 		await sut.SetErrorStatusAsync(cpp.Id);
-		
+
 		var channelParsingParameters = await context.ChannelParsingParameters.FirstOrDefaultAsync(x => x.Id == cpp.Id);
 		channelParsingParameters.ShouldNotBeNull();
 		channelParsingParameters.Status.ShouldBe(ParsingStatus.Failed);

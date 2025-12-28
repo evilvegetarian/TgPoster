@@ -53,8 +53,5 @@ public sealed class Message : BaseEntity
 
 public static class MessageExtenstion
 {
-	public static bool IsTextMessage(this string? text)
-	{
-		return text?.Length >= 1024;
-	}
+	public static bool IsTextMessage(this string? text) => text?.Length >= 1024;
 }

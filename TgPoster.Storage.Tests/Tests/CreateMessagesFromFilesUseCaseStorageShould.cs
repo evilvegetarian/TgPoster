@@ -18,7 +18,8 @@ public class CreateMessagesFromFilesUseCaseStorageShould(StorageTestFixture fixt
 	public async Task GetTelegramBot_WithMatchingScheduleAndUser_ShouldReturnTelegramBotDto()
 	{
 		var telegramBot = new TelegramBotBuilder(_context).Create();
-		var schedule = new ScheduleBuilder(_context).WithUserId(telegramBot.OwnerId).WithTelegramBotId(telegramBot.Id).Create();
+		var schedule = new ScheduleBuilder(_context).WithUserId(telegramBot.OwnerId).WithTelegramBotId(telegramBot.Id)
+			.Create();
 
 		var result = await _sut.GetTelegramBotAsync(schedule.Id, schedule.UserId, CancellationToken.None);
 
@@ -85,8 +86,8 @@ public class CreateMessagesFromFilesUseCaseStorageShould(StorageTestFixture fixt
 
 		var result = await _sut.GetExistMessageTimePostingAsync(schedule.Id, CancellationToken.None);
 		result.Count.ShouldBe(2);
-		result.Select(x=>x.ToString()).ShouldContain(futureTime1.ToString());
-		result.Select(x=>x.ToString()).ShouldContain(futureTime2.ToString());
+		result.Select(x => x.ToString()).ShouldContain(futureTime1.ToString());
+		result.Select(x => x.ToString()).ShouldContain(futureTime2.ToString());
 	}
 
 	[Fact]

@@ -8,11 +8,11 @@ public class DayBuilder(PosterContext context)
 {
 	private static readonly Faker faker = FakerProvider.Instance;
 
-	private readonly Day day = new Day
+	private readonly Day day = new()
 	{
 		Id = Guid.NewGuid(),
 		DayOfWeek = faker.Random.Enum<DayOfWeek>(),
-		ScheduleId = new ScheduleBuilder(context).Create().Id,
+		ScheduleId = new ScheduleBuilder(context).Create().Id
 	};
 
 	public Day Build() => day;

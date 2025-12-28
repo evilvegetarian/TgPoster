@@ -237,7 +237,7 @@ public class MessageController(ISender sender) : ControllerBase
 
 	/// <summary>
 	///     Обновляет время для всех постов.
-	/// Использовать при добавлние дат в расписании.
+	///     Использовать при добавлние дат в расписании.
 	/// </summary>
 	/// <param name="scheduleId"></param>
 	/// <param name="ct"></param>

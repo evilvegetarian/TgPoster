@@ -16,22 +16,23 @@ public class UpdateAllTimeStorageShould(StorageTestFixture fixture) : IClassFixt
 	public async Task UpdateTimeAsync_WithValidDate_ShouldCorrectUpdateTime()
 	{
 		var schedule = await new ScheduleBuilder(_context).CreateAsync();
-		var messages = new List<Message>()
+		var messages = new List<Message>
 		{
 			await new MessageBuilder(_context).WithSchedule(schedule).CreateAsync(),
 			await new MessageBuilder(_context).WithSchedule(schedule).CreateAsync(),
-			await new MessageBuilder(_context).WithSchedule(schedule).CreateAsync(),
+			await new MessageBuilder(_context).WithSchedule(schedule).CreateAsync()
 		};
 		var times = new List<DateTimeOffset>
 		{
 			DateTimeOffset.UtcNow.AddMinutes(1),
 			DateTimeOffset.UtcNow.AddMinutes(2),
-			DateTimeOffset.UtcNow.AddMinutes(10),
+			DateTimeOffset.UtcNow.AddMinutes(10)
 		};
 
 		await sut.UpdateTimeAsync(messages.Select(x => x.Id).ToList(), times, CancellationToken.None);
 		_context.ChangeTracker.Clear();
-		var updatedMessages = await _context.Messages.Where(x => x.ScheduleId == schedule.Id).OrderBy(x=>x.TimePosting).ToListAsync();
-		updatedMessages.Select(x => x.TimePosting.ToString()).ShouldBe(times.OrderBy(x=>x).Select(x => x.ToString()));
+		var updatedMessages = await _context.Messages.Where(x => x.ScheduleId == schedule.Id)
+			.OrderBy(x => x.TimePosting).ToListAsync();
+		updatedMessages.Select(x => x.TimePosting.ToString()).ShouldBe(times.OrderBy(x => x).Select(x => x.ToString()));
 	}
 }

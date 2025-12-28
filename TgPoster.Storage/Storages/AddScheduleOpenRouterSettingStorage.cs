@@ -8,12 +8,12 @@ public class AddScheduleOpenRouterSettingStorage(PosterContext context) : IAddSc
 {
 	public Task<bool> ExistScheduleAsync(Guid scheduleId, Guid userId, CancellationToken ctx)
 	{
-		return context.Schedules.AnyAsync(x => x.Id == scheduleId && x.UserId == userId, cancellationToken: ctx);
+		return context.Schedules.AnyAsync(x => x.Id == scheduleId && x.UserId == userId, ctx);
 	}
 
 	public Task<bool> ExistOpenRouterAsync(Guid openRouterId, Guid userId, CancellationToken ctx)
 	{
-		return context.OpenRouterSettings.AnyAsync(x => x.Id == openRouterId && x.UserId == userId, cancellationToken: ctx);
+		return context.OpenRouterSettings.AnyAsync(x => x.Id == openRouterId && x.UserId == userId, ctx);
 	}
 
 	public async Task UpdateOpenRouterAsync(Guid openRouterId, Guid scheduleId, CancellationToken ctx)

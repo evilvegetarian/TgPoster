@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 namespace TgPoster.API.Models;
 
 /// <summary>
-/// Создание запроса на парсинг канала
+///     Создание запроса на парсинг канала
 /// </summary>
 public class CreateParseChannelRequest : IValidatableObject
 {
@@ -53,13 +53,14 @@ public class CreateParseChannelRequest : IValidatableObject
 	///     До какой даты парсить
 	/// </summary>
 	public DateTime? DateTo { get; set; }
-	/// <summary>
-	/// Нужно ли анализировать пост через аи
-	/// </summary>
-	public  bool UseAiForPosts { get; set; }
 
 	/// <summary>
-	/// Валидация 
+	///     Нужно ли анализировать пост через аи
+	/// </summary>
+	public bool UseAiForPosts { get; set; }
+
+	/// <summary>
+	///     Валидация
 	/// </summary>
 	/// <param name="validationContext"></param>
 	/// <returns></returns>

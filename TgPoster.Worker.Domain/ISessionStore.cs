@@ -6,9 +6,11 @@ namespace TgPoster.Worker.Domain;
 
 public class TelegramSessionManager : IDisposable
 {
+	private readonly ConcurrentDictionary<Guid, Client> _activeClients = new();
 	private readonly string _sessionsDirectory;
 
-	private readonly ConcurrentDictionary<Guid, Client> _activeClients = new();
+	// Заглушка для хранения номеров
+	private readonly ConcurrentDictionary<Guid, string> _userPhoneNumbers = new();
 
 	public TelegramSessionManager(string sessionsDirectory = "sessions")
 	{
@@ -19,8 +21,16 @@ public class TelegramSessionManager : IDisposable
 		}
 	}
 
+	public void Dispose()
+	{
+		foreach (var client in _activeClients.Values)
+		{
+			client.Dispose();
+		}
+	}
+
 	/// <summary>
-	/// Получает или создает клиент для указанного пользователя.
+	///     Получает или создает клиент для указанного пользователя.
 	/// </summary>
 	/// <param name="userId">Уникальный идентификатор пользователя в вашей системе.</param>
 	/// <returns>Готовый к работе WTelegram.Client или null, если требуется вход.</returns>
@@ -31,9 +41,10 @@ public class TelegramSessionManager : IDisposable
 			return client;
 		}
 
-		string? sessionPath = Path.Combine(_sessionsDirectory, $"{userId}.session");
+		var sessionPath = Path.Combine(_sessionsDirectory, $"{userId}.session");
 
 		var session = await GetUserLoginInfoFromYourDbAsync(userId);
+
 		string? Config(string key)
 		{
 			return key switch
@@ -63,7 +74,7 @@ public class TelegramSessionManager : IDisposable
 		catch (RpcException e) when (e.Code == 401 && e.Message.Contains("SESSION_PASSWORD_NEEDED"))
 		{
 			Console.WriteLine($"Для пользователя {userId} требуется двухфакторный пароль.");
-			_activeClients[userId] = client; 
+			_activeClients[userId] = client;
 			return client;
 		}
 		catch (Exception ex)
@@ -72,13 +83,16 @@ public class TelegramSessionManager : IDisposable
 			await client.DisposeAsync();
 			// Возможно, сессия протухла. Можно удалить файл сессии.
 			if (File.Exists(sessionPath))
+			{
 				File.Delete(sessionPath);
+			}
+
 			return null;
 		}
 	}
 
 	/// <summary>
-	/// Метод для инициации нового входа (когда сессии еще нет).
+	///     Метод для инициации нового входа (когда сессии еще нет).
 	/// </summary>
 	public async Task<string> StartLoginAsync(Guid userId, string phoneNumber)
 	{
@@ -105,25 +119,15 @@ public class TelegramSessionManager : IDisposable
 		return "login_successful";
 	}
 
-	public void Dispose()
-	{
-		foreach (var client in _activeClients.Values)
-		{
-			client.Dispose();
-		}
-	}
-
 	// ----------- Заглушки для вашей логики работы с БД -----------
-	private async Task<TelegramSession> GetUserLoginInfoFromYourDbAsync(Guid userId)
-	{
-		return new TelegramSession
+	private async Task<TelegramSession> GetUserLoginInfoFromYourDbAsync(Guid userId) =>
+		new()
 		{
 			Id = default,
 			ApiId = null,
 			ApiHash = null,
 			PhoneNumber = null
 		};
-	}
 
 	private async Task SaveUserPhoneNumberInYourDbAsync(Guid userId, string phoneNumber)
 	{
@@ -131,9 +135,6 @@ public class TelegramSessionManager : IDisposable
 		// Пример-заглушка:
 		_userPhoneNumbers[userId] = phoneNumber;
 	}
-
-	// Заглушка для хранения номеров
-	private readonly ConcurrentDictionary<Guid, string> _userPhoneNumbers = new();
 }
 
 public class TelegramSession

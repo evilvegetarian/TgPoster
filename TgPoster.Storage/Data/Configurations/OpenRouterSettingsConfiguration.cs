@@ -16,7 +16,7 @@ internal class OpenRouterSettingsConfiguration : BaseEntityConfiguration<OpenRou
 		builder.HasOne(x => x.User)
 			.WithMany(x => x.OpenRouterSettings)
 			.HasForeignKey(x => x.UserId);
-		
+
 		builder.HasOne(x => x.Schedule)
 			.WithOne(x => x.OpenRouterSetting)
 			.HasForeignKey<OpenRouterSetting>(d => d.ScheduleId);

@@ -8,7 +8,7 @@ internal class LoadFilesMessageUseCase(
 	ILoadFilesMessageStorage storage,
 	TelegramService telegramService,
 	TelegramTokenService tokenService
-	)
+)
 	: IRequestHandler<LoadFilesMessageCommand>
 {
 	public async Task Handle(LoadFilesMessageCommand request, CancellationToken ct)

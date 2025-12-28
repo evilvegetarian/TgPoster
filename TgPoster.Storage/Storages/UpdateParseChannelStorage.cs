@@ -9,7 +9,8 @@ public class UpdateParseChannelStorage(PosterContext context) : IUpdateParseChan
 {
 	public Task<bool> ExistParseChannelAsync(Guid id, Guid userId, CancellationToken cancellationToken)
 	{
-		return context.ChannelParsingParameters.AnyAsync(x => x.Id == id && x.Schedule.UserId == userId, cancellationToken);
+		return context.ChannelParsingParameters.AnyAsync(x => x.Id == id && x.Schedule.UserId == userId,
+			cancellationToken);
 	}
 
 	public Task UpdateParseChannelAsync(UpdateParseChannelCommand command, CancellationToken cancellationToken)
