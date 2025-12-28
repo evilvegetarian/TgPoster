@@ -10,4 +10,5 @@ public sealed class MessageResponse
 	public required bool CanApprove { get; set; }
 	public List<FileResponse> Files { get; set; } = [];
 	public required bool IsSent { get; set; }
+	public required bool HasVideo { get; set; }
 }

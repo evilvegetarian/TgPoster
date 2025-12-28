@@ -38,6 +38,7 @@ internal sealed class ListMessageUseCase(
 			NeedApprove = !m.IsVerified,
 			CanApprove = true,
 			IsSent = m.IsSent,
+			HasVideo = m.Files.Any(f => f.ContentType.GetFileType() == FileTypes.Video),
 			Files = m.Files.Select(file => new FileResponse
 			{
 				Id = file.Id,

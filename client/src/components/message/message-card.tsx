@@ -1,12 +1,15 @@
-import {Clock} from "lucide-react"
+import {Clock, Youtube} from "lucide-react"
 import {format} from "date-fns"
 import {ru} from "date-fns/locale"
 import {Card, CardContent} from "@/components/ui/card"
 import {Checkbox} from "@/components/ui/checkbox"
 import {Badge} from "@/components/ui/badge"
+import {Button} from "@/components/ui/button"
 import {FilePreview} from "./file-preview"
 import {EditMessageDialog} from "./edit-message-dialog"
 import type {MessageResponse} from "@/api/endpoints/tgPosterAPI.schemas"
+import {usePostApiV1YoutubeMessageId} from "@/api/endpoints/you-tube-account/you-tube-account"
+import {toast} from "sonner"
 
 interface MessageCardProps {
     message: MessageResponse,
@@ -17,6 +20,17 @@ interface MessageCardProps {
 }
 
 export function MessageCard({message, isSelected, onSelectionChange, availableTimes, onTimeSelect}: MessageCardProps) {
+
+    const {mutate: publishVideo, isPending: isPublishing} = usePostApiV1YoutubeMessageId({
+        mutation: {
+            onSuccess: () => {
+                toast.success("Видео успешно отправлено на публикацию")
+            },
+            onError: () => {
+                toast.error("Ошибка при отправке видео")
+            }
+        }
+    })
 
     const getStatusBadge = (needApprove: boolean, canApprove: boolean, isSent: boolean) => {
         if (needApprove && !canApprove) {
@@ -47,11 +61,25 @@ export function MessageCard({message, isSelected, onSelectionChange, availableTi
                                         {message.timePosting && format(new Date(message.timePosting), "dd.MM.yyyy HH:mm", {locale: ru})}
                                     </div>
                                 </div>
-                                <EditMessageDialog
-                                    availableTimes={availableTimes}
-                                    message={message}
-                                    onTimeSelect={onTimeSelect}
-                                />
+                                <div className="flex items-center gap-2">
+                                    {message.hasVideo && (
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            className="gap-2"
+                                            onClick={() => publishVideo({messageId: message.id})}
+                                            disabled={isPublishing}
+                                        >
+                                            <Youtube className="h-4 w-4"/>
+                                            {isPublishing ? "Публикация..." : "Опубликовать видео"}
+                                        </Button>
+                                    )}
+                                    <EditMessageDialog
+                                        availableTimes={availableTimes}
+                                        message={message}
+                                        onTimeSelect={onTimeSelect}
+                                    />
+                                </div>
                             </div>
 
                             {message.textMessage && (

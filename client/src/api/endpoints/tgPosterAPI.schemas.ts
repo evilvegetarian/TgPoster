@@ -267,6 +267,7 @@ export interface MessageResponse {
   /** @nullable */
   files?: FileResponse[] | null;
   isSent: boolean;
+  hasVideo: boolean;
 }
 
 export interface MessageResponsePagedResponse {
@@ -645,4 +646,3 @@ code?: string;
 state?: string;
 error?: string;
 };
-
