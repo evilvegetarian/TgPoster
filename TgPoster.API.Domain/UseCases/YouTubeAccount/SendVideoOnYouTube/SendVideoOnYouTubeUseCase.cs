@@ -1,4 +1,6 @@
 using Google.Apis.Auth.OAuth2;
+using Google.Apis.Auth.OAuth2.Flows;
+using Google.Apis.Auth.OAuth2.Responses;
 using Google.Apis.Services;
 using Google.Apis.Upload;
 using Google.Apis.YouTube.v3;
@@ -25,7 +27,12 @@ internal class SendVideoOnYouTubeUseCase(
 			throw new MessageNotFoundException(request.MessageId);
 		}
 
-		var accessToken = await storage.GetAccessTokenAsync(request.MessageId, provider.Current.UserId, ct);
+		var account = await storage.GetAccessTokenAsync(request.MessageId, provider.Current.UserId, ct);
+		if (account == null)
+		{
+			throw new Exception("YouTube account not found");
+		}
+
 		var telegram = await tokenService.GetTokenByMessageIdAsync(request.MessageId, ct);
 		var bot = new TelegramBotClient(telegram.token, cancellationToken: ct);
 
@@ -34,14 +41,28 @@ internal class SendVideoOnYouTubeUseCase(
 			using var stream = new MemoryStream();
 			var file = await bot.GetInfoAndDownloadFile(fileDto.TgFileId, stream, ct);
 
-			await UploadShortsAsync(accessToken, stream, "Funny", "Funny");
+			await UploadShortsAsync(account, stream, "Funny", "Funny");
 		}
 	}
 
-	public async Task<string> UploadShortsAsync(string token, MemoryStream stream, string title, string description)
+	public async Task<string> UploadShortsAsync(YouTubeAccountDto account, MemoryStream stream, string title, string description)
 	{
-		var credential = GoogleCredential.FromAccessToken(token);
-		// Если токен истек, нужно использовать RefreshToken (в простой реализации опускаем)
+		var tokenResponse = new TokenResponse
+		{
+			AccessToken = account.AccessToken,
+			RefreshToken = account.RefreshToken
+		};
+
+		var flow = new GoogleAuthorizationCodeFlow(new GoogleAuthorizationCodeFlow.Initializer
+		{
+			ClientSecrets = new ClientSecrets
+			{
+				ClientId = account.ClientId,
+				ClientSecret = account.ClientSecret
+			}
+		});
+
+		var credential = new UserCredential(flow, "user", tokenResponse);
 
 		var youtubeService = new YouTubeService(new BaseClientService.Initializer
 		{

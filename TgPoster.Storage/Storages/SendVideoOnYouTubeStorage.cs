@@ -26,14 +26,20 @@ public class SendVideoOnYouTubeStorage(PosterContext context) : ISendVideoOnYouT
 			.ToListAsync(ct);
 	}
 
-	public Task<string?> GetAccessTokenAsync(Guid messageId, Guid userId, CancellationToken ct)
+	public Task<YouTubeAccountDto?> GetAccessTokenAsync(Guid messageId, Guid userId, CancellationToken ct)
 	{
 		return context.Messages
 			.AsNoTracking()
 			.Where(x => x.Id == messageId)
 			.Where(x => x.Schedule.UserId == userId)
 			.Select(x => x.Schedule.YouTubeAccount)
-			.Select(x => x != null ? x.AccessToken : null)
+			.Select(x => x != null ? new YouTubeAccountDto
+			{
+				AccessToken = x.AccessToken,
+				RefreshToken = x.RefreshToken,
+				ClientId = x.ClientId,
+				ClientSecret = x.ClientSecret
+			} : null)
 			.FirstOrDefaultAsync(ct);
 	}
 }

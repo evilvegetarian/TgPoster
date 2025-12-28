@@ -27,6 +27,6 @@ public class CallBackYouTubeUseCase(ICallBackYouTubeStorage storage, IIdentityPr
 			request.CallBack,
 			ct
 		);
-		await storage.AddToken(accountYouTubeGuid, token.AccessToken, ct);
+		await storage.AddToken(accountYouTubeGuid, token.AccessToken, token.RefreshToken, ct);
 	}
 }
