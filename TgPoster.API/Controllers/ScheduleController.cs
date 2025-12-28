@@ -8,6 +8,7 @@ using TgPoster.API.Domain.UseCases.Schedules.DeleteSchedule;
 using TgPoster.API.Domain.UseCases.Schedules.GetSchedule;
 using TgPoster.API.Domain.UseCases.Schedules.ListSchedule;
 using TgPoster.API.Domain.UseCases.Schedules.UpdateActiveSchedule;
+using TgPoster.API.Domain.UseCases.Schedules.UpdateSchedule;
 using TgPoster.API.Models;
 
 namespace TgPoster.API.Controllers;
@@ -44,7 +45,7 @@ public class ScheduleController(ISender sender) : ControllerBase
 	public async Task<IActionResult> Create([FromBody] [Required] CreateScheduleRequest request, CancellationToken ct)
 	{
 		var response =
-			await sender.Send(new CreateScheduleCommand(request.Name, request.TelegramBotId, request.Channel), ct);
+			await sender.Send(new CreateScheduleCommand(request.Name, request.TelegramBotId, request.Channel, request.YouTubeAccountId), ct);
 		return Created(Routes.Schedule.Create, response);
 	}
 
@@ -93,6 +94,23 @@ public class ScheduleController(ISender sender) : ControllerBase
 	public async Task<IActionResult> UpdateStatus([FromRoute] [Required] Guid id, CancellationToken ct)
 	{
 		await sender.Send(new UpdateStatusScheduleCommand(id), ct);
+		return Ok();
+	}
+
+	/// <summary>
+	///     Обновить расписание
+	/// </summary>
+	/// <param name="id"></param>
+	/// <param name="request"></param>
+	/// <param name="ct"></param>
+	/// <returns></returns>
+	[HttpPut(Routes.Schedule.Update)]
+	[ProducesResponseType(StatusCodes.Status200OK)]
+	[ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
+	[ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
+	public async Task<IActionResult> Update([FromRoute] [Required] Guid id, [FromBody] [Required] UpdateScheduleRequest request, CancellationToken ct)
+	{
+		await sender.Send(new UpdateScheduleCommand(id, request.YouTubeAccountId), ct);
 		return Ok();
 	}
 }

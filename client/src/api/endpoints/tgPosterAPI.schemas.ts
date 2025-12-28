@@ -124,6 +124,8 @@ export interface CreateScheduleRequest {
    */
   channel: string;
   telegramBotId: string;
+  /** @nullable */
+  youTubeAccountId?: string | null;
 }
 
 export interface CreateScheduleResponse {
@@ -268,6 +270,7 @@ export interface MessageResponse {
   files?: FileResponse[] | null;
   isSent: boolean;
   hasVideo: boolean;
+  hasYouTubeAccount: boolean;
 }
 
 export interface MessageResponsePagedResponse {
@@ -417,6 +420,8 @@ export interface ScheduleResponse {
   openRouterId?: string | null;
   /** @nullable */
   promptId?: string | null;
+  /** @nullable */
+  youTubeAccountId?: string | null;
 }
 
 /**
@@ -528,6 +533,11 @@ export interface UpdateParseChannelRequest {
   useAiForPosts?: boolean;
 }
 
+export interface UpdateScheduleRequest {
+  /** @nullable */
+  youTubeAccountId?: string | null;
+}
+
 export interface UpdateTelegramBotRequest {
   /**
    * Название телеграм бота
@@ -547,6 +557,12 @@ export interface UpdateTimeRequest {
    * @nullable
    */
   times?: string[] | null;
+}
+
+export interface YouTubeAccountResponse {
+  id: string;
+  /** @nullable */
+  name: string | null;
 }
 
 export type GetApiV1DayParams = {
@@ -646,3 +662,4 @@ code?: string;
 state?: string;
 error?: string;
 };
+

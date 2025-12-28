@@ -8,7 +8,8 @@ import {
     MessageCircleMore,
     Settings,
     SignatureIcon,
-    UserPlus
+    UserPlus,
+    Youtube
 } from "lucide-react"
 
 import {
@@ -65,6 +66,11 @@ export function SideBar() {
                 title: "OpenRouter",
                 path: "/open-router",
                 icon: MessageCircleMore
+            },
+            {
+                title: "YouTube Аккаунты",
+                path: "/youtube-accounts",
+                icon: Youtube
             }
         ]
         : [

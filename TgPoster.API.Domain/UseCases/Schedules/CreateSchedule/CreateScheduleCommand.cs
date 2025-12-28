@@ -2,5 +2,5 @@ using MediatR;
 
 namespace TgPoster.API.Domain.UseCases.Schedules.CreateSchedule;
 
-public sealed record CreateScheduleCommand(string Name, Guid TelegramBotId, string Channel)
+public sealed record CreateScheduleCommand(string Name, Guid TelegramBotId, string Channel, Guid? YouTubeAccountId)
 	: IRequest<CreateScheduleResponse>;

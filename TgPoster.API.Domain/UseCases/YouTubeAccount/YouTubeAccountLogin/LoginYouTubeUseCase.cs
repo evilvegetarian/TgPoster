@@ -28,7 +28,11 @@ public class LoginYouTubeUseCase(ILoginYouTubeStorage storage, IIdentityProvider
 		var flow = new GoogleAuthorizationCodeFlow(new GoogleAuthorizationCodeFlow.Initializer
 		{
 			ClientSecrets = clientSecrets,
-			Scopes = [YouTubeService.Scope.YoutubeUpload]
+			Scopes =
+			[
+				YouTubeService.Scope.YoutubeUpload,
+				YouTubeService.Scope.YoutubeReadonly
+			]
 		});
 
 		if (clientSecrets?.ClientSecret is null || clientSecrets.ClientId is null)

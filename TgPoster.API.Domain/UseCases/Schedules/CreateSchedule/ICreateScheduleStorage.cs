@@ -8,6 +8,7 @@ public interface ICreateScheduleStorage
 		Guid telegramBot,
 		long channelId,
 		string userNameChat,
+		Guid? youTubeAccountId,
 		CancellationToken ct
 	);
 

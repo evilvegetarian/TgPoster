@@ -41,6 +41,7 @@ internal sealed class CreateScheduleUseCase(
 			request.TelegramBotId,
 			channel.Id,
 			userNameChat,
+			request.YouTubeAccountId,
 			ct);
 		return new CreateScheduleResponse
 		{

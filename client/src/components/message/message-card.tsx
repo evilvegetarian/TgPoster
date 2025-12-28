@@ -62,7 +62,7 @@ export function MessageCard({message, isSelected, onSelectionChange, availableTi
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-2">
-                                    {message.hasVideo && (
+                                    {message.hasVideo && message.hasYouTubeAccount && (
                                         <Button
                                             variant="outline"
                                             size="sm"

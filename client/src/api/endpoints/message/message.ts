@@ -860,7 +860,7 @@ export function useGetApiV1MessageMessageIdAiContent<TData = Awaited<ReturnType<
 
 
 /**
- * @summary     Обновляет время для всех постов.
+ * @summary Обновляет время для всех постов.
 Использовать при добавлние дат в расписании.
  */
 export const putApiV1MessageScheduleIdTimes = (
@@ -906,7 +906,7 @@ const {mutation: mutationOptions} = options ?
     export type PutApiV1MessageScheduleIdTimesMutationError = ProblemDetails
 
     /**
- * @summary     Обновляет время для всех постов.
+ * @summary Обновляет время для всех постов.
 Использовать при добавлние дат в расписании.
  */
 export const usePutApiV1MessageScheduleIdTimes = <TError = ProblemDetails,

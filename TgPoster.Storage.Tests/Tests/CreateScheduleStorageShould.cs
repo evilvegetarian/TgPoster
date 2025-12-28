@@ -26,6 +26,7 @@ public class CreateScheduleStorageShould(StorageTestFixture fixture) : IClassFix
 			telegramBot.Id,
 			channelId,
 			channelName,
+			null,
 			CancellationToken.None);
 
 		scheduleId.ShouldNotBe(Guid.Empty);

@@ -36,4 +36,9 @@ public sealed class ScheduleResponse
 	///     Id промтов
 	/// </summary>
 	public Guid? PromptId { get; init; }
+
+	/// <summary>
+	///     Id YouTube аккаунта
+	/// </summary>
+	public Guid? YouTubeAccountId { get; init; }
 }

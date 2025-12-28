@@ -23,10 +23,23 @@ public class CallBackYouTubeStorage(PosterContext context) : ICallBackYouTubeSto
 	{
 		var entity = await context.YouTubeAccounts.FirstOrDefaultAsync(x => x.Id == accountYouTubeId, ct);
 		entity!.AccessToken = accessToken;
-		if (refreshToken != null)
-		{
-			entity.RefreshToken = refreshToken;
-		}
+		entity.RefreshToken = refreshToken;
+		await context.SaveChangesAsync(ct);
+	}
+
+	public async Task AddToken(
+		Guid accountYouTubeId,
+		string accessToken,
+		string refreshToken,
+		string channelName,
+		string? channelId,
+		CancellationToken ct
+	)
+	{
+		var entity = await context.YouTubeAccounts.FirstOrDefaultAsync(x => x.Id == accountYouTubeId, ct);
+		entity!.AccessToken = accessToken;
+		entity.RefreshToken = refreshToken;
+		entity.Name = channelName;
 		await context.SaveChangesAsync(ct);
 	}
 }

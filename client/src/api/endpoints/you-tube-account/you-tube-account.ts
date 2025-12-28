@@ -25,7 +25,9 @@ import type {
 
 import type {
   GetApiV1YoutubeCallbackParams,
-  PostApiV1YoutubeBody
+  PostApiV1YoutubeBody,
+  ProblemDetails,
+  YouTubeAccountResponse
 } from '../tgPosterAPI.schemas';
 
 import { customInstance } from '../../axios-instance';
@@ -62,7 +64,7 @@ if(postApiV1YoutubeBody.ClientSecret !== undefined) {
   
 
 
-export const getPostApiV1YoutubeMutationOptions = <TError = unknown,
+export const getPostApiV1YoutubeMutationOptions = <TError = ProblemDetails,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postApiV1Youtube>>, TError,{data: PostApiV1YoutubeBody}, TContext>, }
 ): UseMutationOptions<Awaited<ReturnType<typeof postApiV1Youtube>>, TError,{data: PostApiV1YoutubeBody}, TContext> => {
 
@@ -89,12 +91,12 @@ const {mutation: mutationOptions} = options ?
 
     export type PostApiV1YoutubeMutationResult = NonNullable<Awaited<ReturnType<typeof postApiV1Youtube>>>
     export type PostApiV1YoutubeMutationBody = PostApiV1YoutubeBody
-    export type PostApiV1YoutubeMutationError = unknown
+    export type PostApiV1YoutubeMutationError = ProblemDetails
 
     /**
  * @summary Регистрация Аккаунта, редиректит на гугл авторизацию
  */
-export const usePostApiV1Youtube = <TError = unknown,
+export const usePostApiV1Youtube = <TError = ProblemDetails,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postApiV1Youtube>>, TError,{data: PostApiV1YoutubeBody}, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof postApiV1Youtube>>,
@@ -108,6 +110,93 @@ export const usePostApiV1Youtube = <TError = unknown,
       return useMutation(mutationOptions , queryClient);
     }
     /**
+ * @summary Получение списка ютуб аккаунтов
+ */
+export const getApiV1Youtube = (
+    
+ signal?: AbortSignal
+) => {
+      
+      
+      return customInstance<YouTubeAccountResponse[]>(
+      {url: `/api/v1/youtube`, method: 'GET', signal
+    },
+      );
+    }
+  
+
+export const getGetApiV1YoutubeQueryKey = () => {
+    return [`/api/v1/youtube`] as const;
+    }
+
+    
+export const getGetApiV1YoutubeQueryOptions = <TData = Awaited<ReturnType<typeof getApiV1Youtube>>, TError = ProblemDetails>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1Youtube>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetApiV1YoutubeQueryKey();
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getApiV1Youtube>>> = ({ signal }) => getApiV1Youtube(signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getApiV1Youtube>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetApiV1YoutubeQueryResult = NonNullable<Awaited<ReturnType<typeof getApiV1Youtube>>>
+export type GetApiV1YoutubeQueryError = ProblemDetails
+
+
+export function useGetApiV1Youtube<TData = Awaited<ReturnType<typeof getApiV1Youtube>>, TError = ProblemDetails>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1Youtube>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getApiV1Youtube>>,
+          TError,
+          Awaited<ReturnType<typeof getApiV1Youtube>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetApiV1Youtube<TData = Awaited<ReturnType<typeof getApiV1Youtube>>, TError = ProblemDetails>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1Youtube>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getApiV1Youtube>>,
+          TError,
+          Awaited<ReturnType<typeof getApiV1Youtube>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetApiV1Youtube<TData = Awaited<ReturnType<typeof getApiV1Youtube>>, TError = ProblemDetails>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1Youtube>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Получение списка ютуб аккаунтов
+ */
+
+export function useGetApiV1Youtube<TData = Awaited<ReturnType<typeof getApiV1Youtube>>, TError = ProblemDetails>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1Youtube>>, TError, TData>>, }
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetApiV1YoutubeQueryOptions(options)
+
+  const query = useQuery(queryOptions , queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+/**
  * @summary Коллбэк от гугл обратно к нам
  */
 export const getApiV1YoutubeCallback = (
@@ -129,7 +218,7 @@ export const getGetApiV1YoutubeCallbackQueryKey = (params?: GetApiV1YoutubeCallb
     }
 
     
-export const getGetApiV1YoutubeCallbackQueryOptions = <TData = Awaited<ReturnType<typeof getApiV1YoutubeCallback>>, TError = unknown>(params?: GetApiV1YoutubeCallbackParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1YoutubeCallback>>, TError, TData>>, }
+export const getGetApiV1YoutubeCallbackQueryOptions = <TData = Awaited<ReturnType<typeof getApiV1YoutubeCallback>>, TError = ProblemDetails>(params?: GetApiV1YoutubeCallbackParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1YoutubeCallback>>, TError, TData>>, }
 ) => {
 
 const {query: queryOptions} = options ?? {};
@@ -148,10 +237,10 @@ const {query: queryOptions} = options ?? {};
 }
 
 export type GetApiV1YoutubeCallbackQueryResult = NonNullable<Awaited<ReturnType<typeof getApiV1YoutubeCallback>>>
-export type GetApiV1YoutubeCallbackQueryError = unknown
+export type GetApiV1YoutubeCallbackQueryError = ProblemDetails
 
 
-export function useGetApiV1YoutubeCallback<TData = Awaited<ReturnType<typeof getApiV1YoutubeCallback>>, TError = unknown>(
+export function useGetApiV1YoutubeCallback<TData = Awaited<ReturnType<typeof getApiV1YoutubeCallback>>, TError = ProblemDetails>(
  params: undefined |  GetApiV1YoutubeCallbackParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1YoutubeCallback>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof getApiV1YoutubeCallback>>,
@@ -161,7 +250,7 @@ export function useGetApiV1YoutubeCallback<TData = Awaited<ReturnType<typeof get
       >, }
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetApiV1YoutubeCallback<TData = Awaited<ReturnType<typeof getApiV1YoutubeCallback>>, TError = unknown>(
+export function useGetApiV1YoutubeCallback<TData = Awaited<ReturnType<typeof getApiV1YoutubeCallback>>, TError = ProblemDetails>(
  params?: GetApiV1YoutubeCallbackParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1YoutubeCallback>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof getApiV1YoutubeCallback>>,
@@ -171,7 +260,7 @@ export function useGetApiV1YoutubeCallback<TData = Awaited<ReturnType<typeof get
       >, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetApiV1YoutubeCallback<TData = Awaited<ReturnType<typeof getApiV1YoutubeCallback>>, TError = unknown>(
+export function useGetApiV1YoutubeCallback<TData = Awaited<ReturnType<typeof getApiV1YoutubeCallback>>, TError = ProblemDetails>(
  params?: GetApiV1YoutubeCallbackParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1YoutubeCallback>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
@@ -179,7 +268,7 @@ export function useGetApiV1YoutubeCallback<TData = Awaited<ReturnType<typeof get
  * @summary Коллбэк от гугл обратно к нам
  */
 
-export function useGetApiV1YoutubeCallback<TData = Awaited<ReturnType<typeof getApiV1YoutubeCallback>>, TError = unknown>(
+export function useGetApiV1YoutubeCallback<TData = Awaited<ReturnType<typeof getApiV1YoutubeCallback>>, TError = ProblemDetails>(
  params?: GetApiV1YoutubeCallbackParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1YoutubeCallback>>, TError, TData>>, }
  , queryClient?: QueryClient 
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
@@ -212,7 +301,7 @@ export const postApiV1YoutubeMessageId = (
   
 
 
-export const getPostApiV1YoutubeMessageIdMutationOptions = <TError = unknown,
+export const getPostApiV1YoutubeMessageIdMutationOptions = <TError = ProblemDetails,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postApiV1YoutubeMessageId>>, TError,{messageId: string}, TContext>, }
 ): UseMutationOptions<Awaited<ReturnType<typeof postApiV1YoutubeMessageId>>, TError,{messageId: string}, TContext> => {
 
@@ -239,12 +328,12 @@ const {mutation: mutationOptions} = options ?
 
     export type PostApiV1YoutubeMessageIdMutationResult = NonNullable<Awaited<ReturnType<typeof postApiV1YoutubeMessageId>>>
     
-    export type PostApiV1YoutubeMessageIdMutationError = unknown
+    export type PostApiV1YoutubeMessageIdMutationError = ProblemDetails
 
     /**
  * @summary Отправка сообщения с видео в ютуб
  */
-export const usePostApiV1YoutubeMessageId = <TError = unknown,
+export const usePostApiV1YoutubeMessageId = <TError = ProblemDetails,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postApiV1YoutubeMessageId>>, TError,{messageId: string}, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof postApiV1YoutubeMessageId>>,

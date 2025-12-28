@@ -27,7 +27,8 @@ import type {
   CreateScheduleRequest,
   CreateScheduleResponse,
   ProblemDetails,
-  ScheduleResponse
+  ScheduleResponse,
+  UpdateScheduleRequest
 } from '../tgPosterAPI.schemas';
 
 import { customInstance } from '../../axios-instance';
@@ -331,6 +332,70 @@ export const useDeleteApiV1ScheduleId = <TError = ProblemDetails,
       > => {
 
       const mutationOptions = getDeleteApiV1ScheduleIdMutationOptions(options);
+
+      return useMutation(mutationOptions , queryClient);
+    }
+    /**
+ * @summary Обновить расписание
+ */
+export const putApiV1ScheduleId = (
+    id: string,
+    updateScheduleRequest: UpdateScheduleRequest,
+ ) => {
+      
+      
+      return customInstance<void>(
+      {url: `/api/v1/schedule/${id}`, method: 'PUT',
+      headers: {'Content-Type': 'application/json', },
+      data: updateScheduleRequest
+    },
+      );
+    }
+  
+
+
+export const getPutApiV1ScheduleIdMutationOptions = <TError = ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof putApiV1ScheduleId>>, TError,{id: string;data: UpdateScheduleRequest}, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof putApiV1ScheduleId>>, TError,{id: string;data: UpdateScheduleRequest}, TContext> => {
+
+const mutationKey = ['putApiV1ScheduleId'];
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof putApiV1ScheduleId>>, {id: string;data: UpdateScheduleRequest}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  putApiV1ScheduleId(id,data,)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type PutApiV1ScheduleIdMutationResult = NonNullable<Awaited<ReturnType<typeof putApiV1ScheduleId>>>
+    export type PutApiV1ScheduleIdMutationBody = UpdateScheduleRequest
+    export type PutApiV1ScheduleIdMutationError = ProblemDetails
+
+    /**
+ * @summary Обновить расписание
+ */
+export const usePutApiV1ScheduleId = <TError = ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof putApiV1ScheduleId>>, TError,{id: string;data: UpdateScheduleRequest}, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof putApiV1ScheduleId>>,
+        TError,
+        {id: string;data: UpdateScheduleRequest},
+        TContext
+      > => {
+
+      const mutationOptions = getPutApiV1ScheduleIdMutationOptions(options);
 
       return useMutation(mutationOptions , queryClient);
     }

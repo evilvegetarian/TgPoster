@@ -30,6 +30,7 @@ internal sealed class GetMessageUseCase(
 			CanApprove = true,
 			NeedApprove = !message.IsVerified,
 			IsSent = message.IsSent,
+			HasYouTubeAccount = message.HasYouTubeAccount,
 			HasVideo = message.Files.Any(f => f.ContentType.GetFileType() == FileTypes.Video),
 			Files = message.Files.Select(file => new FileResponse
 			{

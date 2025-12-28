@@ -14,4 +14,6 @@ public sealed class CreateScheduleRequest
 
 	[Required]
 	public required Guid TelegramBotId { get; init; }
+
+	public Guid? YouTubeAccountId { get; init; }
 }

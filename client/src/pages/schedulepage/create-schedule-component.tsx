@@ -32,12 +32,14 @@ import {Input} from "@/components/ui/input.tsx";
 import {ArrowLeft, Loader2, Plus} from "lucide-react";
 import {useGetApiV1TelegramBot} from "@/api/endpoints/telegram-bot/telegram-bot.ts";
 import {getGetApiV1ScheduleQueryKey, usePostApiV1Schedule} from "@/api/endpoints/schedule/schedule.ts";
-import {useQueryClient} from "@tanstack/react-query";
+import { useQueryClient} from "@tanstack/react-query";
+import {useGetApiV1Youtube} from "@/api/endpoints/you-tube-account/you-tube-account.ts";
 
 const formSchema = z.object({
     name: z.string().min(2, "Название должно быть не менее 2 символов").max(30, "Название должно быть не более 30 символов"),
     channel: z.string().min(5, "ID или @имя канала должно быть не менее 5 символов"),
     telegramBotId: z.string({required_error: "Необходимо выбрать Telegram бота.",}).min(1, "Необходимо выбрать Telegram бота."),
+    youTubeAccountId: z.string().optional(),
 });
 
 type CreateScheduleFormValues = z.infer<typeof formSchema>;
@@ -52,10 +54,13 @@ export function CreateScheduleComponent() {
             name: "",
             channel: "",
             telegramBotId: "",
+            youTubeAccountId: "",
         },
     });
 
     const {data: telegramBots = [], isLoading: botsLoading} = useGetApiV1TelegramBot();
+    const {data: youtubeAccounts = [], isLoading: youtubeLoading} = useGetApiV1Youtube();
+
     const {mutate: createScheduleMutate, isPending} = usePostApiV1Schedule({
         mutation: {
             onSuccess: () => {
@@ -160,6 +165,39 @@ export function CreateScheduleComponent() {
                                                         {bot.name || `Бот ${bot.id}`}
                                                     </SelectItem>
                                                 ))
+                                            )}
+                                        </SelectContent>
+                                    </Select>
+                                    <FormMessage/>
+                                </FormItem>
+                            )}
+                        />
+
+                        <FormField
+                            control={form.control}
+                            name="youTubeAccountId"
+                            render={({field}) => (
+                                <FormItem>
+                                    <FormLabel>YouTube Аккаунт (опционально)</FormLabel>
+                                    <Select onValueChange={field.onChange} defaultValue={field.value}
+                                            disabled={youtubeLoading}>
+                                        <FormControl>
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="Выберите YouTube аккаунт"/>
+                                            </SelectTrigger>
+                                        </FormControl>
+                                        <SelectContent>
+                                            {youtubeLoading ? (
+                                                <div className="p-2 text-sm text-muted-foreground">Загрузка...</div>
+                                            ) : (
+                                                <>
+                                                    <SelectItem value="none">Не выбрано</SelectItem>
+                                                    {youtubeAccounts.map((account) => (
+                                                        <SelectItem key={account.id} value={account.id}>
+                                                            {account.name}
+                                                        </SelectItem>
+                                                    ))}
+                                                </>
                                             )}
                                         </SelectContent>
                                     </Select>

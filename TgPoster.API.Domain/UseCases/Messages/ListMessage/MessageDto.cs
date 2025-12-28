@@ -10,4 +10,5 @@ public sealed class MessageDto
 	public List<FileDto> Files { get; set; } = [];
 	public DateTimeOffset? Created { get; set; }
 	public bool IsSent { get; set; }
+	public bool HasYouTubeAccount { get; set; }
 }

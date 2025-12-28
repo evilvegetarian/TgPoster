@@ -11,4 +11,5 @@ public sealed class MessageResponse
 	public List<FileResponse> Files { get; set; } = [];
 	public required bool IsSent { get; set; }
 	public required bool HasVideo { get; set; }
+	public required bool HasYouTubeAccount { get; set; }
 }

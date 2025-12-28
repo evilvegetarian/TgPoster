@@ -22,6 +22,7 @@ internal static class Routes
 		internal const string Get = Root + "/{id:guid}";
 		internal const string Delete = Root + "/{id:guid}";
 		internal const string UpdateStatus = Root + "/{id:guid}/status";
+		internal const string Update = Root + "/{id:guid}";
 	}
 
 	internal static class Day
@@ -103,6 +104,7 @@ internal static class Routes
 	{
 		internal const string Root = Base + "/youtube";
 		internal const string Create = Root;
+		internal const string List = Root;
 		internal const string CallBack = Root + "/callback";
 		internal const string SendVideo = Root + "/{messageId:guid}";
 	}

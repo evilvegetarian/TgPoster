@@ -90,6 +90,7 @@ internal sealed class ListMessageStorage(PosterContext context) : IListMessageSt
 				IsVerified = message.IsVerified,
 				Created = message.Created,
 				IsSent = message.Status == Data.Enum.MessageStatus.Send,
+				HasYouTubeAccount = message.Schedule.YouTubeAccountId.HasValue,
 				Files = message.MessageFiles.Select(file => new FileDto
 				{
 					Id = file.Id,

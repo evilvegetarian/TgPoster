@@ -13,6 +13,7 @@ internal sealed class CreateScheduleStorage(PosterContext context, GuidFactory g
 		Guid telegramBot,
 		long channelId,
 		string userNameChat,
+		Guid? youTubeAccountId,
 		CancellationToken ct
 	)
 	{
@@ -24,7 +25,8 @@ internal sealed class CreateScheduleStorage(PosterContext context, GuidFactory g
 			TelegramBotId = telegramBot,
 			ChannelId = channelId,
 			ChannelName = userNameChat,
-			IsActive = true
+			IsActive = true,
+			YouTubeAccountId = youTubeAccountId
 		};
 		await context.Schedules.AddAsync(schedule, ct);
 		await context.SaveChangesAsync(ct);

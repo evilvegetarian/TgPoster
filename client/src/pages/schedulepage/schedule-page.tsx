@@ -11,7 +11,7 @@ import {toast} from "sonner"
 import {
     useDeleteApiV1ScheduleId,
     useGetApiV1Schedule,
-    usePatchApiV1ScheduleIdStatus,
+    usePatchApiV1ScheduleIdStatus, usePutApiV1ScheduleId,
 } from "@/api/endpoints/schedule/schedule.ts"
 import {useGetApiV1Day, usePatchApiV1DayTime} from "@/api/endpoints/day/day.ts"
 import type {DayOfWeek, ScheduleResponse} from "@/api/endpoints/tgPosterAPI.schemas.ts"
@@ -30,6 +30,7 @@ import {EditIiComponent} from "@/pages/edit-ii-component.tsx";
 import {usePutApiV1MessageScheduleIdTimes} from "@/api/endpoints/message/message.ts";
 import {convertLocalToIsoTime, convertUtcTimeToLocalTime} from "@/utils/convertLocalToIsoTime.tsx"
 import {CreateScheduleComponent} from "@/pages/schedulepage/create-schedule-component.tsx";
+import {useGetApiV1Youtube} from "@/api/endpoints/you-tube-account/you-tube-account.ts";
 
 
 interface NewTimeSlot {
@@ -83,6 +84,19 @@ export function SchedulePage() {
     const deleteScheduleMutation = useDeleteApiV1ScheduleId();
     const toggleActiveMutation = usePatchApiV1ScheduleIdStatus()
     const updateTimeMutation = usePatchApiV1DayTime()
+
+    const {data: youtubeAccounts = [], isLoading: youtubeLoading} = useGetApiV1Youtube();
+
+    const {mutate: updateScheduleMutate, isPending: updateSchedulePending} = usePutApiV1ScheduleId({
+        mutation: {
+            onSuccess: () => {
+                toast.success("Расписание обновлено");
+            },
+            onError: () => {
+                toast.error("Не удалось обновить расписание");
+            },
+        },
+    });
 
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
 
@@ -280,6 +294,13 @@ export function SchedulePage() {
         }
     }
 
+    function updateYouTube(id: string, newValue: string|null) {
+        updateScheduleMutate({
+            id: id,
+            data: { youTubeAccountId: newValue }
+        });
+    }
+
     return (
         <div className="max-w-6xl mx-auto p-6 space-y-8">
             <header className="flex items-center justify-between">
@@ -436,7 +457,37 @@ export function SchedulePage() {
                                         disabled={toggleActiveMutation.isPending}
                                     />
                                 </div>
+                            </div>
 
+                            <div className="flex items-center justify-between rounded-lg border p-4">
+                                <div className="flex items-center gap-2 w-full">
+                                    <Label htmlFor="edit-schedule-youtube" className="text-sm min-w-fit">YouTube
+                                        Аккаунт</Label>
+                                    <Select
+                                        value={editingSchedule.youTubeAccountId || "none"}
+                                        onValueChange={(value) => {
+                                            const newValue = value === "none" ? undefined : value;
+                                        updateYouTube(editingSchedule?.id, newValue??null)
+                                            setEditingSchedule(prev => prev ? {
+                                                ...prev,
+                                                youTubeAccountId: newValue || null
+                                            } : null);
+                                        }}
+                                        disabled={youtubeLoading || updateSchedulePending}
+                                    >
+                                        <SelectTrigger className="w-full">
+                                            <SelectValue placeholder="Выберите аккаунт"/>
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="none">Не выбрано</SelectItem>
+                                            {youtubeAccounts.map((account) => (
+                                                <SelectItem key={account.id} value={account.id}>
+                                                    {account.name}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
                             </div>
 
                             <Card>
@@ -751,4 +802,3 @@ export function SchedulePage() {
         </div>
     )
 }
-

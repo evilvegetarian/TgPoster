@@ -39,6 +39,7 @@ internal sealed class ListMessageUseCase(
 			CanApprove = true,
 			IsSent = m.IsSent,
 			HasVideo = m.Files.Any(f => f.ContentType.GetFileType() == FileTypes.Video),
+			HasYouTubeAccount = m.HasYouTubeAccount,
 			Files = m.Files.Select(file => new FileResponse
 			{
 				Id = file.Id,
