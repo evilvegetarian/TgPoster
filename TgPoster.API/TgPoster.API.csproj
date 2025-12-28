@@ -40,12 +40,6 @@
         <ProjectReference Include="..\TgPoster.Storage\TgPoster.Storage.csproj"/>
     </ItemGroup>
 
-    <ItemGroup>
-        <Content Include="..\ffmpeg\**">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-            <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-        </Content>
-    </ItemGroup>
 
     <ItemGroup>
         <Content Include="..\.dockerignore">

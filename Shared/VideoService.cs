@@ -43,8 +43,7 @@ public sealed class VideoService
 		{
 			// 1. Оптимизированная запись потока в файл без создания лишнего массива  памяти
 			videoStream.Position = 0; // Убедимся, что читаем с начала
-			await using (var fileStream =
-			             new FileStream(tempVideoPath, FileMode.Create, FileAccess.Write, FileShare.None, 4096, true))
+			await using (var fileStream = new FileStream(tempVideoPath, FileMode.Create, FileAccess.Write, FileShare.None, 4096, true))
 			{
 				await videoStream.CopyToAsync(fileStream);
 			}

@@ -15,9 +15,6 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TgPoster.API", "TgPoster.API\TgPoster.API.csproj", "{8467393E-DC87-4987-87E2-21F80205AB84}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Utility", "Utility", "{0675C506-2113-48C0-BE9D-7245F6627261}"
-	ProjectSection(SolutionItems) = preProject
-		ffmpeg\ffprobe.exe = ffmpeg\ffprobe.exe
-	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Security", "Security\Security.csproj", "{8F275DF3-9F2F-41B3-B48B-83B498D3E443}"
 EndProject
@@ -28,6 +25,11 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TgPoster.Worker.Domain", "TgPoster.Worker.Domain\TgPoster.Worker.Domain.csproj", "{03F79A8D-14DA-4358-9676-630698BBA5E0}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shared", "Shared\Shared.csproj", "{F3C1ED31-C537-4BD9-80B3-0E932A14B3A7}"
+	ProjectSection(SolutionItems) = preProject
+		ffmpeg\ffplay.exe = ffmpeg\ffplay.exe
+		ffmpeg\ffprobe.exe = ffmpeg\ffprobe.exe
+		ffmpeg\ffmpeg.exe = ffmpeg\ffmpeg.exe
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shared.Tests", "Shared.Tests\Shared.Tests.csproj", "{7B803F9A-5690-44A7-9A45-86AB63A1A474}"
 EndProject

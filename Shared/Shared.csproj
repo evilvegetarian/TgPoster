@@ -7,6 +7,12 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <Content Include="..\ffmpeg\**">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+            <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+        </Content>
+    </ItemGroup>
+    <ItemGroup>
         <PackageReference Include="FFMpegCore" Version="5.2.0"/>
         <PackageReference Include="MassTransit" Version="8.3.7"/>
         <PackageReference Include="Microsoft.AspNetCore.Http.Features" Version="5.0.17"/>
