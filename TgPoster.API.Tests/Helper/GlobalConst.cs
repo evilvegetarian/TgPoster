@@ -17,7 +17,7 @@ internal static class GlobalConst
 		public static readonly Guid UserId = Guid.Parse("b6cbe54a-21d2-44d5-bfcc-a9f93e3fc93c");
 		public static readonly long ChannelId = -1002233268199;
 		public static readonly long ChatIdTg = 492807650;
-		public static readonly string Channel = "https://t.me/kotiksuper";
+		public static readonly string Channel = "https://t.me/testKanalsrt";
 		public static readonly string UserName = "Default_User_For_APP";
 		public static readonly string Password = "string";
 		public static readonly string Model = "openai/gpt-3.5-turbo-0613";

@@ -30,7 +30,7 @@ internal class MonitoringPipelineBehavior<TRequest, TResponse>(
 		{
 			var result = await next.Invoke();
 
-			logger.LogInformation("UseCase {UseCaseName} handled successfully.", request.GetType().Name);
+			logger.LogDebug("UseCase {UseCaseName} handled successfully.", request.GetType().Name);
 			metrics.IncrementCount(counterName, 1, DomainMetrics.ResultTags(true));
 			activity?.SetStatus(ActivityStatusCode.Ok);
 
