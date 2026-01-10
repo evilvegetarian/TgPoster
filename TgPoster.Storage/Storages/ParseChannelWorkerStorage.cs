@@ -16,13 +16,18 @@ internal class ParseChannelWorkerStorage(PosterContext context) : IParseChannelW
 			.ToListAsync();
 	}
 
-	public Task SetInHandleStatusAsync(List<Guid> ids)
+	public async Task SetInHandleStatusAsync(List<Guid> ids)
 	{
-		return context.ChannelParsingParameters
+		var parameters = await context.ChannelParsingParameters
 			.Where(x => ids.Contains(x.Id))
-			.ExecuteUpdateAsync(updater =>
-				updater.SetProperty(
-					x => x.Status, ParsingStatus.InHandle));
+			.ToListAsync();
+
+		foreach (var parameter in parameters)
+		{
+			parameter.Status = ParsingStatus.InHandle;
+		}
+
+		await context.SaveChangesAsync();
 	}
 
 	public async Task SetWaitingStatusAsync(Guid id)

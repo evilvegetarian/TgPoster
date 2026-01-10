@@ -53,30 +53,44 @@ internal class SenderMessageStorage(PosterContext context) : ISenderMessageStora
 			.ToListAsync();
 	}
 
-	public Task UpdateStatusInHandleMessageAsync(List<Guid> ids)
+	public async Task UpdateStatusInHandleMessageAsync(List<Guid> ids)
 	{
-		return context.Messages
+		var messages = await context.Messages
 			.Where(m => ids.Contains(m.Id))
-			.ExecuteUpdateAsync(m =>
-				m.SetProperty(msg => msg.Status, MessageStatus.InHandle)
-			);
+			.ToListAsync();
+
+		foreach (var message in messages)
+		{
+			message.Status = MessageStatus.InHandle;
+		}
+
+		await context.SaveChangesAsync();
 	}
 
-	public Task UpdateSendStatusMessageAsync(Guid id)
+	public async Task UpdateSendStatusMessageAsync(Guid id)
 	{
-		return context.Messages
+		var message = await context.Messages
 			.Where(m => m.Id == id)
-			.ExecuteUpdateAsync(m =>
-				m.SetProperty(msg => msg.Status, MessageStatus.Send)
-			);
+			.FirstOrDefaultAsync();
+
+		if (message != null)
+		{
+			message.Status = MessageStatus.Send;
+			await context.SaveChangesAsync();
+		}
 	}
 
-	public Task UpdateYouTubeTokensAsync(Guid youTubeAccountId, string accessToken, string? refreshToken, CancellationToken ct)
+	public async Task UpdateYouTubeTokensAsync(Guid youTubeAccountId, string accessToken, string? refreshToken, CancellationToken ct)
 	{
-		return context.YouTubeAccounts
+		var account = await context.YouTubeAccounts
 			.Where(x => x.Id == youTubeAccountId)
-			.ExecuteUpdateAsync(x => x
-				.SetProperty(a => a.AccessToken, accessToken)
-				.SetProperty(a => a.RefreshToken, refreshToken), ct);
+			.FirstOrDefaultAsync(ct);
+
+		if (account != null)
+		{
+			account.AccessToken = accessToken;
+			account.RefreshToken = refreshToken;
+			await context.SaveChangesAsync(ct);
+		}
 	}
 }

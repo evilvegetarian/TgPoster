@@ -45,12 +45,17 @@ public class SendVideoOnYouTubeStorage(PosterContext context) : ISendVideoOnYouT
 			.FirstOrDefaultAsync(ct);
 	}
 
-	public Task UpdateYouTubeTokensAsync(Guid youTubeAccountId, string accessToken, string? refreshToken, CancellationToken ct)
+	public async Task UpdateYouTubeTokensAsync(Guid youTubeAccountId, string accessToken, string? refreshToken, CancellationToken ct)
 	{
-		return context.YouTubeAccounts
+		var account = await context.YouTubeAccounts
 			.Where(x => x.Id == youTubeAccountId)
-			.ExecuteUpdateAsync(x => x
-				.SetProperty(a => a.AccessToken, accessToken)
-				.SetProperty(a => a.RefreshToken, refreshToken), ct);
+			.FirstOrDefaultAsync(ct);
+
+		if (account != null)
+		{
+			account.AccessToken = accessToken;
+			account.RefreshToken = refreshToken;
+			await context.SaveChangesAsync(ct);
+		}
 	}
 }

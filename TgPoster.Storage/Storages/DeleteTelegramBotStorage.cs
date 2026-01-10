@@ -11,10 +11,15 @@ public class DeleteTelegramBotStorage(PosterContext context) : IDeleteTelegramBo
 		return context.TelegramBots.AnyAsync(x => x.Id == id && x.OwnerId == currentUserId, ct);
 	}
 
-	public Task DeleteTelegramBotAsync(Guid id, Guid userId, CancellationToken ct)
+	public async Task DeleteTelegramBotAsync(Guid id, Guid userId, CancellationToken ct)
 	{
-		return context.TelegramBots
+		var bot = await context.TelegramBots
 			.Where(x => x.Id == id && x.OwnerId == userId)
-			.ExecuteUpdateAsync(b => b.SetProperty(x => x.Deleted, DateTime.UtcNow), ct);
+			.FirstOrDefaultAsync(ct);
+
+		if (bot != null)
+		{
+			await context.SaveChangesAsync(ct);
+		}
 	}
 }
