@@ -136,20 +136,11 @@ public class SenderMessageWorker(
 				using var stream = new MemoryStream();
 				await bot.GetInfoAndDownloadFile(videoFile.TgFileId, stream, CancellationToken.None);
 
-				var title = !string.IsNullOrWhiteSpace(youTubeAccount.DefaultTitle)
-					? youTubeAccount.DefaultTitle
-					: "Видео";
+				var result = await youTubeService.UploadVideoAsync(youTubeAccount, stream);
 
-				var description = !string.IsNullOrWhiteSpace(youTubeAccount.DefaultDescription)
-					? youTubeAccount.DefaultDescription
-					: string.Empty;
+				await storage.UpdateYouTubeTokensAsync(youTubeAccount.Id, result.AccessToken, result.RefreshToken, CancellationToken.None);
 
-				var tags = !string.IsNullOrWhiteSpace(youTubeAccount.DefaultTags)
-					? youTubeAccount.DefaultTags
-					: "shorts,vertical";
-
-				await youTubeService.UploadVideoAsync(youTubeAccount, stream, title, description, tags, CancellationToken.None);
-				logger.LogInformation("Видео успешно загружено на YouTube с названием: {title}", title);
+				logger.LogInformation("Видео успешно загружено на YouTube с названием: {title}", youTubeAccount.DefaultTitle);
 			}
 			catch (Exception e)
 			{

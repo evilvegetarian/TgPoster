@@ -33,6 +33,7 @@ internal class SendVideoOnYouTubeUseCase(
 
 		var youtubeAccount = new YouTubeAccountDto
 		{
+			Id = account.Id,
 			AccessToken = account.AccessToken,
 			RefreshToken = account.RefreshToken,
 			ClientId = account.ClientId,
@@ -44,13 +45,15 @@ internal class SendVideoOnYouTubeUseCase(
 			using var stream = new MemoryStream();
 			var file = await bot.GetInfoAndDownloadFile(fileDto.TgFileId, stream, ct);
 
-			await youTubeService.UploadVideoAsync(
+			var result = await youTubeService.UploadVideoAsync(
 				youtubeAccount,
 				stream,
 				"Funny",
 				"Funny #shorts",
 				"shorts,vertical",
 				ct);
+
+			await storage.UpdateYouTubeTokensAsync(account.Id, result.AccessToken, result.RefreshToken, ct);
 		}
 	}
 }

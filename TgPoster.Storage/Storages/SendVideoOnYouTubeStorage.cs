@@ -36,11 +36,21 @@ public class SendVideoOnYouTubeStorage(PosterContext context) : ISendVideoOnYouT
 			.Select(x => x.Schedule.YouTubeAccount)
 			.Select(x => x != null ? new YouTubeAccountDto
 			{
+				Id = x.Id,
 				AccessToken = x.AccessToken,
 				RefreshToken = x.RefreshToken,
 				ClientId = x.ClientId,
 				ClientSecret = x.ClientSecret
 			} : null)
 			.FirstOrDefaultAsync(ct);
+	}
+
+	public Task UpdateYouTubeTokensAsync(Guid youTubeAccountId, string accessToken, string? refreshToken, CancellationToken ct)
+	{
+		return context.YouTubeAccounts
+			.Where(x => x.Id == youTubeAccountId)
+			.ExecuteUpdateAsync(x => x
+				.SetProperty(a => a.AccessToken, accessToken)
+				.SetProperty(a => a.RefreshToken, refreshToken), ct);
 	}
 }

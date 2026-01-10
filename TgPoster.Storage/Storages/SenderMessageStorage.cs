@@ -23,6 +23,7 @@ internal class SenderMessageStorage(PosterContext context) : ISenderMessageStora
 				Api = x.TelegramBot.ApiTelegram,
 				YouTubeAccount = x.YouTubeAccount != null ? new YouTubeAccountDto
 				{
+					Id = x.YouTubeAccount.Id,
 					AccessToken = x.YouTubeAccount.AccessToken,
 					RefreshToken = x.YouTubeAccount.RefreshToken,
 					ClientId = x.YouTubeAccount.ClientId,
@@ -68,5 +69,14 @@ internal class SenderMessageStorage(PosterContext context) : ISenderMessageStora
 			.ExecuteUpdateAsync(m =>
 				m.SetProperty(msg => msg.Status, MessageStatus.Send)
 			);
+	}
+
+	public Task UpdateYouTubeTokensAsync(Guid youTubeAccountId, string accessToken, string? refreshToken, CancellationToken ct)
+	{
+		return context.YouTubeAccounts
+			.Where(x => x.Id == youTubeAccountId)
+			.ExecuteUpdateAsync(x => x
+				.SetProperty(a => a.AccessToken, accessToken)
+				.SetProperty(a => a.RefreshToken, refreshToken), ct);
 	}
 }

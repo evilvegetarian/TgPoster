@@ -25,8 +25,8 @@ public sealed class YouTubeService
 	/// <param name="description">Описание видео</param>
 	/// <param name="tags">Теги (через запятую)</param>
 	/// <param name="ct">Токен отмены</param>
-	/// <returns>ID загруженного видео</returns>
-	public async Task<string> UploadVideoAsync(
+	/// <returns>Результат загрузки с ID видео и обновленными токенами</returns>
+	public async Task<YouTubeUploadResult> UploadVideoAsync(
 		YouTubeAccountDto account,
 		Stream stream,
 		string? title = null,
@@ -36,13 +36,13 @@ public sealed class YouTubeService
 	)
 	{
 		title ??= account.DefaultTitle ?? "Видео";
-		description ??= account.DefaultDescription ;
+		description ??= account.DefaultDescription;
 		ArgumentNullException.ThrowIfNull(account);
 		ArgumentNullException.ThrowIfNull(stream);
 		ArgumentException.ThrowIfNullOrWhiteSpace(title);
 
-		var youtubeService = CreateYouTubeService(account);
-		var tagArray = ParseTags(tags ?? account.DefaultTags);
+		var (youtubeService, credential) = CreateYouTubeService(account);
+		var tagArray = ParseTags(tags ?? account.DefaultTags ?? "shorts,vertical");
 
 		var video = new Video
 		{
@@ -70,13 +70,22 @@ public sealed class YouTubeService
 			throw result.Exception;
 		}
 
-		return videoId;
+		var token = await credential.GetAccessTokenForRequestAsync(cancellationToken: ct);
+
+		return new YouTubeUploadResult
+		{
+			VideoId = videoId,
+			AccessToken = token,
+			RefreshToken = credential.Token.RefreshToken
+		};
 	}
 
 	/// <summary>
 	/// Создает сервис YouTube с авторизацией
 	/// </summary>
-	private Google.Apis.YouTube.v3.YouTubeService CreateYouTubeService(YouTubeAccountDto account)
+	private (Google.Apis.YouTube.v3.YouTubeService service, UserCredential credential) CreateYouTubeService(
+		YouTubeAccountDto account
+	)
 	{
 		var tokenResponse = new TokenResponse
 		{
@@ -95,11 +104,13 @@ public sealed class YouTubeService
 
 		var credential = new UserCredential(flow, "user", tokenResponse);
 
-		return new Google.Apis.YouTube.v3.YouTubeService(new BaseClientService.Initializer
+		var service = new Google.Apis.YouTube.v3.YouTubeService(new BaseClientService.Initializer
 		{
 			HttpClientInitializer = credential,
 			ApplicationName = ApplicationName
 		});
+
+		return (service, credential);
 	}
 
 	/// <summary>
@@ -114,4 +125,25 @@ public sealed class YouTubeService
 			       .ToArray()
 		       ?? [];
 	}
+}
+
+/// <summary>
+/// Результат загрузки видео на YouTube
+/// </summary>
+public sealed class YouTubeUploadResult
+{
+	/// <summary>
+	/// ID загруженного видео на YouTube
+	/// </summary>
+	public required string VideoId { get; init; }
+
+	/// <summary>
+	/// Обновленный Access Token (может быть обновлен автоматически)
+	/// </summary>
+	public required string AccessToken { get; init; }
+
+	/// <summary>
+	/// Refresh Token (остается прежним или обновляется)
+	/// </summary>
+	public string? RefreshToken { get; init; }
 }
