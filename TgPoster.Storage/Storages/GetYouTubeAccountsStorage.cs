@@ -13,7 +13,11 @@ public class GetYouTubeAccountsStorage(PosterContext context) : IGetYouTubeAccou
             .Select(x => new YouTubeAccountResponse
             {
                 Id = x.Id,
-                Name = x.Name
+                Name = x.Name,
+                DefaultTitle = x.DefaultTitle,
+                DefaultDescription = x.DefaultDescription,
+                DefaultTags = x.DefaultTags,
+                AutoPostingVideo = x.AutoPostingVideo
             })
             .ToListAsync(ct);
     }

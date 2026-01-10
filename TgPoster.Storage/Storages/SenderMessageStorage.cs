@@ -20,6 +20,17 @@ internal class SenderMessageStorage(PosterContext context) : ISenderMessageStora
 			{
 				ChannelId = x.ChannelId,
 				Api = x.TelegramBot.ApiTelegram,
+				YouTubeAccount = x.YouTubeAccount != null ? new YouTubeAccountDto
+				{
+					AccessToken = x.YouTubeAccount.AccessToken,
+					RefreshToken = x.YouTubeAccount.RefreshToken,
+					ClientId = x.YouTubeAccount.ClientId,
+					ClientSecret = x.YouTubeAccount.ClientSecret,
+					DefaultTitle = x.YouTubeAccount.DefaultTitle,
+					DefaultDescription = x.YouTubeAccount.DefaultDescription,
+					DefaultTags = x.YouTubeAccount.DefaultTags,
+					AutoPostingVideo = x.YouTubeAccount.AutoPostingVideo
+				} : null,
 				MessageDto = x.Messages
 					.Where(m => m.TimePosting > time
 					            && m.TimePosting <= plusMinute
