@@ -1,11 +1,4 @@
 using System.Diagnostics.CodeAnalysis;
-using Google.Apis.Auth.OAuth2;
-using Google.Apis.Auth.OAuth2.Flows;
-using Google.Apis.Auth.OAuth2.Responses;
-using Google.Apis.Services;
-using Google.Apis.Upload;
-using Google.Apis.YouTube.v3;
-using Google.Apis.YouTube.v3.Data;
 using Hangfire;
 using Microsoft.Extensions.Logging;
 using Security.Interfaces;
@@ -21,7 +14,8 @@ public class SenderMessageWorker(
 	ISenderMessageStorage storage,
 	ILogger<SenderMessageWorker> logger,
 	ICryptoAES crypto,
-	TelegramOptions options
+	TelegramOptions options,
+	YouTubeService youTubeService
 )
 {
 	public async Task ProcessMessagesAsync()
@@ -154,7 +148,7 @@ public class SenderMessageWorker(
 					? youTubeAccount.DefaultTags
 					: "shorts,vertical";
 
-				await UploadVideoAsync(youTubeAccount, stream, title, description, tags);
+				await youTubeService.UploadVideoAsync(youTubeAccount, stream, title, description, tags, CancellationToken.None);
 				logger.LogInformation("Видео успешно загружено на YouTube с названием: {title}", title);
 			}
 			catch (Exception e)
@@ -162,67 +156,5 @@ public class SenderMessageWorker(
 				logger.LogError(e, "Ошибка при загрузке видео на YouTube");
 			}
 		}
-	}
-
-	private async Task<string> UploadVideoAsync(
-		YouTubeAccountDto account,
-		MemoryStream stream,
-		string title,
-		string description,
-		string tags
-	)
-	{
-		var tokenResponse = new TokenResponse
-		{
-			AccessToken = account.AccessToken,
-			RefreshToken = account.RefreshToken
-		};
-
-		var flow = new GoogleAuthorizationCodeFlow(new GoogleAuthorizationCodeFlow.Initializer
-		{
-			ClientSecrets = new ClientSecrets
-			{
-				ClientId = account.ClientId,
-				ClientSecret = account.ClientSecret
-			}
-		});
-
-		var credential = new UserCredential(flow, "user", tokenResponse);
-
-		var youtubeService = new YouTubeService(new BaseClientService.Initializer
-		{
-			HttpClientInitializer = credential,
-			ApplicationName = "TgPoster"
-		});
-
-		var tagArray = tags.Split(',').Select(t => t.Trim()).Where(t => !string.IsNullOrWhiteSpace(t)).ToArray();
-
-		var video = new Google.Apis.YouTube.v3.Data.Video
-		{
-			Snippet = new VideoSnippet
-			{
-				Title = title,
-				Description = description,
-				Tags = tagArray,
-				CategoryId = "22"
-			},
-			Status = new VideoStatus { PrivacyStatus = "public" }
-		};
-
-		var videoId = "";
-		var videosInsertRequest = youtubeService.Videos.Insert(video, "snippet,status", stream, "video/*");
-
-		videosInsertRequest.ResponseReceived += v =>
-		{
-			videoId = v.Id;
-		};
-
-		var result = await videosInsertRequest.UploadAsync();
-		if (result.Status == UploadStatus.Failed)
-		{
-			throw result.Exception;
-		}
-
-		return videoId;
 	}
 }

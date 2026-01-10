@@ -1,3 +1,5 @@
+using Shared;
+
 namespace TgPoster.Worker.Domain.UseCases.SenderMessageWorker;
 
 public class MessageDetail

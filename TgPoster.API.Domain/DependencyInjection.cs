@@ -41,6 +41,7 @@ public static class DependencyInjection
 			.AddScoped<TimePostingService>()
 			.AddScoped<TelegramTokenService>()
 			.AddScoped<OpenRouterClient>()
+			.AddScoped<YouTubeService>()
 			.AddSingleton<DomainMetrics>();
 		return services;
 	}

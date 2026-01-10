@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Shared;
 using TgPoster.API.Domain.UseCases.Messages.ListMessage;
 using TgPoster.API.Domain.UseCases.YouTubeAccount.SendVideoOnYouTube;
 using TgPoster.Storage.Data;

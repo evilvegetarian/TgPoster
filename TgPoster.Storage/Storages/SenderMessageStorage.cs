@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Shared;
 using TgPoster.Storage.Data;
 using TgPoster.Storage.Data.Enum;
 using TgPoster.Worker.Domain.UseCases.SenderMessageWorker;

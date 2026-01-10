@@ -1,3 +1,4 @@
+using Shared;
 using TgPoster.API.Domain.UseCases.Messages.ListMessage;
 
 namespace TgPoster.API.Domain.UseCases.YouTubeAccount.SendVideoOnYouTube;

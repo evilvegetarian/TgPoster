@@ -1,5 +1,8 @@
-namespace TgPoster.Worker.Domain.UseCases.SenderMessageWorker;
+namespace Shared;
 
+/// <summary>
+/// DTO для работы с YouTube аккаунтом
+/// </summary>
 public class YouTubeAccountDto
 {
 	public required string AccessToken { get; set; }

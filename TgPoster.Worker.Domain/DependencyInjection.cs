@@ -42,6 +42,7 @@ public static class DependencyInjection
 		services.AddScoped<ParseChannelUseCase>();
 		services.AddScoped<TimePostingService>();
 		services.AddScoped<VideoService>();
+		services.AddScoped<YouTubeService>();
 		services.AddScoped<TelegramExecuteServices>();
 
 		return services;
