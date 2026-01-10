@@ -37,12 +37,10 @@ public static class DependencyInjection
 				.UseMemoryStorage();
 		});
 		services.AddHangfireServer();
+		services.AddShared();
 		services.AddScoped<SenderMessageWorker>();
 		services.AddScoped<ParseChannelWorker>();
 		services.AddScoped<ParseChannelUseCase>();
-		services.AddScoped<TimePostingService>();
-		services.AddScoped<VideoService>();
-		services.AddScoped<YouTubeService>();
 		services.AddScoped<TelegramExecuteServices>();
 
 		return services;

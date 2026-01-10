@@ -6,7 +6,6 @@ using Shared;
 using TgPoster.API.Domain.ConfigModels;
 using TgPoster.API.Domain.Monitoring;
 using TgPoster.API.Domain.Services;
-using OpenRouterClient = Shared.OpenRouterClient;
 
 namespace TgPoster.API.Domain;
 
@@ -35,13 +34,11 @@ public static class DependencyInjection
 				ForcePathStyle = true
 			}));
 
+		services.AddShared();
 		services
-			.AddScoped<TelegramService>().AddScoped<VideoService>()
+			.AddScoped<TelegramService>()
 			.AddScoped<FileService>()
-			.AddScoped<TimePostingService>()
 			.AddScoped<TelegramTokenService>()
-			.AddScoped<OpenRouterClient>()
-			.AddScoped<YouTubeService>()
 			.AddSingleton<DomainMetrics>();
 		return services;
 	}
