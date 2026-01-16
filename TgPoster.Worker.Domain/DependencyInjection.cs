@@ -86,7 +86,6 @@ public static class DependencyInjection
 			{
 				opt.ConcurrentMessageLimit = 1;
 			});
-			const string queueName = "process-message-queue";
 
 			x.UsingPostgres((context, cfg) =>
 			{

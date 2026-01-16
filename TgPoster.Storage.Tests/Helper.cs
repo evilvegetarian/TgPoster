@@ -16,7 +16,7 @@ public sealed class Helper
 		this.context = context ?? throw new ArgumentNullException(nameof(context));
 	}
 
-	private Faker Faker => threadLocalFaker.Value;
+	private Faker Faker => threadLocalFaker.Value!;
 
 	public User BuildUser(Action<User>? configure = null)
 	{

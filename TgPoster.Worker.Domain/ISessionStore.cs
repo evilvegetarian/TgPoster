@@ -49,9 +49,9 @@ public class TelegramSessionManager : IDisposable
 		{
 			return key switch
 			{
-				"api_id" => session.ApiId,
-				"api_hash" => session.ApiHash,
-				"phone_number" => session.PhoneNumber,
+				"api_id" => session?.ApiId,
+				"api_hash" => session?.ApiHash,
+				"phone_number" => session?.PhoneNumber,
 				"session_pathname" => sessionPath,
 				_ => null
 			};
@@ -87,7 +87,7 @@ public class TelegramSessionManager : IDisposable
 				File.Delete(sessionPath);
 			}
 
-			return null;
+			return null!;
 		}
 	}
 
@@ -120,13 +120,13 @@ public class TelegramSessionManager : IDisposable
 	}
 
 	// ----------- Заглушки для вашей логики работы с БД -----------
-	private async Task<TelegramSession> GetUserLoginInfoFromYourDbAsync(Guid userId) =>
+	private async Task<TelegramSession?> GetUserLoginInfoFromYourDbAsync(Guid userId) =>
 		new()
 		{
 			Id = default,
-			ApiId = null,
-			ApiHash = null,
-			PhoneNumber = null
+			ApiId = null!,
+			ApiHash = null!,
+			PhoneNumber = null!
 		};
 
 	private async Task SaveUserPhoneNumberInYourDbAsync(Guid userId, string phoneNumber)

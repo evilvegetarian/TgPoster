@@ -92,7 +92,7 @@ internal class ParseChannelUseCaseStorage(PosterContext context, GuidFactory gui
 		var parametrs = await context.ChannelParsingParameters
 			.Where(x => x.Id == id)
 			.FirstOrDefaultAsync(ct);
-		parametrs.Status = status;
+		parametrs!.Status = status;
 		parametrs.LastParseId = offsetId;
 		parametrs.LastParseDate = DateTime.UtcNow;
 		await context.SaveChangesAsync(ct);
@@ -103,7 +103,7 @@ internal class ParseChannelUseCaseStorage(PosterContext context, GuidFactory gui
 		var parametr = await context.ChannelParsingParameters
 			.Where(x => x.Id == id)
 			.FirstOrDefaultAsync(ct);
-		parametr.Status = ParsingStatus.InHandle;
+		parametr!.Status = ParsingStatus.InHandle;
 		await context.SaveChangesAsync(ct);
 	}
 
@@ -112,7 +112,7 @@ internal class ParseChannelUseCaseStorage(PosterContext context, GuidFactory gui
 		var parametr = await context.ChannelParsingParameters
 			.Where(x => x.Id == id)
 			.FirstOrDefaultAsync(ct);
-		parametr.Status = ParsingStatus.Failed;
+		parametr!.Status = ParsingStatus.Failed;
 		await context.SaveChangesAsync(ct);
 	}
 

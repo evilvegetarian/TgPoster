@@ -7,7 +7,7 @@ using TgPoster.Storage.Mapper;
 
 namespace TgPoster.Storage.Storages;
 
-internal sealed class LoadFilesMessageStorage(PosterContext context, GuidFactory guidFactory) : ILoadFilesMessageStorage
+internal sealed class LoadFilesMessageStorage(PosterContext context) : ILoadFilesMessageStorage
 {
 	public Task<string?> GetTelegramApiAsync(Guid messageId, Guid userId, CancellationToken ct)
 	{

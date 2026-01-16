@@ -17,7 +17,7 @@ public class GetPromptSettingStorageShould(StorageTestFixture fixture) : IClassF
 		var schedule = await new ScheduleBuilder(context).CreateAsync(ct);
 		var promptSetting = new PromptSettingBuilder(context).WithSchedule(schedule).Create();
 		var response = await sut.GetAsync(promptSetting.Id, schedule.UserId, ct);
-		response.Id.ShouldBe(promptSetting.Id);
+		response!.Id.ShouldBe(promptSetting.Id);
 		response.PicturePrompt.ShouldBe(promptSetting.PicturePrompt);
 	}
 

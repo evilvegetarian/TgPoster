@@ -8,5 +8,5 @@ public class TracingConfiguration
 	/// <summary>
 	/// URL эндпоинта для отправки данных трассировки
 	/// </summary>
-	public string Url { get; set; }
+	public required string Url { get; set; }
 }

@@ -8,5 +8,5 @@ public class OpenRouterOptions
 	/// <summary>
 	/// Секретный ключ для доступа к OpenRouter API
 	/// </summary>
-	public string SecretKey { get; set; }
+	public required string SecretKey { get; set; }
 }
