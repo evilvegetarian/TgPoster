@@ -41,7 +41,10 @@ public class GenerateAiContentStorage(PosterContext context) : IGenerateAiConten
 			{
 				Id = x.Id,
 				TextMessage = x.TextMessage,
-				Files = x.MessageFiles.Select(file => new FileDto
+				Files = x.MessageFiles
+					.Where(file => file.ParentFileId == null)
+					.OrderBy(file => file.Order)
+					.Select(file => new FileDto
 					{
 						Id = file.Id,
 						ContentType = file.ContentType,

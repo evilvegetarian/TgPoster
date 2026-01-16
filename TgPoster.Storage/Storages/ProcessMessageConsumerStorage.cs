@@ -42,6 +42,38 @@ internal sealed class ProcessMessageConsumerStorage(PosterContext context, GuidF
 	public Task CreateMessageAsync(MessageDto messageDto, CancellationToken ct)
 	{
 		var id = guidFactory.New();
+		var messageFiles = new List<MessageFile>();
+		var order = 0;
+
+		foreach (var media in messageDto.Media)
+		{
+			var messageFileId = guidFactory.New();
+			var mainFile = new MessageFile
+			{
+				Id = messageFileId,
+				ContentType = media.MimeType,
+				TgFileId = media.FileId,
+				MessageId = id,
+				FileType = media.MimeType.GetFileType(),
+				ParentFileId = null,
+				Order = order++
+			};
+			messageFiles.Add(mainFile);
+
+			var thumbnails = media.PreviewPhotoIds.Select(x => new MessageFile
+			{
+				Id = guidFactory.New(),
+				MessageId = id,
+				TgFileId = x,
+				ContentType = "image/jpeg",
+				FileType = FileTypes.Thumbnail,
+				ParentFileId = messageFileId,
+				Order = 0
+			}).ToList();
+
+			messageFiles.AddRange(thumbnails);
+		}
+
 		var message = new Message
 		{
 			Id = id,
@@ -51,28 +83,7 @@ internal sealed class ProcessMessageConsumerStorage(PosterContext context, GuidF
 			Status = MessageStatus.Register,
 			TimePosting = messageDto.TimePosting,
 			IsTextMessage = messageDto.Text.IsTextMessage(),
-			MessageFiles = messageDto.Media.Select<MediaDto, MessageFile>(m =>
-			{
-				var messageFileId = guidFactory.New();
-
-				var thumbnails = m.PreviewPhotoIds.Select(x => new FileThumbnail
-				{
-					Id = guidFactory.New(),
-					MessageFileId = messageFileId,
-					TgFileId = x,
-					ContentType = "image/jpeg"
-				}).ToList();
-
-				return new MessageFile
-				{
-					Id = guidFactory.New(),
-					ContentType = m.MimeType,
-					TgFileId = m.FileId,
-					MessageId = id,
-					Thumbnails = thumbnails,
-					FileType = m.MimeType.GetFileType()
-				};
-			}).ToList()
+			MessageFiles = messageFiles
 		};
 		context.Messages.AddAsync(message, ct);
 		return context.SaveChangesAsync(ct);

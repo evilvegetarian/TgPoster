@@ -42,12 +42,15 @@ internal class SenderMessageStorage(PosterContext context) : ISenderMessageStora
 						Id = m.Id,
 						Message = m.TextMessage,
 						TimePosting = m.TimePosting,
-						File = m.MessageFiles.Select(f => new FileDto
-						{
-							TgFileId = f.TgFileId,
-							Caption = f.Caption,
-							ContentType = f.ContentType
-						}).ToList()
+						File = m.MessageFiles
+							.Where(f => f.ParentFileId == null)
+							.OrderBy(f => f.Order)
+							.Select(f => new FileDto
+							{
+								TgFileId = f.TgFileId,
+								Caption = f.Caption,
+								ContentType = f.ContentType
+							}).ToList()
 					}).ToList()
 			})
 			.ToListAsync();

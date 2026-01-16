@@ -4,7 +4,8 @@ public enum FileTypes
 {
 	NoOne = 0,
 	Photo = 1,
-	Video = 2
+	Video = 2,
+	Thumbnail = 3
 }
 
 public static class FileTypesExtensions
@@ -29,6 +30,7 @@ public static class FileTypesExtensions
 		return type switch
 		{
 			FileTypes.Photo => "image/jpeg",
+			FileTypes.Thumbnail => "image/jpeg",
 			FileTypes.Video => "video/mp4",
 			_ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
 		};

@@ -71,10 +71,11 @@ public class ParseChannelUseCaseStorageShould(StorageTestFixture fixture) : ICla
 
 		var message = await context.Messages
 			.Include(m => m.MessageFiles)
-			.FirstOrDefaultAsync(m => m.ScheduleId == schedule.Id && m.TextMessage == messageText);
+			.FirstOrDefaultAsync(m => m.ScheduleId == schedule.Id 
+			                          && m.TextMessage == messageText);
 		message.ShouldNotBeNull();
 		message.TextMessage.ShouldBe(messageText);
-		message.MessageFiles.Count.ShouldBe(messageDto.Media.Count);
+		message.MessageFiles.Count(x => x.ParentFileId==null).ShouldBe(messageDto.Media.Count);
 		message.MessageFiles.Count(x => x.TgFileId == photoId).ShouldBe(1);
 		message.MessageFiles.Count(x => x.TgFileId == videoId).ShouldBe(1);
 	}

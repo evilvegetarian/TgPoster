@@ -45,7 +45,7 @@ internal sealed class CreateMessageStorage(PosterContext context, GuidFactory gu
 			TextMessage = text,
 			IsTextMessage = text.IsTextMessage()
 		};
-		var messageFiles = files.Select(file => file.ToEntity(messageId));
+		var messageFiles = files.SelectMany((file, index) => file.ToEntity(messageId, index)).ToList();
 		await context.Messages.AddAsync(message, ct);
 		await context.MessageFiles.AddRangeAsync(messageFiles, ct);
 		await context.SaveChangesAsync(ct);

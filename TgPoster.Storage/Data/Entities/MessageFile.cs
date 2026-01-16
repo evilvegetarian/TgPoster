@@ -2,7 +2,7 @@ using TgPoster.Storage.Data.Enum;
 
 namespace TgPoster.Storage.Data.Entities;
 
-public class MessageFile : BaseEntity
+public sealed class MessageFile : BaseEntity
 {
 	/// <summary>
 	///     Id сообщения
@@ -10,7 +10,7 @@ public class MessageFile : BaseEntity
 	public required Guid MessageId { get; set; }
 
 	/// <summary>
-	///     Тип файла
+	///     Тип файла (Photo, Video, Thumbnail)
 	/// </summary>
 	public required FileTypes FileType { get; set; }
 
@@ -20,19 +20,24 @@ public class MessageFile : BaseEntity
 	public required string TgFileId { get; set; }
 
 	/// <summary>
-	///     Подпись к фото
-	/// </summary>
-	public string? Caption { get; set; }
-
-	/// <summary>
-	///     Тип файла
+	///     Тип контента (image/jpeg, video/mp4)
 	/// </summary>
 	public required string ContentType { get; set; }
 
 	/// <summary>
-	///     Превью видео
+	///     Подпись к файлу (используется для caption в Telegram)
 	/// </summary>
-	public ICollection<FileThumbnail> Thumbnails { get; set; } = [];
+	public string? Caption { get; set; }
+
+	/// <summary>
+	///     Id родительского файла (для превью указывает на видео, для основных файлов = null)
+	/// </summary>
+	public Guid? ParentFileId { get; set; }
+
+	/// <summary>
+	///     Порядок отображения файла в сообщении (0 - первый файл и т.д.)
+	/// </summary>
+	public int Order { get; set; }
 
 	#region Навигация
 
@@ -40,6 +45,16 @@ public class MessageFile : BaseEntity
 	///     Сообщение
 	/// </summary>
 	public Message Message { get; set; } = null!;
+
+	/// <summary>
+	///     Родительский файл (например, видео для превью)
+	/// </summary>
+	public MessageFile? ParentFile { get; set; }
+
+	/// <summary>
+	///     Дочерние файлы (превью для видео)
+	/// </summary>
+	public ICollection<MessageFile> Thumbnails { get; set; } = [];
 
 	#endregion
 }

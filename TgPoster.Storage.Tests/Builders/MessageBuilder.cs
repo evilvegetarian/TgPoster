@@ -90,7 +90,9 @@ public class MessageBuilder(PosterContext context)
 			FileType = FileTypes.Photo,
 			ContentType = FileTypes.Photo.GetContentType(),
 			TgFileId = "fasfs",
-			MessageId = message.Id
+			MessageId = message.Id,
+			ParentFileId = null,
+			Order = message.MessageFiles.Count
 		});
 		return this;
 	}
@@ -98,24 +100,30 @@ public class MessageBuilder(PosterContext context)
 	public MessageBuilder WithVideoMessageFile()
 	{
 		var messageFileId = Guid.NewGuid();
-		message.MessageFiles.Add(new MessageFile
+		var videoFile = new MessageFile
 		{
 			Id = messageFileId,
 			FileType = FileTypes.Video,
 			ContentType = FileTypes.Video.GetContentType(),
 			TgFileId = "fadsdssfs",
 			MessageId = message.Id,
-			Thumbnails = new List<FileThumbnail>
-			{
-				new()
-				{
-					Id = Guid.NewGuid(),
-					TgFileId = "asfsafasfs",
-					MessageFileId = messageFileId,
-					ContentType = FileTypes.Photo.GetContentType()
-				}
-			}
-		});
+			ParentFileId = null,
+			Order = message.MessageFiles.Count
+		};
+		message.MessageFiles.Add(videoFile);
+
+		var thumbnail = new MessageFile
+		{
+			Id = Guid.NewGuid(),
+			TgFileId = "asfsafasfs",
+			MessageId = message.Id,
+			ContentType = FileTypes.Thumbnail.GetContentType(),
+			FileType = FileTypes.Thumbnail,
+			ParentFileId = messageFileId,
+			Order = 0
+		};
+		message.MessageFiles.Add(thumbnail);
+
 		return this;
 	}
 }

@@ -33,7 +33,11 @@ internal sealed class LoadFilesMessageStorage(PosterContext context, GuidFactory
 
 	public async Task AddFileAsync(Guid messageId, List<MediaFileResult> files, CancellationToken ct)
 	{
-		var messageFiles = files.Select(file => file.ToEntity(messageId));
+		var existingCount = await context.MessageFiles
+			.Where(x => x.MessageId == messageId && x.ParentFileId == null)
+			.CountAsync(ct);
+
+		var messageFiles = files.SelectMany((file, index) => file.ToEntity(messageId, existingCount + index)).ToList();
 		await context.MessageFiles.AddRangeAsync(messageFiles, ct);
 		await context.SaveChangesAsync(ct);
 	}

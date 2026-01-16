@@ -16,7 +16,9 @@ public class MessageFileBuilder(PosterContext context)
 			.Id,
 		ContentType = "image/jpeg",
 		TgFileId = faker.Random.AlphaNumeric(20),
-		FileType = faker.Random.Enum<FileTypes>()
+		FileType = faker.Random.Enum<FileTypes>(),
+		ParentFileId = null,
+		Order = 0
 	};
 
 	public async Task<MessageFile> CreateAsync(CancellationToken ct)

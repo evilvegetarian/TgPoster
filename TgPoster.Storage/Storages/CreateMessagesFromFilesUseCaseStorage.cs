@@ -53,7 +53,7 @@ internal sealed class CreateMessagesFromFilesUseCaseStorage(PosterContext contex
 			var messageId = guidFactory.New();
 			var file = files[i];
 
-			var messageFile = file.ToEntity(messageId);
+			var messageFiles = file.ToEntity(messageId, 0);
 			var message = new Message
 			{
 				Id = messageId,
@@ -61,7 +61,7 @@ internal sealed class CreateMessagesFromFilesUseCaseStorage(PosterContext contex
 				Status = MessageStatus.Register,
 				TimePosting = postingTime[i],
 				IsTextMessage = false,
-				MessageFiles = [messageFile]
+				MessageFiles = messageFiles
 			};
 
 			await context.Messages.AddAsync(message, ct);

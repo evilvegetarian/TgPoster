@@ -19,17 +19,20 @@ internal class GetMessageStorage(PosterContext context) : IGetMessageStorage
 				ScheduleId = message.ScheduleId,
 				TimePosting = message.TimePosting,
 				HasYouTubeAccount = message.Schedule.YouTubeAccountId.HasValue,
-				Files = message.MessageFiles.Select(file => new FileDto
-				{
-					Id = file.Id,
-					ContentType = file.ContentType,
-					TgFileId = file.TgFileId,
-					Previews = file.Thumbnails.Select(x => new PreviewDto
+				Files = message.MessageFiles
+					.Where(file => file.ParentFileId == null)
+					.OrderBy(file => file.Order)
+					.Select(file => new FileDto
 					{
-						Id = x.Id,
-						TgFileId = x.TgFileId
+						Id = file.Id,
+						ContentType = file.ContentType,
+						TgFileId = file.TgFileId,
+						Previews = file.Thumbnails.Select(x => new PreviewDto
+						{
+							Id = x.Id,
+							TgFileId = x.TgFileId
+						}).ToList()
 					}).ToList()
-				}).ToList()
 			}).FirstOrDefaultAsync(ct);
 	}
 }

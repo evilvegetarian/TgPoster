@@ -13,6 +13,8 @@ public class SendVideoOnYouTubeStorage(PosterContext context) : ISendVideoOnYouT
 		return context.Messages
 			.Where(x => x.Id == messageId)
 			.SelectMany(x => x.MessageFiles)
+			.Where(file => file.ParentFileId == null)
+			.OrderBy(file => file.Order)
 			.Select(file => new FileDto
 			{
 				Id = file.Id,

@@ -30,6 +30,38 @@ internal class ParseChannelUseCaseStorage(PosterContext context, GuidFactory gui
 		var message = messages.Select(x =>
 		{
 			var id = guidFactory.New();
+			var messageFiles = new List<MessageFile>();
+			var order = 0;
+
+			foreach (var media in x.Media)
+			{
+				var messageFileId = guidFactory.New();
+				var mainFile = new MessageFile
+				{
+					Id = messageFileId,
+					ContentType = media.MimeType,
+					TgFileId = media.FileId,
+					MessageId = id,
+					FileType = media.MimeType.GetFileType(),
+					ParentFileId = null,
+					Order = order++
+				};
+				messageFiles.Add(mainFile);
+
+				var thumbnails = media.PreviewPhotoIds.Select(thumb => new MessageFile
+				{
+					Id = guidFactory.New(),
+					MessageId = id,
+					TgFileId = thumb,
+					ContentType = "image/jpeg",
+					FileType = FileTypes.Thumbnail,
+					ParentFileId = messageFileId,
+					Order = 0
+				}).ToList();
+
+				messageFiles.AddRange(thumbnails);
+			}
+
 			return new Message
 			{
 				Id = id,
@@ -39,27 +71,7 @@ internal class ParseChannelUseCaseStorage(PosterContext context, GuidFactory gui
 				Status = MessageStatus.Register,
 				TimePosting = x.TimePosting,
 				IsTextMessage = x.Text.IsTextMessage(),
-				MessageFiles = x.Media.Select<MediaDto, MessageFile>(m =>
-				{
-					var messageFileId = guidFactory.New();
-					var previews = m.PreviewPhotoIds.Select(thumb => new FileThumbnail
-					{
-						TgFileId = thumb,
-						Id = guidFactory.New(),
-						MessageFileId = messageFileId,
-						ContentType = "image/jpeg"
-					}).ToList();
-
-					return new MessageFile
-					{
-						Id = messageFileId,
-						ContentType = m.MimeType,
-						TgFileId = m.FileId,
-						MessageId = id,
-						FileType = m.MimeType.GetFileType(),
-						Thumbnails = previews
-					};
-				}).ToList()
+				MessageFiles = messageFiles
 			};
 		});
 
