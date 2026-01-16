@@ -23,9 +23,9 @@ public class PromptSettingController(ISender sender) : ControllerBase
 	/// <summary>
 	///     Создание промптов для расписания
 	/// </summary>
-	/// <param name="request"></param>
-	/// <param name="ctx"></param>
-	/// <returns></returns>
+	/// <param name="request">Данные для создания промптов (идентификатор расписания, текстовый, видео и фото промпты)</param>
+	/// <param name="ctx">Токен отмены операции</param>
+	/// <returns>Ответ с данными созданных промптов</returns>
 	[HttpPost(Routes.PromptSetting.Create)]
 	[ProducesResponseType(StatusCodes.Status201Created)]
 	[ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
@@ -44,9 +44,9 @@ public class PromptSettingController(ISender sender) : ControllerBase
 	/// <summary>
 	///     Получение промпта по id
 	/// </summary>
-	/// <param name="id"></param>
-	/// <param name="ctx"></param>
-	/// <returns></returns>
+	/// <param name="id">Идентификатор промпта</param>
+	/// <param name="ctx">Токен отмены операции</param>
+	/// <returns>Данные промпта с указанным идентификатором</returns>
 	[HttpGet(Routes.PromptSetting.Get)]
 	[ProducesResponseType(StatusCodes.Status200OK, Type = typeof(PromptSettingResponse))]
 	[ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
@@ -62,9 +62,9 @@ public class PromptSettingController(ISender sender) : ControllerBase
 	/// <summary>
 	///     Получение списка промтов
 	/// </summary>
-	/// <param name="request"></param>
-	/// <param name="ctx"></param>
-	/// <returns></returns>
+	/// <param name="request">Параметры пагинации (номер страницы и размер страницы)</param>
+	/// <param name="ctx">Токен отмены операции</param>
+	/// <returns>Пагинированный список промптов</returns>
 	[HttpGet(Routes.PromptSetting.List)]
 	[ProducesResponseType(StatusCodes.Status200OK, Type = typeof(PagedResponse<PromptSettingResponse>))]
 	[ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
@@ -83,10 +83,10 @@ public class PromptSettingController(ISender sender) : ControllerBase
 	/// <summary>
 	///     Изменение промптов для расписания
 	/// </summary>
-	/// <param name="id"></param>
-	/// <param name="request"></param>
-	/// <param name="ctx"></param>
-	/// <returns></returns>
+	/// <param name="id">Идентификатор промпта для обновления</param>
+	/// <param name="request">Данные для обновления промптов (текстовый, видео и фото промпты)</param>
+	/// <param name="ctx">Токен отмены операции</param>
+	/// <returns>Результат выполнения операции</returns>
 	[HttpPut(Routes.PromptSetting.Update)]
 	[ProducesResponseType(StatusCodes.Status201Created)]
 	[ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]

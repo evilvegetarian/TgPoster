@@ -2,8 +2,14 @@ using TgPoster.API.Configuration;
 
 namespace TgPoster.API.Middlewares;
 
+/// <summary>
+/// Middleware для настройки CORS
+/// </summary>
 public static class CorsMiddleware
 {
+	/// <summary>
+	/// Добавить CORS политику в приложение
+	/// </summary>
 	public static void AddCors(this WebApplicationBuilder builder, string corsName)
 	{
 		var corsConfiguration = builder.Configuration.GetSection(nameof(CorsPolicies)).Get<CorsPolicies>()!;

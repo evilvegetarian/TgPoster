@@ -2,6 +2,9 @@ using System.ComponentModel.DataAnnotations;
 
 namespace TgPoster.API.Models;
 
+/// <summary>
+/// Настройки публикации для дня недели
+/// </summary>
 public class DayOfWeekRequest : IValidatableObject
 {
 	/// <summary>
@@ -25,6 +28,9 @@ public class DayOfWeekRequest : IValidatableObject
 	[Range(1, 1440, ErrorMessage = "Интервал должен быть между 1 и 1440.")]
 	public required byte Interval { get; set; }
 
+	/// <summary>
+	/// Валидация настроек публикации для дня недели
+	/// </summary>
 	public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
 	{
 		var validationErrors = new List<ValidationResult>();

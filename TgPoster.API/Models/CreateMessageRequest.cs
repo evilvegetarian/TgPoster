@@ -2,6 +2,9 @@ using System.ComponentModel.DataAnnotations;
 
 namespace TgPoster.API.Models;
 
+/// <summary>
+/// Запрос на создание сообщения
+/// </summary>
 public sealed class CreateMessageRequest : IValidatableObject
 {
 	/// <summary>
@@ -24,6 +27,9 @@ public sealed class CreateMessageRequest : IValidatableObject
 	/// </summary>
 	public List<IFormFile> Files { get; set; } = [];
 
+	/// <summary>
+	/// Валидация запроса на создание сообщения
+	/// </summary>
 	public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
 	{
 		var validationErrors = new List<ValidationResult>();

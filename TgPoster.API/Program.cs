@@ -90,6 +90,9 @@ app.MapControllers();
 app.UseOpenTelemetryPrometheusScrapingEndpoint();
 app.Run();
 
+/// <summary>
+/// Класс точки входа приложения
+/// </summary>
 public partial class Program
 {
 }

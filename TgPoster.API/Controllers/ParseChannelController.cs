@@ -12,6 +12,7 @@ using TgPoster.API.Models;
 namespace TgPoster.API.Controllers;
 
 /// <summary>
+///     Контроллер управления парсингом каналов
 /// </summary>
 /// <param name="sender"></param>
 [Authorize]
@@ -21,9 +22,9 @@ public class ParseChannelController(ISender sender) : ControllerBase
 	/// <summary>
 	///     Создания задания для парсинга канала
 	/// </summary>
-	/// <param name="request"></param>
-	/// <param name="ct"></param>
-	/// <returns></returns>
+	/// <param name="request">Данные для создания задачи парсинга канала</param>
+	/// <param name="ct">Токен отмены операции</param>
+	/// <returns>Ответ с данными созданной задачи парсинга</returns>
 	[HttpPost(Routes.ParseChannel.Create)]
 	[ProducesResponseType(StatusCodes.Status201Created, Type = typeof(CreateParseChannelResponse))]
 	[ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
@@ -40,8 +41,8 @@ public class ParseChannelController(ISender sender) : ControllerBase
 	/// <summary>
 	///     Все задачи парсинга
 	/// </summary>
-	/// <param name="ct"></param>
-	/// <returns></returns>
+	/// <param name="ct">Токен отмены операции</param>
+	/// <returns>Список всех задач парсинга каналов</returns>
 	[HttpGet(Routes.ParseChannel.List)]
 	[ProducesResponseType(StatusCodes.Status200OK, Type = typeof(List<ParseChannelsResponse>))]
 	[ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
@@ -54,10 +55,10 @@ public class ParseChannelController(ISender sender) : ControllerBase
 	/// <summary>
 	///     Изменения задачи на парсинг
 	/// </summary>
-	/// <param name="request"></param>
-	/// <param name="ct"></param>
-	/// <param name="id"></param>
-	/// <returns></returns>
+	/// <param name="id">Идентификатор задачи парсинга для обновления</param>
+	/// <param name="request">Данные для обновления задачи парсинга</param>
+	/// <param name="ct">Токен отмены операции</param>
+	/// <returns>Результат выполнения операции</returns>
 	[HttpPut(Routes.ParseChannel.Update)]
 	[ProducesResponseType(StatusCodes.Status200OK)]
 	[ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
@@ -75,9 +76,9 @@ public class ParseChannelController(ISender sender) : ControllerBase
 	/// <summary>
 	///     Удаления задачи на парсинг
 	/// </summary>
-	/// <param name="ct"></param>
-	/// <param name="id"></param>
-	/// <returns></returns>
+	/// <param name="id">Идентификатор задачи парсинга для удаления</param>
+	/// <param name="ct">Токен отмены операции</param>
+	/// <returns>Результат выполнения операции</returns>
 	[HttpDelete(Routes.ParseChannel.Delete)]
 	[ProducesResponseType(StatusCodes.Status200OK)]
 	[ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]

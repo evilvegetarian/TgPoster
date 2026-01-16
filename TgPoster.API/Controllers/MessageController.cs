@@ -31,9 +31,9 @@ public class MessageController(ISender sender) : ControllerBase
 	/// <summary>
 	///     Создает сообщения из файлов, один файл = одно сообщение.
 	/// </summary>
-	/// <param name="request"></param>
-	/// <param name="ct"></param>
-	/// <returns></returns>
+	/// <param name="request">Данные с идентификатором расписания и списком файлов</param>
+	/// <param name="ct">Токен отмены операции</param>
+	/// <returns>Результат выполнения операции</returns>
 	[HttpPost(Routes.Message.CreateMessagesFromFiles)]
 	[Consumes("multipart/form-data")]
 	[ProducesResponseType(StatusCodes.Status201Created)]
@@ -68,9 +68,9 @@ public class MessageController(ISender sender) : ControllerBase
 	/// <summary>
 	///     Получение сообщения по Id
 	/// </summary>
-	/// <param name="id"></param>
-	/// <param name="ct"></param>
-	/// <returns></returns>
+	/// <param name="id">Идентификатор сообщения</param>
+	/// <param name="ct">Токен отмены операции</param>
+	/// <returns>Данные сообщения с указанным идентификатором</returns>
 	[HttpGet(Routes.Message.Get)]
 	[ProducesResponseType(StatusCodes.Status200OK, Type = typeof(MessageResponse))]
 	[ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
@@ -84,9 +84,9 @@ public class MessageController(ISender sender) : ControllerBase
 	/// <summary>
 	///     Создание сообщения
 	/// </summary>
-	/// <param name="request"></param>
-	/// <param name="ct"></param>
-	/// <returns></returns>
+	/// <param name="request">Данные для создания сообщения (расписание, время публикации, текст, файлы)</param>
+	/// <param name="ct">Токен отмены операции</param>
+	/// <returns>Ответ с данными созданного сообщения</returns>
 	[HttpPost(Routes.Message.Create)]
 	[Consumes("multipart/form-data")]
 	[ProducesResponseType(StatusCodes.Status201Created, Type = typeof(CreateMessageResponse))]
@@ -104,10 +104,10 @@ public class MessageController(ISender sender) : ControllerBase
 	/// <summary>
 	///     Изменения сообщения
 	/// </summary>
-	/// <param name="id"></param>
-	/// <param name="request"></param>
-	/// <param name="ct"></param>
-	/// <returns></returns>
+	/// <param name="id">Идентификатор сообщения для обновления</param>
+	/// <param name="request">Данные для обновления сообщения (расписание, время публикации, текст, файлы)</param>
+	/// <param name="ct">Токен отмены операции</param>
+	/// <returns>Результат выполнения операции</returns>
 	[HttpPut(Routes.Message.Update)]
 	[Consumes("multipart/form-data")]
 	[ProducesResponseType(StatusCodes.Status200OK)]
@@ -129,10 +129,10 @@ public class MessageController(ISender sender) : ControllerBase
 	/// <summary>
 	///     Удалить файл сообщения
 	/// </summary>
-	/// <param name="id"></param>
-	/// <param name="fileId"></param>
-	/// <param name="ct"></param>
-	/// <returns></returns>
+	/// <param name="id">Идентификатор сообщения</param>
+	/// <param name="fileId">Идентификатор файла для удаления</param>
+	/// <param name="ct">Токен отмены операции</param>
+	/// <returns>Результат выполнения операции</returns>
 	[HttpDelete(Routes.Message.DeleteFileMessage)]
 	[ProducesResponseType(StatusCodes.Status200OK)]
 	[ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
@@ -150,10 +150,10 @@ public class MessageController(ISender sender) : ControllerBase
 	/// <summary>
 	///     Загрузить файлы сообщения
 	/// </summary>
-	/// <param name="id"></param>
-	/// <param name="files"></param>
-	/// <param name="ct"></param>
-	/// <returns></returns>
+	/// <param name="id">Идентификатор сообщения</param>
+	/// <param name="files">Список файлов для загрузки</param>
+	/// <param name="ct">Токен отмены операции</param>
+	/// <returns>Результат выполнения операции</returns>
 	[HttpPatch(Routes.Message.LoadFiles)]
 	[ProducesResponseType(StatusCodes.Status200OK)]
 	[ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
@@ -171,9 +171,9 @@ public class MessageController(ISender sender) : ControllerBase
 	/// <summary>
 	///     Подтверждение сообщений
 	/// </summary>
-	/// <param name="request"></param>
-	/// <param name="ct"></param>
-	/// <returns></returns>
+	/// <param name="request">Данные с идентификаторами сообщений для подтверждения</param>
+	/// <param name="ct">Токен отмены операции</param>
+	/// <returns>Результат выполнения операции</returns>
 	[HttpPatch(Routes.Message.ApproveMessages)]
 	[ProducesResponseType(StatusCodes.Status200OK)]
 	[ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
@@ -190,9 +190,9 @@ public class MessageController(ISender sender) : ControllerBase
 	/// <summary>
 	///     Удалить сообщения
 	/// </summary>
-	/// <param name="ids"></param>
-	/// <param name="ct"></param>
-	/// <returns></returns>
+	/// <param name="ids">Список идентификаторов сообщений для удаления</param>
+	/// <param name="ct">Токен отмены операции</param>
+	/// <returns>Результат выполнения операции</returns>
 	[HttpDelete(Routes.Message.Delete)]
 	[ProducesResponseType(StatusCodes.Status200OK)]
 	[ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
@@ -206,9 +206,9 @@ public class MessageController(ISender sender) : ControllerBase
 	/// <summary>
 	///     Получить ближайшее подходящее время постинга
 	/// </summary>
-	/// <param name="scheduleId"></param>
-	/// <param name="ct"></param>
-	/// <returns></returns>
+	/// <param name="scheduleId">Идентификатор расписания</param>
+	/// <param name="ct">Токен отмены операции</param>
+	/// <returns>Ответ с ближайшим доступным временем для публикации</returns>
 	[HttpGet(Routes.Message.GetTime)]
 	[ProducesResponseType(StatusCodes.Status200OK, Type = typeof(GetTimeResponse))]
 	[ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
@@ -222,9 +222,9 @@ public class MessageController(ISender sender) : ControllerBase
 	/// <summary>
 	///     Создать контент для сообщения
 	/// </summary>
-	/// <param name="messageId"></param>
-	/// <param name="ct"></param>
-	/// <returns></returns>
+	/// <param name="messageId">Идентификатор сообщения</param>
+	/// <param name="ct">Токен отмены операции</param>
+	/// <returns>Ответ с сгенерированным AI контентом для сообщения</returns>
 	[HttpGet(Routes.Message.GenerateAiContent)]
 	[ProducesResponseType(StatusCodes.Status200OK, Type = typeof(GenerateAiContentResponse))]
 	[ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
@@ -239,9 +239,9 @@ public class MessageController(ISender sender) : ControllerBase
 	///     Обновляет время для всех постов.
 	///     Использовать при добавлние дат в расписании.
 	/// </summary>
-	/// <param name="scheduleId"></param>
-	/// <param name="ct"></param>
-	/// <returns></returns>
+	/// <param name="scheduleId">Идентификатор расписания</param>
+	/// <param name="ct">Токен отмены операции</param>
+	/// <returns>Результат выполнения операции</returns>
 	[HttpPut(Routes.Message.UpdateAllTime)]
 	[ProducesResponseType(StatusCodes.Status200OK)]
 	[ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]

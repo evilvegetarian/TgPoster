@@ -108,7 +108,7 @@ public class CreateHelper(HttpClient client)
 		{
 			ScheduleId = scheduleId,
 			TimePosting = DateTimeOffset.UtcNow.AddDays(1),
-			Files = withFiles ? [FileHelper.GetTestIFormFile()] : null
+			Files = withFiles ? [FileHelper.GetTestIFormFile()] : []
 		};
 
 		var response = await client.PostMultipartFormAsync<CreateMessageResponse>(Routes.Message.Root, request);

@@ -2,6 +2,9 @@ using System.ComponentModel.DataAnnotations;
 
 namespace TgPoster.API.Models;
 
+/// <summary>
+/// Запрос на редактирование сообщения
+/// </summary>
 public sealed class EditMessageRequest : IValidatableObject
 {
 	/// <summary>
@@ -29,6 +32,9 @@ public sealed class EditMessageRequest : IValidatableObject
 	/// </summary>
 	public List<IFormFile> NewFiles { get; set; } = [];
 
+	/// <summary>
+	/// Валидация запроса на редактирование сообщения
+	/// </summary>
 	public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
 	{
 		var validationErrors = new List<ValidationResult>();

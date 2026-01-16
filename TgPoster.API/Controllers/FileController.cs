@@ -7,6 +7,7 @@ using TgPoster.API.Domain.UseCases.Files;
 namespace TgPoster.API.Controllers;
 
 /// <summary>
+///     Контроллер управления файлами
 /// </summary>
 /// <param name="sender"></param>
 [Authorize]
@@ -16,9 +17,9 @@ public class FileController(ISender sender) : ControllerBase
 	/// <summary>
 	///     Получение файла по Id
 	/// </summary>
-	/// <param name="id"></param>
-	/// <param name="ct"></param>
-	/// <returns></returns>
+	/// <param name="id">Идентификатор файла</param>
+	/// <param name="ct">Токен отмены операции</param>
+	/// <returns>Содержимое файла с соответствующим MIME-типом</returns>
 	[HttpGet(Routes.File.Get)]
 	[ProducesResponseType(StatusCodes.Status200OK, Type = typeof(FileContentResult))]
 	[ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]

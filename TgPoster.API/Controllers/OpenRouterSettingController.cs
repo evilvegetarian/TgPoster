@@ -23,9 +23,9 @@ public class OpenRouterSettingController(ISender sender) : ControllerBase
 	/// <summary>
 	///     Создание настроек OpenRouter
 	/// </summary>
-	/// <param name="request"></param>
-	/// <param name="ctx"></param>
-	/// <returns>null</returns>
+	/// <param name="request">Данные для создания настроек OpenRouter (токен и модель)</param>
+	/// <param name="ctx">Токен отмены операции</param>
+	/// <returns>Ответ с данными созданных настроек OpenRouter</returns>
 	[HttpPost(Routes.OpenRouterSetting.Create)]
 	[ProducesResponseType(StatusCodes.Status201Created, Type = typeof(CreateOpenRouterSettingResponse))]
 	[ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
@@ -44,9 +44,9 @@ public class OpenRouterSettingController(ISender sender) : ControllerBase
 	/// <summary>
 	///     Получение настроек OpenRouter
 	/// </summary>
-	/// <param name="id"></param>
-	/// <param name="ctx"></param>
-	/// <returns>null</returns>
+	/// <param name="id">Идентификатор настроек OpenRouter</param>
+	/// <param name="ctx">Токен отмены операции</param>
+	/// <returns>Данные настроек OpenRouter с указанным идентификатором</returns>
 	[HttpGet(Routes.OpenRouterSetting.Get)]
 	[ProducesResponseType(StatusCodes.Status200OK, Type = typeof(GetOpenRouterSettingResponse))]
 	[ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
@@ -60,10 +60,10 @@ public class OpenRouterSettingController(ISender sender) : ControllerBase
 
 
 	/// <summary>
-	///     Получение настроек OpenRouter
+	///     Получение списка настроек OpenRouter
 	/// </summary>
-	/// <param name="ctx"></param>
-	/// <returns>null</returns>
+	/// <param name="ctx">Токен отмены операции</param>
+	/// <returns>Список всех настроек OpenRouter</returns>
 	[HttpGet(Routes.OpenRouterSetting.List)]
 	[ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ListOpenRouterSettingResponse))]
 	[ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
@@ -76,11 +76,11 @@ public class OpenRouterSettingController(ISender sender) : ControllerBase
 	}
 
 	/// <summary>
-	///     Получение настроек OpenRouter
+	///     Удаление настроек OpenRouter
 	/// </summary>
-	/// <param name="id"></param>
-	/// <param name="ctx"></param>
-	/// <returns>null</returns>
+	/// <param name="id">Идентификатор настроек OpenRouter для удаления</param>
+	/// <param name="ctx">Токен отмены операции</param>
+	/// <returns>Результат выполнения операции</returns>
 	[HttpDelete(Routes.OpenRouterSetting.Delete)]
 	[ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ListOpenRouterSettingResponse))]
 	[ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
@@ -95,10 +95,10 @@ public class OpenRouterSettingController(ISender sender) : ControllerBase
 	/// <summary>
 	///     Добавление расписания к настройкам OpenRouter
 	/// </summary>
-	/// <param name="id"></param>
-	/// <param name="scheduleId"></param>
-	/// <param name="ctx"></param>
-	/// <returns>null</returns>
+	/// <param name="id">Идентификатор настроек OpenRouter</param>
+	/// <param name="scheduleId">Идентификатор расписания для привязки</param>
+	/// <param name="ctx">Токен отмены операции</param>
+	/// <returns>Результат выполнения операции</returns>
 	[HttpPatch(Routes.OpenRouterSetting.AddSchedule)]
 	[ProducesResponseType(StatusCodes.Status200OK)]
 	[ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]

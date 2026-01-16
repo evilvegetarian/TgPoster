@@ -2,6 +2,9 @@ using System.ComponentModel.DataAnnotations;
 
 namespace TgPoster.API.Models;
 
+/// <summary>
+/// Запрос на создание дней недели с настройками публикации
+/// </summary>
 public class CreateDaysRequest : IValidatableObject
 {
 	/// <summary>
@@ -14,6 +17,9 @@ public class CreateDaysRequest : IValidatableObject
 	/// </summary>
 	public List<DayOfWeekRequest> DaysOfWeek { get; set; } = [];
 
+	/// <summary>
+	/// Валидация запроса на создание дней недели
+	/// </summary>
 	public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
 	{
 		var validationErrors = new List<ValidationResult>();

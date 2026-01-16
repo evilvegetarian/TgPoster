@@ -61,6 +61,9 @@ public static class MonitorServiceCollectionExtensions
 		return services;
 	}
 
+	/// <summary>
+	/// Добавить метрики и трассировку в приложение
+	/// </summary>
 	public static IServiceCollection AddMonitors(
 		this IServiceCollection services,
 		TracingConfiguration configuration

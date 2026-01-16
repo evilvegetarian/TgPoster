@@ -21,9 +21,9 @@ public class YouTubeAccountController(ISender sender) : ControllerBase
 	/// <summary>
 	///     Регистрация Аккаунта, редиректит на гугл авторизацию
 	/// </summary>
-	/// <param name="request"></param>
-	/// <param name="ct"></param>
-	/// <returns></returns>
+	/// <param name="request">Данные для регистрации аккаунта YouTube (JSON-файл, идентификатор клиента и секрет клиента)</param>
+	/// <param name="ct">Токен отмены операции</param>
+	/// <returns>URL для авторизации через Google</returns>
 	[HttpPost(Routes.YouTubeAccount.Create)]
 	[ProducesResponseType(StatusCodes.Status200OK)]
 	[ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
@@ -42,11 +42,11 @@ public class YouTubeAccountController(ISender sender) : ControllerBase
 	/// <summary>
 	///     Коллбэк от гугл обратно к нам
 	/// </summary>
-	/// <param name="code"></param>
-	/// <param name="state">Возвращает id записи в бд</param>
-	/// <param name="error"></param>
-	/// <param name="ct"></param>
-	/// <returns></returns>
+	/// <param name="code">Код авторизации от Google</param>
+	/// <param name="state">Идентификатор записи в базе данных</param>
+	/// <param name="error">Сообщение об ошибке (если есть)</param>
+	/// <param name="ct">Токен отмены операции</param>
+	/// <returns>Результат выполнения операции</returns>
 	[AllowAnonymous]
 	[HttpGet(Routes.YouTubeAccount.CallBack)]
 	[ProducesResponseType(StatusCodes.Status200OK)]
@@ -63,9 +63,9 @@ public class YouTubeAccountController(ISender sender) : ControllerBase
 	/// <summary>
 	///     Отправка сообщения с видео в ютуб
 	/// </summary>
-	/// <param name="messageId"></param>
-	/// <param name="ct"></param>
-	/// <returns></returns>
+	/// <param name="messageId">Идентификатор сообщения с видео для отправки</param>
+	/// <param name="ct">Токен отмены операции</param>
+	/// <returns>Результат выполнения операции</returns>
 	[HttpPost(Routes.YouTubeAccount.SendVideo)]
 	[ProducesResponseType(StatusCodes.Status200OK)]
 	[ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
@@ -80,8 +80,8 @@ public class YouTubeAccountController(ISender sender) : ControllerBase
 	/// <summary>
 	///     Получение списка ютуб аккаунтов
 	/// </summary>
-	/// <param name="ct"></param>
-	/// <returns></returns>
+	/// <param name="ct">Токен отмены операции</param>
+	/// <returns>Список всех YouTube аккаунтов пользователя</returns>
 	[HttpGet(Routes.YouTubeAccount.List)]
 	[ProducesResponseType(StatusCodes.Status200OK, Type = typeof(List<YouTubeAccountResponse>))]
 	[ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]

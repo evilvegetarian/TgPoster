@@ -13,6 +13,9 @@ using TgPoster.API.Models;
 
 namespace TgPoster.API.Controllers;
 
+/// <summary>
+/// Контроллер для управления расписаниями
+/// </summary>
 [Authorize]
 [ApiController]
 public class ScheduleController(ISender sender) : ControllerBase
@@ -20,8 +23,8 @@ public class ScheduleController(ISender sender) : ControllerBase
 	/// <summary>
 	///     Получение расписаний
 	/// </summary>
-	/// <param name="ct"></param>
-	/// <returns></returns>
+	/// <param name="ct">Токен отмены операции</param>
+	/// <returns>Список всех расписаний</returns>
 	[HttpGet(Routes.Schedule.List)]
 	[ProducesResponseType(StatusCodes.Status200OK, Type = typeof(List<ScheduleResponse>))]
 	[ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
@@ -34,9 +37,9 @@ public class ScheduleController(ISender sender) : ControllerBase
 	/// <summary>
 	///     Создание расписания
 	/// </summary>
-	/// <param name="request"></param>
-	/// <param name="ct"></param>
-	/// <returns></returns>
+	/// <param name="request">Данные для создания расписания</param>
+	/// <param name="ct">Токен отмены операции</param>
+	/// <returns>Созданное расписание с идентификатором</returns>
 	[HttpPost(Routes.Schedule.Create)]
 	[ProducesResponseType(StatusCodes.Status201Created, Type = typeof(CreateScheduleResponse))]
 	[ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
@@ -52,9 +55,9 @@ public class ScheduleController(ISender sender) : ControllerBase
 	/// <summary>
 	///     Получение расписания
 	/// </summary>
-	/// <param name="id"></param>
-	/// <param name="ct"></param>
-	/// <returns></returns>
+	/// <param name="id">Идентификатор расписания</param>
+	/// <param name="ct">Токен отмены операции</param>
+	/// <returns>Информация о расписании</returns>
 	[HttpGet(Routes.Schedule.Get)]
 	[ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ScheduleResponse))]
 	[ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
@@ -68,9 +71,9 @@ public class ScheduleController(ISender sender) : ControllerBase
 	/// <summary>
 	///     Удаление расписания
 	/// </summary>
-	/// <param name="id"></param>
-	/// <param name="ct"></param>
-	/// <returns></returns>
+	/// <param name="id">Идентификатор расписания</param>
+	/// <param name="ct">Токен отмены операции</param>
+	/// <returns>Результат операции удаления</returns>
 	[HttpDelete(Routes.Schedule.Delete)]
 	[ProducesResponseType(StatusCodes.Status200OK)]
 	[ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
@@ -84,9 +87,9 @@ public class ScheduleController(ISender sender) : ControllerBase
 	/// <summary>
 	///     Изменить активность расписания
 	/// </summary>
-	/// <param name="id"></param>
-	/// <param name="ct"></param>
-	/// <returns></returns>
+	/// <param name="id">Идентификатор расписания</param>
+	/// <param name="ct">Токен отмены операции</param>
+	/// <returns>Результат операции обновления статуса</returns>
 	[HttpPatch(Routes.Schedule.UpdateStatus)]
 	[ProducesResponseType(StatusCodes.Status200OK)]
 	[ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
@@ -100,10 +103,10 @@ public class ScheduleController(ISender sender) : ControllerBase
 	/// <summary>
 	///     Обновить расписание
 	/// </summary>
-	/// <param name="id"></param>
-	/// <param name="request"></param>
-	/// <param name="ct"></param>
-	/// <returns></returns>
+	/// <param name="id">Идентификатор расписания</param>
+	/// <param name="request">Данные для обновления расписания</param>
+	/// <param name="ct">Токен отмены операции</param>
+	/// <returns>Результат операции обновления</returns>
 	[HttpPut(Routes.Schedule.Update)]
 	[ProducesResponseType(StatusCodes.Status200OK)]
 	[ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]

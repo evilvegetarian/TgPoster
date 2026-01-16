@@ -18,9 +18,9 @@ public class AccountController(ISender sender) : ControllerBase
 	/// <summary>
 	///     Регистрация пользователя
 	/// </summary>
-	/// <param name="request"></param>
-	/// <param name="ct"></param>
-	/// <returns></returns>
+	/// <param name="request">Данные для регистрации пользователя (логин и пароль)</param>
+	/// <param name="ct">Токен отмены операции</param>
+	/// <returns>Ответ с данными зарегистрированного пользователя и токенами доступа</returns>
 	[HttpPost(Routes.Account.SignOn)]
 	[ProducesResponseType(StatusCodes.Status200OK, Type = typeof(SignOnResponse))]
 	[ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
@@ -34,9 +34,9 @@ public class AccountController(ISender sender) : ControllerBase
 	/// <summary>
 	///     Зайти в аккаунт
 	/// </summary>
-	/// <param name="request"></param>
-	/// <param name="ct"></param>
-	/// <returns></returns>
+	/// <param name="request">Данные для входа в систему (логин и пароль)</param>
+	/// <param name="ct">Токен отмены операции</param>
+	/// <returns>Ответ с данными пользователя и токенами доступа</returns>
 	[HttpPost(Routes.Account.SignIn)]
 	[ProducesResponseType(StatusCodes.Status200OK, Type = typeof(SignInResponse))]
 	[ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
@@ -51,9 +51,9 @@ public class AccountController(ISender sender) : ControllerBase
 	/// <summary>
 	///     Обновить токен
 	/// </summary>
-	/// <param name="request"></param>
-	/// <param name="ct"></param>
-	/// <returns></returns>
+	/// <param name="request">Данные с refresh токеном для обновления</param>
+	/// <param name="ct">Токен отмены операции</param>
+	/// <returns>Ответ с новыми токенами доступа</returns>
 	[HttpPost(Routes.Account.RefreshToken)]
 	[ProducesResponseType(StatusCodes.Status200OK, Type = typeof(RefreshTokenResponse))]
 	[ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]

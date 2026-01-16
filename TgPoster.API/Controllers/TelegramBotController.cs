@@ -22,9 +22,9 @@ public class TelegramBotController(ISender sender) : ControllerBase
 	/// <summary>
 	///     Добавление бота
 	/// </summary>
-	/// <param name="request"></param>
-	/// <param name="ct">CancellationToken</param>
-	/// <returns></returns>
+	/// <param name="request">Данные для создания бота (токен бота)</param>
+	/// <param name="ct">Токен отмены операции</param>
+	/// <returns>Ответ с данными созданного Telegram бота</returns>
 	[HttpPost(Routes.TelegramBot.Create)]
 	[ProducesResponseType(StatusCodes.Status200OK, Type = typeof(CreateTelegramBotResponse))]
 	[ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
@@ -41,10 +41,10 @@ public class TelegramBotController(ISender sender) : ControllerBase
 	/// <summary>
 	///     Обновление бота
 	/// </summary>
-	/// <param name="id"></param>
-	/// <param name="request"></param>
-	/// <param name="ct">CancellationToken</param>
-	/// <returns></returns>
+	/// <param name="id">Идентификатор бота для обновления</param>
+	/// <param name="request">Данные для обновления бота (имя и статус активности)</param>
+	/// <param name="ct">Токен отмены операции</param>
+	/// <returns>Результат выполнения операции</returns>
 	[HttpPut(Routes.TelegramBot.Update)]
 	[ProducesResponseType(StatusCodes.Status200OK)]
 	[ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
@@ -62,8 +62,8 @@ public class TelegramBotController(ISender sender) : ControllerBase
 	/// <summary>
 	///     Получение всех ботов пользователя
 	/// </summary>
-	/// <param name="ct">CancellationToken</param>
-	/// <returns></returns>
+	/// <param name="ct">Токен отмены операции</param>
+	/// <returns>Список всех Telegram ботов текущего пользователя</returns>
 	[HttpGet(Routes.TelegramBot.List)]
 	[ProducesResponseType(StatusCodes.Status200OK, Type = typeof(List<TelegramBotResponse>))]
 	[ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
@@ -77,9 +77,9 @@ public class TelegramBotController(ISender sender) : ControllerBase
 	/// <summary>
 	///     Удаление бота
 	/// </summary>
-	/// <param name="id"></param>
-	/// <param name="ct">CancellationToken</param>
-	/// <returns></returns>
+	/// <param name="id">Идентификатор бота для удаления</param>
+	/// <param name="ct">Токен отмены операции</param>
+	/// <returns>Результат выполнения операции</returns>
 	[HttpDelete(Routes.TelegramBot.Delete)]
 	[ProducesResponseType(StatusCodes.Status200OK)]
 	[ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]

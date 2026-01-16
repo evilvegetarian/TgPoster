@@ -2,6 +2,9 @@ using System.ComponentModel.DataAnnotations;
 
 namespace TgPoster.API.Models;
 
+/// <summary>
+/// Запрос на обновление настроек парсинга канала
+/// </summary>
 public class UpdateParseChannelRequest : IValidatableObject
 {
 	/// <summary>
@@ -56,6 +59,9 @@ public class UpdateParseChannelRequest : IValidatableObject
 	/// </summary>
 	public bool UseAiForPosts { get; set; }
 
+	/// <summary>
+	/// Валидация запроса на обновление настроек парсинга канала
+	/// </summary>
 	public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
 	{
 		var validationResults = new List<ValidationResult>();

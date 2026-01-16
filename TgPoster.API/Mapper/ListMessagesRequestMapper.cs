@@ -6,8 +6,14 @@ using SortDirection = TgPoster.API.Domain.UseCases.Messages.ListMessage.SortDire
 
 namespace TgPoster.API.Mapper;
 
+/// <summary>
+/// Маппер для запросов списка сообщений
+/// </summary>
 public static class ListMessagesRequestMapper
 {
+	/// <summary>
+	/// Преобразовать API модель в доменную команду
+	/// </summary>
 	public static ListMessageQuery ToDomain(this ListMessagesRequest request)
 	{
 		var status = (MessageStatus)request.Status;

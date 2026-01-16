@@ -22,8 +22,8 @@ public class DayController(ISender sender) : ControllerBase
 	/// <summary>
 	///     Получение дней недели
 	/// </summary>
-	/// <param name="ct"></param>
-	/// <returns></returns>
+	/// <param name="ct">Токен отмены операции</param>
+	/// <returns>Список всех дней недели для выбора</returns>
 	[HttpGet(Routes.Day.DayOfWeek)]
 	[ProducesResponseType(StatusCodes.Status200OK, Type = typeof(List<DayOfWeekResponse>))]
 	[ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
@@ -36,9 +36,9 @@ public class DayController(ISender sender) : ControllerBase
 	/// <summary>
 	///     Создание дней недели
 	/// </summary>
-	/// <param name="request"></param>
-	/// <param name="ct"></param>
-	/// <returns></returns>
+	/// <param name="request">Данные для создания дней недели с временем публикации (расписание, дни недели, время начала, окончания и интервал)</param>
+	/// <param name="ct">Токен отмены операции</param>
+	/// <returns>Результат выполнения операции</returns>
 	[HttpPost(Routes.Day.Create)]
 	[ProducesResponseType(StatusCodes.Status201Created)]
 	[ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
@@ -63,9 +63,9 @@ public class DayController(ISender sender) : ControllerBase
 	/// <summary>
 	///     Получение дней
 	/// </summary>
-	/// <param name="scheduleId"></param>
-	/// <param name="ct"></param>
-	/// <returns></returns>
+	/// <param name="scheduleId">Идентификатор расписания</param>
+	/// <param name="ct">Токен отмены операции</param>
+	/// <returns>Список дней недели с настройками публикации для указанного расписания</returns>
 	[HttpGet(Routes.Day.GetBySchedule)]
 	[ProducesResponseType(StatusCodes.Status200OK, Type = typeof(List<GetDaysResponse>))]
 	[ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
@@ -79,9 +79,9 @@ public class DayController(ISender sender) : ControllerBase
 	/// <summary>
 	///     Обновление времени для определенного дня
 	/// </summary>
-	/// <param name="request"></param>
-	/// <param name="ct"></param>
-	/// <returns></returns>
+	/// <param name="request">Данные для обновления времени (идентификатор расписания, день недели и новое время)</param>
+	/// <param name="ct">Токен отмены операции</param>
+	/// <returns>Результат выполнения операции</returns>
 	[HttpPatch(Routes.Day.UpdateTime)]
 	[ProducesResponseType(StatusCodes.Status200OK)]
 	[ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
