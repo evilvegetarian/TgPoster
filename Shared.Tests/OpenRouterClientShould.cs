@@ -3,7 +3,7 @@ using System.Text.Json;
 using Moq;
 using Moq.Protected;
 using Shared;
-using Shared.SharedException;
+using Shared.Exceptions;
 using Shouldly;
 
 namespace Shared.Tests;

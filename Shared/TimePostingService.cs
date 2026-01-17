@@ -1,4 +1,4 @@
-using Shared.SharedException;
+using Shared.Exceptions;
 
 namespace Shared;
 

@@ -1,7 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
-using Shared.SharedException;
+using Shared.Exceptions;
 using Telegram.Bot.Exceptions;
 using TgPoster.API.Domain.Exceptions;
 

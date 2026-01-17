@@ -1,5 +1,5 @@
 using MediatR;
-using Shared.SharedException;
+using Shared.Exceptions;
 
 namespace TgPoster.API.Domain.UseCases.OpenRouterSetting.DeleteOpenRouterSetting;
 

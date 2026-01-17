@@ -1,4 +1,5 @@
 using Shouldly;
+using Shared.Exceptions;
 
 namespace Shared.Tests;
 
@@ -11,7 +12,7 @@ public sealed class TimePostingServiceShould
 	{
 		var scheduleTime = new Dictionary<DayOfWeek, List<TimeOnly>>();
 		var existingTimes = new List<DateTimeOffset>();
-		Should.Throw<SharedException.SharedException>(() => sut.GetTimeForPosting(5, scheduleTime, existingTimes));
+		Should.Throw<SharedException>(() => sut.GetTimeForPosting(5, scheduleTime, existingTimes));
 	}
 
 	[Fact]
