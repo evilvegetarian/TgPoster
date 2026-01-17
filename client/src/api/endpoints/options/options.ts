@@ -31,6 +31,9 @@ import { customInstance } from '../../axios-instance';
 
 
 
+/**
+ * @summary Получить список статусов сообщений
+ */
 export const getApiOptionsMessageStatuses = (
     
  signal?: AbortSignal
@@ -95,6 +98,9 @@ export function useGetApiOptionsMessageStatuses<TData = Awaited<ReturnType<typeo
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiOptionsMessageStatuses>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Получить список статусов сообщений
+ */
 
 export function useGetApiOptionsMessageStatuses<TData = Awaited<ReturnType<typeof getApiOptionsMessageStatuses>>, TError = unknown>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiOptionsMessageStatuses>>, TError, TData>>, }
@@ -112,6 +118,9 @@ export function useGetApiOptionsMessageStatuses<TData = Awaited<ReturnType<typeo
 
 
 
+/**
+ * @summary Получить список полей сортировки сообщений
+ */
 export const getApiOptionsMessageSortFields = (
     
  signal?: AbortSignal
@@ -176,6 +185,9 @@ export function useGetApiOptionsMessageSortFields<TData = Awaited<ReturnType<typ
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiOptionsMessageSortFields>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Получить список полей сортировки сообщений
+ */
 
 export function useGetApiOptionsMessageSortFields<TData = Awaited<ReturnType<typeof getApiOptionsMessageSortFields>>, TError = unknown>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiOptionsMessageSortFields>>, TError, TData>>, }
@@ -193,6 +205,9 @@ export function useGetApiOptionsMessageSortFields<TData = Awaited<ReturnType<typ
 
 
 
+/**
+ * @summary Получить список направлений сортировки
+ */
 export const getApiOptionsSortDirections = (
     
  signal?: AbortSignal
@@ -257,6 +272,9 @@ export function useGetApiOptionsSortDirections<TData = Awaited<ReturnType<typeof
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiOptionsSortDirections>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Получить список направлений сортировки
+ */
 
 export function useGetApiOptionsSortDirections<TData = Awaited<ReturnType<typeof getApiOptionsSortDirections>>, TError = unknown>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiOptionsSortDirections>>, TError, TData>>, }
@@ -274,6 +292,9 @@ export function useGetApiOptionsSortDirections<TData = Awaited<ReturnType<typeof
 
 
 
+/**
+ * @summary Получить список типов файлов
+ */
 export const getApiOptionsFileType = (
     
  signal?: AbortSignal
@@ -338,6 +359,9 @@ export function useGetApiOptionsFileType<TData = Awaited<ReturnType<typeof getAp
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiOptionsFileType>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Получить список типов файлов
+ */
 
 export function useGetApiOptionsFileType<TData = Awaited<ReturnType<typeof getApiOptionsFileType>>, TError = unknown>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiOptionsFileType>>, TError, TData>>, }

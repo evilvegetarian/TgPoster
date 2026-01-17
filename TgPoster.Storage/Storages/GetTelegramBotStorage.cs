@@ -30,6 +30,15 @@ internal class GetTelegramBotStorage(PosterContext context) : IGetTelegramBotSto
 			}).FirstOrDefaultAsync(ct);
 	}
 
+	public Task<TelegramBotDto?> GetTelegramBotByScheduleIdAsync(Guid scheduleId, CancellationToken ct) =>
+		context.Schedules
+			.Where(x => x.Id == scheduleId)
+			.Select(x => new TelegramBotDto
+			{
+				ApiTelegram = x.TelegramBot.ApiTelegram,
+				ChatId = x.TelegramBot.ChatId
+			}).FirstOrDefaultAsync(ct);
+
 	public Task<TelegramBotDto?> GetTelegramBotByMessageIdAsync(Guid messageId, Guid userId, CancellationToken ct)
 	{
 		return context.Messages

@@ -116,3 +116,90 @@ export function useGetApiV1FileId<TData = Awaited<ReturnType<typeof getApiV1File
 
 
 
+/**
+ * @summary Загрузка файла в S3 хранилище
+ */
+export const getApiV1FileIdUploadS3 = (
+    id: string,
+ signal?: AbortSignal
+) => {
+      
+      
+      return customInstance<string>(
+      {url: `/api/v1/file/${id}/upload-s3`, method: 'GET', signal
+    },
+      );
+    }
+  
+
+export const getGetApiV1FileIdUploadS3QueryKey = (id: string,) => {
+    return [`/api/v1/file/${id}/upload-s3`] as const;
+    }
+
+    
+export const getGetApiV1FileIdUploadS3QueryOptions = <TData = Awaited<ReturnType<typeof getApiV1FileIdUploadS3>>, TError = ProblemDetails>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1FileIdUploadS3>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetApiV1FileIdUploadS3QueryKey(id);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getApiV1FileIdUploadS3>>> = ({ signal }) => getApiV1FileIdUploadS3(id, signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getApiV1FileIdUploadS3>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetApiV1FileIdUploadS3QueryResult = NonNullable<Awaited<ReturnType<typeof getApiV1FileIdUploadS3>>>
+export type GetApiV1FileIdUploadS3QueryError = ProblemDetails
+
+
+export function useGetApiV1FileIdUploadS3<TData = Awaited<ReturnType<typeof getApiV1FileIdUploadS3>>, TError = ProblemDetails>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1FileIdUploadS3>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getApiV1FileIdUploadS3>>,
+          TError,
+          Awaited<ReturnType<typeof getApiV1FileIdUploadS3>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetApiV1FileIdUploadS3<TData = Awaited<ReturnType<typeof getApiV1FileIdUploadS3>>, TError = ProblemDetails>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1FileIdUploadS3>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getApiV1FileIdUploadS3>>,
+          TError,
+          Awaited<ReturnType<typeof getApiV1FileIdUploadS3>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetApiV1FileIdUploadS3<TData = Awaited<ReturnType<typeof getApiV1FileIdUploadS3>>, TError = ProblemDetails>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1FileIdUploadS3>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Загрузка файла в S3 хранилище
+ */
+
+export function useGetApiV1FileIdUploadS3<TData = Awaited<ReturnType<typeof getApiV1FileIdUploadS3>>, TError = ProblemDetails>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1FileIdUploadS3>>, TError, TData>>, }
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetApiV1FileIdUploadS3QueryOptions(id,options)
+
+  const query = useQuery(queryOptions , queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+

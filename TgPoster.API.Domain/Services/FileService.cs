@@ -128,7 +128,7 @@ internal sealed class FileService(
 				Key = fileDtoId.ToString()
 			};
 			await s3.GetObjectMetadataAsync(getObjectRequest, ct);
-			return false;
+			return true;
 		}
 		catch (AmazonS3Exception e) when (e.StatusCode == HttpStatusCode.NotFound)
 		{

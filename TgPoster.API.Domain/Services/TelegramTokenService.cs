@@ -35,6 +35,17 @@ public class TelegramTokenService(
 		var token = aes.Decrypt(options.SecretKey, telegramBot.ApiTelegram);
 		return (token, telegramBot.ChatId);
 	}
+	public async Task<(string token, long chatId)> GetTokenByScheduleIdAnonymousAsync(Guid scheduleId, CancellationToken ct)
+	{
+		var telegramBot = await storage.GetTelegramBotByScheduleIdAsync(scheduleId, ct);
+		if (telegramBot is null)
+		{
+			throw new TelegramBotNotFoundException();
+		}
+
+		var token = aes.Decrypt(options.SecretKey, telegramBot.ApiTelegram);
+		return (token, telegramBot.ChatId);
+	}
 
 	public async Task<(string token, long chatId)> GetTokenByMessageIdAsync(Guid messageId, CancellationToken ct)
 	{

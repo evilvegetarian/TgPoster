@@ -101,7 +101,7 @@ export const usePostApiV1OpenRouterSetting = <TError = ProblemDetails,
       return useMutation(mutationOptions , queryClient);
     }
     /**
- * @summary Получение настроек OpenRouter
+ * @summary Получение списка настроек OpenRouter
  */
 export const getApiV1OpenRouterSetting = (
     
@@ -168,7 +168,7 @@ export function useGetApiV1OpenRouterSetting<TData = Awaited<ReturnType<typeof g
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
- * @summary Получение настроек OpenRouter
+ * @summary Получение списка настроек OpenRouter
  */
 
 export function useGetApiV1OpenRouterSetting<TData = Awaited<ReturnType<typeof getApiV1OpenRouterSetting>>, TError = ProblemDetails>(
@@ -275,7 +275,7 @@ export function useGetApiV1OpenRouterSettingId<TData = Awaited<ReturnType<typeof
 
 
 /**
- * @summary Получение настроек OpenRouter
+ * @summary Удаление настроек OpenRouter
  */
 export const deleteApiV1OpenRouterSettingId = (
     id: string,
@@ -320,7 +320,7 @@ const {mutation: mutationOptions} = options ?
     export type DeleteApiV1OpenRouterSettingIdMutationError = ProblemDetails
 
     /**
- * @summary Получение настроек OpenRouter
+ * @summary Удаление настроек OpenRouter
  */
 export const useDeleteApiV1OpenRouterSettingId = <TError = ProblemDetails,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteApiV1OpenRouterSettingId>>, TError,{id: string}, TContext>, }

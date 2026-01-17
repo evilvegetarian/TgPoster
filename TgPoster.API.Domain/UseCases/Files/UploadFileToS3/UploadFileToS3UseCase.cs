@@ -11,9 +11,9 @@ internal sealed class UploadFileToS3UseCase(
 	FileService fileService,
 	TelegramTokenService tokenService,
 	S3Options s3Options
-) : IRequestHandler<UploadFileToS3Command, UploadFileToS3Response>
+) : IRequestHandler<UploadFileToS3Command, string>
 {
-	public async Task<UploadFileToS3Response> Handle(UploadFileToS3Command request, CancellationToken ct)
+	public async Task<string> Handle(UploadFileToS3Command request, CancellationToken ct)
 	{
 		var fileInfo = await storage.GetFileInfoAsync(request.FileId, ct);
 		if (fileInfo is null)
@@ -24,11 +24,11 @@ internal sealed class UploadFileToS3UseCase(
 		if (fileInfo.IsInS3)
 		{
 			var s3Url = $"{s3Options.ServiceUrl}/{s3Options.BucketName}/{request.FileId}";
-			return new UploadFileToS3Response(s3Url);
+			return s3Url;
 		}
 
 		var scheduleId = await storage.GetScheduleIdByFileIdAsync(request.FileId, ct);
-		var (token, _) = await tokenService.GetTokenByScheduleIdAsync(scheduleId, ct);
+		var (token, _) = await tokenService.GetTokenByScheduleIdAnonymousAsync(scheduleId, ct);
 		var botClient = new TelegramBotClient(token);
 
 		var fileType = fileInfo.ContentType.GetFileType();
@@ -46,6 +46,6 @@ internal sealed class UploadFileToS3UseCase(
 		}
 
 		var resultUrl = $"{s3Options.ServiceUrl}/{s3Options.BucketName}/{request.FileId}";
-		return new UploadFileToS3Response(resultUrl);
+		return  resultUrl;
 	}
 }

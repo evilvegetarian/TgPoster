@@ -4,11 +4,20 @@
  * TgPoster.API
  * OpenAPI spec version: 1.0
  */
+/**
+ * Запрос на подтверждение сообщений
+ */
 export interface ApproveMessagesRequest {
-  /** @nullable */
+  /**
+   * Список идентификаторов сообщений для подтверждения
+   * @nullable
+   */
   messagesIds?: string[] | null;
 }
 
+/**
+ * Запрос на создание дней недели с настройками публикации
+ */
 export interface CreateDaysRequest {
   /** Id расписания */
   scheduleId: string;
@@ -112,19 +121,28 @@ export interface CreatePromptSettingRequest {
   photoPrompt?: string | null;
 }
 
+/**
+ * Запрос на создание расписания
+ */
 export interface CreateScheduleRequest {
   /**
+   * Название расписания
    * @minLength 1
    * @maxLength 100
    */
   name: string;
   /**
+   * Название канала для публикации
    * @minLength 1
    * @maxLength 100
    */
   channel: string;
+  /** Идентификатор Telegram бота */
   telegramBotId: string;
-  /** @nullable */
+  /**
+   * Идентификатор YouTube аккаунта (опционально)
+   * @nullable
+   */
   youTubeAccountId?: string | null;
 }
 
@@ -132,6 +150,9 @@ export interface CreateScheduleResponse {
   id: string;
 }
 
+/**
+ * Запрос на создание Telegram бота
+ */
 export interface CreateTelegramBotRequest {
   /**
    * Токен телеграм бота
@@ -158,6 +179,9 @@ export const DayOfWeek = {
   Saturday: 'Saturday',
 } as const;
 
+/**
+ * Настройки публикации для дня недели
+ */
 export interface DayOfWeekRequest {
   dayOfWeekPosting: DayOfWeek;
   /** Время начала */
@@ -284,6 +308,9 @@ export interface MessageResponsePagedResponse {
   data?: MessageResponse[] | null;
 }
 
+/**
+ * Поля для сортировки сообщений
+ */
 export type MessageSortBy = typeof MessageSortBy[keyof typeof MessageSortBy];
 
 
@@ -305,6 +332,9 @@ export interface MessageSortByEnumViewModel {
   name: string | null;
 }
 
+/**
+ * Статус сообщения
+ */
 export type MessageStatus = typeof MessageStatus[keyof typeof MessageStatus];
 
 
@@ -396,7 +426,11 @@ export interface PromptSettingResponsePagedResponse {
   data?: PromptSettingResponse[] | null;
 }
 
+/**
+ * Запрос на обновление токена доступа
+ */
 export interface RefreshTokenRequest {
+  /** Токен обновления */
   refreshToken: string;
 }
 
@@ -429,12 +463,14 @@ export interface ScheduleResponse {
  */
 export interface SignInRequest {
   /**
+   * Логин пользователя
    * @minLength 5
    * @maxLength 30
    * @nullable
    */
   login: string | null;
   /**
+   * Пароль пользователя
    * @minLength 5
    * @nullable
    */
@@ -453,12 +489,14 @@ export interface SignInResponse {
  */
 export interface SignOnRequest {
   /**
+   * Логин пользователя
    * @minLength 5
    * @maxLength 30
    * @nullable
    */
   login: string | null;
   /**
+   * Пароль пользователя
    * @minLength 5
    * @nullable
    */
@@ -469,6 +507,9 @@ export interface SignOnResponse {
   userId: string;
 }
 
+/**
+ * Направление сортировки
+ */
 export type SortDirection = typeof SortDirection[keyof typeof SortDirection];
 
 
@@ -496,6 +537,9 @@ export interface TelegramBotResponse {
   name: string | null;
 }
 
+/**
+ * Запрос на обновление настроек парсинга канала
+ */
 export interface UpdateParseChannelRequest {
   /**
    * Канал который парсят.
@@ -533,11 +577,20 @@ export interface UpdateParseChannelRequest {
   useAiForPosts?: boolean;
 }
 
+/**
+ * Запрос на обновление расписания
+ */
 export interface UpdateScheduleRequest {
-  /** @nullable */
+  /**
+   * Идентификатор YouTube аккаунта (опционально)
+   * @nullable
+   */
   youTubeAccountId?: string | null;
 }
 
+/**
+ * Запрос на обновление Telegram бота
+ */
 export interface UpdateTelegramBotRequest {
   /**
    * Название телеграм бота
@@ -548,6 +601,9 @@ export interface UpdateTelegramBotRequest {
   isActive?: boolean;
 }
 
+/**
+ * Запрос на обновление времени публикации
+ */
 export interface UpdateTimeRequest {
   /** Id расписания */
   scheduleId: string;
@@ -563,14 +619,26 @@ export interface YouTubeAccountResponse {
   id: string;
   /** @nullable */
   name: string | null;
+  /** @nullable */
+  defaultTitle?: string | null;
+  /** @nullable */
+  defaultDescription?: string | null;
+  /** @nullable */
+  defaultTags?: string | null;
+  autoPostingVideo?: boolean;
 }
 
 export type GetApiV1DayParams = {
+/**
+ * Идентификатор расписания
+ */
 scheduleId: string;
 };
 
 export type PostApiV1MessageBatchFromFilesBody = {
+  /** Идентификатор расписания */
   ScheduleId: string;
+  /** Список файлов для создания сообщений */
   Files: Blob[];
 };
 
@@ -649,17 +717,26 @@ PageSize?: number;
 };
 
 export type PostApiV1YoutubeBody = {
+  /** JSON файл с учетными данными */
   JsonFile?: Blob;
+  /** Идентификатор клиента */
   ClientId?: string;
+  /** Секретный ключ клиента */
   ClientSecret?: string;
 };
 
 export type GetApiV1YoutubeCallbackParams = {
+/**
+ * Код авторизации от Google
+ */
 code?: string;
 /**
- * Возвращает id записи в бд
+ * Идентификатор записи в базе данных
  */
 state?: string;
+/**
+ * Сообщение об ошибке (если есть)
+ */
 error?: string;
 };
 
