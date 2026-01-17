@@ -17,4 +17,17 @@ internal sealed class FileStorage(PosterContext context) : IFileStorage
 		file.IsInS3 = true;
 		await context.SaveChangesAsync(ct);
 	}
+
+	public Task<MessageFileInfo?> GetFileInfoAsync(Guid fileId, CancellationToken ct)
+	{
+		return context.MessageFiles
+			.Where(f => f.Id == fileId)
+			.Select(f => new MessageFileInfo
+			{
+				TgFileId = f.TgFileId,
+				ContentType = f.ContentType,
+				MessageId = f.MessageId
+			})
+			.FirstOrDefaultAsync(ct);
+	}
 }

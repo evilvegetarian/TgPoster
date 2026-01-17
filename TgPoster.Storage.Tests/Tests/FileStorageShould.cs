@@ -35,4 +35,29 @@ public sealed class FileStorageShould(StorageTestFixture fixture) : IClassFixtur
 		var updatedFile = await context.MessageFiles.FirstAsync(f => f.Id == messageFile.Id);
 		updatedFile.IsInS3.ShouldBeTrue();
 	}
+
+	[Fact]
+	public async Task GetFileInfoAsync_WithExistingFile_ShouldReturnFileInfo()
+	{
+		var sut = new FileStorage(context);
+		var messageFile = await new MessageFileBuilder(context).CreateAsync(CancellationToken.None);
+
+		var result = await sut.GetFileInfoAsync(messageFile.Id, CancellationToken.None);
+
+		result.ShouldNotBeNull();
+		result.TgFileId.ShouldBe(messageFile.TgFileId);
+		result.ContentType.ShouldBe(messageFile.ContentType);
+		result.MessageId.ShouldBe(messageFile.MessageId);
+	}
+
+	[Fact]
+	public async Task GetFileInfoAsync_WithNonExistingFile_ShouldReturnNull()
+	{
+		var sut = new FileStorage(context);
+		var nonExistingId = Guid.NewGuid();
+
+		var result = await sut.GetFileInfoAsync(nonExistingId, CancellationToken.None);
+
+		result.ShouldBeNull();
+	}
 }
