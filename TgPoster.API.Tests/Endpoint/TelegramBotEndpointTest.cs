@@ -5,6 +5,7 @@ using TgPoster.API.Common;
 using TgPoster.API.Domain.UseCases.TelegramBots.ListTelegramBot;
 using TgPoster.API.Models;
 using TgPoster.API.Tests.Helper;
+using TgPoster.Storage.Data;
 
 namespace TgPoster.API.Tests.Endpoint;
 
@@ -12,6 +13,7 @@ public class TelegramBotEndpointTest(EndpointTestFixture fixture) : IClassFixtur
 {
 	private const string Url = Routes.TelegramBot.Root;
 	private readonly HttpClient client = fixture.AuthClient;
+	private readonly PosterContext context = fixture.GetDbContext();
 
 	[Fact]
 	public async Task Create_WithMissingToken_ShouldReturnBadRequest()
@@ -44,7 +46,7 @@ public class TelegramBotEndpointTest(EndpointTestFixture fixture) : IClassFixtur
 		var anotherClient = fixture.GetClient(fixture.GenerateTestToken(GlobalConst.UserIdEmpty));
 
 		var listAnotherResponse = await anotherClient.GetAsync<List<TelegramBotResponse>>(Url);
-		listAnotherResponse!.Count.ShouldBeEquivalentTo(0);
+		listAnotherResponse.Count.ShouldBeEquivalentTo(0);
 	}
 
 	[Fact]

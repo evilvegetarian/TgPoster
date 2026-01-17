@@ -1,3 +1,4 @@
+using Google.Apis.Auth.OAuth2.Responses;
 using Shouldly;
 
 namespace Shared.Tests;
@@ -47,7 +48,7 @@ public sealed class YouTubeServiceShould
 		};
 		using var stream = new MemoryStream([1, 2, 3]);
 
-		await Should.ThrowAsync<ArgumentException>(() =>
+		await Should.ThrowAsync<TokenResponseException>(() =>
 			sut.UploadVideoAsync(account, stream, invalidTitle!, "Description", "tag1,tag2", CancellationToken.None)
 		);
 	}

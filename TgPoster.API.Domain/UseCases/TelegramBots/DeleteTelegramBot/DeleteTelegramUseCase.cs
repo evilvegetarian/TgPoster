@@ -13,8 +13,7 @@ public class DeleteTelegramUseCase(IDeleteTelegramBotStorage storage, IIdentityP
 		{
 			throw new TelegramBotNotFoundException(request.Id);
 		}
-
-
+		
 		await storage.DeleteTelegramBotAsync(request.Id, identity.Current.UserId, cancellationToken);
 	}
 }

@@ -51,12 +51,13 @@ public class EndpointTestFixture : WebApplicationFactory<Program>, IAsyncLifetim
 		return jwtProvider.GenerateToken(payload);
 	}
 
-	private async Task CreateAuthClient()
+	private Task CreateAuthClient()
 	{
 		AuthClient = CreateClient();
 		var accessToken = GenerateTestToken(GlobalConst.Worked.UserId);
 		AuthClient.DefaultRequestHeaders.Authorization =
 			new AuthenticationHeaderValue("Bearer", accessToken);
+		return Task.CompletedTask;
 	}
 
 	public HttpClient GetClient(string accessToken)
@@ -65,6 +66,9 @@ public class EndpointTestFixture : WebApplicationFactory<Program>, IAsyncLifetim
 		client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
 		return client;
 	}
+	public PosterContext GetDbContext() =>
+		new(new DbContextOptionsBuilder<PosterContext>()
+			.UseNpgsql(dbContainer.GetConnectionString()).Options);
 
 	protected override void ConfigureWebHost(IWebHostBuilder builder)
 	{

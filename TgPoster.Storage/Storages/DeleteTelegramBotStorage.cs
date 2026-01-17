@@ -16,10 +16,7 @@ public class DeleteTelegramBotStorage(PosterContext context) : IDeleteTelegramBo
 		var bot = await context.TelegramBots
 			.Where(x => x.Id == id && x.OwnerId == userId)
 			.FirstOrDefaultAsync(ct);
-
-		if (bot != null)
-		{
-			await context.SaveChangesAsync(ct);
-		}
+		context.TelegramBots.Remove(bot!);
+		await context.SaveChangesAsync(ct);
 	}
 }
