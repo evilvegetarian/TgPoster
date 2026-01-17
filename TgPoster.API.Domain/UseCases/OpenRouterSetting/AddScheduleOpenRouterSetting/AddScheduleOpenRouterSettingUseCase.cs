@@ -5,7 +5,7 @@ using TgPoster.API.Domain.Exceptions;
 
 namespace TgPoster.API.Domain.UseCases.OpenRouterSetting.AddScheduleOpenRouterSetting;
 
-public class AddScheduleOpenRouterSettingHandler(
+public class AddScheduleOpenRouterSettingUseCase(
 	IAddScheduleOpenRouterSettingStorage storage,
 	IIdentityProvider provider)
 	: IRequestHandler<AddScheduleOpenRouterSettingCommand>

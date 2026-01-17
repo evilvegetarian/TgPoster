@@ -3,7 +3,7 @@ using Shared.Exceptions;
 
 namespace TgPoster.API.Domain.UseCases.OpenRouterSetting.DeleteOpenRouterSetting;
 
-public class DeleteOpenRouterSettingHandler(IDeleteOpenRouterSettingStorage storage)
+public class DeleteOpenRouterSettingUseCase(IDeleteOpenRouterSettingStorage storage)
 	: IRequestHandler<DeleteOpenRouterSettingCommand>
 {
 	public async Task Handle(DeleteOpenRouterSettingCommand request, CancellationToken cancellationToken)

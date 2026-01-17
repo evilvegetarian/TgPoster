@@ -5,7 +5,7 @@ using TgPoster.API.Domain.Exceptions;
 
 namespace TgPoster.API.Domain.UseCases.Messages.UpdateAllTime;
 
-public class UpdateAllTimeHandler(
+public class UpdateAllTimeUseCase(
 	IUpdateAllTimeStorage storage,
 	TimePostingService postingService,
 	IIdentityProvider provider)

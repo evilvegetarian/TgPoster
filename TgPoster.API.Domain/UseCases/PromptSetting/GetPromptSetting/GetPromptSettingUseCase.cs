@@ -5,7 +5,7 @@ using TgPoster.API.Domain.UseCases.PromptSetting.ListPromptSetting;
 
 namespace TgPoster.API.Domain.UseCases.PromptSetting.GetPromptSetting;
 
-public class GetPromptSettingHandler(IGetPromptSettingStorage storage, IIdentityProvider provider)
+public class GetPromptSettingUseCase(IGetPromptSettingStorage storage, IIdentityProvider provider)
 	: IRequestHandler<GetPromptSettingQuery, PromptSettingResponse>
 {
 	public async Task<PromptSettingResponse> Handle(GetPromptSettingQuery request, CancellationToken cancellationToken)

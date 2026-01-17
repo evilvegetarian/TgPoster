@@ -3,7 +3,7 @@ using Security.Interfaces;
 
 namespace TgPoster.API.Domain.UseCases.OpenRouterSetting.ListOpenRouterSetting;
 
-public class ListOpenRouterSettingHandler(IListOpenRouterSettingStorage storage, IIdentityProvider provider)
+public class ListOpenRouterSettingUseCase(IListOpenRouterSettingStorage storage, IIdentityProvider provider)
 	: IRequestHandler<ListOpenRouterSettingQuery, ListOpenRouterSettingResponse>
 {
 	public async Task<ListOpenRouterSettingResponse> Handle(

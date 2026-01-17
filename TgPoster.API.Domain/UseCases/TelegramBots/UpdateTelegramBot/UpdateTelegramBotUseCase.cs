@@ -5,7 +5,7 @@ using TgPoster.API.Domain.Services;
 
 namespace TgPoster.API.Domain.UseCases.TelegramBots.UpdateTelegramBot;
 
-internal sealed class UpdateTelegramBotHandler(TelegramTokenService service, IUpdateTelegramBotStorage storage)
+internal sealed class UpdateTelegramBotUseCase(TelegramTokenService service, IUpdateTelegramBotStorage storage)
 	: IRequestHandler<UpdateTelegramBotCommand>
 {
 	public async Task Handle(UpdateTelegramBotCommand request, CancellationToken ct)

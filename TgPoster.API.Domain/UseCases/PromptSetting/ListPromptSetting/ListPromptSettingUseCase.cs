@@ -4,7 +4,7 @@ using TgPoster.API.Domain.UseCases.Messages.ListMessage;
 
 namespace TgPoster.API.Domain.UseCases.PromptSetting.ListPromptSetting;
 
-public class ListPromptSettingHandler(IListPromptSettingStorage storage, IIdentityProvider provider)
+public class ListPromptSettingUseCase(IListPromptSettingStorage storage, IIdentityProvider provider)
 	: IRequestHandler<ListPromptSettingQuery, PagedResponse<PromptSettingResponse>>
 {
 	public async Task<PagedResponse<PromptSettingResponse>> Handle(

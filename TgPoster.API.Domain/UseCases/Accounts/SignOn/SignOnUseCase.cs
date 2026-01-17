@@ -13,7 +13,7 @@ internal sealed class SignOnUseCase(IPasswordHasher passwordHasher, ISignOnStora
 
 		if (await storage.HaveUserNameAsync(command.Login, ct))
 		{
-			throw new UserAlredyHasException();
+			throw new UserAlreadyExistException();
 		}
 
 		var userId = await storage.CreateUserAsync(command.Login, passwordHash, ct);
