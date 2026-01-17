@@ -12,7 +12,8 @@ public static class DependencyInjection
 	{
 		var dataBase = configuration.GetSection(nameof(DataBase)).Get<DataBase>()!;
 		services.AddDbContextPool<PosterContext>(db =>
-			db.UseNpgsql(dataBase.ConnectionString).EnableSensitiveDataLogging());
+			db.UseNpgsql(dataBase.ConnectionString)
+				.EnableSensitiveDataLogging());
 
 		services.AddScoped<GuidFactory>();
 		services.RegisterStorage();
@@ -33,16 +34,6 @@ public static class DependencyInjection
 				services.Add(new ServiceDescriptor(inter, type, ServiceLifetime.Scoped));
 			}
 		}
-
-		// services.Scan(scan => scan
-		//     .FromApplicationDependencies()
-		//     .AddClasses(classes => classes
-		//         .Where(type => type.IsClass && type.Name.EndsWith("Storage"))
-		//     )
-		//     .UsingRegistrationStrategy(RegistrationStrategy.Throw)
-		//     .AsImplementedInterfaces()
-		//     .WithScopedLifetime()
-		// );
 		return services;
 	}
 }
