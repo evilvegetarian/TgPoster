@@ -3,7 +3,7 @@ using MediatR;
 using TgPoster.API.Domain.Exceptions;
 using TgPoster.API.Domain.Services;
 
-namespace TgPoster.API.Domain.UseCases.Files;
+namespace TgPoster.API.Domain.UseCases.Files.GetFile;
 
 internal sealed class GetFileUseCase(FileService fileService) : IRequestHandler<GetFileCommand, GetFileResponse>
 {

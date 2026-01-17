@@ -67,6 +67,7 @@ internal static class Routes
 	{
 		internal const string Root = Base + "/file";
 		internal const string Get = Root + "/{id:guid}";
+		internal const string UploadToS3 = Root + "/{id:guid}/upload-s3";
 	}
 
 	internal static class ParseChannel

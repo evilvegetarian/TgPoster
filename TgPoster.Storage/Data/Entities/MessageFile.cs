@@ -39,6 +39,11 @@ public sealed class MessageFile : BaseEntity
 	/// </summary>
 	public int Order { get; set; }
 
+	/// <summary>
+	///     Признак того, что файл загружен в S3
+	/// </summary>
+	public bool IsInS3 { get; set; }
+
 	#region Навигация
 
 	/// <summary>

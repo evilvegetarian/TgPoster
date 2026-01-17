@@ -99,10 +99,12 @@ internal sealed class ListMessageStorage(PosterContext context) : IListMessageSt
 						Id = file.Id,
 						ContentType = file.ContentType,
 						TgFileId = file.TgFileId,
+						IsInS3 = file.IsInS3,
 						Previews = file.Thumbnails.Select(x => new PreviewDto
 						{
 							Id = x.Id,
-							TgFileId = x.TgFileId
+							TgFileId = x.TgFileId,
+							IsInS3 = x.IsInS3
 						}).ToList()
 					}).ToList()
 			}).ToListAsync(ct);

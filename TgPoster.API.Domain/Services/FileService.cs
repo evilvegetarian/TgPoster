@@ -13,7 +13,8 @@ internal sealed class FileService(
 	IMemoryCache memoryCache,
 	FileExtensionContentTypeProvider contentTypeProvider,
 	IAmazonS3 s3,
-	S3Options s3Options)
+	S3Options s3Options,
+	IFileStorage fileStorage)
 {
 	/// <summary>
 	///     Обрабатывает список файлов и возвращает список объектов с информацией о кешированном контенте.
@@ -105,13 +106,13 @@ internal sealed class FileService(
 	/// <param name="botClient">Экземпляр TelegramBotClient.</param>
 	/// <param name="fileDtoId">Уникальный идентификатор файла, используемый как ключ в S3.</param>
 	/// <param name="telegramFileId">Идентификатор файла в Telegram.</param>
-	/// <param name="image"></param>
+	/// <param name="fileType">Тип файла</param>
 	/// <param name="ct">Токен отмены операции.</param>
 	/// <returns>
 	///     Возвращает true, если файл был успешно скачан и загружен в S3.
 	///     Возвращает false, если файл уже существовал в S3.
 	/// </returns>
-	private async Task<bool> DownloadAndCacheS3FileAsync(
+	public async Task<bool> DownloadAndUploadToS3Async(
 		TelegramBotClient botClient,
 		Guid fileDtoId,
 		string telegramFileId,
@@ -204,7 +205,11 @@ internal sealed class FileService(
 			{
 				case FileTypes.Image:
 				{
-					await DownloadAndCacheS3FileAsync(botClient, fileDto.Id, fileDto.TgFileId, FileTypes.Image, ct);
+					var uploaded = await DownloadAndUploadToS3Async(botClient, fileDto.Id, fileDto.TgFileId, FileTypes.Image, ct);
+					if (uploaded)
+					{
+						await fileStorage.MarkFileAsUploadedToS3Async(fileDto.Id, ct);
+					}
 					break;
 				}
 
@@ -212,7 +217,11 @@ internal sealed class FileService(
 				{
 					foreach (var preview in fileDto.Previews)
 					{
-						await DownloadAndCacheS3FileAsync(botClient, preview.Id, preview.TgFileId, FileTypes.Video, ct);
+						var uploaded = await DownloadAndUploadToS3Async(botClient, preview.Id, preview.TgFileId, FileTypes.Video, ct);
+						if (uploaded)
+						{
+							await fileStorage.MarkFileAsUploadedToS3Async(preview.Id, ct);
+						}
 					}
 
 					break;

@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TgPoster.API.Common;
 using TgPoster.API.Domain.UseCases.Files;
+using TgPoster.API.Domain.UseCases.Files.GetFile;
+using TgPoster.API.Domain.UseCases.Files.UploadFileToS3;
 
 namespace TgPoster.API.Controllers;
 
@@ -28,5 +30,21 @@ public class FileController(ISender sender) : ControllerBase
 	{
 		var response = await sender.Send(new GetFileCommand(id), ct);
 		return File(response.Data, response.ContentType);
+	}
+
+	/// <summary>
+	///     Загрузка файла в S3 хранилище
+	/// </summary>
+	/// <param name="id">Идентификатор файла</param>
+	/// <param name="ct">Токен отмены операции</param>
+	/// <returns>URL файла в S3</returns>
+	[HttpPost(Routes.File.UploadToS3)]
+	[ProducesResponseType(StatusCodes.Status200OK, Type = typeof(UploadFileToS3Response))]
+	[ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
+	[ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
+	public async Task<IActionResult> UploadToS3([FromRoute] Guid id, CancellationToken ct)
+	{
+		var response = await sender.Send(new UploadFileToS3Command(id), ct);
+		return Ok(response);
 	}
 }
