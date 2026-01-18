@@ -81,9 +81,39 @@ export function SchedulePage() {
     const {data: schedules = [], isLoading: schedulesLoading, refetch: refetchSchedules} = useGetApiV1Schedule();
 
 
-    const deleteScheduleMutation = useDeleteApiV1ScheduleId();
-    const toggleActiveMutation = usePatchApiV1ScheduleIdStatus()
-    const updateTimeMutation = usePatchApiV1DayTime()
+    const {mutate: deleteScheduleMutate, isPending: deleteSchedulePending} = useDeleteApiV1ScheduleId({
+        mutation: {
+            onSuccess: () => {
+                refetchSchedules();
+                toast.success("Расписание удалено");
+            },
+            onError: () => {
+                toast.error("Не удалось удалить расписание");
+            },
+        },
+    });
+
+    const {mutate: toggleActiveMutate, isPending: toggleActivePending} = usePatchApiV1ScheduleIdStatus({
+        mutation: {
+            onSuccess: () => {
+                refetchSchedules();
+            },
+            onError: () => {
+                toast.error("Не удалось изменить статус расписания");
+            },
+        },
+    });
+
+    const {mutate: updateTimeMutate, isPending: updateTimePending} = usePatchApiV1DayTime({
+        mutation: {
+            onSuccess: () => {
+                refetchDays();
+            },
+            onError: () => {
+                toast.error("Не удалось обновить время");
+            },
+        },
+    });
 
     const {data: youtubeAccounts = [], isLoading: youtubeLoading} = useGetApiV1Youtube();
 
@@ -149,7 +179,7 @@ export function SchedulePage() {
     }
 
 
-    const {mutate: updateTimeMutate, isPending: updateTimePending} = usePutApiV1MessageScheduleIdTimes({
+    const {mutate: updateTimeMessagesMutate, isPending: updateTimeMessagesPending} = usePutApiV1MessageScheduleIdTimes({
         mutation: {
             onSuccess: () => {
                 toast.success("Успех", {description: `Обновлено время`})
@@ -161,28 +191,24 @@ export function SchedulePage() {
     })
 
     const handleUpdateMessages = (scheduleId: string) => {
-        updateTimeMutate({
+        updateTimeMessagesMutate({
             scheduleId: scheduleId,
         })
     }
-    const handleDeleteSchedule = async (scheduleId: string) => {
-        try {
-            await deleteScheduleMutation.mutateAsync({id: scheduleId})
-            await refetchSchedules()
-            toast.success("Расписание удалено")
-        } catch {
-            toast.error("Не удалось удалить расписание")
-        }
+
+    const handleDeleteSchedule = (scheduleId: string) => {
+        deleteScheduleMutate({id: scheduleId})
     }
 
-    const handleToggleActive = async (scheduleId: string, currentStatus: boolean) => {
-        try {
-            await toggleActiveMutation.mutateAsync({id: scheduleId})
-            await refetchSchedules()
-            toast.success(`Расписание ${currentStatus ? "деактивировано" : "активировано"}`)
-        } catch {
-            toast.error("Не удалось изменить статус расписания")
-        }
+    const handleToggleActive = (scheduleId: string, currentStatus: boolean) => {
+        toggleActiveMutate(
+            {id: scheduleId},
+            {
+                onSuccess: () => {
+                    toast.success(`Расписание ${currentStatus ? "деактивировано" : "активировано"}`)
+                }
+            }
+        )
     }
 
     const openEditDialog = (schedule: ScheduleResponse) => {
@@ -191,107 +217,115 @@ export function SchedulePage() {
         setIsEditDialogOpen(true)
     }
 
-    const addTimeToDay = async (dayOfWeek: DayOfWeek) => {
+    const addTimeToDay = (dayOfWeek: DayOfWeek) => {
         if (!editingSchedule) return
 
-        try {
-            const existingDay = scheduleDays.find((day) => day.dayOfWeek === dayOfWeek)
-            const currentTimes = existingDay?.timePostings || []
+        const existingDay = scheduleDays.find((day) => day.dayOfWeek === dayOfWeek)
+        const currentTimes = existingDay?.timePostings || []
 
-            if (timeMode === "single") {
-                const time = `${newTimeSlot.hour}:${newTimeSlot.minute}`
-                console.log(time)
-                const allTimes = [...currentTimes, time]?.map(time => convertLocalToIsoTime(time))
-                await updateTimeMutation.mutateAsync({
+        if (timeMode === "single") {
+            const time = `${newTimeSlot.hour}:${newTimeSlot.minute}`
+            const allTimes = [...currentTimes, time]?.map(time => convertLocalToIsoTime(time))
+            updateTimeMutate(
+                {
                     data: {
                         scheduleId: editingSchedule.id,
                         dayOfWeek,
                         times: allTimes,
                     },
-                })
-            } else {
-                const startMinutes = Number.parseInt(intervalTimeSlot.startHour) * 60 + Number.parseInt(intervalTimeSlot.startMinute)
-                const endMinutes = Number.parseInt(intervalTimeSlot.endHour) * 60 + Number.parseInt(intervalTimeSlot.endMinute)
-
-                if (intervalTimeSlot.intervalMinutes <= 0) {
-                    toast.error("Интервал должен быть больше нуля")
-                    return
+                },
+                {
+                    onSuccess: () => {
+                        resetTimeInputs()
+                        toast.success("Время добавлено")
+                    }
                 }
+            )
+        } else {
+            const startMinutes = Number.parseInt(intervalTimeSlot.startHour) * 60 + Number.parseInt(intervalTimeSlot.startMinute)
+            const endMinutes = Number.parseInt(intervalTimeSlot.endHour) * 60 + Number.parseInt(intervalTimeSlot.endMinute)
 
-                if (endMinutes < startMinutes) {
-                    toast.error("Окончание интервала должно быть позже начала")
-                    return
-                }
-
-                const generatedTimes: string[] = []
-                for (let minutes = startMinutes; minutes <= endMinutes; minutes += intervalTimeSlot.intervalMinutes) {
-                    const hours = Math.floor(minutes / 60)
-                        .toString()
-                        .padStart(2, "0")
-                    const mins = (minutes % 60).toString().padStart(2, "0")
-                    generatedTimes.push(`${hours}:${mins}`)
-                }
-                const allTimes = [...currentTimes, ...generatedTimes]?.map(time => convertLocalToIsoTime(time))
-
-                await updateTimeMutation.mutateAsync({
-                    data: {
-                        scheduleId: editingSchedule.id,
-                        dayOfWeek,
-                        times: allTimes,
-                    },
-                })
+            if (intervalTimeSlot.intervalMinutes <= 0) {
+                toast.error("Интервал должен быть больше нуля")
+                return
             }
 
-            await refetchDays()
-            resetTimeInputs()
-            toast.success("Время добавлено")
-        } catch {
-            toast.error("Не удалось добавить время")
+            if (endMinutes < startMinutes) {
+                toast.error("Окончание интервала должно быть позже начала")
+                return
+            }
+
+            const generatedTimes: string[] = []
+            for (let minutes = startMinutes; minutes <= endMinutes; minutes += intervalTimeSlot.intervalMinutes) {
+                const hours = Math.floor(minutes / 60)
+                    .toString()
+                    .padStart(2, "0")
+                const mins = (minutes % 60).toString().padStart(2, "0")
+                generatedTimes.push(`${hours}:${mins}`)
+            }
+            const allTimes = [...currentTimes, ...generatedTimes]?.map(time => convertLocalToIsoTime(time))
+
+            updateTimeMutate(
+                {
+                    data: {
+                        scheduleId: editingSchedule.id,
+                        dayOfWeek,
+                        times: allTimes,
+                    },
+                },
+                {
+                    onSuccess: () => {
+                        resetTimeInputs()
+                        toast.success("Время добавлено")
+                    }
+                }
+            )
         }
     }
-    const removeAllTimeFromDay = async (dayOfWeek: DayOfWeek) => {
+    const removeAllTimeFromDay = (dayOfWeek: DayOfWeek) => {
         if (!editingSchedule) return
 
-        try {
-            const existingDay = scheduleDays.find((day) => day.dayOfWeek === dayOfWeek)
-            if (!existingDay) return
+        const existingDay = scheduleDays.find((day) => day.dayOfWeek === dayOfWeek)
+        if (!existingDay) return
 
-            await updateTimeMutation.mutateAsync({
+        updateTimeMutate(
+            {
                 data: {
                     scheduleId: editingSchedule.id,
                     dayOfWeek,
                     times: [],
                 },
-            })
-
-            await refetchDays()
-            toast.success("Время удалено")
-        } catch {
-            toast.error("Не удалось удалить время")
-        }
+            },
+            {
+                onSuccess: () => {
+                    toast.success("Время удалено")
+                }
+            }
+        )
     }
-    const removeTimeFromDay = async (dayOfWeek: DayOfWeek, timeToRemove: string) => {
+    const removeTimeFromDay = (dayOfWeek: DayOfWeek, timeToRemove: string) => {
         if (!editingSchedule) return
 
-        try {
-            const existingDay = scheduleDays.find((day) => day.dayOfWeek === dayOfWeek)
-            if (!existingDay) return
+        const existingDay = scheduleDays.find((day) => day.dayOfWeek === dayOfWeek)
+        if (!existingDay) return
 
-            const updatedTimes = (existingDay.timePostings || []).filter((time) => time !== timeToRemove)
+        const updatedTimes = (existingDay.timePostings || []).filter((time) => time !== timeToRemove)
+            .map(time => convertLocalToIsoTime(time))
 
-            await updateTimeMutation.mutateAsync({
+        updateTimeMutate(
+            {
                 data: {
                     scheduleId: editingSchedule.id,
                     dayOfWeek,
                     times: updatedTimes,
                 },
-            })
-
-            await refetchDays()
-            toast.success("Время удалено")
-        } catch {
-            toast.error("Не удалось удалить время")
-        }
+            },
+            {
+                onSuccess: () => {
+                    toast.success("Время удалено")
+                }
+            }
+        )
     }
 
     function updateYouTube(id: string, newValue: string|null) {
@@ -352,7 +386,7 @@ export function SchedulePage() {
                                     <Switch
                                         checked={schedule.isActive}
                                         onCheckedChange={() => handleToggleActive(schedule.id, schedule.isActive)}
-                                        disabled={toggleActiveMutation.isPending}
+                                        disabled={toggleActivePending}
                                     />
                                 </div>
                             </CardHeader>
@@ -396,9 +430,9 @@ export function SchedulePage() {
                                             variant="outline"
                                             size="sm"
                                             onClick={() => handleDeleteSchedule(schedule.id)}
-                                            disabled={deleteScheduleMutation.isPending}
+                                            disabled={deleteSchedulePending}
                                         >
-                                            {deleteScheduleMutation.isPending ? (
+                                            {deleteSchedulePending ? (
                                                 <Loader2 className="h-4 w-4 animate-spin"/>
                                             ) : (
                                                 <Trash2 className="h-4 w-4"/>
@@ -454,7 +488,7 @@ export function SchedulePage() {
                                         id="edit-schedule-active"
                                         checked={editingSchedule.isActive}
                                         onCheckedChange={() => handleToggleActive(editingSchedule.id, editingSchedule.isActive)}
-                                        disabled={toggleActiveMutation.isPending}
+                                        disabled={toggleActivePending}
                                     />
                                 </div>
                             </div>
@@ -715,9 +749,9 @@ export function SchedulePage() {
                                                                     <Button
                                                                         size="sm"
                                                                         onClick={() => addTimeToDay(dayOfWeek)}
-                                                                        disabled={updateTimeMutation.isPending}
+                                                                        disabled={updateTimePending}
                                                                     >
-                                                                        {updateTimeMutation.isPending ? (
+                                                                        {updateTimePending ? (
                                                                             <>
                                                                                 <Loader2
                                                                                     className="h-4 w-4 mr-2 animate-spin"/>
@@ -757,11 +791,11 @@ export function SchedulePage() {
                                                                     className="font-mono text-sm leading-none">{time}</span>
                                                                 <button
                                                                     onClick={() => removeTimeFromDay(dayOfWeek, time)}
-                                                                    disabled={updateTimeMutation.isPending}
+                                                                    disabled={updateTimePending}
                                                                     className="flex-shrink-0 group rounded-full p-0.5 text-muted-foreground/50 hover:bg-destructive/20 hover:text-destructive transition-colors disabled:cursor-not-allowed"
                                                                     aria-label={`Удалить время ${time}`}
                                                                 >
-                                                                    {updateTimeMutation.isPending ? (
+                                                                    {updateTimePending ? (
                                                                         <Loader2 className="h-3 w-3 animate-spin"/>
                                                                     ) : (
                                                                         <X className="h-3 w-3 group-hover:text-destructive-foreground"/>
@@ -790,7 +824,7 @@ export function SchedulePage() {
 
                     <DialogFooter className="flex justify-end">
                         <Button className="float-left" variant="outline"
-                                onClick={() => handleUpdateMessages(editingSchedule!.id)} disabled={updateTimePending}>
+                                onClick={() => handleUpdateMessages(editingSchedule!.id)} disabled={updateTimeMessagesPending}>
                             Обновить время сообщений
                         </Button>
                         <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
