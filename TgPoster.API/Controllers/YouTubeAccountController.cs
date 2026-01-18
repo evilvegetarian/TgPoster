@@ -26,7 +26,7 @@ public class YouTubeAccountController(ISender sender) : ControllerBase
 	/// <param name="ct">Токен отмены операции</param>
 	/// <returns>URL для авторизации через Google</returns>
 	[HttpPost(Routes.YouTubeAccount.Create)]
-	[ProducesResponseType(StatusCodes.Status200OK)]
+	[ProducesResponseType(StatusCodes.Status200OK, Type = typeof(CreateYouTubeAccountResponse))]
 	[ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
 	[ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
 	public async Task<IActionResult> AuthYouTube(
@@ -36,8 +36,8 @@ public class YouTubeAccountController(ISender sender) : ControllerBase
 	{
 		var uri = "http://localhost:5173/api/v1/youtube/callback";
 		var command = new LoginYouTubeCommand(request.JsonFile, request.ClientId, request.ClientSecret, uri);
-		var authUrl = await sender.Send(command, ct);
-		return Ok(new { Url = authUrl });
+		var response = await sender.Send(command, ct);
+		return Ok(response);
 	}
 
 	/// <summary>
@@ -58,7 +58,7 @@ public class YouTubeAccountController(ISender sender) : ControllerBase
 		var uri = "http://localhost:5173/api/v1/youtube/callback";
 		var command = new CallBackYouTubeQuery(code, state, uri);
 		await sender.Send(command, ct);
-		return Ok();
+		return Redirect("/");
 	}
 
 	/// <summary>

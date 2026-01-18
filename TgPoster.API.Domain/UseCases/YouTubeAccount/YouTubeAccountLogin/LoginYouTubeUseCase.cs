@@ -7,9 +7,9 @@ using Security.Interfaces;
 namespace TgPoster.API.Domain.UseCases.YouTubeAccount.YouTubeAccountLogin;
 
 public class LoginYouTubeUseCase(ILoginYouTubeStorage storage, IIdentityProvider provider)
-	: IRequestHandler<LoginYouTubeCommand, string>
+	: IRequestHandler<LoginYouTubeCommand, CreateYouTubeAccountResponse>
 {
-	public async Task<string> Handle(LoginYouTubeCommand request, CancellationToken ct)
+	public async Task<CreateYouTubeAccountResponse> Handle(LoginYouTubeCommand request, CancellationToken ct)
 	{
 		var clientSecrets = new ClientSecrets();
 		if (request.JsonFile != null)
@@ -44,6 +44,6 @@ public class LoginYouTubeUseCase(ILoginYouTubeStorage storage, IIdentityProvider
 			provider.Current.UserId, ct);
 		var authRequestUrl = flow.CreateAuthorizationCodeRequest(request.RedirectUrl);
 		authRequestUrl.State = guid.ToString();
-		return authRequestUrl.Build().ToString();
+		return new CreateYouTubeAccountResponse { Url = authRequestUrl.Build().ToString() };
 	}
 }
