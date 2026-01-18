@@ -44,5 +44,10 @@ internal class ScheduleConfiguration : BaseEntityConfiguration<Schedule>
 
 		builder.HasOne(x => x.OpenRouterSetting)
 			.WithOne(x => x.Schedule);
+		
+		builder.HasOne(x => x.YouTubeAccount)
+			.WithMany(x => x.Schedules)
+			.HasForeignKey(x => x.YouTubeAccountId)
+			.OnDelete(DeleteBehavior.SetNull);
 	}
 }

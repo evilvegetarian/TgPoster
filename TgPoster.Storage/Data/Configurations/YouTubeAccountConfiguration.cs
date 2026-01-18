@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using TgPoster.Storage.Data.Entities;
 
@@ -19,7 +20,8 @@ internal class YouTubeAccountConfiguration : BaseEntityConfiguration<YouTubeAcco
 
 		builder.HasMany(x => x.Schedules)
 			.WithOne(x => x.YouTubeAccount)
-			.HasForeignKey(x => x.YouTubeAccountId);
+			.HasForeignKey(x => x.YouTubeAccountId)
+			.OnDelete(DeleteBehavior.SetNull);
 
 		builder.HasOne(x => x.User)
 			.WithMany(x => x.YouTubeAccounts)
