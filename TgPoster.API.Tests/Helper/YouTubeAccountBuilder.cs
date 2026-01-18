@@ -1,0 +1,36 @@
+using TgPoster.Storage.Data;
+using TgPoster.Storage.Data.Entities;
+
+namespace TgPoster.API.Tests.Helper;
+
+public class YouTubeAccountBuilder(PosterContext context)
+{
+	private YouTubeAccount youtube = new YouTubeAccount
+	{
+		Name = "asdasd",
+		AccessToken = "dsadasfqw",
+		ClientId = "afasf13312",
+		ClientSecret = "afasfasfasf",
+		UserId = new UserBuilder(context).Create().Id,
+		Id = Guid.NewGuid()
+	};
+
+	public YouTubeAccountBuilder WithUser(User user)
+	{
+		youtube.User = user;
+		youtube.UserId = user.Id;
+		return this;
+	}
+	public YouTubeAccountBuilder WithUserId(Guid userId)
+	{
+		youtube.UserId = userId;
+		return this;
+	}
+
+	public YouTubeAccount Create()
+	{
+		context.YouTubeAccounts.AddRange(youtube);
+		context.SaveChanges();
+		return youtube;
+	}
+}

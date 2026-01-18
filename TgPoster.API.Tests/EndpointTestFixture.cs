@@ -115,7 +115,8 @@ public class EndpointTestFixture : WebApplicationFactory<Program>, IAsyncLifetim
 			new MessageSeeder(context),
 			new UserSeeder(context, hash),
 			new DaySeeder(context),
-			new MemorySeeder(memoryCache!)
+			new MemorySeeder(memoryCache!),
+			new YouTubeAccountSeeder(context)
 		};
 
 		foreach (var seeder in seeders)

@@ -15,8 +15,18 @@ public class DeleteYouTubeAccountStorage(PosterContext context) : IDeleteYouTube
 	{
 		var account = await context.YouTubeAccounts
 			.Where(x => x.Id == id && x.UserId == userId)
+			.Include(x => x.Schedules)
 			.FirstOrDefaultAsync(ct);
-		context.YouTubeAccounts.Remove(account!);
+		if (account != null)
+		{
+			context.YouTubeAccounts.Remove(account);
+			//мягкое удаление, не удаляет полностью, нужно самому проставлять Null
+			foreach (var schedule in account.Schedules)
+			{
+				schedule.YouTubeAccountId = null;
+			}
+		}
+
 		await context.SaveChangesAsync(ct);
 	}
 }

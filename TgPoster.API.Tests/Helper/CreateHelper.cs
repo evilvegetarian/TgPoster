@@ -44,21 +44,14 @@ public class CreateHelper(HttpClient client)
 		response.StatusCode.ShouldBe(HttpStatusCode.Created);
 	}
 
-	public async Task CreateDay()
-	{
-		var scheduleId = await CreateSchedule();
-		await CreateDay(scheduleId, null);
-	}
-
-	public async Task<Guid> SignOn(string username, string password)
+	public async Task SignOn(string username, string password)
 	{
 		var signOnRequest = new SignOnRequest
 		{
 			Login = username,
 			Password = password
 		};
-		var response = await client.PostAsync<SignOnResponse>(Routes.Account.SignOn, signOnRequest);
-		return response.UserId;
+		 await client.PostAsync<SignOnResponse>(Routes.Account.SignOn, signOnRequest);
 	}
 
 	public async Task<SignInResponse> SignIn(string username, string password)

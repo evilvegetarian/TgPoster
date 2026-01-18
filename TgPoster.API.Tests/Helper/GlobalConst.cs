@@ -9,6 +9,7 @@ internal static class GlobalConst
 	public static readonly Guid FileId = Guid.Parse("bfddea1f-9110-46a3-bae6-9ee358b7fb99");
 	public static readonly Guid UserIdEmpty = Guid.Parse("d312dedb-70e8-4015-8d88-dc3c4d49f30c");
 	public static readonly long ChannelId = -1001563514057;
+	public static readonly Guid YouTubeAccountId = Guid.Parse("f8a3e1c5-7b2d-4a9e-8f3c-1d6e9a4b7c2f");
 
 	public static class Worked
 	{
