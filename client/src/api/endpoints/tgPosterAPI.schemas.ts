@@ -8,11 +8,8 @@
  * Запрос на подтверждение сообщений
  */
 export interface ApproveMessagesRequest {
-  /**
-   * Список идентификаторов сообщений для подтверждения
-   * @nullable
-   */
-  messagesIds?: string[] | null;
+  /** Список идентификаторов сообщений для подтверждения */
+  messagesIds?: string[];
 }
 
 /**
@@ -21,11 +18,8 @@ export interface ApproveMessagesRequest {
 export interface CreateDaysRequest {
   /** Id расписания */
   scheduleId: string;
-  /**
-   * Список дней недели с настройками публикации
-   * @nullable
-   */
-  daysOfWeek?: DayOfWeekRequest[] | null;
+  /** Список дней недели с настройками публикации */
+  daysOfWeek?: DayOfWeekRequest[];
 }
 
 export interface CreateMessageResponse {
@@ -39,15 +33,13 @@ export interface CreateOpenRouterSettingRequest {
   /**
    * Модель в Open Router
    * @minLength 3
-   * @nullable
    */
-  model: string | null;
+  model: string;
   /**
    * Токен для авторизации Open Router
    * @minLength 5
-   * @nullable
    */
-  token: string | null;
+  token: string;
 }
 
 export interface CreateOpenRouterSettingResponse {
@@ -58,11 +50,8 @@ export interface CreateOpenRouterSettingResponse {
  * Создание запроса на парсинг канала
  */
 export interface CreateParseChannelRequest {
-  /**
-   * Канал который парсят.
-   * @nullable
-   */
-  channel: string | null;
+  /** Канал который парсят. */
+  channel: string;
   /** Раз в день будет проверять новые посты. */
   alwaysCheckNewPosts: boolean;
   /** Расписание для которого парсят канал. */
@@ -71,11 +60,8 @@ export interface CreateParseChannelRequest {
   deleteText?: boolean;
   /** Нужно ли удалять медиа, и оставлять только текст. */
   deleteMedia?: boolean;
-  /**
-   * Избегать постов с данными словами, предложениями, словосочетаниями.
-   * @nullable
-   */
-  avoidWords?: string[] | null;
+  /** Избегать постов с данными словами, предложениями, словосочетаниями. */
+  avoidWords?: string[];
   /** Нужно ли подтверждать пост перед тем как его запостить в вашем канале.
 Если не нужно, он будет автоматически поставлен в свободные даты {ScheduleId}.
 Если расписание пусто, то нужно будет дополнительно подтверждать все равно. */
@@ -154,11 +140,8 @@ export interface CreateScheduleResponse {
  * Запрос на создание Telegram бота
  */
 export interface CreateTelegramBotRequest {
-  /**
-   * Токен телеграм бота
-   * @nullable
-   */
-  token: string | null;
+  /** Токен телеграм бота */
+  token: string;
 }
 
 export interface CreateTelegramBotResponse {
@@ -166,7 +149,6 @@ export interface CreateTelegramBotResponse {
 }
 
 export interface CreateYouTubeAccountResponse {
-  /** @minLength 1 */
   url: string;
 }
 
@@ -203,8 +185,7 @@ export interface DayOfWeekRequest {
 
 export interface DayOfWeekResponse {
   id?: number;
-  /** @nullable */
-  name?: string | null;
+  name?: string;
 }
 
 /**
@@ -233,8 +214,7 @@ export interface FileResponse {
   fileType?: FileTypes;
   /** @nullable */
   url?: string | null;
-  /** @nullable */
-  previewFiles?: PreviewFileResponse[] | null;
+  previewFiles?: PreviewFileResponse[];
 }
 
 export type FileTypes = typeof FileTypes[keyof typeof FileTypes];
@@ -252,35 +232,28 @@ export const FileTypes = {
  */
 export interface FileTypesEnumViewModel {
   value: FileTypes;
-  /**
-   * Имя элемента Enum (для отображения пользователю).
-   * @nullable
-   */
-  name: string | null;
+  /** Имя элемента Enum (для отображения пользователю). */
+  name: string;
 }
 
 export interface GenerateAiContentResponse {
-  /** @nullable */
-  content: string | null;
+  content: string;
 }
 
 export interface GetDaysResponse {
   id: string;
   scheduleId: string;
   dayOfWeek: DayOfWeek;
-  /** @nullable */
-  timePostings?: string[] | null;
+  timePostings?: string[];
 }
 
 export interface GetOpenRouterSettingResponse {
-  /** @nullable */
-  model: string | null;
+  model: string;
   id?: string;
 }
 
 export interface GetTimeResponse {
-  /** @nullable */
-  postingTimes?: string[] | null;
+  postingTimes?: string[];
 }
 
 export interface ListOpenRouterSettingResponse {
@@ -295,8 +268,7 @@ export interface MessageResponse {
   scheduleId: string;
   needApprove: boolean;
   canApprove: boolean;
-  /** @nullable */
-  files?: FileResponse[] | null;
+  files?: FileResponse[];
   isSent: boolean;
   hasVideo: boolean;
   hasYouTubeAccount: boolean;
@@ -309,8 +281,7 @@ export interface MessageResponsePagedResponse {
   totalCount?: number;
   readonly hasPreviousPage?: boolean;
   readonly hasNextPage?: boolean;
-  /** @nullable */
-  data?: MessageResponse[] | null;
+  data?: MessageResponse[];
 }
 
 /**
@@ -330,11 +301,8 @@ export const MessageSortBy = {
  */
 export interface MessageSortByEnumViewModel {
   value: MessageSortBy;
-  /**
-   * Имя элемента Enum (для отображения пользователю).
-   * @nullable
-   */
-  name: string | null;
+  /** Имя элемента Enum (для отображения пользователю). */
+  name: string;
 }
 
 /**
@@ -357,16 +325,12 @@ export const MessageStatus = {
  */
 export interface MessageStatusEnumViewModel {
   value: MessageStatus;
-  /**
-   * Имя элемента Enum (для отображения пользователю).
-   * @nullable
-   */
-  name: string | null;
+  /** Имя элемента Enum (для отображения пользователю). */
+  name: string;
 }
 
 export interface OpenRouterSettingResponse {
-  /** @nullable */
-  model: string | null;
+  model: string;
   id: string;
 }
 
@@ -375,25 +339,21 @@ export interface ParseChannelsResponse {
   scheduleId: string;
   deleteText: boolean;
   deleteMedia: boolean;
-  /** @nullable */
-  avoidWords: string[] | null;
+  avoidWords: string[];
   needVerifiedPosts: boolean;
   /** @nullable */
   dateFrom?: string | null;
   /** @nullable */
   dateTo?: string | null;
-  /** @nullable */
-  status: string | null;
+  status: string;
   isActive: boolean;
-  /** @nullable */
-  channel: string | null;
+  channel: string;
   /** @nullable */
   lastParseDate?: string | null;
 }
 
 export interface PreviewFileResponse {
-  /** @nullable */
-  url?: string | null;
+  url?: string;
 }
 
 export interface ProblemDetails {
@@ -427,8 +387,7 @@ export interface PromptSettingResponsePagedResponse {
   totalCount?: number;
   readonly hasPreviousPage?: boolean;
   readonly hasNextPage?: boolean;
-  /** @nullable */
-  data?: PromptSettingResponse[] | null;
+  data?: PromptSettingResponse[];
 }
 
 /**
@@ -440,21 +399,17 @@ export interface RefreshTokenRequest {
 }
 
 export interface RefreshTokenResponse {
-  /** @nullable */
-  accessToken: string | null;
+  accessToken: string;
   refreshToken: string;
   refreshTokenExpiration: string;
 }
 
 export interface ScheduleResponse {
   id: string;
-  /** @nullable */
-  name: string | null;
+  name: string;
   isActive: boolean;
-  /** @nullable */
-  channelName: string | null;
-  /** @nullable */
-  botName: string | null;
+  channelName: string;
+  botName: string;
   /** @nullable */
   openRouterId?: string | null;
   /** @nullable */
@@ -471,22 +426,19 @@ export interface SignInRequest {
    * Логин пользователя
    * @minLength 5
    * @maxLength 30
-   * @nullable
    */
-  login: string | null;
+  login: string;
   /**
    * Пароль пользователя
    * @minLength 5
-   * @nullable
    */
-  password: string | null;
+  password: string;
 }
 
 export interface SignInResponse {
   refreshToken: string;
   refreshTokenExpiration: string;
-  /** @nullable */
-  accessToken: string | null;
+  accessToken: string;
 }
 
 /**
@@ -497,15 +449,13 @@ export interface SignOnRequest {
    * Логин пользователя
    * @minLength 5
    * @maxLength 30
-   * @nullable
    */
-  login: string | null;
+  login: string;
   /**
    * Пароль пользователя
    * @minLength 5
-   * @nullable
    */
-  password: string | null;
+  password: string;
 }
 
 export interface SignOnResponse {
@@ -529,28 +479,21 @@ export const SortDirection = {
  */
 export interface SortDirectionEnumViewModel {
   value: SortDirection;
-  /**
-   * Имя элемента Enum (для отображения пользователю).
-   * @nullable
-   */
-  name: string | null;
+  /** Имя элемента Enum (для отображения пользователю). */
+  name: string;
 }
 
 export interface TelegramBotResponse {
   id: string;
-  /** @nullable */
-  name: string | null;
+  name: string;
 }
 
 /**
  * Запрос на обновление настроек парсинга канала
  */
 export interface UpdateParseChannelRequest {
-  /**
-   * Канал который парсят.
-   * @nullable
-   */
-  channel: string | null;
+  /** Канал который парсят. */
+  channel: string;
   /** Раз в день будет проверять новые посты. */
   alwaysCheckNewPosts: boolean;
   /** Расписание для которого парсят канал. */
@@ -559,11 +502,8 @@ export interface UpdateParseChannelRequest {
   deleteText?: boolean;
   /** Нужно ли удалять медиа, и оставлять только текст. */
   deleteMedia?: boolean;
-  /**
-   * Избегать постов с данными словами, предложениями, словосочетаниями.
-   * @nullable
-   */
-  avoidWords?: string[] | null;
+  /** Избегать постов с данными словами, предложениями, словосочетаниями. */
+  avoidWords?: string[];
   /** Нужно ли подтверждать пост перед тем как его запостить в вашем канале.
 Если не нужно, он будет автоматически поставлен в свободные даты {ScheduleId}.
 Если расписание пусто, то нужно будет дополнительно подтверждать все равно. */
@@ -613,17 +553,13 @@ export interface UpdateTimeRequest {
   /** Id расписания */
   scheduleId: string;
   dayOfWeek: DayOfWeek;
-  /**
-   * Время постов
-   * @nullable
-   */
-  times?: string[] | null;
+  /** Время постов */
+  times?: string[];
 }
 
 export interface YouTubeAccountResponse {
   id: string;
-  /** @nullable */
-  name: string | null;
+  name: string;
   /** @nullable */
   defaultTitle?: string | null;
   /** @nullable */

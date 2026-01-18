@@ -81,7 +81,7 @@ export function EditParsingSettingsDialog({
         const settings: UpdateParseChannelRequest = {
             ...formData,
             channel: formData.channel,
-            avoidWords: formData.avoidWords||null,
+            avoidWords: formData.avoidWords,
             dateFrom: formData.dateFrom || null,
             dateTo: formData.dateTo || null,
         }
