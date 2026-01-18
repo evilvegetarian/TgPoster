@@ -165,6 +165,11 @@ export interface CreateTelegramBotResponse {
   id: string;
 }
 
+export interface CreateYouTubeAccountResponse {
+  /** @minLength 1 */
+  url: string;
+}
+
 export type DayOfWeek = typeof DayOfWeek[keyof typeof DayOfWeek];
 
 

@@ -24,6 +24,7 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  CreateYouTubeAccountResponse,
   GetApiV1YoutubeCallbackParams,
   PostApiV1YoutubeBody,
   ProblemDetails,
@@ -54,7 +55,7 @@ if(postApiV1YoutubeBody.ClientSecret !== undefined) {
  formData.append(`ClientSecret`, postApiV1YoutubeBody.ClientSecret)
  }
 
-      return customInstance<void>(
+      return customInstance<CreateYouTubeAccountResponse>(
       {url: `/api/v1/youtube`, method: 'POST',
       headers: {'Content-Type': 'multipart/form-data', },
        data: formData, signal
@@ -343,6 +344,67 @@ export const usePostApiV1YoutubeMessageId = <TError = ProblemDetails,
       > => {
 
       const mutationOptions = getPostApiV1YoutubeMessageIdMutationOptions(options);
+
+      return useMutation(mutationOptions , queryClient);
+    }
+    /**
+ * @summary Удаление YouTube аккаунта
+ */
+export const deleteApiV1YoutubeId = (
+    id: string,
+ ) => {
+      
+      
+      return customInstance<void>(
+      {url: `/api/v1/youtube/${id}`, method: 'DELETE'
+    },
+      );
+    }
+  
+
+
+export const getDeleteApiV1YoutubeIdMutationOptions = <TError = ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteApiV1YoutubeId>>, TError,{id: string}, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof deleteApiV1YoutubeId>>, TError,{id: string}, TContext> => {
+
+const mutationKey = ['deleteApiV1YoutubeId'];
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteApiV1YoutubeId>>, {id: string}> = (props) => {
+          const {id} = props ?? {};
+
+          return  deleteApiV1YoutubeId(id,)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteApiV1YoutubeIdMutationResult = NonNullable<Awaited<ReturnType<typeof deleteApiV1YoutubeId>>>
+    
+    export type DeleteApiV1YoutubeIdMutationError = ProblemDetails
+
+    /**
+ * @summary Удаление YouTube аккаунта
+ */
+export const useDeleteApiV1YoutubeId = <TError = ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteApiV1YoutubeId>>, TError,{id: string}, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof deleteApiV1YoutubeId>>,
+        TError,
+        {id: string},
+        TContext
+      > => {
+
+      const mutationOptions = getDeleteApiV1YoutubeIdMutationOptions(options);
 
       return useMutation(mutationOptions , queryClient);
     }
