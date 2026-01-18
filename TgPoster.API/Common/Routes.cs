@@ -108,5 +108,6 @@ internal static class Routes
 		internal const string List = Root;
 		internal const string CallBack = Root + "/callback";
 		internal const string SendVideo = Root + "/{messageId:guid}";
+		internal const string Delete = Root + "/{id:guid}";
 	}
 }

@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TgPoster.API.Common;
 using TgPoster.API.Domain.UseCases.YouTubeAccount.CallBackYouTube;
+using TgPoster.API.Domain.UseCases.YouTubeAccount.DeleteYouTubeAccount;
 using TgPoster.API.Domain.UseCases.YouTubeAccount.GetYouTubeAccounts;
 using TgPoster.API.Domain.UseCases.YouTubeAccount.SendVideoOnYouTube;
 using TgPoster.API.Domain.UseCases.YouTubeAccount.YouTubeAccountLogin;
@@ -91,5 +92,21 @@ public class YouTubeAccountController(ISender sender) : ControllerBase
 		var query = new GetYouTubeAccountsQuery();
 		var result = await sender.Send(query, ct);
 		return Ok(result);
+	}
+
+	/// <summary>
+	///     Удаление YouTube аккаунта
+	/// </summary>
+	/// <param name="id">Идентификатор YouTube аккаунта для удаления</param>
+	/// <param name="ct">Токен отмены операции</param>
+	/// <returns>Результат выполнения операции</returns>
+	[HttpDelete(Routes.YouTubeAccount.Delete)]
+	[ProducesResponseType(StatusCodes.Status200OK)]
+	[ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
+	[ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
+	public async Task<IActionResult> Delete([FromRoute] Guid id, CancellationToken ct)
+	{
+		await sender.Send(new DeleteYouTubeAccountCommand(id), ct);
+		return Ok();
 	}
 }
