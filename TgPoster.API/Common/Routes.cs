@@ -110,4 +110,16 @@ internal static class Routes
 		internal const string SendVideo = Root + "/{messageId:guid}";
 		internal const string Delete = Root + "/{id:guid}";
 	}
+
+	internal static class TelegramSession
+	{
+		internal const string Root = Base + "/telegram-session";
+		internal const string Create = Root;
+		internal const string List = Root;
+		internal const string Update = Root + "/{id:guid}";
+		internal const string Delete = Root + "/{id:guid}";
+		internal const string StartAuth = Root + "/{id:guid}/start-auth";
+		internal const string VerifyCode = Root + "/{id:guid}/verify-code";
+		internal const string SendPassword = Root + "/{id:guid}/send-password";
+	}
 }
