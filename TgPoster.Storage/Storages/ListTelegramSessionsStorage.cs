@@ -9,7 +9,7 @@ internal sealed class ListTelegramSessionsStorage(PosterContext context) : IList
 	public Task<List<TelegramSessionResponse>> GetByUserIdAsync(Guid userId, CancellationToken ct)
 	{
 		return context.TelegramSessions
-			.Where(s => s.UserId == userId && s.Deleted == null)
+			.Where(s => s.UserId == userId)
 			.OrderByDescending(s => s.Created)
 			.Select(s => new TelegramSessionResponse(
 				s.Id,

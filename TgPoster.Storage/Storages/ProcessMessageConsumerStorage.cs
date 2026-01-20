@@ -34,7 +34,8 @@ internal sealed class ProcessMessageConsumerStorage(PosterContext context, GuidF
 					ch.Schedule.OpenRouterSetting != null ? ch.Schedule.OpenRouterSetting.TokenHash : null,
 				ModelOpenRouter =
 					ch.Schedule.OpenRouterSetting != null ? ch.Schedule.OpenRouterSetting.TokenHash : null,
-				Prompt = ch.Schedule.PromptSetting != null ? ch.Schedule.PromptSetting.TextPrompt : null
+				Prompt = ch.Schedule.PromptSetting != null ? ch.Schedule.PromptSetting.TextPrompt : null,
+				TelegramSessionId = ch.TelegramSessionId
 			})
 			.FirstOrDefaultAsync(ct);
 	}

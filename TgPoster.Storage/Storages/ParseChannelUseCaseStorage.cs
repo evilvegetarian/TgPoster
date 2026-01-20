@@ -20,7 +20,8 @@ internal class ParseChannelUseCaseStorage(PosterContext context, GuidFactory gui
 				FromDate = ch.DateFrom,
 				LastParsedId = ch.LastParseId,
 				ToDate = ch.DateTo,
-				CheckNewPosts = ch.CheckNewPosts
+				CheckNewPosts = ch.CheckNewPosts,
+				TelegramSessionId = ch.TelegramSessionId
 			})
 			.FirstOrDefaultAsync(ct);
 	}

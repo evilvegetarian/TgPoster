@@ -9,7 +9,7 @@ internal sealed class UpdateTelegramSessionStorage(PosterContext context) : IUpd
 	public Task<TelegramSessionDto?> GetByIdAsync(Guid userId, Guid sessionId, CancellationToken ct)
 	{
 		return context.TelegramSessions
-			.Where(s => s.Id == sessionId && s.UserId == userId && s.Deleted == null)
+			.Where(s => s.Id == sessionId && s.UserId == userId)
 			.Select(s => new TelegramSessionDto
 			{
 				Id = s.Id,

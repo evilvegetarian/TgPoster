@@ -9,6 +9,6 @@ internal sealed class StartAuthStorage(PosterContext context) : IStartAuthStorag
 	public Task<bool> ExistsAsync(Guid userId, Guid sessionId, CancellationToken ct)
 	{
 		return context.TelegramSessions
-			.AnyAsync(s => s.Id == sessionId && s.UserId == userId && s.Deleted == null, ct);
+			.AnyAsync(s => s.Id == sessionId && s.UserId == userId, ct);
 	}
 }

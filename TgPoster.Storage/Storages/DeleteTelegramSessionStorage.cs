@@ -9,7 +9,7 @@ internal sealed class DeleteTelegramSessionStorage(PosterContext context) : IDel
 	public Task<bool> ExistsAsync(Guid userId, Guid sessionId, CancellationToken ct)
 	{
 		return context.TelegramSessions
-			.AnyAsync(s => s.Id == sessionId && s.UserId == userId && s.Deleted == null, ct);
+			.AnyAsync(s => s.Id == sessionId && s.UserId == userId , ct);
 	}
 
 	public async Task DeleteAsync(Guid sessionId, CancellationToken ct)
