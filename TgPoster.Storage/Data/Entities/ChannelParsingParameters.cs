@@ -69,5 +69,11 @@ public sealed class ChannelParsingSetting : BaseEntity
 	/// </summary>
 	public required bool UseAiForPosts { get; set; }
 
+	/// <summary>
+	///     Telegram сессия для парсинга канала.
+	/// </summary>
+	public Guid? TelegramSessionId { get; set; }
+
 	public Schedule Schedule { get; set; } = null!;
+	public TelegramSession? TelegramSession { get; set; }
 }

@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using TgPoster.Storage.Data.Entities;
 
@@ -15,5 +16,10 @@ internal class ChannelParsingParametersConfiguration : BaseEntityConfiguration<C
 		builder.HasOne(x => x.Schedule)
 			.WithMany(x => x.Parameters)
 			.HasForeignKey(x => x.ScheduleId);
+
+		builder.HasOne(x => x.TelegramSession)
+			.WithMany()
+			.HasForeignKey(x => x.TelegramSessionId)
+			.OnDelete(DeleteBehavior.SetNull);
 	}
 }

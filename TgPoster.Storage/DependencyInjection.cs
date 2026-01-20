@@ -1,8 +1,10 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Shared.Contracts;
 using TgPoster.Storage.ConfigModels;
 using TgPoster.Storage.Data;
+using TgPoster.Storage.Repositories;
 
 namespace TgPoster.Storage;
 
@@ -16,6 +18,8 @@ public static class DependencyInjection
 				.EnableSensitiveDataLogging());
 
 		services.AddScoped<GuidFactory>();
+		services.AddScoped<ITelegramSessionRepository, TelegramSessionRepository>();
+		services.AddScoped<ITelegramAuthRepository, TelegramSessionRepository>();
 		services.RegisterStorage();
 
 		return services;
