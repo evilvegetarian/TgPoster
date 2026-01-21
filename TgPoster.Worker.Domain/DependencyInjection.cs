@@ -7,6 +7,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Shared;
 using Shared.Contracts;
+using Shared.Services;
 using TgPoster.Worker.Domain.ConfigModels;
 using TgPoster.Worker.Domain.UseCases;
 using TgPoster.Worker.Domain.UseCases.ParseChannel;
@@ -25,7 +26,6 @@ public static class DependencyInjection
 		var telegramOptions = configuration.GetSection(nameof(TelegramOptions)).Get<TelegramOptions>()!;
 		services.AddSingleton(telegramOptions);
 
-		services.AddTelegramSession(configuration);
 
 		services.AddMassTransient(configuration);
 
@@ -46,33 +46,6 @@ public static class DependencyInjection
 		return services;
 	}
 
-	private static void AddTelegramSession(this IServiceCollection services, IConfiguration configuration)
-	{
-		var telegramSettings = configuration.GetSection(nameof(TelegramSettings)).Get<TelegramSettings>()!;
-		services.AddSingleton(telegramSettings);
-
-		services.AddSingleton(_ =>
-		{
-			string? Config(string key)
-			{
-				return key switch
-				{
-					"api_id" => telegramSettings.api_id,
-					"api_hash" => telegramSettings.api_hash,
-					"phone_number" => telegramSettings.phone_number,
-					_ => null
-				};
-			}
-
-			var client = new Client(Config);
-
-			Console.WriteLine("Logging in to Telegram...");
-			client.LoginUserIfNeeded().GetAwaiter().GetResult();
-			Console.WriteLine("Login successful. Application is starting.");
-
-			return client;
-		});
-	}
 
 	private static void AddMassTransient(this IServiceCollection services, IConfiguration configuration)
 	{
@@ -90,15 +63,6 @@ public static class DependencyInjection
 			x.UsingPostgres((context, cfg) =>
 			{
 				cfg.ConfigureEndpoints(context);
-				//cfg.ReceiveEndpoint(queueName, e =>
-				//{
-				//	var partition = e.CreatePartitioner(50);
-				//	e.ConfigureConsumer<ProcessMessageConsumer>(context, c =>
-				//	{
-				//		c.Message<ProcessMessage>(m =>
-				//			m.UsePartitioner(partition, p => p.Message.TelegramBotId));
-				//	});
-				//});
 			});
 			var dataBase = configuration.GetSection(nameof(DataBase)).Get<DataBase>()!;
 			x.ConfigureMassTransient(dataBase.ConnectionString);

@@ -1,4 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
+using Shared.Services;
 
 namespace Shared;
 
@@ -10,6 +11,7 @@ public static class DependencyInjection
 	public static IServiceCollection AddShared(this IServiceCollection services)
 	{
 		services.AddHttpClient();
+		services.AddSingleton<TelegramAuthService>();
 
 		services.AddScoped<OpenRouterClient>();
 		services.AddScoped<TimePostingService>();

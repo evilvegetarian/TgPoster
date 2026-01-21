@@ -1,5 +1,6 @@
 using MassTransit;
 using Microsoft.Extensions.Logging;
+using Shared.Services;
 using TL;
 using WTelegram;
 using Message = TL.Message;
@@ -9,7 +10,7 @@ namespace TgPoster.Worker.Domain.UseCases.ParseChannel;
 internal class ParseChannelUseCase(
 	IParseChannelUseCaseStorage storage,
 	IPublishEndpoint publishEndpoint,
-	Client client,
+	TelegramAuthService authService,
 	ILogger<ParseChannelUseCase> logger)
 {
 	public async Task Handle(Guid id, CancellationToken ct)
@@ -18,6 +19,12 @@ internal class ParseChannelUseCase(
 		if (parameters is null)
 		{
 			logger.LogError("Параметров нет, интересно почему..... Id: {id}", id);
+			return;
+		}
+
+		if (parameters.TelegramSessionId is null)
+		{
+			logger.LogError("Не указана Telegram сессия для парсинга канала. Id настроек: {id}", id);
 			return;
 		}
 
@@ -31,6 +38,8 @@ internal class ParseChannelUseCase(
 		var lastParseId = parameters.LastParsedId;
 		var checkNewPosts = parameters.CheckNewPosts;
 		var telegramBotId = parameters.TelegramBotId;
+
+		var client = await authService.GetClientAsync(parameters.TelegramSessionId.Value, ct);
 
 		var resolveResult = await client.Contacts_ResolveUsername(channelName);
 		if (resolveResult.Chat is not Channel channel)
