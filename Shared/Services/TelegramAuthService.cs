@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Shared.Contracts;
 using TL;
@@ -11,9 +12,7 @@ namespace Shared.Services;
 /// </summary>
 public sealed class TelegramAuthService(
 	ILogger<TelegramAuthService> logger,
-	IServiceProvider serviceProvider,
-	ITelegramAuthRepository authRepository,
-	ITelegramSessionRepository sessionRepository) : IDisposable
+	IServiceScopeFactory scopeFactory) : IDisposable
 {
 	private readonly ConcurrentDictionary<Guid, Client> pendingClients = [];
 	private readonly ConcurrentDictionary<Guid, Client> activeClients = [];
@@ -41,6 +40,9 @@ public sealed class TelegramAuthService(
 	/// <returns>Готовый к работе WTelegram.Client.</returns>
 	public async Task<Client> GetClientAsync(Guid sessionId, CancellationToken ct = default)
 	{
+		var scope = scopeFactory.CreateScope();
+		var sessionRepository = scope.ServiceProvider.GetRequiredService<ITelegramAuthRepository>();
+		
 		if (activeClients.TryGetValue(sessionId, out var existingClient) && !existingClient.Disconnected)
 		{
 			return existingClient;
@@ -119,6 +121,9 @@ public sealed class TelegramAuthService(
 	/// </summary>
 	public async Task<string> StartAuthAsync(Guid sessionId, CancellationToken ct)
 	{
+		var scope = scopeFactory.CreateScope();
+		var authRepository = scope.ServiceProvider.GetRequiredService<ITelegramAuthRepository>();
+		
 		var session = await authRepository.GetByIdAsync(sessionId, ct);
 		if (session == null)
 		{
@@ -151,11 +156,13 @@ public sealed class TelegramAuthService(
 			client = new Client(Config, null, async data =>
 			{
 				var sessionString = Convert.ToBase64String(data);
-				await authRepository.UpdateSessionDataAsync(sessionId, sessionString, CancellationToken.None);
+				using var scope = scopeFactory.CreateScope();
+				var repository = scope.ServiceProvider.GetRequiredService<ITelegramAuthRepository>();
+				await repository.UpdateSessionDataAsync(sessionId, sessionString, CancellationToken.None);
 			});
 		}
 
-		pendingClients[sessionId] = client;
+		pendingClients.TryAdd(sessionId,client);
 
 		try
 		{
@@ -193,6 +200,8 @@ public sealed class TelegramAuthService(
 	/// </summary>
 	public async Task<VerifyCodeResult> VerifyCodeAsync(Guid sessionId, string code, CancellationToken ct)
 	{
+		var scope = scopeFactory.CreateScope();
+		var authRepository = scope.ServiceProvider.GetRequiredService<ITelegramAuthRepository>();
 		if (!pendingClients.TryGetValue(sessionId, out var client))
 		{
 			throw new InvalidOperationException($"Нет активной сессии авторизации для {sessionId}");
@@ -240,6 +249,8 @@ public sealed class TelegramAuthService(
 	/// </summary>
 	public async Task<bool> SendPasswordAsync(Guid sessionId, string password, CancellationToken ct)
 	{
+		var scope = scopeFactory.CreateScope();
+		var authRepository = scope.ServiceProvider.GetRequiredService<ITelegramAuthRepository>();
 		if (!pendingClients.TryGetValue(sessionId, out var client))
 		{
 			throw new InvalidOperationException($"Нет активной сессии авторизации для {sessionId}");

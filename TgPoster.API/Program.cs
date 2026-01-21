@@ -4,6 +4,7 @@ using MassTransit;
 using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.OpenApi.Models;
 using Security;
+using Shared;
 using Shared.Contracts;
 using TgPoster.API.Configuration;
 using TgPoster.API.Domain;
@@ -65,6 +66,7 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddMemoryCache();
 builder.Services.AddSingleton<FileExtensionContentTypeProvider>();
 builder.Services
+	.AddShared()
 	.AddStorage(builder.Configuration)
 	.AddDomain(builder.Configuration)
 	.AddSecurity(builder.Configuration);

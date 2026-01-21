@@ -4,10 +4,12 @@ using TgPoster.Storage.Data.Entities;
 
 namespace TgPoster.Storage.Data.Configurations;
 
-internal sealed class TelegramSessionConfiguration : IEntityTypeConfiguration<TelegramSession>
+internal sealed class TelegramSessionConfiguration : BaseEntityConfiguration<TelegramSession>
 {
-	public void Configure(EntityTypeBuilder<TelegramSession> builder)
+	public override void Configure(EntityTypeBuilder<TelegramSession> builder)
 	{
+		base.Configure(builder);
+		
 		builder.HasKey(x => x.Id);
 
 		builder.Property(x => x.ApiId)
