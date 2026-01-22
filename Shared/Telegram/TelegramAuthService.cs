@@ -16,6 +16,7 @@ public sealed class TelegramAuthService(
 	public void Dispose()
 	{
 		clientManager.Dispose();
+		logger.LogInformation("TelegramAuthService освобожден");
 	}
 
 	/// <summary>
@@ -59,9 +60,11 @@ public sealed class TelegramAuthService(
 		}
 
 		var sessionBytes = Convert.FromBase64String(session.SessionData);
-		var client = new Client(Config, sessionBytes, data =>
+		var client = new Client(Config, sessionBytes, async data =>
 		{
-			// Session updates are handled automatically
+			var sessionString = Convert.ToBase64String(data);
+			await authRepository.UpdateSessionDataAsync(sessionId, sessionString, CancellationToken.None);
+			logger.LogDebug("ЫЫЫЫЫ Данные сессии обновлены для {SessionId}", sessionId);
 		});
 
 		try
