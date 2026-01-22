@@ -1,4 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
+using Shared.OpenRouter;
 using Shared.Services;
 
 namespace Shared;
@@ -14,7 +15,7 @@ public static class DependencyInjection
 		services.AddSingleton<TelegramClientManager>();
 		services.AddScoped<TelegramAuthService>();
 
-		services.AddScoped<OpenRouterClient>();
+		services.AddScoped<IOpenRouterClient, OpenRouterClient>();
 		services.AddScoped<TimePostingService>();
 		services.AddScoped<VideoService>();
 		services.AddScoped<YouTubeService>();

@@ -1,6 +1,6 @@
 using MediatR;
 using Security.Interfaces;
-using Shared;
+using Shared.OpenRouter;
 using TgPoster.API.Domain.ConfigModels;
 
 namespace TgPoster.API.Domain.UseCases.OpenRouterSetting.CreateOpenRouterSetting;
@@ -10,7 +10,7 @@ public class CreateOpenRouterSettingUseCase(
 	ICreateOpenRouterSettingStorage storage,
 	ICryptoAES cryptoAes,
 	IIdentityProvider provider,
-	OpenRouterClient openRouterClient
+	IOpenRouterClient openRouterClient
 ) : IRequestHandler<CreateOpenRouterSettingCommand, CreateOpenRouterSettingResponse>
 {
 	public async Task<CreateOpenRouterSettingResponse> Handle(
@@ -19,7 +19,11 @@ public class CreateOpenRouterSettingUseCase(
 	)
 	{
 		var userId = provider.Current.UserId;
-		var response = await openRouterClient.SendMessageAsync(request.Token, "Работаешь?", request.Model);
+		var response = await openRouterClient.SendMessageAsync(
+			request.Token,
+			request.Model,
+			"Работаешь?",
+			cancellationToken);
 		var tokenEncrypted = cryptoAes.Encrypt(options.SecretKey, request.Token);
 		var id = await storage.Create(tokenEncrypted, request.Model, userId, cancellationToken);
 		return new CreateOpenRouterSettingResponse(id);

@@ -1,6 +1,7 @@
 using MediatR;
 using Security.Interfaces;
-using Shared;
+using Shared.OpenRouter;
+using Shared.OpenRouter.Models.Request;
 using Telegram.Bot;
 using TgPoster.API.Domain.ConfigModels;
 using TgPoster.API.Domain.Exceptions;
@@ -12,7 +13,7 @@ public record GenerateAiContentCommand(Guid MessageId) : IRequest<GenerateAiCont
 
 internal class GenerateAiContentHandler(
 	IGenerateAiContentStorage storage,
-	OpenRouterClient client,
+	IOpenRouterClient client,
 	ICryptoAES crypto,
 	TelegramService service,
 	TelegramTokenService tokenService,
@@ -92,7 +93,7 @@ internal class GenerateAiContentHandler(
 							Type = "image_url",
 							ImageUrl = new ImageUrlInfo
 							{
-								Url = client.ToLocalImageExample(bytes)
+								Url = client.ToLocalImageDataUrl(bytes)
 							}
 						}
 					);
@@ -109,7 +110,7 @@ internal class GenerateAiContentHandler(
 						Type = "image_url",
 						ImageUrl = new ImageUrlInfo
 						{
-							Url = client.ToLocalImageExample(bytes)
+							Url = client.ToLocalImageDataUrl(bytes)
 						}
 					}
 				);
@@ -122,11 +123,11 @@ internal class GenerateAiContentHandler(
 			Content = contentParts
 		};
 
-		var response = await client.SendMessageRawAsync(token, openApiToken.Model, [message]);
+		var response = await client.SendMessageRawAsync(token, openApiToken.Model, [message], ct);
 
 		return new GenerateAiContentResponse
 		{
-			Content = string.Join(' ', response?.Choices.Select(x => x.Message.Content) ?? [])
+			Content = string.Join(' ', response.Choices.Select(x => x.Message.Content))
 		};
 	}
 }

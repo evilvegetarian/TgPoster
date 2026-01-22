@@ -2,8 +2,10 @@ using System.Net;
 using System.Text.Json;
 using Moq;
 using Moq.Protected;
-using Shared;
 using Shared.Exceptions;
+using Shared.OpenRouter;
+using Shared.OpenRouter.Models.Request;
+using Shared.OpenRouter.Models.Response;
 using Shouldly;
 
 namespace Shared.Tests;
@@ -64,7 +66,7 @@ public sealed class OpenRouterClientShould
 
 		var client = new OpenRouterClient(httpClientFactoryMock.Object);
 
-		var result = await client.SendMessageAsync("test-api-key", "gpt-4", "Hello world");
+		var result = await client.SendMessageAsync("test-api-key", "gpt-4", "Hello world", CancellationToken.None);
 
 		result.ShouldNotBeNull();
 		result.Id.ShouldBe("test-id");
@@ -111,7 +113,7 @@ public sealed class OpenRouterClientShould
 
 		var client = new OpenRouterClient(httpClientFactoryMock.Object);
 
-		var result = await client.SendImageMessageAsync("test-api-key", "gpt-4-vision", "Analyze this image", "https://example.com/image.jpg");
+		var result = await client.SendImageMessageAsync("test-api-key", "gpt-4-vision", "Analyze this image", "https://example.com/image.jpg", CancellationToken.None);
 
 		result.ShouldNotBeNull();
 		result.Choices[0].Message.Content.ToString().ShouldBe("Image processed");
@@ -161,7 +163,7 @@ public sealed class OpenRouterClientShould
 			new() { Role = "user", Content = "Hello" }
 		};
 
-		var result = await client.SendMessageRawAsync("test-api-key", "gpt-4", messages);
+		var result = await client.SendMessageRawAsync("test-api-key", "gpt-4", messages, CancellationToken.None);
 
 		result.ShouldNotBeNull();
 		result.Choices[0].Message.Content.ToString().ShouldBe("Response to multiple messages");
@@ -175,7 +177,7 @@ public sealed class OpenRouterClientShould
 		var client = new OpenRouterClient(httpClientFactoryMock.Object);
 
 		await Should.ThrowAsync<OpenRouterNotAuthorizedException>(async () =>
-			await client.SendMessageAsync("invalid-api-key", "gpt-4", "Hello"));
+			await client.SendMessageAsync("invalid-api-key", "gpt-4", "Hello", CancellationToken.None));
 	}
 
 	[Fact]
@@ -196,7 +198,7 @@ public sealed class OpenRouterClientShould
 		var client = new OpenRouterClient(httpClientFactoryMock.Object);
 
 		var exception = await Should.ThrowAsync<OpenRouterException>(async () =>
-			await client.SendMessageAsync("test-api-key", "invalid-model", "Hello"));
+			await client.SendMessageAsync("test-api-key", "invalid-model", "Hello", CancellationToken.None));
 
 		exception.Message.ShouldContain("Model not found");
 	}
@@ -209,7 +211,7 @@ public sealed class OpenRouterClientShould
 		var client = new OpenRouterClient(httpClientFactoryMock.Object);
 
 		var exception = await Should.ThrowAsync<OpenRouterException>(async () =>
-			await client.SendMessageAsync("test-api-key", "gpt-4", "Hello"));
+			await client.SendMessageAsync("test-api-key", "gpt-4", "Hello", CancellationToken.None));
 
 		exception.Message.ShouldContain("Ошибка Open Router");
 		exception.Message.ShouldContain("Invalid JSON response");
@@ -221,7 +223,7 @@ public sealed class OpenRouterClientShould
 		var client = new OpenRouterClient(httpClientFactoryMock.Object);
 		var testBytes = new byte[] { 0xFF, 0xD8, 0xFF, 0xE0 };
 
-		var result = client.ToLocalImageExample(testBytes);
+		var result = client.ToLocalImageDataUrl(testBytes);
 
 		result.ShouldStartWith("data:image/jpeg;base64,");
 		result.ShouldContain(Convert.ToBase64String(testBytes));
@@ -233,7 +235,7 @@ public sealed class OpenRouterClientShould
 		var client = new OpenRouterClient(httpClientFactoryMock.Object);
 		var emptyBytes = Array.Empty<byte>();
 
-		var result = client.ToLocalImageExample(emptyBytes);
+		var result = client.ToLocalImageDataUrl(emptyBytes);
 
 		result.ShouldBe("data:image/jpeg;base64,");
 	}
@@ -267,12 +269,57 @@ public sealed class OpenRouterClientShould
 
 		var client = new OpenRouterClient(httpClientFactoryMock.Object);
 
-		await client.SendMessageAsync(apiKey, "gpt-4", "Test");
+		await client.SendMessageAsync(apiKey, "gpt-4", "Test", CancellationToken.None);
 
 		capturedRequest.ShouldNotBeNull();
 		capturedRequest.Headers.Authorization.ShouldNotBeNull();
 		capturedRequest.Headers.Authorization.Scheme.ShouldBe("Bearer");
 		capturedRequest.Headers.Authorization.Parameter.ShouldBe(apiKey);
+	}
+
+	[Fact]
+	public async Task ThrowOpenRouterExceptionWhenResponseIsNull()
+	{
+		httpMessageHandlerMock
+			.Protected()
+			.Setup<Task<HttpResponseMessage>>(
+				"SendAsync",
+				ItExpr.IsAny<HttpRequestMessage>(),
+				ItExpr.IsAny<CancellationToken>()
+			)
+			.ReturnsAsync(new HttpResponseMessage
+			{
+				StatusCode = HttpStatusCode.OK,
+				Content = new StringContent("null")
+			});
+
+		var client = new OpenRouterClient(httpClientFactoryMock.Object);
+
+		var exception = await Should.ThrowAsync<OpenRouterException>(async () =>
+			await client.SendMessageAsync("test-api-key", "gpt-4", "Hello", CancellationToken.None));
+
+		exception.Message.ShouldBe("Ошибка Open Router. Не удалось десериализовать ответ от API");
+	}
+
+	[Fact]
+	public async Task PropagatesCancellationToken()
+	{
+		var cts = new CancellationTokenSource();
+		cts.Cancel();
+
+		httpMessageHandlerMock
+			.Protected()
+			.Setup<Task<HttpResponseMessage>>(
+				"SendAsync",
+				ItExpr.IsAny<HttpRequestMessage>(),
+				ItExpr.IsAny<CancellationToken>()
+			)
+			.ThrowsAsync(new TaskCanceledException());
+
+		var client = new OpenRouterClient(httpClientFactoryMock.Object);
+
+		await Should.ThrowAsync<TaskCanceledException>(async () =>
+			await client.SendMessageAsync("test-api-key", "gpt-4", "Hello", cts.Token));
 	}
 
 	private void SetupHttpResponse(HttpStatusCode statusCode, object content)
