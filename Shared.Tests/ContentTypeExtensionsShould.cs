@@ -1,12 +1,12 @@
 using Microsoft.AspNetCore.Http;
 using Moq;
-using Shared;
+using Shared.Utilities;
 using Shouldly;
 
 namespace Shared.Tests;
 
 /// <summary>
-/// Тесты для класса ContentTypeExtensions
+///     Тесты для класса ContentTypeExtensions
 /// </summary>
 public sealed class ContentTypeExtensionsShould
 {

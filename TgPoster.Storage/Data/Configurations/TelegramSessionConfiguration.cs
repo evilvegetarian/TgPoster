@@ -9,7 +9,7 @@ internal sealed class TelegramSessionConfiguration : BaseEntityConfiguration<Tel
 	public override void Configure(EntityTypeBuilder<TelegramSession> builder)
 	{
 		base.Configure(builder);
-		
+
 		builder.HasKey(x => x.Id);
 
 		builder.Property(x => x.ApiId)

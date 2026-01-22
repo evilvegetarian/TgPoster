@@ -11,7 +11,7 @@ using Shouldly;
 namespace Shared.Tests;
 
 /// <summary>
-/// Тесты для класса OpenRouterClient
+///     Тесты для класса OpenRouterClient
 /// </summary>
 public sealed class OpenRouterClientShould
 {
@@ -31,25 +31,25 @@ public sealed class OpenRouterClientShould
 	public async Task SendTextMessageSuccessfully()
 	{
 		var jsonResponse = """
-		{
-			"id": "test-id",
-			"model": "test-model",
-			"choices": [
-				{
-					"message": {
-						"role": "assistant",
-						"content": "Test response"
-					},
-					"finish_reason": "stop"
-				}
-			],
-			"usage": {
-				"prompt_tokens": 10,
-				"completion_tokens": 20,
-				"total_tokens": 30
-			}
-		}
-		""";
+		                   {
+		                   	"id": "test-id",
+		                   	"model": "test-model",
+		                   	"choices": [
+		                   		{
+		                   			"message": {
+		                   				"role": "assistant",
+		                   				"content": "Test response"
+		                   			},
+		                   			"finish_reason": "stop"
+		                   		}
+		                   	],
+		                   	"usage": {
+		                   		"prompt_tokens": 10,
+		                   		"completion_tokens": 20,
+		                   		"total_tokens": 30
+		                   	}
+		                   }
+		                   """;
 
 		httpMessageHandlerMock
 			.Protected()
@@ -78,25 +78,25 @@ public sealed class OpenRouterClientShould
 	public async Task SendImageMessageSuccessfully()
 	{
 		var jsonResponse = """
-		{
-			"id": "test-id-image",
-			"model": "test-model",
-			"choices": [
-				{
-					"message": {
-						"role": "assistant",
-						"content": "Image processed"
-					},
-					"finish_reason": "stop"
-				}
-			],
-			"usage": {
-				"prompt_tokens": 100,
-				"completion_tokens": 50,
-				"total_tokens": 150
-			}
-		}
-		""";
+		                   {
+		                   	"id": "test-id-image",
+		                   	"model": "test-model",
+		                   	"choices": [
+		                   		{
+		                   			"message": {
+		                   				"role": "assistant",
+		                   				"content": "Image processed"
+		                   			},
+		                   			"finish_reason": "stop"
+		                   		}
+		                   	],
+		                   	"usage": {
+		                   		"prompt_tokens": 100,
+		                   		"completion_tokens": 50,
+		                   		"total_tokens": 150
+		                   	}
+		                   }
+		                   """;
 
 		httpMessageHandlerMock
 			.Protected()
@@ -113,7 +113,8 @@ public sealed class OpenRouterClientShould
 
 		var client = new OpenRouterClient(httpClientFactoryMock.Object);
 
-		var result = await client.SendImageMessageAsync("test-api-key", "gpt-4-vision", "Analyze this image", "https://example.com/image.jpg", CancellationToken.None);
+		var result = await client.SendImageMessageAsync("test-api-key", "gpt-4-vision", "Analyze this image",
+			"https://example.com/image.jpg", CancellationToken.None);
 
 		result.ShouldNotBeNull();
 		result.Choices[0].Message.Content.ToString().ShouldBe("Image processed");
@@ -123,25 +124,25 @@ public sealed class OpenRouterClientShould
 	public async Task SendRawMessageSuccessfully()
 	{
 		var jsonResponse = """
-		{
-			"id": "test-id-raw",
-			"model": "test-model",
-			"choices": [
-				{
-					"message": {
-						"role": "assistant",
-						"content": "Response to multiple messages"
-					},
-					"finish_reason": "stop"
-				}
-			],
-			"usage": {
-				"prompt_tokens": 50,
-				"completion_tokens": 30,
-				"total_tokens": 80
-			}
-		}
-		""";
+		                   {
+		                   	"id": "test-id-raw",
+		                   	"model": "test-model",
+		                   	"choices": [
+		                   		{
+		                   			"message": {
+		                   				"role": "assistant",
+		                   				"content": "Response to multiple messages"
+		                   			},
+		                   			"finish_reason": "stop"
+		                   		}
+		                   	],
+		                   	"usage": {
+		                   		"prompt_tokens": 50,
+		                   		"completion_tokens": 30,
+		                   		"total_tokens": 80
+		                   	}
+		                   }
+		                   """;
 
 		httpMessageHandlerMock
 			.Protected()
@@ -248,7 +249,10 @@ public sealed class OpenRouterClientShould
 		{
 			Id = "test",
 			Model = "test",
-			Choices = [new Choice { Message = new ChatMessage { Role = "assistant", Content = "OK" }, FinishReason = "stop" }],
+			Choices =
+			[
+				new Choice { Message = new ChatMessage { Role = "assistant", Content = "OK" }, FinishReason = "stop" }
+			],
 			Usage = new UsageStats()
 		};
 

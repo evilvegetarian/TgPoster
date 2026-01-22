@@ -1,4 +1,5 @@
-using Security.Interfaces;
+using Security.Cryptography;
+using Security.IdentityServices;
 using TgPoster.API.Domain.ConfigModels;
 using TgPoster.API.Domain.Exceptions;
 
@@ -35,7 +36,11 @@ public class TelegramTokenService(
 		var token = aes.Decrypt(options.SecretKey, telegramBot.ApiTelegram);
 		return (token, telegramBot.ChatId);
 	}
-	public async Task<(string token, long chatId)> GetTokenByScheduleIdAnonymousAsync(Guid scheduleId, CancellationToken ct)
+
+	public async Task<(string token, long chatId)> GetTokenByScheduleIdAnonymousAsync(
+		Guid scheduleId,
+		CancellationToken ct
+	)
 	{
 		var telegramBot = await storage.GetTelegramBotByScheduleIdAsync(scheduleId, ct);
 		if (telegramBot is null)

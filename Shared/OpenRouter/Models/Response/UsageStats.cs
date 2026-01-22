@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 namespace Shared.OpenRouter.Models.Response;
 
 /// <summary>
-/// Представляет статистику по использованию токенов.
+///     Представляет статистику по использованию токенов.
 /// </summary>
 public sealed class UsageStats
 {

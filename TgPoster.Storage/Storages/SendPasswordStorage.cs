@@ -9,6 +9,6 @@ internal sealed class SendPasswordStorage(PosterContext context) : ISendPassword
 	public Task<bool> ExistsAsync(Guid userId, Guid sessionId, CancellationToken ct)
 	{
 		return context.TelegramSessions
-			.AnyAsync(s => s.Id == sessionId && s.UserId == userId , ct);
+			.AnyAsync(s => s.Id == sessionId && s.UserId == userId, ct);
 	}
 }

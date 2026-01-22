@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Http;
-using Shared;
+using Shared.Utilities;
+using Shared.Video;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 

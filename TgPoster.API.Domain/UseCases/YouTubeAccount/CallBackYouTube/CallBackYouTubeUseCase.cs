@@ -3,7 +3,7 @@ using Google.Apis.Auth.OAuth2.Flows;
 using Google.Apis.Services;
 using Google.Apis.YouTube.v3;
 using MediatR;
-using Security.Interfaces;
+using Security.IdentityServices;
 
 namespace TgPoster.API.Domain.UseCases.YouTubeAccount.CallBackYouTube;
 
@@ -14,7 +14,7 @@ public class CallBackYouTubeUseCase(ICallBackYouTubeStorage storage, IIdentityPr
 	{
 		var accountYouTubeGuid = Guid.Parse(request.State);
 		var (clientId, clientSecret) = await storage.GetClients(accountYouTubeGuid, provider.Current.UserId, ct);
-		
+
 		var flow = new GoogleAuthorizationCodeFlow(new GoogleAuthorizationCodeFlow.Initializer
 		{
 			ClientSecrets = new ClientSecrets
@@ -48,8 +48,8 @@ public class CallBackYouTubeUseCase(ICallBackYouTubeStorage storage, IIdentityPr
 		var channelId = channel?.Id;
 
 		await storage.AddToken(
-			accountYouTubeGuid, 
-			token.AccessToken, 
+			accountYouTubeGuid,
+			token.AccessToken,
 			token.RefreshToken,
 			channelName,
 			channelId,

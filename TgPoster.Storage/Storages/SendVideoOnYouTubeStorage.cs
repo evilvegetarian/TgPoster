@@ -1,5 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-using Shared;
+using Shared.YouTube;
 using TgPoster.API.Domain.UseCases.Messages.ListMessage;
 using TgPoster.API.Domain.UseCases.YouTubeAccount.SendVideoOnYouTube;
 using TgPoster.Storage.Data;
@@ -36,18 +36,25 @@ public class SendVideoOnYouTubeStorage(PosterContext context) : ISendVideoOnYouT
 			.Where(x => x.Id == messageId)
 			.Where(x => x.Schedule.UserId == userId)
 			.Select(x => x.Schedule.YouTubeAccount)
-			.Select(x => x != null ? new YouTubeAccountDto
-			{
-				Id = x.Id,
-				AccessToken = x.AccessToken,
-				RefreshToken = x.RefreshToken,
-				ClientId = x.ClientId,
-				ClientSecret = x.ClientSecret
-			} : null)
+			.Select(x => x != null
+				? new YouTubeAccountDto
+				{
+					Id = x.Id,
+					AccessToken = x.AccessToken,
+					RefreshToken = x.RefreshToken,
+					ClientId = x.ClientId,
+					ClientSecret = x.ClientSecret
+				}
+				: null)
 			.FirstOrDefaultAsync(ct);
 	}
 
-	public async Task UpdateYouTubeTokensAsync(Guid youTubeAccountId, string accessToken, string? refreshToken, CancellationToken ct)
+	public async Task UpdateYouTubeTokensAsync(
+		Guid youTubeAccountId,
+		string accessToken,
+		string? refreshToken,
+		CancellationToken ct
+	)
 	{
 		var account = await context.YouTubeAccounts
 			.Where(x => x.Id == youTubeAccountId)

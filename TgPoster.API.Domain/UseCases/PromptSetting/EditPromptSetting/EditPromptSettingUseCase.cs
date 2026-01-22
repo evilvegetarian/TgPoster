@@ -1,5 +1,5 @@
 using MediatR;
-using Security.Interfaces;
+using Security.IdentityServices;
 using Shared.Exceptions;
 
 namespace TgPoster.API.Domain.UseCases.PromptSetting.EditPromptSetting;

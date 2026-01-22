@@ -8,8 +8,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
-using Security.Interfaces;
-using Security.Models;
+using Security.Authentication;
 using Testcontainers.PostgreSql;
 using TgPoster.API.Tests.Helper;
 using TgPoster.API.Tests.Seeder;
@@ -66,6 +65,7 @@ public class EndpointTestFixture : WebApplicationFactory<Program>, IAsyncLifetim
 		client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
 		return client;
 	}
+
 	public PosterContext GetDbContext() =>
 		new(new DbContextOptionsBuilder<PosterContext>()
 			.UseNpgsql(dbContainer.GetConnectionString()).Options);

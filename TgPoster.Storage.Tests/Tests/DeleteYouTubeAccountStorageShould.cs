@@ -79,8 +79,9 @@ public class DeleteYouTubeAccountStorageShould(StorageTestFixture fixture) : ICl
 	{
 		var user = await new UserBuilder(context).CreateAsync();
 		var youtubeAccount = new YouTubeAccountBuilder(context).WithUser(user).Create();
-		var telegramBot =  new TelegramBotBuilder(context).Create();
-		var schedule = new ScheduleBuilder(context).WithUser(user).WithTelegramBot(telegramBot).WithYouTubeAccount(youtubeAccount).Create();
+		var telegramBot = new TelegramBotBuilder(context).Create();
+		var schedule = new ScheduleBuilder(context).WithUser(user).WithTelegramBot(telegramBot)
+			.WithYouTubeAccount(youtubeAccount).Create();
 
 		await sut.DeleteYouTubeAccountAsync(youtubeAccount.Id, user.Id, CancellationToken.None);
 
@@ -98,10 +99,12 @@ public class DeleteYouTubeAccountStorageShould(StorageTestFixture fixture) : ICl
 	{
 		var user = await new UserBuilder(context).CreateAsync();
 		var youtubeAccount = new YouTubeAccountBuilder(context).WithUser(user).Create();
-		var telegramBot =  new TelegramBotBuilder(context).Create();
+		var telegramBot = new TelegramBotBuilder(context).Create();
 
-		var schedule1 = new ScheduleBuilder(context).WithUser(user).WithTelegramBot(telegramBot).WithYouTubeAccount(youtubeAccount).Create();
-		var schedule2 = new ScheduleBuilder(context).WithUser(user).WithTelegramBot(telegramBot).WithYouTubeAccount(youtubeAccount).Create();
+		var schedule1 = new ScheduleBuilder(context).WithUser(user).WithTelegramBot(telegramBot)
+			.WithYouTubeAccount(youtubeAccount).Create();
+		var schedule2 = new ScheduleBuilder(context).WithUser(user).WithTelegramBot(telegramBot)
+			.WithYouTubeAccount(youtubeAccount).Create();
 
 		await sut.DeleteYouTubeAccountAsync(youtubeAccount.Id, user.Id, CancellationToken.None);
 
@@ -123,14 +126,15 @@ public class DeleteYouTubeAccountStorageShould(StorageTestFixture fixture) : ICl
 	[Fact]
 	public async Task DeleteYouTubeAccountAsync_ShouldNotAffectSchedulesWithDifferentYouTubeAccount()
 	{
-		
 		var user = await new UserBuilder(context).CreateAsync();
 		var youtubeAccount1 = new YouTubeAccountBuilder(context).WithUser(user).Create();
 		var youtubeAccount2 = new YouTubeAccountBuilder(context).WithUser(user).Create();
-		var telegramBot =  new TelegramBotBuilder(context).Create();
-		
-		var scheduleWithAccount1 = new ScheduleBuilder(context).WithUser(user).WithTelegramBot(telegramBot).WithYouTubeAccount(youtubeAccount1).Create();
-		var scheduleWithAccount2 = new ScheduleBuilder(context).WithUser(user).WithTelegramBot(telegramBot).WithYouTubeAccount(youtubeAccount2).Create();
+		var telegramBot = new TelegramBotBuilder(context).Create();
+
+		var scheduleWithAccount1 = new ScheduleBuilder(context).WithUser(user).WithTelegramBot(telegramBot)
+			.WithYouTubeAccount(youtubeAccount1).Create();
+		var scheduleWithAccount2 = new ScheduleBuilder(context).WithUser(user).WithTelegramBot(telegramBot)
+			.WithYouTubeAccount(youtubeAccount2).Create();
 
 		await sut.DeleteYouTubeAccountAsync(youtubeAccount1.Id, user.Id, CancellationToken.None);
 

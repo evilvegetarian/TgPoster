@@ -1,6 +1,6 @@
 using MediatR;
-using Security.Interfaces;
-using Shared;
+using Security.IdentityServices;
+using Shared.YouTube;
 using Telegram.Bot;
 using TgPoster.API.Domain.Exceptions;
 using TgPoster.API.Domain.Services;

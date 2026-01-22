@@ -1,5 +1,5 @@
 using MediatR;
-using Security.Interfaces;
+using Security.IdentityServices;
 using TgPoster.API.Domain.Exceptions;
 
 namespace TgPoster.API.Domain.UseCases.TelegramBots.DeleteTelegramBot;
@@ -13,7 +13,7 @@ public class DeleteTelegramUseCase(IDeleteTelegramBotStorage storage, IIdentityP
 		{
 			throw new TelegramBotNotFoundException(request.Id);
 		}
-		
+
 		await storage.DeleteTelegramBotAsync(request.Id, identity.Current.UserId, cancellationToken);
 	}
 }

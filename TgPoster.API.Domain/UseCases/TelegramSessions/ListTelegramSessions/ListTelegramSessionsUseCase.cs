@@ -1,5 +1,5 @@
 using MediatR;
-using Security.Interfaces;
+using Security.IdentityServices;
 
 namespace TgPoster.API.Domain.UseCases.TelegramSessions.ListTelegramSessions;
 
@@ -11,8 +11,6 @@ internal sealed class ListTelegramSessionsUseCase(
 	public Task<List<TelegramSessionResponse>> Handle(
 		ListTelegramSessionsQuery request,
 		CancellationToken ct
-	)
-	{
-		return storage.GetByUserIdAsync(identityProvider.Current.UserId, ct);
-	}
+	) =>
+		storage.GetByUserIdAsync(identityProvider.Current.UserId, ct);
 }

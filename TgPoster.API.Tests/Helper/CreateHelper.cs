@@ -51,7 +51,7 @@ public class CreateHelper(HttpClient client)
 			Login = username,
 			Password = password
 		};
-		 await client.PostAsync<SignOnResponse>(Routes.Account.SignOn, signOnRequest);
+		await client.PostAsync<SignOnResponse>(Routes.Account.SignOn, signOnRequest);
 	}
 
 	public async Task<SignInResponse> SignIn(string username, string password)

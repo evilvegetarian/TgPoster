@@ -6,7 +6,6 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Shared;
-using Shared.Contracts;
 using Shared.Services;
 using TgPoster.Worker.Domain.ConfigModels;
 using TgPoster.Worker.Domain.UseCases;
@@ -15,7 +14,6 @@ using TgPoster.Worker.Domain.UseCases.ParseChannelConsumer;
 using TgPoster.Worker.Domain.UseCases.ParseChannelWorker;
 using TgPoster.Worker.Domain.UseCases.ProcessMessageConsumer;
 using TgPoster.Worker.Domain.UseCases.SenderMessageWorker;
-using WTelegram;
 
 namespace TgPoster.Worker.Domain;
 

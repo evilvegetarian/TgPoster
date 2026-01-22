@@ -2,7 +2,7 @@ using Google.Apis.Auth.OAuth2;
 using Google.Apis.Auth.OAuth2.Flows;
 using Google.Apis.YouTube.v3;
 using MediatR;
-using Security.Interfaces;
+using Security.IdentityServices;
 using TgPoster.API.Domain.Exceptions;
 
 namespace TgPoster.API.Domain.UseCases.YouTubeAccount.YouTubeAccountLogin;

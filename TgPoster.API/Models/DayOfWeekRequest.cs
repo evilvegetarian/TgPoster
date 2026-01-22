@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 namespace TgPoster.API.Models;
 
 /// <summary>
-/// Настройки публикации для дня недели
+///     Настройки публикации для дня недели
 /// </summary>
 public class DayOfWeekRequest : IValidatableObject
 {
@@ -29,7 +29,7 @@ public class DayOfWeekRequest : IValidatableObject
 	public required byte Interval { get; set; }
 
 	/// <summary>
-	/// Валидация настроек публикации для дня недели
+	///     Валидация настроек публикации для дня недели
 	/// </summary>
 	public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
 	{

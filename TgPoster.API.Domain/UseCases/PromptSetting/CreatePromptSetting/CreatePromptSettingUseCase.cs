@@ -1,5 +1,5 @@
 using MediatR;
-using Security.Interfaces;
+using Security.IdentityServices;
 using TgPoster.API.Domain.Exceptions;
 
 namespace TgPoster.API.Domain.UseCases.PromptSetting.CreatePromptSetting;

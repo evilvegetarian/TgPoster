@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 namespace TgPoster.API.Models;
 
 /// <summary>
-/// Запрос на обновление времени публикации
+///     Запрос на обновление времени публикации
 /// </summary>
 public sealed class UpdateTimeRequest : IValidatableObject
 {
@@ -23,7 +23,7 @@ public sealed class UpdateTimeRequest : IValidatableObject
 	public List<TimeOnly> Times { get; set; } = [];
 
 	/// <summary>
-	/// Валидация запроса на обновление времени публикации
+	///     Валидация запроса на обновление времени публикации
 	/// </summary>
 	public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
 	{

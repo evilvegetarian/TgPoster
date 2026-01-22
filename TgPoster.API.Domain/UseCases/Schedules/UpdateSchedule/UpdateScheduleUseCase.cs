@@ -1,5 +1,5 @@
 using MediatR;
-using Security.Interfaces;
+using Security.IdentityServices;
 
 namespace TgPoster.API.Domain.UseCases.Schedules.UpdateSchedule;
 

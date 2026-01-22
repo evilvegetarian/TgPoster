@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Shared.Contracts;
+using Shared.Telegram;
 using TgPoster.Storage.ConfigModels;
 using TgPoster.Storage.Data;
 using TgPoster.Storage.Repositories;
@@ -38,6 +38,7 @@ public static class DependencyInjection
 				services.Add(new ServiceDescriptor(inter, type, ServiceLifetime.Scoped));
 			}
 		}
+
 		return services;
 	}
 }

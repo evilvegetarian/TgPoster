@@ -1,5 +1,5 @@
 using MediatR;
-using Security.Interfaces;
+using Security.Cryptography;
 using Shared.OpenRouter;
 using Shared.OpenRouter.Models.Request;
 using Telegram.Bot;

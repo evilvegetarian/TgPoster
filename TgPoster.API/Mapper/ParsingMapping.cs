@@ -5,12 +5,12 @@ using TgPoster.API.Models;
 namespace TgPoster.API.Mapper;
 
 /// <summary>
-/// Маппер для запросов парсинга каналов
+///     Маппер для запросов парсинга каналов
 /// </summary>
 public static class ParsingMapping
 {
 	/// <summary>
-	/// Преобразовать API модель в команду создания парсинга канала
+	///     Преобразовать API модель в команду создания парсинга канала
 	/// </summary>
 	public static CreateParseChannelCommand ToCommand(this CreateParseChannelRequest request) =>
 		new(
@@ -26,7 +26,7 @@ public static class ParsingMapping
 			request.UseAiForPosts);
 
 	/// <summary>
-	/// Преобразовать API модель в команду обновления парсинга канала
+	///     Преобразовать API модель в команду обновления парсинга канала
 	/// </summary>
 	public static UpdateParseChannelCommand ToCommand(this UpdateParseChannelRequest request, Guid id) =>
 		new(

@@ -1,8 +1,7 @@
 using FFMpegCore;
 using FFMpegCore.Enums;
 using Microsoft.AspNetCore.Builder;
-using Security;
-using Security.Interfaces;
+using Security.Cryptography;
 using Serilog;
 using TgPoster.Storage;
 using TgPoster.Worker.Configuration;

@@ -5,7 +5,7 @@ namespace TgPoster.Storage.Tests.Builders;
 
 public class YouTubeAccountBuilder(PosterContext context)
 {
-	private YouTubeAccount youtube = new YouTubeAccount
+	private readonly YouTubeAccount youtube = new()
 	{
 		Name = "asdasd",
 		AccessToken = "dsadasfqw",

@@ -4,12 +4,12 @@ using System.Text.Json;
 namespace Shared.OpenRouter.Extensions;
 
 /// <summary>
-/// Расширения для работы с HTTP контентом.
+///     Расширения для работы с HTTP контентом.
 /// </summary>
 internal static class HttpContentExtensions
 {
 	/// <summary>
-	/// Преобразует объект в StringContent для отправки в HTTP запросе.
+	///     Преобразует объект в StringContent для отправки в HTTP запросе.
 	/// </summary>
 	public static StringContent ToJsonStringContent(this object obj)
 	{

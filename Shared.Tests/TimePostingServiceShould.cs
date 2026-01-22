@@ -1,5 +1,6 @@
-using Shouldly;
 using Shared.Exceptions;
+using Shared.Services;
+using Shouldly;
 
 namespace Shared.Tests;
 

@@ -1,6 +1,6 @@
 using MediatR;
-using Security.Interfaces;
-using Shared.Services;
+using Security.IdentityServices;
+using Shared.Telegram;
 
 namespace TgPoster.API.Domain.UseCases.TelegramSessions.CreateTelegramSession;
 

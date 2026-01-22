@@ -1,21 +1,20 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Text;
 using Microsoft.AspNetCore.Http;
 using Microsoft.IdentityModel.Tokens;
-using Moq;
-using Security.Interfaces;
-using Security.Models;
+using Security.Authentication;
 using Shouldly;
 
 namespace Security.Tests;
 
 /// <summary>
-/// Тесты для класса JwtProvider
+///     Тесты для класса JwtProvider
 /// </summary>
 public sealed class JwtProviderShould
 {
-	private readonly IJwtProvider jwtProvider;
 	private readonly JwtOptions jwtOptions;
+	private readonly IJwtProvider jwtProvider;
 
 	public JwtProviderShould()
 	{
@@ -138,7 +137,10 @@ public sealed class JwtProviderShould
 	public void ThrowExceptionForTokenWithWrongAlgorithm()
 	{
 		var claims = new[] { new Claim(JwtClaimTypes.UserId, Guid.NewGuid().ToString()) };
-		var wrongKey = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes("WrongSecretKeyForTestingPurposesWithEnoughLength123456789012345678901234567890"));
+		var wrongKey =
+			new SymmetricSecurityKey(
+				Encoding.UTF8.GetBytes(
+					"WrongSecretKeyForTestingPurposesWithEnoughLength123456789012345678901234567890"));
 		var wrongCredentials = new SigningCredentials(wrongKey, SecurityAlgorithms.HmacSha512);
 		var wrongToken = new JwtSecurityToken(
 			claims: claims,

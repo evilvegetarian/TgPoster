@@ -1,5 +1,5 @@
 using MediatR;
-using Shared;
+using Shared.Services;
 
 namespace TgPoster.API.Domain.UseCases.Messages.GetTime;
 

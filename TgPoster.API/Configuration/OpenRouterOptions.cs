@@ -1,12 +1,12 @@
 namespace TgPoster.API.Configuration;
 
 /// <summary>
-/// Настройки для OpenRouter
+///     Настройки для OpenRouter
 /// </summary>
 public class OpenRouterOptions
 {
 	/// <summary>
-	/// Секретный ключ для доступа к OpenRouter API
+	///     Секретный ключ для доступа к OpenRouter API
 	/// </summary>
 	public required string SecretKey { get; set; }
 }

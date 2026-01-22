@@ -1,10 +1,10 @@
-using Shared;
+using Shared.Utilities;
 using Shouldly;
 
 namespace Shared.Tests;
 
 /// <summary>
-/// Тесты для класса FileTypesExtensions
+///     Тесты для класса FileTypesExtensions
 /// </summary>
 public sealed class FileTypesExtensionsShould
 {

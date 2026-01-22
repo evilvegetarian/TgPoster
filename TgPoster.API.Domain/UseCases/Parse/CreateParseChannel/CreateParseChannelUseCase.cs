@@ -1,6 +1,6 @@
 using MassTransit;
 using MediatR;
-using Shared.Contracts;
+using Shared.Telegram;
 using Telegram.Bot;
 using TgPoster.API.Domain.Extensions;
 using TgPoster.API.Domain.Services;

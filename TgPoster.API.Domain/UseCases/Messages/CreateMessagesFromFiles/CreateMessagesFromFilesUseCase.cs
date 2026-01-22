@@ -1,5 +1,5 @@
 using MediatR;
-using Shared;
+using Shared.Services;
 using Telegram.Bot;
 using TgPoster.API.Domain.Services;
 

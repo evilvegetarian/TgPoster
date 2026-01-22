@@ -1,5 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-using Shared;
+using Shared.YouTube;
 using TgPoster.Storage.Data;
 using TgPoster.Storage.Data.Enum;
 using TgPoster.Worker.Domain.UseCases.SenderMessageWorker;
@@ -21,18 +21,20 @@ internal class SenderMessageStorage(PosterContext context) : ISenderMessageStora
 			{
 				ChannelId = x.ChannelId,
 				Api = x.TelegramBot.ApiTelegram,
-				YouTubeAccount = x.YouTubeAccount != null ? new YouTubeAccountDto
-				{
-					Id = x.YouTubeAccount.Id,
-					AccessToken = x.YouTubeAccount.AccessToken,
-					RefreshToken = x.YouTubeAccount.RefreshToken,
-					ClientId = x.YouTubeAccount.ClientId,
-					ClientSecret = x.YouTubeAccount.ClientSecret,
-					DefaultTitle = x.YouTubeAccount.DefaultTitle,
-					DefaultDescription = x.YouTubeAccount.DefaultDescription,
-					DefaultTags = x.YouTubeAccount.DefaultTags,
-					AutoPostingVideo = x.YouTubeAccount.AutoPostingVideo
-				} : null,
+				YouTubeAccount = x.YouTubeAccount != null
+					? new YouTubeAccountDto
+					{
+						Id = x.YouTubeAccount.Id,
+						AccessToken = x.YouTubeAccount.AccessToken,
+						RefreshToken = x.YouTubeAccount.RefreshToken,
+						ClientId = x.YouTubeAccount.ClientId,
+						ClientSecret = x.YouTubeAccount.ClientSecret,
+						DefaultTitle = x.YouTubeAccount.DefaultTitle,
+						DefaultDescription = x.YouTubeAccount.DefaultDescription,
+						DefaultTags = x.YouTubeAccount.DefaultTags,
+						AutoPostingVideo = x.YouTubeAccount.AutoPostingVideo
+					}
+					: null,
 				MessageDto = x.Messages
 					.Where(m => m.TimePosting > time
 					            && m.TimePosting <= plusMinute
@@ -83,7 +85,12 @@ internal class SenderMessageStorage(PosterContext context) : ISenderMessageStora
 		}
 	}
 
-	public async Task UpdateYouTubeTokensAsync(Guid youTubeAccountId, string accessToken, string? refreshToken, CancellationToken ct)
+	public async Task UpdateYouTubeTokensAsync(
+		Guid youTubeAccountId,
+		string accessToken,
+		string? refreshToken,
+		CancellationToken ct
+	)
 	{
 		var account = await context.YouTubeAccounts
 			.Where(x => x.Id == youTubeAccountId)

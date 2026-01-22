@@ -1,5 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-using Shared.Contracts;
+using Shared.Telegram;
 using TgPoster.Storage.Data;
 
 namespace TgPoster.Storage.Repositories;
@@ -7,6 +7,20 @@ namespace TgPoster.Storage.Repositories;
 internal sealed class TelegramSessionRepository(PosterContext context)
 	: ITelegramSessionRepository, ITelegramAuthRepository
 {
+	public async Task UpdateSessionDataAsync(Guid sessionId, string sessionData, CancellationToken ct)
+	{
+		var session = await context.TelegramSessions.FirstAsync(s => s.Id == sessionId, ct);
+		session.SessionData = sessionData;
+		await context.SaveChangesAsync(ct);
+	}
+
+	public async Task UpdateStatusAsync(Guid sessionId, TelegramSessionStatus status, CancellationToken ct)
+	{
+		var session = await context.TelegramSessions.FirstAsync(s => s.Id == sessionId, ct);
+		session.Status = (Data.Enum.TelegramSessionStatus)status;
+		await context.SaveChangesAsync(ct);
+	}
+
 	public Task<TelegramSessionDto?> GetByIdAsync(Guid sessionId, CancellationToken ct)
 	{
 		return context.TelegramSessions
@@ -22,19 +36,5 @@ internal sealed class TelegramSessionRepository(PosterContext context)
 				SessionData = s.SessionData
 			})
 			.FirstOrDefaultAsync(ct);
-	}
-
-	public async Task UpdateSessionDataAsync(Guid sessionId, string sessionData, CancellationToken ct)
-	{
-		var session = await context.TelegramSessions.FirstAsync(s => s.Id == sessionId, ct);
-		session.SessionData = sessionData;
-		await context.SaveChangesAsync(ct);
-	}
-
-	public async Task UpdateStatusAsync(Guid sessionId, TelegramSessionStatus status, CancellationToken ct)
-	{
-		var session = await context.TelegramSessions.FirstAsync(s => s.Id == sessionId, ct);
-		session.Status = (Data.Enum.TelegramSessionStatus)status;
-		await context.SaveChangesAsync(ct);
 	}
 }

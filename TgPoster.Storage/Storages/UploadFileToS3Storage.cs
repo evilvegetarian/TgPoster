@@ -1,5 +1,4 @@
 using Microsoft.EntityFrameworkCore;
-using TgPoster.API.Domain.UseCases.Files;
 using TgPoster.API.Domain.UseCases.Files.UploadFileToS3;
 using TgPoster.Storage.Data;
 

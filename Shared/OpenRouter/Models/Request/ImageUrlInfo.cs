@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 namespace Shared.OpenRouter.Models.Request;
 
 /// <summary>
-/// Представляет информацию об URL изображения.
+///     Представляет информацию об URL изображения.
 /// </summary>
 public sealed class ImageUrlInfo
 {

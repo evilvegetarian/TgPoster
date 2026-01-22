@@ -30,6 +30,7 @@ internal sealed class CreateTelegramSessionStorage(PosterContext context, GuidFa
 		await context.TelegramSessions.AddAsync(session, ct);
 		await context.SaveChangesAsync(ct);
 
-		return new CreateTelegramSessionResponse(session.Id, session.Name ?? phoneNumber, session.IsActive, string.Empty);
+		return new CreateTelegramSessionResponse(session.Id, session.Name ?? phoneNumber, session.IsActive,
+			string.Empty);
 	}
 }

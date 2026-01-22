@@ -1,8 +1,7 @@
 using MassTransit;
 using Microsoft.Extensions.Logging;
-using Shared.Services;
+using Shared.Telegram;
 using TL;
-using WTelegram;
 using Message = TL.Message;
 
 namespace TgPoster.Worker.Domain.UseCases.ParseChannel;

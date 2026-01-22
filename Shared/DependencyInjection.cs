@@ -1,13 +1,16 @@
 using Microsoft.Extensions.DependencyInjection;
 using Shared.OpenRouter;
 using Shared.Services;
+using Shared.Telegram;
+using Shared.Video;
+using Shared.YouTube;
 
 namespace Shared;
 
 public static class DependencyInjection
 {
 	/// <summary>
-	/// Регистрирует все сервисы из библиотеки Shared
+	///     Регистрирует все сервисы из библиотеки Shared
 	/// </summary>
 	public static IServiceCollection AddShared(this IServiceCollection services)
 	{

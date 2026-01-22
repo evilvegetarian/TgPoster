@@ -3,7 +3,7 @@ using Amazon.S3;
 using Amazon.S3.Model;
 using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.Extensions.Caching.Memory;
-using Shared;
+using Shared.Utilities;
 using Telegram.Bot;
 using TgPoster.API.Domain.Exceptions;
 using TgPoster.API.Domain.UseCases.Messages.ListMessage;
@@ -204,11 +204,13 @@ internal sealed class FileService(
 			{
 				case FileTypes.Image:
 				{
-					var uploaded = await DownloadAndUploadToS3Async(botClient, fileDto.Id, fileDto.TgFileId, FileTypes.Image, ct);
+					var uploaded = await DownloadAndUploadToS3Async(botClient, fileDto.Id, fileDto.TgFileId,
+						FileTypes.Image, ct);
 					if (uploaded)
 					{
 						await fileStorage.MarkFileAsUploadedToS3Async(fileDto.Id, ct);
 					}
+
 					break;
 				}
 
@@ -216,7 +218,8 @@ internal sealed class FileService(
 				{
 					foreach (var preview in fileDto.Previews)
 					{
-						var uploaded = await DownloadAndUploadToS3Async(botClient, preview.Id, preview.TgFileId, FileTypes.Video, ct);
+						var uploaded = await DownloadAndUploadToS3Async(botClient, preview.Id, preview.TgFileId,
+							FileTypes.Video, ct);
 						if (uploaded)
 						{
 							await fileStorage.MarkFileAsUploadedToS3Async(preview.Id, ct);

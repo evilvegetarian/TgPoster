@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 namespace TgPoster.API.Models;
 
 /// <summary>
-/// Запрос на создание Telegram бота
+///     Запрос на создание Telegram бота
 /// </summary>
 public class CreateTelegramBotRequest : IValidatableObject
 {
@@ -13,7 +13,7 @@ public class CreateTelegramBotRequest : IValidatableObject
 	public required string Token { get; set; }
 
 	/// <summary>
-	/// Валидация запроса на создание Telegram бота
+	///     Валидация запроса на создание Telegram бота
 	/// </summary>
 	public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
 	{

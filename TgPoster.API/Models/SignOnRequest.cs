@@ -8,20 +8,20 @@ namespace TgPoster.API.Models;
 public class SignOnRequest : IValidatableObject
 {
 	/// <summary>
-	/// Логин пользователя
+	///     Логин пользователя
 	/// </summary>
 	[MinLength(5)]
 	[MaxLength(30)]
 	public required string Login { get; set; }
 
 	/// <summary>
-	/// Пароль пользователя
+	///     Пароль пользователя
 	/// </summary>
 	[MinLength(5)]
 	public required string Password { get; set; }
 
 	/// <summary>
-	/// Валидация запроса на вход
+	///     Валидация запроса на вход
 	/// </summary>
 	public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
 	{

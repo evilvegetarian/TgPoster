@@ -4,12 +4,12 @@ using Shared.OpenRouter.Models.Response;
 namespace Shared.OpenRouter;
 
 /// <summary>
-/// Интерфейс клиента для работы с OpenRouter API.
+///     Интерфейс клиента для работы с OpenRouter API.
 /// </summary>
 public interface IOpenRouterClient
 {
 	/// <summary>
-	/// Отправляет текстовое сообщение в чат.
+	///     Отправляет текстовое сообщение в чат.
 	/// </summary>
 	/// <param name="apiKey">API ключ для авторизации.</param>
 	/// <param name="model">Название модели для использования.</param>
@@ -20,10 +20,11 @@ public interface IOpenRouterClient
 		string apiKey,
 		string model,
 		string message,
-		CancellationToken cancellationToken);
+		CancellationToken cancellationToken
+	);
 
 	/// <summary>
-	/// Отправляет сообщение с изображением.
+	///     Отправляет сообщение с изображением.
 	/// </summary>
 	/// <param name="apiKey">API ключ для авторизации.</param>
 	/// <param name="model">Название модели для использования.</param>
@@ -36,10 +37,11 @@ public interface IOpenRouterClient
 		string model,
 		string textPrompt,
 		string imageUrl,
-		CancellationToken cancellationToken);
+		CancellationToken cancellationToken
+	);
 
 	/// <summary>
-	/// Отправляет произвольный список сообщений в чат.
+	///     Отправляет произвольный список сообщений в чат.
 	/// </summary>
 	/// <param name="apiKey">API ключ для авторизации.</param>
 	/// <param name="model">Название модели для использования.</param>
@@ -50,10 +52,11 @@ public interface IOpenRouterClient
 		string apiKey,
 		string model,
 		List<ChatMessage> messages,
-		CancellationToken cancellationToken);
+		CancellationToken cancellationToken
+	);
 
 	/// <summary>
-	/// Преобразует байты изображения в base64 data URL для отправки.
+	///     Преобразует байты изображения в base64 data URL для отправки.
 	/// </summary>
 	/// <param name="picture">Байты изображения.</param>
 	/// <returns>Data URL изображения.</returns>

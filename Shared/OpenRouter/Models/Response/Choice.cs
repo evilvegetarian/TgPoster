@@ -4,7 +4,7 @@ using Shared.OpenRouter.Models.Request;
 namespace Shared.OpenRouter.Models.Response;
 
 /// <summary>
-/// Представляет один из вариантов ответа, сгенерированных моделью.
+///     Представляет один из вариантов ответа, сгенерированных моделью.
 /// </summary>
 public sealed class Choice
 {

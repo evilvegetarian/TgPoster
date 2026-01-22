@@ -1,11 +1,10 @@
-using Security.Interfaces;
-using Security.Models;
+using Security.IdentityServices;
 using Shouldly;
 
 namespace Security.Tests;
 
 /// <summary>
-/// Тесты для класса IdentityProvider
+///     Тесты для класса IdentityProvider
 /// </summary>
 public sealed class IdentityProviderShould
 {

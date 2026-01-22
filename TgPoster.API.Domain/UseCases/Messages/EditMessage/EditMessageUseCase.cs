@@ -1,5 +1,5 @@
 using MediatR;
-using Security.Interfaces;
+using Security.IdentityServices;
 using Telegram.Bot;
 using TgPoster.API.Domain.Exceptions;
 using TgPoster.API.Domain.Services;

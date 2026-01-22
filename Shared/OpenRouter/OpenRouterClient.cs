@@ -8,7 +8,7 @@ using Shared.OpenRouter.Models.Response;
 namespace Shared.OpenRouter;
 
 /// <summary>
-/// Клиент для работы с OpenRouter API.
+///     Клиент для работы с OpenRouter API.
 /// </summary>
 public sealed class OpenRouterClient(IHttpClientFactory httpClientFactory) : IOpenRouterClient
 {
@@ -19,7 +19,8 @@ public sealed class OpenRouterClient(IHttpClientFactory httpClientFactory) : IOp
 		string apiKey,
 		string model,
 		string message,
-		CancellationToken cancellationToken)
+		CancellationToken cancellationToken
+	)
 	{
 		var messages = new List<ChatMessage>
 		{
@@ -35,7 +36,8 @@ public sealed class OpenRouterClient(IHttpClientFactory httpClientFactory) : IOp
 		string model,
 		string textPrompt,
 		string imageUrl,
-		CancellationToken cancellationToken)
+		CancellationToken cancellationToken
+	)
 	{
 		var contentParts = new List<MessageContentPart>
 		{
@@ -54,7 +56,8 @@ public sealed class OpenRouterClient(IHttpClientFactory httpClientFactory) : IOp
 		string apiKey,
 		string model,
 		List<ChatMessage> messages,
-		CancellationToken cancellationToken)
+		CancellationToken cancellationToken
+	)
 	{
 		using var client = httpClientFactory.CreateClient();
 		client.DefaultRequestHeaders.Add("Authorization", $"Bearer {apiKey}");

@@ -36,7 +36,10 @@ public class DayController(ISender sender) : ControllerBase
 	/// <summary>
 	///     Создание дней недели
 	/// </summary>
-	/// <param name="request">Данные для создания дней недели с временем публикации (расписание, дни недели, время начала, окончания и интервал)</param>
+	/// <param name="request">
+	///     Данные для создания дней недели с временем публикации (расписание, дни недели, время начала,
+	///     окончания и интервал)
+	/// </param>
 	/// <param name="ct">Токен отмены операции</param>
 	/// <returns>Результат выполнения операции</returns>
 	[HttpPost(Routes.Day.Create)]

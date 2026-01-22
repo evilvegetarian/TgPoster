@@ -5,8 +5,6 @@ namespace Shared.Exceptions;
 /// </summary>
 public sealed class TelegramReauthorizationRequiredException : SharedException
 {
-	public Guid SessionId { get; }
-
 	public TelegramReauthorizationRequiredException(Guid sessionId, Exception? innerException = null)
 		: base($"Требуется повторная авторизация для сессии {sessionId}")
 	{
@@ -16,6 +14,8 @@ public sealed class TelegramReauthorizationRequiredException : SharedException
 			InnerException = innerException;
 		}
 	}
+
+	public Guid SessionId { get; }
 
 	public new Exception? InnerException { get; init; }
 }

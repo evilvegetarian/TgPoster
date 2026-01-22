@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 namespace Shared.OpenRouter.Models.Request;
 
 /// <summary>
-/// Представляет тело запроса на чат.
+///     Представляет тело запроса на чат.
 /// </summary>
 public sealed class ChatRequest
 {

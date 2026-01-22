@@ -1,10 +1,10 @@
-using Security.Interfaces;
+using Security.Authentication;
 using Shouldly;
 
 namespace Security.Tests;
 
 /// <summary>
-/// Тесты для класса PasswordHasher
+///     Тесты для класса PasswordHasher
 /// </summary>
 public sealed class PasswordHasherShould
 {

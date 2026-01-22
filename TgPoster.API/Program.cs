@@ -4,8 +4,9 @@ using MassTransit;
 using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.OpenApi.Models;
 using Security;
+using Security.Middleware;
 using Shared;
-using Shared.Contracts;
+using Shared.Services;
 using TgPoster.API.Configuration;
 using TgPoster.API.Domain;
 using TgPoster.API.Middlewares;
@@ -93,7 +94,7 @@ app.UseOpenTelemetryPrometheusScrapingEndpoint();
 app.Run();
 
 /// <summary>
-/// Класс точки входа приложения
+///     Класс точки входа приложения
 /// </summary>
 public partial class Program
 {

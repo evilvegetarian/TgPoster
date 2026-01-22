@@ -3,8 +3,9 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
-using Security.Interfaces;
-using Security.Models;
+using Security.Authentication;
+using Security.Cryptography;
+using Security.IdentityServices;
 
 namespace Security;
 

@@ -1,6 +1,6 @@
 using MassTransit;
 using Microsoft.Extensions.Logging;
-using Shared.Contracts;
+using Shared.Telegram;
 using TgPoster.Worker.Domain.UseCases.ParseChannel;
 
 namespace TgPoster.Worker.Domain.UseCases.ParseChannelConsumer;

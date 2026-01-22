@@ -5,7 +5,7 @@ namespace TgPoster.API.Tests.Helper;
 
 public class YouTubeAccountBuilder(PosterContext context)
 {
-	private YouTubeAccount youtube = new YouTubeAccount
+	private readonly YouTubeAccount youtube = new()
 	{
 		Name = "asdasd",
 		AccessToken = "dsadasfqw",
@@ -21,6 +21,7 @@ public class YouTubeAccountBuilder(PosterContext context)
 		youtube.UserId = user.Id;
 		return this;
 	}
+
 	public YouTubeAccountBuilder WithUserId(Guid userId)
 	{
 		youtube.UserId = userId;

@@ -1,8 +1,9 @@
 using MassTransit;
 using Microsoft.Extensions.Logging;
-using Security.Interfaces;
-using Shared;
+using Security.Cryptography;
 using Shared.Services;
+using Shared.Telegram;
+using Shared.Video;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using TgPoster.Worker.Domain.ConfigModels;

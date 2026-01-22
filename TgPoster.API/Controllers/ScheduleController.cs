@@ -14,7 +14,7 @@ using TgPoster.API.Models;
 namespace TgPoster.API.Controllers;
 
 /// <summary>
-/// Контроллер для управления расписаниями
+///     Контроллер для управления расписаниями
 /// </summary>
 [Authorize]
 [ApiController]
@@ -48,7 +48,9 @@ public class ScheduleController(ISender sender) : ControllerBase
 	public async Task<IActionResult> Create([FromBody] [Required] CreateScheduleRequest request, CancellationToken ct)
 	{
 		var response =
-			await sender.Send(new CreateScheduleCommand(request.Name, request.TelegramBotId, request.Channel, request.YouTubeAccountId), ct);
+			await sender.Send(
+				new CreateScheduleCommand(request.Name, request.TelegramBotId, request.Channel,
+					request.YouTubeAccountId), ct);
 		return Created(Routes.Schedule.Create, response);
 	}
 
@@ -111,7 +113,11 @@ public class ScheduleController(ISender sender) : ControllerBase
 	[ProducesResponseType(StatusCodes.Status200OK)]
 	[ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
 	[ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
-	public async Task<IActionResult> Update([FromRoute] [Required] Guid id, [FromBody] [Required] UpdateScheduleRequest request, CancellationToken ct)
+	public async Task<IActionResult> Update(
+		[FromRoute] [Required] Guid id,
+		[FromBody] [Required] UpdateScheduleRequest request,
+		CancellationToken ct
+	)
 	{
 		await sender.Send(new UpdateScheduleCommand(id, request.YouTubeAccountId), ct);
 		return Ok();

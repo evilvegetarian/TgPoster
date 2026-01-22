@@ -1,5 +1,5 @@
 using MediatR;
-using Shared;
+using Shared.Utilities;
 using Telegram.Bot;
 using TgPoster.API.Domain.Exceptions;
 using TgPoster.API.Domain.Services;
@@ -46,6 +46,6 @@ internal sealed class UploadFileToS3UseCase(
 		}
 
 		var resultUrl = $"{s3Options.ServiceUrl}/{s3Options.BucketName}/{request.FileId}";
-		return  resultUrl;
+		return resultUrl;
 	}
 }

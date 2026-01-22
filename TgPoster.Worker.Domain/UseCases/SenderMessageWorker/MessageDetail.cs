@@ -1,4 +1,4 @@
-using Shared;
+using Shared.YouTube;
 
 namespace TgPoster.Worker.Domain.UseCases.SenderMessageWorker;
 

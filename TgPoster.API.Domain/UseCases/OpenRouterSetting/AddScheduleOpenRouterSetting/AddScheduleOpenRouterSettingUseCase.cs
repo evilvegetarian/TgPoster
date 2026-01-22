@@ -1,5 +1,5 @@
 using MediatR;
-using Security.Interfaces;
+using Security.IdentityServices;
 using Shared.Exceptions;
 using TgPoster.API.Domain.Exceptions;
 

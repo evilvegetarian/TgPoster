@@ -1,4 +1,4 @@
-using Shared;
+using Shared.Utilities;
 
 namespace TgPoster.API.Domain.UseCases.Messages.ListMessage;
 

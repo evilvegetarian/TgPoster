@@ -1,4 +1,5 @@
 using Google.Apis.Auth.OAuth2.Responses;
+using Shared.YouTube;
 using Shouldly;
 
 namespace Shared.Tests;

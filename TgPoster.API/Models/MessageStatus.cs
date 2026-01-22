@@ -1,75 +1,75 @@
 namespace TgPoster.API.Models;
 
 /// <summary>
-/// Статус сообщения
+///     Статус сообщения
 /// </summary>
 public enum MessageStatus
 {
 	/// <summary>
-	/// Все сообщения
+	///     Все сообщения
 	/// </summary>
 	All,
 
 	/// <summary>
-	/// Запланированное сообщение
+	///     Запланированное сообщение
 	/// </summary>
 	Planed,
 
 	/// <summary>
-	/// Не подтвержденное сообщение
+	///     Не подтвержденное сообщение
 	/// </summary>
 	NotApproved,
 
 	/// <summary>
-	/// Доставленное сообщение
+	///     Доставленное сообщение
 	/// </summary>
 	Delivered,
 
 	/// <summary>
-	/// Не доставленное сообщение
+	///     Не доставленное сообщение
 	/// </summary>
 	NotDelivered
 }
 
 /// <summary>
-/// Поля для сортировки сообщений
+///     Поля для сортировки сообщений
 /// </summary>
 public enum MessageSortBy
 {
 	/// <summary>
-	/// По дате создания
+	///     По дате создания
 	/// </summary>
 	CreatedAt,
 
 	/// <summary>
-	/// По дате отправки
+	///     По дате отправки
 	/// </summary>
 	SentAt
 }
 
 /// <summary>
-/// Направление сортировки
+///     Направление сортировки
 /// </summary>
 public enum SortDirection
 {
 	/// <summary>
-	/// По возрастанию
+	///     По возрастанию
 	/// </summary>
 	Asc,
 
 	/// <summary>
-	/// По убыванию
+	///     По убыванию
 	/// </summary>
 	Desc
 }
 
 /// <summary>
-/// Расширения для работы с enum
+///     Расширения для работы с enum
 /// </summary>
 public static class EnumExtensions
 {
 	/// <summary>
-	/// Получить название статуса сообщения
+	///     Получить название статуса сообщения
 	/// </summary>
 	public static string GetName(this MessageStatus status)
 	{
@@ -85,7 +85,7 @@ public static class EnumExtensions
 	}
 
 	/// <summary>
-	/// Получить название поля сортировки
+	///     Получить название поля сортировки
 	/// </summary>
 	public static string GetName(this MessageSortBy sortBy)
 	{
@@ -98,7 +98,7 @@ public static class EnumExtensions
 	}
 
 	/// <summary>
-	/// Получить название направления сортировки
+	///     Получить название направления сортировки
 	/// </summary>
 	public static string GetName(this SortDirection sortDirection)
 	{

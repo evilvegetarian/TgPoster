@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 namespace Shared.OpenRouter.Models.Response;
 
 /// <summary>
-/// Представляет полный объект ответа от API.
+///     Представляет полный объект ответа от API.
 /// </summary>
 public sealed class ChatCompletionResponse
 {

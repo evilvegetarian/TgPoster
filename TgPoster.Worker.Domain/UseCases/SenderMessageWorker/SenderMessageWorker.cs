@@ -1,8 +1,9 @@
 using System.Diagnostics.CodeAnalysis;
 using Hangfire;
 using Microsoft.Extensions.Logging;
-using Security.Interfaces;
-using Shared;
+using Security.Cryptography;
+using Shared.Utilities;
+using Shared.YouTube;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
@@ -139,9 +140,11 @@ public class SenderMessageWorker(
 
 				var result = await youTubeService.UploadVideoAsync(youTubeAccount, stream);
 
-				await storage.UpdateYouTubeTokensAsync(youTubeAccount.Id, result.AccessToken, result.RefreshToken, CancellationToken.None);
+				await storage.UpdateYouTubeTokensAsync(youTubeAccount.Id, result.AccessToken, result.RefreshToken,
+					CancellationToken.None);
 
-				logger.LogInformation("Видео успешно загружено на YouTube с названием: {title}", youTubeAccount.DefaultTitle);
+				logger.LogInformation("Видео успешно загружено на YouTube с названием: {title}",
+					youTubeAccount.DefaultTitle);
 			}
 			catch (Exception e)
 			{

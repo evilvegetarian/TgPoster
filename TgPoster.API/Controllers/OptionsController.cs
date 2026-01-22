@@ -1,5 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
-using Shared;
+using Shared.Utilities;
 using TgPoster.API.Models;
 
 namespace TgPoster.API.Controllers;
@@ -12,7 +12,7 @@ namespace TgPoster.API.Controllers;
 public class OptionsController : ControllerBase
 {
 	/// <summary>
-	/// Получить список статусов сообщений
+	///     Получить список статусов сообщений
 	/// </summary>
 	/// <returns>Список статусов сообщений с их названиями</returns>
 	[HttpGet("message-statuses")]
@@ -31,7 +31,7 @@ public class OptionsController : ControllerBase
 	}
 
 	/// <summary>
-	/// Получить список полей сортировки сообщений
+	///     Получить список полей сортировки сообщений
 	/// </summary>
 	/// <returns>Список полей для сортировки сообщений</returns>
 	[HttpGet("message-sort-fields")]
@@ -50,7 +50,7 @@ public class OptionsController : ControllerBase
 	}
 
 	/// <summary>
-	/// Получить список направлений сортировки
+	///     Получить список направлений сортировки
 	/// </summary>
 	/// <returns>Список направлений сортировки (по возрастанию/убыванию)</returns>
 	[HttpGet("sort-directions")]
@@ -69,7 +69,7 @@ public class OptionsController : ControllerBase
 	}
 
 	/// <summary>
-	/// Получить список типов файлов
+	///     Получить список типов файлов
 	/// </summary>
 	/// <returns>Список поддерживаемых типов файлов</returns>
 	[HttpGet("file-type")]

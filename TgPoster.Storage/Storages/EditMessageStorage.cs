@@ -31,7 +31,8 @@ internal sealed class EditMessageStorage(PosterContext context) : IEditMessageSt
 		message.ScheduleId = messageDto.ScheduleId;
 
 		var filesToKeep = message.MessageFiles
-			.Where(f => messageDto.Files.Contains(f.Id) || (f.ParentFileId.HasValue && messageDto.Files.Contains(f.ParentFileId.Value)))
+			.Where(f => messageDto.Files.Contains(f.Id)
+			            || (f.ParentFileId.HasValue && messageDto.Files.Contains(f.ParentFileId.Value)))
 			.ToList();
 
 		var filesToRemove = message.MessageFiles.Except(filesToKeep).ToList();
@@ -43,7 +44,8 @@ internal sealed class EditMessageStorage(PosterContext context) : IEditMessageSt
 		message.MessageFiles = filesToKeep;
 
 		var existingOrder = filesToKeep.Where(x => x.ParentFileId == null).Max(x => (int?)x.Order) ?? -1;
-		var newMediaFilesList = newMediaFiles.SelectMany((file, index) => file.ToEntity(messageDto.Id, existingOrder + 1 + index)).ToList();
+		var newMediaFilesList = newMediaFiles
+			.SelectMany((file, index) => file.ToEntity(messageDto.Id, existingOrder + 1 + index)).ToList();
 
 		foreach (var file in newMediaFilesList)
 		{

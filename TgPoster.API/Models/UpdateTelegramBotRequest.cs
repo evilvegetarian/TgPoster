@@ -1,7 +1,7 @@
 namespace TgPoster.API.Models;
 
 /// <summary>
-/// Запрос на обновление Telegram бота
+///     Запрос на обновление Telegram бота
 /// </summary>
 public class UpdateTelegramBotRequest
 {

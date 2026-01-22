@@ -1,8 +1,7 @@
 using System.Net;
 using System.Net.Http.Json;
 using Microsoft.Extensions.DependencyInjection;
-using Security.Interfaces;
-using Security.Models;
+using Security.IdentityServices;
 using Shouldly;
 using TgPoster.API.Common;
 

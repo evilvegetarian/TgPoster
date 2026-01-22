@@ -13,6 +13,7 @@ internal class TelegramBotSeeder(PosterContext context, string api) : BaseSeeder
 		{
 			return;
 		}
+
 		var bot = new TelegramBot
 		{
 			Id = GlobalConst.TelegramBotId,

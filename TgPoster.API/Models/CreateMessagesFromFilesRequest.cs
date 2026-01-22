@@ -3,22 +3,22 @@ using System.ComponentModel.DataAnnotations;
 namespace TgPoster.API.Models;
 
 /// <summary>
-/// Запрос на создание сообщений из файлов
+///     Запрос на создание сообщений из файлов
 /// </summary>
 public class CreateMessagesFromFilesRequest : IValidatableObject
 {
 	/// <summary>
-	/// Идентификатор расписания
+	///     Идентификатор расписания
 	/// </summary>
 	public required Guid ScheduleId { get; set; }
 
 	/// <summary>
-	/// Список файлов для создания сообщений
+	///     Список файлов для создания сообщений
 	/// </summary>
 	public required List<IFormFile> Files { get; set; } = [];
 
 	/// <summary>
-	/// Валидация запроса на создание сообщений из файлов
+	///     Валидация запроса на создание сообщений из файлов
 	/// </summary>
 	public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
 	{

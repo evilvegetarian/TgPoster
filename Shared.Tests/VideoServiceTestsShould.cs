@@ -1,4 +1,5 @@
 using OpenCvSharp;
+using Shared.Video;
 using Shouldly;
 
 namespace Shared.Tests;

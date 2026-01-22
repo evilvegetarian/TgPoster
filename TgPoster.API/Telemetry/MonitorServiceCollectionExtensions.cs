@@ -62,7 +62,7 @@ public static class MonitorServiceCollectionExtensions
 	}
 
 	/// <summary>
-	/// Добавить метрики и трассировку в приложение
+	///     Добавить метрики и трассировку в приложение
 	/// </summary>
 	public static IServiceCollection AddMonitors(
 		this IServiceCollection services,

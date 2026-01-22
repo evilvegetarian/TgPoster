@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 namespace Shared.OpenRouter.Models.Response;
 
 /// <summary>
-/// Представляет ответ об ошибке от API.
+///     Представляет ответ об ошибке от API.
 /// </summary>
 public sealed class ErrorResponse
 {

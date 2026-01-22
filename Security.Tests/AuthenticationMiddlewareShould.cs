@@ -1,13 +1,14 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Http;
-using Security.Interfaces;
-using Security.Models;
+using Security.Authentication;
+using Security.IdentityServices;
+using Security.Middleware;
 using Shouldly;
 
 namespace Security.Tests;
 
 /// <summary>
-/// Тесты для класса AuthenticationMiddleware
+///     Тесты для класса AuthenticationMiddleware
 /// </summary>
 public sealed class AuthenticationMiddlewareShould
 {

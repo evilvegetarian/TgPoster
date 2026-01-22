@@ -1,10 +1,10 @@
-using Security.Interfaces;
+using Security.Cryptography;
 using Shouldly;
 
 namespace Security.Tests;
 
 /// <summary>
-/// Тесты для класса CryptoAES
+///     Тесты для класса CryptoAES
 /// </summary>
 public sealed class CryptoAESShould(ICryptoAES cryptoAES)
 {
@@ -68,7 +68,8 @@ public sealed class CryptoAESShould(ICryptoAES cryptoAES)
 	[Fact]
 	public void EncryptAndDecryptLongText()
 	{
-		var plainText = string.Join("", Enumerable.Repeat("Lorem ipsum dolor sit amet, consectetur adipiscing elit. ", 100));
+		var plainText = string.Join("",
+			Enumerable.Repeat("Lorem ipsum dolor sit amet, consectetur adipiscing elit. ", 100));
 
 		var encrypted = cryptoAES.Encrypt(SecretKey, plainText);
 		var decrypted = cryptoAES.Decrypt(SecretKey, encrypted);

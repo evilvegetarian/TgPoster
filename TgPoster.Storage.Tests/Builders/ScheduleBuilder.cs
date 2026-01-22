@@ -34,6 +34,7 @@ public class ScheduleBuilder(PosterContext context)
 		schedule.TelegramBotId = telegramBotId;
 		return this;
 	}
+
 	public ScheduleBuilder WithTelegramBot(TelegramBot telegramBot)
 	{
 		schedule.TelegramBotId = telegramBot.Id;
@@ -53,6 +54,7 @@ public class ScheduleBuilder(PosterContext context)
 		schedule.User = user;
 		return this;
 	}
+
 	public ScheduleBuilder WithYouTubeAccount(YouTubeAccount youtubeAccount)
 	{
 		schedule.YouTubeAccount = youtubeAccount;
@@ -66,8 +68,6 @@ public class ScheduleBuilder(PosterContext context)
 		await context.SaveChangesAsync(ct);
 		return schedule;
 	}
-
-
 }
 
 public sealed class ChannelParsingParameterBuilder

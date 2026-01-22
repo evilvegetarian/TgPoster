@@ -1,8 +1,7 @@
 using Microsoft.AspNetCore.Http;
 using Moq;
 using Moq.Language.Flow;
-using Security.Interfaces;
-using Security.Models;
+using Security.Authentication;
 using Shouldly;
 using TgPoster.API.Domain.Exceptions;
 using TgPoster.API.Domain.Models;

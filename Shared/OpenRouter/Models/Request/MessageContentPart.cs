@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 namespace Shared.OpenRouter.Models.Request;
 
 /// <summary>
-/// Представляет часть контента сообщения (текст или изображение).
+///     Представляет часть контента сообщения (текст или изображение).
 /// </summary>
 public sealed class MessageContentPart
 {
