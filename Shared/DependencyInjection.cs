@@ -11,7 +11,8 @@ public static class DependencyInjection
 	public static IServiceCollection AddShared(this IServiceCollection services)
 	{
 		services.AddHttpClient();
-		services.AddSingleton<TelegramAuthService>();
+		services.AddSingleton<TelegramClientManager>();
+		services.AddScoped<TelegramAuthService>();
 
 		services.AddScoped<OpenRouterClient>();
 		services.AddScoped<TimePostingService>();
