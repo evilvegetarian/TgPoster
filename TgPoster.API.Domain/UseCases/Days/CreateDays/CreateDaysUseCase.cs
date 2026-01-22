@@ -15,9 +15,10 @@ internal class CreateDaysUseCase(ICreateDaysStorage storage, IIdentityProvider i
 		}
 
 		var days = await storage.GetDayOfWeekAsync(command.ScheduleId, ct);
-		if (command.DayOfWeekForms.Any(x => days.Contains(x.DayOfWeekPosting)))
+		var duplicateDay = command.DayOfWeekForms.FirstOrDefault(x => days.Contains(x.DayOfWeekPosting));
+		if (duplicateDay != null)
 		{
-			throw new ArgumentException();
+			throw new DuplicateDayOfWeekException(duplicateDay.DayOfWeekPosting);
 		}
 
 		List<CreateDayDto> daysList = [];

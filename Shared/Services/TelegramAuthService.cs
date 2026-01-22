@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Logging;
 using Shared.Contracts;
+using Shared.Exceptions;
 using TL;
 using WTelegram;
 
@@ -34,17 +35,17 @@ public sealed class TelegramAuthService(
 		var session = await authRepository.GetByIdAsync(sessionId, ct);
 		if (session == null)
 		{
-			throw new InvalidOperationException($"Telegram сессия с ID {sessionId} не найдена");
+			throw new TelegramSessionNotFoundException(sessionId);
 		}
 
 		if (!session.IsActive)
 		{
-			throw new InvalidOperationException($"Telegram сессия {sessionId} неактивна");
+			throw new TelegramSessionInactiveException(sessionId);
 		}
 
 		if (session.SessionData == null)
 		{
-			throw new InvalidOperationException($"Telegram сессия {sessionId} не авторизована. Необходимо завершить авторизацию.");
+			throw new TelegramSessionNotAuthorizedException(sessionId);
 		}
 
 		string? Config(string key)
@@ -75,7 +76,7 @@ public sealed class TelegramAuthService(
 		{
 			logger.LogWarning(ex, "Требуется повторная авторизация для сессии {SessionId}", sessionId);
 			await client.DisposeAsync();
-			throw new InvalidOperationException($"Требуется повторная авторизация для сессии {sessionId}", ex);
+			throw new TelegramReauthorizationRequiredException(sessionId, ex);
 		}
 		catch (Exception ex)
 		{
@@ -102,7 +103,7 @@ public sealed class TelegramAuthService(
 		var session = await authRepository.GetByIdAsync(sessionId, ct);
 		if (session == null)
 		{
-			throw new InvalidOperationException($"Telegram сессия с ID {sessionId} не найдена");
+			throw new TelegramSessionNotFoundException(sessionId);
 		}
 
 		string? Config(string key)
@@ -175,7 +176,7 @@ public sealed class TelegramAuthService(
 	{
 		if (!clientManager.TryGetPendingClient(sessionId, out var client))
 		{
-			throw new InvalidOperationException($"Нет активной сессии авторизации для {sessionId}");
+			throw new TelegramAuthSessionNotFoundException(sessionId);
 		}
 
 		try
@@ -222,7 +223,7 @@ public sealed class TelegramAuthService(
 	{
 		if (!clientManager.TryGetPendingClient(sessionId, out var client))
 		{
-			throw new InvalidOperationException($"Нет активной сессии авторизации для {sessionId}");
+			throw new TelegramAuthSessionNotFoundException(sessionId);
 		}
 
 		try

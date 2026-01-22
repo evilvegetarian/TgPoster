@@ -3,6 +3,7 @@ using Google.Apis.Auth.OAuth2.Flows;
 using Google.Apis.YouTube.v3;
 using MediatR;
 using Security.Interfaces;
+using TgPoster.API.Domain.Exceptions;
 
 namespace TgPoster.API.Domain.UseCases.YouTubeAccount.YouTubeAccountLogin;
 
@@ -37,7 +38,7 @@ public class LoginYouTubeUseCase(ILoginYouTubeStorage storage, IIdentityProvider
 
 		if (clientSecrets?.ClientSecret is null || clientSecrets.ClientId is null)
 		{
-			throw new InvalidOperationException("YouTubeService client secret not found");
+			throw new YouTubeClientSecretsNotFoundException();
 		}
 
 		var guid = await storage.CreateYouTubeAccountAsync("", clientSecrets.ClientId, clientSecrets.ClientSecret,

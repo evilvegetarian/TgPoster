@@ -1,6 +1,7 @@
 using System.Drawing;
 using FFMpegCore;
 using FFMpegCore.Pipes;
+using Shared.Exceptions;
 
 namespace Shared;
 
@@ -28,12 +29,12 @@ public sealed class VideoService
 	{
 		if (videoStream == null)
 		{
-			throw new ArgumentNullException(nameof(videoStream));
+			throw new InvalidVideoStreamException();
 		}
 
 		if (screenshotCount < 1)
 		{
-			throw new ArgumentException("Количество скриншотов должно быть не меньше 1.", nameof(screenshotCount));
+			throw new InvalidScreenshotCountException(screenshotCount);
 		}
 
 		var tempVideoPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid() + ".tmp");
@@ -87,7 +88,7 @@ public sealed class VideoService
 				if (outputStream.Length == 0)
 				{
 					// Если что-то пошло не так, поток будет пустым.
-					throw new InvalidOperationException(
+					throw new VideoProcessingException(
 						$"FFMpeg не смог создать скриншот для момента времени {snapshotTime}. Проверьте логи FFmpeg.");
 				}
 
@@ -106,7 +107,7 @@ public sealed class VideoService
 			}
 
 			// Здесь можно добавить логирование ошибки
-			throw new InvalidOperationException("Не удалось обработать видео с помощью FFMpeg.", ex);
+			throw new VideoProcessingException("FFMpeg завершился с ошибкой", ex);
 		}
 		finally
 		{

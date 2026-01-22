@@ -1,3 +1,5 @@
+using TgPoster.API.Domain.Exceptions;
+
 namespace TgPoster.API.Domain.Extensions;
 
 public static class TelegramChannelExtension
@@ -8,7 +10,7 @@ public static class TelegramChannelExtension
 
 		if (string.IsNullOrWhiteSpace(name))
 		{
-			throw new ArgumentException("Channel cannot be empty");
+			throw new InvalidTelegramChannelException();
 		}
 
 		var prefixes = new List<string>
@@ -30,7 +32,7 @@ public static class TelegramChannelExtension
 
 				if (string.IsNullOrWhiteSpace(channel))
 				{
-					throw new ArgumentException("Channel cannot be empty");
+					throw new InvalidTelegramChannelException();
 				}
 
 				return channel.StartsWith('@') ? channel : '@' + channel;

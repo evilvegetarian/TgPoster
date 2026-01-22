@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.Extensions.Caching.Memory;
 using Shared;
 using Telegram.Bot;
+using TgPoster.API.Domain.Exceptions;
 using TgPoster.API.Domain.UseCases.Messages.ListMessage;
 
 namespace TgPoster.API.Domain.Services;
@@ -71,8 +72,7 @@ internal sealed class FileService(
 
 				case FileTypes.NoOne:
 				default:
-					throw new ArgumentOutOfRangeException(nameof(fileType),
-						$"Неизвестный тип контента: {fileType}");
+					throw new UnknownFileTypeException(fileType.ToString());
 			}
 
 			filesCacheInfoList.Add(cacheInfo);
@@ -154,8 +154,7 @@ internal sealed class FileService(
 
 		if (response.HttpStatusCode != HttpStatusCode.OK)
 		{
-			throw new InvalidOperationException(
-				$"Failed to upload file {fileDtoId} to S3. Status: {response.HttpStatusCode}");
+			throw new S3UploadException(fileDtoId, response.HttpStatusCode);
 		}
 
 		return true;
@@ -228,7 +227,7 @@ internal sealed class FileService(
 				}
 				case FileTypes.NoOne:
 				default:
-					throw new ArgumentOutOfRangeException(nameof(fileType), $"Неизвестный тип контента: {fileType}");
+					throw new UnknownFileTypeException(fileType.ToString());
 			}
 		}
 	}
