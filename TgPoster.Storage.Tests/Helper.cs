@@ -163,6 +163,24 @@ public sealed class Helper
 		return session;
 	}
 
+	public TelegramSession BuildTelegramSession(Guid userId, Action<TelegramSession>? configure = null)
+	{
+		var session = new TelegramSession
+		{
+			Id = Guid.NewGuid(),
+			ApiId = Faker.Random.Int(100000, 999999).ToString(),
+			ApiHash = Faker.Random.AlphaNumeric(32),
+			PhoneNumber = $"+{Faker.Random.Long(10000000000, 99999999999)}",
+			Name = Faker.Internet.UserName(),
+			IsActive = true,
+			Status = TelegramSessionStatus.AwaitingCode,
+			UserId = userId
+		};
+
+		configure?.Invoke(session);
+		return session;
+	}
+
 	public async Task<User> CreateUserAsync(
 		Action<User>? configure = null,
 		bool saveChanges = true,
@@ -416,6 +434,35 @@ public sealed class Helper
 
 		var session = BuildRefreshSession(user.Id, configure);
 		await context.RefreshSessions.AddAsync(session, cancellationToken);
+
+		if (saveChanges)
+		{
+			await context.SaveChangesAsync(cancellationToken);
+		}
+
+		return session;
+	}
+
+	public async Task<TelegramSession> CreateTelegramSessionAsync(
+		Guid? userId = null,
+		Action<TelegramSession>? configure = null,
+		bool saveChanges = true,
+		CancellationToken cancellationToken = default
+	)
+	{
+		User user;
+		if (userId.HasValue)
+		{
+			user = await context.Users.FindAsync([userId.Value], cancellationToken)
+			       ?? throw new InvalidOperationException($"User {userId.Value} not found.");
+		}
+		else
+		{
+			user = await CreateUserAsync(saveChanges: false, cancellationToken: cancellationToken);
+		}
+
+		var session = BuildTelegramSession(user.Id, configure);
+		await context.TelegramSessions.AddAsync(session, cancellationToken);
 
 		if (saveChanges)
 		{

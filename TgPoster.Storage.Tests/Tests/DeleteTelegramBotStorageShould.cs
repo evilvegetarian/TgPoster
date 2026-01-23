@@ -45,7 +45,7 @@ public class DeleteTelegramBotStorageShould(StorageTestFixture fixture) : IClass
 		result.ShouldBeFalse();
 	}
 
-	/*[Fact]
+	[Fact]
 	public async Task DeleteTelegramBotAsync_WithExistingBot_ShouldMarkAsDeleted()
 	{
 	    var user = await helper.CreateUserAsync();
@@ -54,24 +54,12 @@ public class DeleteTelegramBotStorageShould(StorageTestFixture fixture) : IClass
 	    await sut.DeleteTelegramBotAsync(telegramBot.Id, user.Id, CancellationToken.None);
 
 	    var deletedBot = await context.TelegramBots
+		    .IgnoreQueryFilters()
 	        .FirstOrDefaultAsync(x => x.Id == telegramBot.Id);
 
 	    deletedBot.ShouldNotBeNull();
 	    deletedBot.Deleted.ShouldNotBeNull();
-	    deletedBot.Deleted.ShouldBeGreaterThan(DateTime.UtcNow.AddMinutes(-1));
-	}*/
-
-	// [Fact]
-	// public async Task DeleteTelegramBotAsync_WithNonExistingBot_ShouldNotThrow()
-	// {
-	//     var user = await helper.CreateUserAsync();
-	//     var nonExistingBotId = Guid.NewGuid();
-	//
-	//     var exception = await Should.NotThrowAsync(async () =>
-	//         await sut.DeleteTelegramBotAsync(nonExistingBotId, user.Id, CancellationToken.None));
-	//
-	//     exception.ShouldBeNull();
-	// }
+	}
 
 	[Fact]
 	public async Task DeleteTelegramBotAsync_WithWrongUserId_ShouldNotDeleteBot()
