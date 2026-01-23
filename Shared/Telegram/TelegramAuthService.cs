@@ -259,6 +259,5 @@ public sealed class TelegramAuthService(
 		var authRep = scope.ServiceProvider.GetRequiredService<ITelegramAuthRepository>();
 		var sessionString = Convert.ToBase64String(sessionData);
 		await authRep.UpdateSessionDataAsync(sessionId, sessionString, ct);
-		logger.LogInformation("ЫЫЫЫЫ Данные сессии обновлены для {SessionId}", sessionId);
 	}
 }
