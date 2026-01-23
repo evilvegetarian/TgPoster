@@ -1,3 +1,4 @@
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Shared.Exceptions;
 using TL;
@@ -11,6 +12,7 @@ namespace Shared.Telegram;
 public sealed class TelegramAuthService(
 	ILogger<TelegramAuthService> logger,
 	ITelegramAuthRepository authRepository,
+	IServiceScopeFactory scopeFactory,
 	TelegramClientManager clientManager) : IDisposable
 {
 	public void Dispose()
@@ -62,9 +64,7 @@ public sealed class TelegramAuthService(
 		var sessionBytes = Convert.FromBase64String(session.SessionData);
 		var client = new Client(Config, sessionBytes, async data =>
 		{
-			var sessionString = Convert.ToBase64String(data);
-			await authRepository.UpdateSessionDataAsync(sessionId, sessionString, CancellationToken.None);
-			logger.LogDebug("ЫЫЫЫЫ Данные сессии обновлены для {SessionId}", sessionId);
+			await UpdateSessionDataAsync(sessionId, data, ct);
 		});
 
 		try
@@ -123,16 +123,14 @@ public sealed class TelegramAuthService(
 			var sessionBytes = Convert.FromBase64String(session.SessionData);
 			client = new Client(Config, sessionBytes, async data =>
 			{
-				var sessionString = Convert.ToBase64String(data);
-				await authRepository.UpdateSessionDataAsync(sessionId, sessionString, CancellationToken.None);
+				await UpdateSessionDataAsync(sessionId, data, ct);
 			});
 		}
 		else
 		{
 			client = new Client(Config, null, async data =>
 			{
-				var sessionString = Convert.ToBase64String(data);
-				await authRepository.UpdateSessionDataAsync(sessionId, sessionString, CancellationToken.None);
+				await UpdateSessionDataAsync(sessionId, data, ct);
 			});
 		}
 
@@ -253,5 +251,14 @@ public sealed class TelegramAuthService(
 			await clientManager.RemovePendingClientWithDisposeAsync(sessionId);
 			throw;
 		}
+	}
+
+	private async Task UpdateSessionDataAsync(Guid sessionId, byte[] sessionData, CancellationToken ct)
+	{
+		var scope = scopeFactory.CreateAsyncScope();
+		var authRep = scope.ServiceProvider.GetRequiredService<ITelegramAuthRepository>();
+		var sessionString = Convert.ToBase64String(sessionData);
+		await authRep.UpdateSessionDataAsync(sessionId, sessionString, ct);
+		logger.LogInformation("ЫЫЫЫЫ Данные сессии обновлены для {SessionId}", sessionId);
 	}
 }

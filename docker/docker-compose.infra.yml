@@ -30,12 +30,12 @@ services:
   loki:
     container_name: "tg-loki"
     image: grafana/loki
+    restart: unless-stopped
     ports:
       - "3100:3100"
     volumes:
       - ./loki-config.yml:/etc/loki/local-config.yml
     command: --config.file=/etc/loki/local-config.yml
-    restart: unless-stopped
 
   grafana:
     container_name: "tg-grafana"

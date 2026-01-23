@@ -8,6 +8,7 @@ services:
       - ./worker-logs:/app/logs
       - ./WTelegram.session:/app/WTelegram.session
     container_name: tgposter-worker
+    restart: unless-stopped
     image: ${TGPOSTER_WORKER_IMAGE:-ghcr.io/evilvegetarian/tgposter-worker:latest}
     ports:
       - '8090:8090'  

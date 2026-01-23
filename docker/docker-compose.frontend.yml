@@ -6,5 +6,6 @@ services:
   frontend:
     container_name: frontend
     image: ${TGPOSTER_FRONTEND_IMAGE:-ghcr.io/evilvegetarian/frontend:latest}
+    restart: unless-stopped
     ports:
       - "8077:80"

@@ -8,6 +8,7 @@ services:
       - ./api-logs:/app/logs
     container_name: tgposter-api
     image: ${TGPOSTER_API_IMAGE:-ghcr.io/evilvegetarian/tgposter-api:latest}
+    restart: unless-stopped
     ports:
       - '8070:8070' 
     user: "1654:1654"
