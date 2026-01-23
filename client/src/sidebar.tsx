@@ -8,6 +8,7 @@ import {
     MessageCircleMore,
     Settings,
     SignatureIcon,
+    Smartphone,
     UserPlus,
     Youtube
 } from "lucide-react"
@@ -71,6 +72,11 @@ export function SideBar() {
                 title: "YouTube Аккаунты",
                 path: "/youtube-accounts",
                 icon: Youtube
+            },
+            {
+                title: "Telegram Аккаунты",
+                path: "/telegram-accounts",
+                icon: Smartphone
             }
         ]
         : [

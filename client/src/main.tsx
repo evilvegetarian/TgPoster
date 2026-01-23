@@ -19,6 +19,7 @@ import {LogOutPage} from "@/pages/logout-page.tsx";
 import {SchedulePage} from "@/pages/schedulepage/schedule-page.tsx";
 import {OpenRouterPage} from "@/pages/openrouterpage/open-router-page.tsx";
 import {YouTubeAccountPage} from "@/pages/youtube-account-page.tsx";
+import TelegramAccountPage from "@/pages/telegram-account-page.tsx";
 
 const router = createBrowserRouter([
     {
@@ -84,6 +85,10 @@ const router = createBrowserRouter([
                             {
                                 path: "/youtube-accounts",
                                 element: <YouTubeAccountPage/>,
+                            },
+                            {
+                                path: "/telegram-accounts",
+                                element: <TelegramAccountPage/>,
                             }
                         ]
                     }
