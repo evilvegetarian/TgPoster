@@ -523,9 +523,22 @@ export interface TelegramSessionResponse {
   /** @nullable */
   name?: string | null;
   isActive?: boolean;
+  status?: TelegramSessionStatus;
   /** @nullable */
   created?: string | null;
 }
+
+export type TelegramSessionStatus = typeof TelegramSessionStatus[keyof typeof TelegramSessionStatus];
+
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const TelegramSessionStatus = {
+  AwaitingCode: 'AwaitingCode',
+  CodeSent: 'CodeSent',
+  AwaitingPassword: 'AwaitingPassword',
+  Authorized: 'Authorized',
+  Failed: 'Failed',
+} as const;
 
 /**
  * Запрос на обновление настроек парсинга канала

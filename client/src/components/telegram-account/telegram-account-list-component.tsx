@@ -34,7 +34,25 @@ import {
 } from "@/api/endpoints/telegram-session/telegram-session";
 import { useQueryClient } from "@tanstack/react-query";
 import type { TelegramSessionResponse } from "@/api/endpoints/tgPosterAPI.schemas";
+import { TelegramSessionStatus } from "@/api/endpoints/tgPosterAPI.schemas";
 import { TelegramAccountAuthDialog } from "./telegram-account-auth-dialog";
+
+function getStatusConfig(status?: string) {
+    switch (status) {
+        case TelegramSessionStatus.Authorized:
+            return { label: "Авторизован", variant: "default" as const, color: "text-green-600" };
+        case TelegramSessionStatus.AwaitingCode:
+            return { label: "Ожидает код", variant: "secondary" as const, color: "text-yellow-600" };
+        case TelegramSessionStatus.CodeSent:
+            return { label: "Код отправлен", variant: "secondary" as const, color: "text-blue-600" };
+        case TelegramSessionStatus.AwaitingPassword:
+            return { label: "Ожидает пароль", variant: "secondary" as const, color: "text-orange-600" };
+        case TelegramSessionStatus.Failed:
+            return { label: "Ошибка", variant: "destructive" as const, color: "text-red-600" };
+        default:
+            return { label: "Неизвестно", variant: "outline" as const, color: "text-gray-600" };
+    }
+}
 
 export function TelegramAccountListComponent() {
     const { data, error, isLoading } = useGetApiV1TelegramSession();
@@ -137,7 +155,7 @@ export function TelegramAccountListComponent() {
                                     </div>
 
                                     <div className="flex-1 min-w-0">
-                                        <div className="flex items-center gap-2">
+                                        <div className="flex items-center gap-2 flex-wrap">
                                             <h3 className="font-medium truncate">
                                                 {account.name || account.phoneNumber}
                                             </h3>
@@ -145,6 +163,9 @@ export function TelegramAccountListComponent() {
                                                 variant={account.isActive ? "default" : "secondary"}
                                             >
                                                 {account.isActive ? "Активен" : "Неактивен"}
+                                            </Badge>
+                                            <Badge variant={getStatusConfig(account.status).variant}>
+                                                {getStatusConfig(account.status).label}
                                             </Badge>
                                         </div>
                                         <p className="text-sm text-muted-foreground truncate">
@@ -158,10 +179,12 @@ export function TelegramAccountListComponent() {
                                     </div>
 
                                     <div className="flex items-center gap-2">
-                                        <TelegramAccountAuthDialog
-                                            accountId={account.id!}
-                                            accountName={account.name || account.phoneNumber}
-                                        />
+                                        {account.status !== TelegramSessionStatus.Authorized && (
+                                            <TelegramAccountAuthDialog
+                                                accountId={account.id!}
+                                                accountName={account.name || account.phoneNumber}
+                                            />
+                                        )}
 
                                         <DropdownMenu>
                                             <DropdownMenuTrigger asChild>

@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Shared.Telegram;
 using TgPoster.API.Domain.UseCases.TelegramSessions.ListTelegramSessions;
 using TgPoster.Storage.Data;
 
@@ -16,6 +17,7 @@ internal sealed class ListTelegramSessionsStorage(PosterContext context) : IList
 				s.PhoneNumber,
 				s.Name,
 				s.IsActive,
+				(TelegramSessionStatus)s.Status,
 				s.Created
 			))
 			.ToListAsync(ct);

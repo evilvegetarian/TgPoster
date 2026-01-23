@@ -1,3 +1,5 @@
+using Shared.Telegram;
+
 namespace TgPoster.API.Domain.UseCases.TelegramSessions.ListTelegramSessions;
 
 public sealed record TelegramSessionResponse(
@@ -5,5 +7,6 @@ public sealed record TelegramSessionResponse(
 	string PhoneNumber,
 	string? Name,
 	bool IsActive,
+	TelegramSessionStatus Status,
 	DateTimeOffset? Created
 );
