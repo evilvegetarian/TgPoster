@@ -122,4 +122,16 @@ internal static class Routes
 		internal const string VerifyCode = Root + "/{id:guid}/verify-code";
 		internal const string SendPassword = Root + "/{id:guid}/send-password";
 	}
+
+	internal static class Repost
+	{
+		internal const string Root = Base + "/repost";
+		internal const string CreateSettings = Root + "/settings";
+		internal const string GetSettings = Root + "/settings/{scheduleId:guid}";
+		internal const string DeleteSettings = Root + "/settings/{id:guid}";
+		internal const string AddDestination = Root + "/settings/{settingsId:guid}/destinations";
+		internal const string DeleteDestination = Root + "/destinations/{id:guid}";
+		internal const string ListDestinations = Root + "/settings/{settingsId:guid}/destinations";
+		internal const string UpdateDestination = Root + "/destinations/{id:guid}";
+	}
 }
