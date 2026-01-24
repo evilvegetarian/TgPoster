@@ -1,5 +1,8 @@
 ﻿import type React from "react"
-import {useState} from "react"
+import {useRef} from "react"
+import {useForm, Controller} from "react-hook-form"
+import {zodResolver} from "@hookform/resolvers/zod"
+import {z} from "zod"
 import {Button} from "@/components/ui/button"
 import {
     Dialog,
@@ -20,6 +23,34 @@ import type {CreateParseChannelRequest} from "@/api/endpoints/tgPosterAPI.schema
 import {useGetApiV1Schedule} from "@/api/endpoints/schedule/schedule.ts";
 import {useGetApiV1TelegramSession} from "@/api/endpoints/telegram-session/telegram-session.ts";
 
+const parseChannelSchema = z.object({
+    channel: z.string().min(1, "Канал обязателен для заполнения"),
+    alwaysCheckNewPosts: z.boolean(),
+    scheduleId: z.string().min(1, "Расписание обязательно для заполнения"),
+    deleteText: z.boolean(),
+    deleteMedia: z.boolean(),
+    avoidWords: z.array(z.string()),
+    needVerifiedPosts: z.boolean(),
+    dateFrom: z.string().optional(),
+    dateTo: z.string().optional(),
+    telegramSessionId: z.string().min(1, "Телегам аккаунт обязателен для заполнения"),
+})
+
+type ParseChannelFormData = z.infer<typeof parseChannelSchema>
+
+const defaultFormValues: ParseChannelFormData = {
+    channel: "",
+    alwaysCheckNewPosts: true,
+    scheduleId: "",
+    deleteText: false,
+    deleteMedia: false,
+    avoidWords: [],
+    needVerifiedPosts: false,
+    dateFrom: "",
+    dateTo: "",
+    telegramSessionId: "",
+}
+
 interface AddParsingSettingsDialogProps {
     open: boolean
     onOpenChange: (open: boolean) => void
@@ -33,20 +64,21 @@ export function AddParsingSettingsDialog({
                                              onSubmit,
                                              isLoading = false,
                                          }: AddParsingSettingsDialogProps) {
-    const [formData, setFormData] = useState<CreateParseChannelRequest>({
-        channel: "",
-        alwaysCheckNewPosts: true,
-        scheduleId: "",
-        deleteText: false,
-        deleteMedia: false,
-        avoidWords: [],
-        needVerifiedPosts: false,
-        dateFrom: "",
-        dateTo: "",
-        telegramSessionId: "",
+    const {
+        control,
+        register,
+        handleSubmit,
+        reset,
+        watch,
+        setValue,
+        formState: {errors},
+    } = useForm<ParseChannelFormData>({
+        resolver: zodResolver(parseChannelSchema),
+        defaultValues: defaultFormValues,
     })
 
-    const [newAvoidWord, setNewAvoidWord] = useState("")
+    const newAvoidWordRef = useRef<HTMLInputElement>(null)
+    const avoidWords = watch("avoidWords")
 
     const {data: schedules = [], isLoading: schedulesLoading, error: schedulesError} = useGetApiV1Schedule()
     const {data: telegramSessions = [], isLoading: sessionsLoading, error: sessionsError} = useGetApiV1TelegramSession()
@@ -56,40 +88,23 @@ export function AddParsingSettingsDialog({
         }
         return new Date(dateValue).toISOString();
     };
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault()
 
-        if (!formData.channel || !formData.scheduleId) {
-            toast.error("Ошибка валидации",
-                {description: "Канал и расписание обязательны для заполнения",})
-            return
-        }
-
+    const onFormSubmit = (data: ParseChannelFormData) => {
         const settings: CreateParseChannelRequest = {
-            ...formData,
-            channel: formData.channel,
-            avoidWords: formData.avoidWords && formData.avoidWords.length > 0 ? formData.avoidWords : [],
-            dateFrom: getUtcString(formData.dateFrom),
-            dateTo: getUtcString(formData.dateTo),
+            ...data,
+            avoidWords: data.avoidWords && data.avoidWords.length > 0 ? data.avoidWords : [],
+            dateFrom: getUtcString(data.dateFrom),
+            dateTo: getUtcString(data.dateTo),
         }
 
         onSubmit(settings)
     }
 
     const resetForm = () => {
-        setFormData({
-            channel: "",
-            alwaysCheckNewPosts: true,
-            scheduleId: "",
-            deleteText: false,
-            deleteMedia: false,
-            avoidWords: [],
-            needVerifiedPosts: false,
-            dateFrom: "",
-            dateTo: "",
-            telegramSessionId: "",
-        })
-        setNewAvoidWord("")
+        reset()
+        if (newAvoidWordRef.current) {
+            newAvoidWordRef.current.value = ""
+        }
     }
 
     const handleOpenChange = (newOpen: boolean) => {
@@ -100,16 +115,18 @@ export function AddParsingSettingsDialog({
     }
 
     const addAvoidWord = () => {
-        if (newAvoidWord.trim() && !formData.avoidWords?.includes(newAvoidWord.trim())) {
-            setFormData({
-                ...formData,
-                avoidWords: [...formData.avoidWords ?? [], newAvoidWord.trim()],
-            })
-            setNewAvoidWord("")
+        const word = newAvoidWordRef.current?.value.trim()
+        if (!word) return
+
+        if (!avoidWords?.includes(word)) {
+            setValue("avoidWords", [...avoidWords ?? [], word])
             toast.success("Слово добавлено", {
-                description: `"${newAvoidWord.trim()}" добавлено в список исключений`,
+                description: `"${word}" добавлено в список исключений`,
             })
-        } else if (formData.avoidWords?.includes(newAvoidWord.trim())) {
+            if (newAvoidWordRef.current) {
+                newAvoidWordRef.current.value = ""
+            }
+        } else {
             toast.error("Слово уже существует", {
                 description: "Это слово уже есть в списке исключений",
             })
@@ -117,16 +134,13 @@ export function AddParsingSettingsDialog({
     }
 
     const removeAvoidWord = (word: string) => {
-        setFormData({
-            ...formData,
-            avoidWords: formData.avoidWords?.filter((w) => w !== word),
-        })
+        setValue("avoidWords", avoidWords?.filter((w) => w !== word) ?? [])
         toast.info("Слово удалено", {
             description: `"${word}" удалено из списка исключений`,
         })
     }
 
-    const handleKeyPress = (e: React.KeyboardEvent) => {
+    const handleKeyDown = (e: React.KeyboardEvent) => {
         if (e.key === "Enter") {
             e.preventDefault()
             addAvoidWord()
@@ -141,18 +155,19 @@ export function AddParsingSettingsDialog({
                     <DialogDescription>Создайте новую настройку для парсинга канала</DialogDescription>
                 </DialogHeader>
 
-                <form onSubmit={handleSubmit} className="space-y-6">
+                <form onSubmit={handleSubmit(onFormSubmit)} className="space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-2">
                             <Label htmlFor="channel">Канал для парсинга *</Label>
                             <Input
                                 id="channel"
                                 placeholder="@channel_name"
-                                value={formData.channel?.valueOf()}
-                                onChange={(e) => setFormData({...formData, channel: e.target.value})}
                                 disabled={isLoading}
-                                required
+                                {...register("channel")}
                             />
+                            {errors.channel && (
+                                <p className="text-sm text-red-600">{errors.channel.message}</p>
+                            )}
                         </div>
 
                         <div className="space-y-2">
@@ -163,45 +178,55 @@ export function AddParsingSettingsDialog({
                                     <span>Ошибка загрузки расписаний</span>
                                 </div>
                             ) : (
-                                <Select
-                                    value={formData.scheduleId}
-                                    onValueChange={(value) => setFormData({...formData, scheduleId: value})}
-                                    disabled={isLoading || schedulesLoading}
-                                    required
-                                >
-                                    <SelectTrigger>
-                                        <SelectValue
-                                            placeholder={schedulesLoading ? "Загрузка..." : "Выберите расписание"}/>
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {schedulesLoading ? (
-                                            <SelectItem value="loading" disabled>
-                                                <div className="flex items-center gap-2">
-                                                    <Loader2 className="h-4 w-4 animate-spin"/>
-                                                    Загрузка расписаний...
-                                                </div>
-                                            </SelectItem>
-                                        ) : schedules.length === 0 ? (
-                                            <SelectItem value="empty" disabled>
-                                                Нет доступных расписаний
-                                            </SelectItem>
-                                        ) : (
-                                            schedules
-                                                .filter((schedule) => schedule.isActive)
-                                                .map((schedule) => (
-                                                    <SelectItem key={schedule.id} value={schedule.id}>
-                                                        <div className="flex flex-col">
-                                                            <span>{schedule.name}</span>
-                                                            {schedule.name && (
-                                                                <span
-                                                                    className="text-xs text-muted-foreground">{schedule.name}</span>
-                                                            )}
-                                                        </div>
-                                                    </SelectItem>
-                                                ))
-                                        )}
-                                    </SelectContent>
-                                </Select>
+                                <Controller
+                                    name="scheduleId"
+                                    control={control}
+                                    render={({field}) => (
+                                        <>
+                                            <Select
+                                                value={field.value}
+                                                onValueChange={field.onChange}
+                                                disabled={isLoading || schedulesLoading}
+                                            >
+                                                <SelectTrigger>
+                                                    <SelectValue
+                                                        placeholder={schedulesLoading ? "Загрузка..." : "Выберите расписание"}/>
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {schedulesLoading ? (
+                                                        <SelectItem value="loading" disabled>
+                                                            <div className="flex items-center gap-2">
+                                                                <Loader2 className="h-4 w-4 animate-spin"/>
+                                                                Загрузка расписаний...
+                                                            </div>
+                                                        </SelectItem>
+                                                    ) : schedules.length === 0 ? (
+                                                        <SelectItem value="empty" disabled>
+                                                            Нет доступных расписаний
+                                                        </SelectItem>
+                                                    ) : (
+                                                        schedules
+                                                            .filter((schedule) => schedule.isActive)
+                                                            .map((schedule) => (
+                                                                <SelectItem key={schedule.id} value={schedule.id}>
+                                                                    <div className="flex flex-col">
+                                                                        <span>{schedule.name}</span>
+                                                                        {schedule.name && (
+                                                                            <span
+                                                                                className="text-xs text-muted-foreground">{schedule.name}</span>
+                                                                        )}
+                                                                    </div>
+                                                                </SelectItem>
+                                                            ))
+                                                    )}
+                                                </SelectContent>
+                                            </Select>
+                                            {errors.scheduleId && (
+                                                <p className="text-sm text-red-600">{errors.scheduleId.message}</p>
+                                            )}
+                                        </>
+                                    )}
+                                />
                             )}
                         </div>
 
@@ -214,118 +239,149 @@ export function AddParsingSettingsDialog({
                                     <span>Ошибка загрузки сессий</span>
                                 </div>
                             ) : (
-                                <Select
-                                    value={formData.telegramSessionId || "none"}
-                                    onValueChange={(value) => setFormData({...formData, telegramSessionId: value })}
-                                    disabled={isLoading || sessionsLoading}
-                                >
-                                    <SelectTrigger>
-                                        <SelectValue
-                                            placeholder={sessionsLoading ? "Загрузка..." : "Выберите сессию (необязательно)"}/>
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="none">
-                                            Не использовать
-                                        </SelectItem>
-                                        {sessionsLoading ? (
-                                            <SelectItem value="loading" disabled>
-                                                <div className="flex items-center gap-2">
-                                                    <Loader2 className="h-4 w-4 animate-spin"/>
-                                                    Загрузка сессий...
-                                                </div>
-                                            </SelectItem>
-                                        ) : telegramSessions.length === 0 ? (
-                                            <SelectItem value="empty" disabled>
-                                                Нет доступных сессий
-                                            </SelectItem>
-                                        ) : (
-                                            telegramSessions
-                                                .filter((session) => session.isActive)
-                                                .map((session) => (
-                                                    <SelectItem key={session.id} value={session.id!}>
-                                                        <div className="flex flex-col">
-                                                            <span>{session.name || session.phoneNumber}</span>
-                                                            {session.name && (
-                                                                <span
-                                                                    className="text-xs text-muted-foreground">{session.phoneNumber}</span>
-                                                            )}
+                                <Controller
+                                    name="telegramSessionId"
+                                    control={control}
+                                    render={({field}) => (
+                                        <Select
+                                            value={field.value || "none"}
+                                            onValueChange={(value) => field.onChange(value === "none" ? "" : value)}
+                                            disabled={isLoading || sessionsLoading}
+                                        >
+                                            <SelectTrigger>
+                                                <SelectValue
+                                                    placeholder={sessionsLoading ? "Загрузка..." : "Выберите сессию (необязательно)"}/>
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="none">
+                                                    Не использовать
+                                                </SelectItem>
+                                                {sessionsLoading ? (
+                                                    <SelectItem value="loading" disabled>
+                                                        <div className="flex items-center gap-2">
+                                                            <Loader2 className="h-4 w-4 animate-spin"/>
+                                                            Загрузка сессий...
                                                         </div>
                                                     </SelectItem>
-                                                ))
-                                        )}
-                                    </SelectContent>
-                                </Select>
+                                                ) : telegramSessions.length === 0 ? (
+                                                    <SelectItem value="empty" disabled>
+                                                        Нет доступных сессий
+                                                    </SelectItem>
+                                                ) : (
+                                                    telegramSessions
+                                                        .filter((session) => session.isActive)
+                                                        .map((session) => (
+                                                            <SelectItem key={session.id} value={session.id!}>
+                                                                <div className="flex flex-col">
+                                                                    <span>{session.name || session.phoneNumber}</span>
+                                                                    {session.name && (
+                                                                        <span
+                                                                            className="text-xs text-muted-foreground">{session.phoneNumber}</span>
+                                                                    )}
+                                                                </div>
+                                                            </SelectItem>
+                                                        ))
+                                                )}
+                                            </SelectContent>
+                                        </Select>
+                                    )}
+                                />
                             )}
                         </div>
                     </div>
 
                     <div className="space-y-4">
-                        <div className="flex items-center justify-between">
-                            <div className="space-y-0.5">
-                                <Label>Всегда проверять новые посты</Label>
-                                <p className="text-sm text-muted-foreground">Раз в день будет проверять новые посты</p>
-                            </div>
-                            <Switch
-                                checked={formData.alwaysCheckNewPosts}
-                                onCheckedChange={(checked) => setFormData({...formData, alwaysCheckNewPosts: checked})}
-                                disabled={isLoading}
-                            />
-                        </div>
+                        <Controller
+                            name="alwaysCheckNewPosts"
+                            control={control}
+                            render={({field}) => (
+                                <div className="flex items-center justify-between">
+                                    <div className="space-y-0.5">
+                                        <Label>Всегда проверять новые посты</Label>
+                                        <p className="text-sm text-muted-foreground">Раз в день будет проверять новые
+                                            посты</p>
+                                    </div>
+                                    <Switch
+                                        checked={field.value}
+                                        onCheckedChange={field.onChange}
+                                        disabled={isLoading}
+                                    />
+                                </div>
+                            )}
+                        />
 
-                        <div className="flex items-center justify-between">
-                            <div className="space-y-0.5">
-                                <Label>Удалять текст</Label>
-                                <p className="text-sm text-muted-foreground">Оставлять только картинки</p>
-                            </div>
-                            <Switch
-                                checked={formData.deleteText}
-                                onCheckedChange={(checked) => setFormData({...formData, deleteText: checked})}
-                                disabled={isLoading}
-                            />
-                        </div>
+                        <Controller
+                            name="deleteText"
+                            control={control}
+                            render={({field}) => (
+                                <div className="flex items-center justify-between">
+                                    <div className="space-y-0.5">
+                                        <Label>Удалять текст</Label>
+                                        <p className="text-sm text-muted-foreground">Оставлять только картинки</p>
+                                    </div>
+                                    <Switch
+                                        checked={field.value}
+                                        onCheckedChange={field.onChange}
+                                        disabled={isLoading}
+                                    />
+                                </div>
+                            )}
+                        />
 
-                        <div className="flex items-center justify-between">
-                            <div className="space-y-0.5">
-                                <Label>Удалять медиа</Label>
-                                <p className="text-sm text-muted-foreground">Оставлять только текст</p>
-                            </div>
-                            <Switch
-                                checked={formData.deleteMedia}
-                                onCheckedChange={(checked) => setFormData({...formData, deleteMedia: checked})}
-                                disabled={isLoading}
-                            />
-                        </div>
+                        <Controller
+                            name="deleteMedia"
+                            control={control}
+                            render={({field}) => (
+                                <div className="flex items-center justify-between">
+                                    <div className="space-y-0.5">
+                                        <Label>Удалять медиа</Label>
+                                        <p className="text-sm text-muted-foreground">Оставлять только текст</p>
+                                    </div>
+                                    <Switch
+                                        checked={field.value}
+                                        onCheckedChange={field.onChange}
+                                        disabled={isLoading}
+                                    />
+                                </div>
+                            )}
+                        />
 
-                        <div className="flex items-center justify-between">
-                            <div className="space-y-0.5">
-                                <Label>Требовать подтверждение</Label>
-                                <p className="text-sm text-muted-foreground">Подтверждать посты перед публикацией</p>
-                            </div>
-                            <Switch
-                                checked={formData.needVerifiedPosts}
-                                onCheckedChange={(checked) => setFormData({...formData, needVerifiedPosts: checked})}
-                                disabled={isLoading}
-                            />
-                        </div>
+                        <Controller
+                            name="needVerifiedPosts"
+                            control={control}
+                            render={({field}) => (
+                                <div className="flex items-center justify-between">
+                                    <div className="space-y-0.5">
+                                        <Label>Требовать подтверждение</Label>
+                                        <p className="text-sm text-muted-foreground">Подтверждать посты перед
+                                            публикацией</p>
+                                    </div>
+                                    <Switch
+                                        checked={field.value}
+                                        onCheckedChange={field.onChange}
+                                        disabled={isLoading}
+                                    />
+                                </div>
+                            )}
+                        />
                     </div>
 
                     <div className="space-y-2">
                         <Label>Исключаемые слова</Label>
                         <div className="flex gap-2">
                             <Input
+                                ref={newAvoidWordRef}
                                 placeholder="Добавить слово для исключения"
-                                value={newAvoidWord}
-                                onChange={(e) => setNewAvoidWord(e.target.value)}
-                                onKeyPress={handleKeyPress}
+                                onKeyDown={handleKeyDown}
                                 disabled={isLoading}
                             />
                             <Button type="button" onClick={addAvoidWord} variant="outline" disabled={isLoading}>
                                 Добавить
                             </Button>
                         </div>
-                        {(formData.avoidWords?.length ?? 0) > 0 && (
+                        {(avoidWords?.length ?? 0) > 0 && (
                             <div className="flex flex-wrap gap-2 mt-2">
-                                {formData.avoidWords?.map((word, index) => (
+                                {avoidWords?.map((word, index) => (
                                     <Badge key={index} variant="secondary" className="gap-1">
                                         {word}
                                         <X className="h-3 w-3 cursor-pointer"
@@ -342,9 +398,8 @@ export function AddParsingSettingsDialog({
                             <Input
                                 id="dateFrom"
                                 type="date"
-                                value={formData.dateFrom?.valueOf()}
-                                onChange={(e) => setFormData({...formData, dateFrom: e.target.value})}
                                 disabled={isLoading}
+                                {...register("dateFrom")}
                             />
                         </div>
 
@@ -353,9 +408,8 @@ export function AddParsingSettingsDialog({
                             <Input
                                 id="dateTo"
                                 type="date"
-                                value={formData.dateTo?.valueOf()}
-                                onChange={(e) => setFormData({...formData, dateTo: e.target.value})}
                                 disabled={isLoading}
+                                {...register("dateTo")}
                             />
                         </div>
                     </div>

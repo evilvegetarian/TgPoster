@@ -24,7 +24,7 @@ export function convertLocalToIsoTime(time: string) {
 
 }
 
- export function convertUtcTimeToLocalTime(utcTimeString: string): string {
+export function convertUtcTimeToLocalTime(utcTimeString: string): string {
     if (!utcTimeString || typeof utcTimeString !== 'string') {
         return 'Invalid Time';
     }
@@ -50,11 +50,11 @@ export function convertLocalToIsoTime(time: string) {
     return date.toLocaleTimeString();
 }
 
- export function utcToLocalString  (utcString: string): string {
-     const date = new Date(utcString);
-     return format(date, "yyyy-MM-dd'T'HH:mm");
- };
+export function utcToLocalString(utcString: string): string {
+    const date = new Date(utcString);
+    return format(date, "yyyy-MM-dd'T'HH:mm");
+};
 
-export function utcToShortLocalString  (utcString: string): string {
-  return   format(new Date(utcString), "dd MMM HH:mm", {locale: ru})
+export function utcToShortLocalString(utcString: string): string {
+    return format(new Date(utcString), "dd MMM HH:mm", {locale: ru})
 };
