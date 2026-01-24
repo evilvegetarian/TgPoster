@@ -60,6 +60,11 @@ public class CreateParseChannelRequest : IValidatableObject
 	public bool UseAiForPosts { get; set; }
 
 	/// <summary>
+	///     Telegram сессия для парсинга канала (для доступа к приватным каналам).
+	/// </summary>
+	public required Guid TelegramSessionId { get; set; }
+
+	/// <summary>
 	///     Валидация
 	/// </summary>
 	/// <param name="validationContext"></param>

@@ -13,5 +13,6 @@ public record UpdateParseChannelCommand(
 	bool NeedVerifiedPosts,
 	DateTime? DateFrom,
 	DateTime? DateTo,
-	bool UseAiForPosts
+	bool UseAiForPosts,
+	Guid TelegramSessionId
 ) : IRequest;

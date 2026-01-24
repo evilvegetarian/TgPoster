@@ -67,5 +67,6 @@ public static class UpdateParseChannelStorageShouldExtensions
 			request.NeedVerifiedPosts,
 			request.DateFrom,
 			request.DateTo,
-			request.UseAiForPosts);
+			request.UseAiForPosts,
+			request.TelegramSessionId);
 }

@@ -115,6 +115,7 @@ public class EndpointTestFixture : WebApplicationFactory<Program>, IAsyncLifetim
 			new MessageSeeder(context),
 			new UserSeeder(context, hash),
 			new DaySeeder(context),
+			new TelegramSessionSeeder(context),
 			new MemorySeeder(memoryCache!),
 			new YouTubeAccountSeeder(context)
 		};

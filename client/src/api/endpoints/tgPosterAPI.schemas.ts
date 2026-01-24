@@ -78,6 +78,8 @@ export interface CreateParseChannelRequest {
   dateTo?: string | null;
   /** Нужно ли анализировать пост через аи */
   useAiForPosts?: boolean;
+  /** Telegram сессия для парсинга канала (для доступа к приватным каналам). */
+  telegramSessionId: string;
 }
 
 export interface CreateParseChannelResponse {
@@ -365,6 +367,7 @@ export interface ParseChannelsResponse {
   channel: string;
   /** @nullable */
   lastParseDate?: string | null;
+  telegramSessionId: string;
 }
 
 export interface PreviewFileResponse {
@@ -572,6 +575,8 @@ export interface UpdateParseChannelRequest {
   dateTo?: string | null;
   /** Использовать аи для постов */
   useAiForPosts?: boolean;
+  /** Telegram сессия для парсинга канала (для доступа к приватным каналам). */
+  telegramSessionId: string;
 }
 
 /**

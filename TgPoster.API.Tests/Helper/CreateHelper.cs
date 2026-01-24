@@ -88,7 +88,8 @@ public class CreateHelper(HttpClient client)
 			DeleteText = false,
 			AvoidWords = ["perfect"],
 			DeleteMedia = true,
-			ScheduleId = GlobalConst.Worked.ScheduleId
+			ScheduleId = GlobalConst.Worked.ScheduleId,
+			TelegramSessionId = GlobalConst.Worked.TelegramSessionId
 		};
 
 		var createResponse = await client.PostAsync<CreateParseChannelResponse>(Routes.ParseChannel.Create, request);

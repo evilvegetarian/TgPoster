@@ -72,8 +72,18 @@ public sealed class ChannelParsingSetting : BaseEntity
 	/// <summary>
 	///     Telegram сессия для парсинга канала.
 	/// </summary>
-	public Guid? TelegramSessionId { get; set; }
+	public required Guid TelegramSessionId { get; set; }
 
+	#region Navigation Properties
+
+	/// <summary>
+	///     Расписание для парсинга
+	/// </summary>
 	public Schedule Schedule { get; set; } = null!;
-	public TelegramSession? TelegramSession { get; set; }
+	/// <summary>
+	///     Telegram сессия для парсинга канала.
+	/// </summary>
+	public TelegramSession TelegramSession { get; set; } = null!;
+
+	#endregion
 }

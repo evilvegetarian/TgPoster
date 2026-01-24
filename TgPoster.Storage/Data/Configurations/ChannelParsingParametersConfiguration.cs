@@ -11,7 +11,8 @@ internal class ChannelParsingParametersConfiguration : BaseEntityConfiguration<C
 		base.Configure(builder);
 
 		builder.HasIndex(x => x.ScheduleId);
-		builder.Property(x => x.Channel).HasMaxLength(100);
+		builder.Property(x => x.Channel).HasMaxLength(100);	
+		builder.Property(x => x.TelegramSessionId).IsRequired();
 
 		builder.HasOne(x => x.Schedule)
 			.WithMany(x => x.Parameters)

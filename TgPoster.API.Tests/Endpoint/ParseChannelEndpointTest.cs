@@ -21,7 +21,8 @@ public class ParseChannelEndpointTest(EndpointTestFixture fixture) : IClassFixtu
 		{
 			Channel = "",
 			AlwaysCheckNewPosts = false,
-			ScheduleId = Guid.NewGuid()
+			ScheduleId = Guid.NewGuid(),
+			TelegramSessionId = GlobalConst.Worked.TelegramSessionId
 		};
 
 		var createdSchedule = await client.PostAsync(Url, request.ToStringContent());
@@ -36,7 +37,8 @@ public class ParseChannelEndpointTest(EndpointTestFixture fixture) : IClassFixtu
 			Channel = "superChannel",
 			AlwaysCheckNewPosts = false,
 			ScheduleId = Guid.NewGuid(),
-			DateFrom = DateTime.Now.AddDays(5)
+			DateFrom = DateTime.Now.AddDays(5),
+			TelegramSessionId = GlobalConst.Worked.TelegramSessionId
 		};
 
 		var createdSchedule = await client.PostAsync(Url, request.ToStringContent());
@@ -52,7 +54,8 @@ public class ParseChannelEndpointTest(EndpointTestFixture fixture) : IClassFixtu
 			AlwaysCheckNewPosts = false,
 			ScheduleId = Guid.NewGuid(),
 			DeleteMedia = true,
-			DeleteText = true
+			DeleteText = true,
+			TelegramSessionId = GlobalConst.Worked.TelegramSessionId
 		};
 
 		var createdSchedule = await client.PostAsync(Url, request.ToStringContent());
@@ -66,7 +69,8 @@ public class ParseChannelEndpointTest(EndpointTestFixture fixture) : IClassFixtu
 		{
 			Channel = GlobalConst.Worked.Channel,
 			AlwaysCheckNewPosts = false,
-			ScheduleId = GlobalConst.Worked.ScheduleId
+			ScheduleId = GlobalConst.Worked.ScheduleId,
+			TelegramSessionId = GlobalConst.Worked.TelegramSessionId
 		};
 
 		var createdSchedule = await client.PostAsJsonAsync(Url, request);
@@ -80,7 +84,8 @@ public class ParseChannelEndpointTest(EndpointTestFixture fixture) : IClassFixtu
 		{
 			Channel = "GlobalConst.Worked.Channel",
 			AlwaysCheckNewPosts = false,
-			ScheduleId = GlobalConst.Worked.ScheduleId
+			ScheduleId = GlobalConst.Worked.ScheduleId,
+			TelegramSessionId = GlobalConst.Worked.TelegramSessionId
 		};
 
 		var createdSchedule = await client.PostAsync(Url, request.ToStringContent());
@@ -94,7 +99,8 @@ public class ParseChannelEndpointTest(EndpointTestFixture fixture) : IClassFixtu
 		{
 			Channel = GlobalConst.Worked.Channel,
 			AlwaysCheckNewPosts = false,
-			ScheduleId = Guid.Parse("78d09b44-2000-4579-89e7-def043aeab09")
+			ScheduleId = Guid.Parse("78d09b44-2000-4579-89e7-def043aeab09"),
+			TelegramSessionId = GlobalConst.Worked.TelegramSessionId
 		};
 
 		var createdSchedule = await client.PostAsync(Url, request.ToStringContent());
@@ -111,7 +117,8 @@ public class ParseChannelEndpointTest(EndpointTestFixture fixture) : IClassFixtu
 			AlwaysCheckNewPosts = false,
 			NeedVerifiedPosts = true,
 			DeleteMedia = true,
-			DeleteText = false
+			DeleteText = false,
+			TelegramSessionId = GlobalConst.Worked.TelegramSessionId
 		};
 
 		var createdSchedule = await client.PostAsJsonAsync(Url, request);
@@ -134,7 +141,8 @@ public class ParseChannelEndpointTest(EndpointTestFixture fixture) : IClassFixtu
 		{
 			Channel = GlobalConst.Worked.Channel,
 			AlwaysCheckNewPosts = false,
-			ScheduleId = GlobalConst.Worked.ScheduleId
+			ScheduleId = GlobalConst.Worked.ScheduleId,
+			TelegramSessionId = GlobalConst.Worked.TelegramSessionId
 		};
 
 		var createdSchedule = await client.PostAsJsonAsync(Url, request);
@@ -159,7 +167,8 @@ public class ParseChannelEndpointTest(EndpointTestFixture fixture) : IClassFixtu
 			ScheduleId = GlobalConst.Worked.ScheduleId,
 			AlwaysCheckNewPosts = false,
 			NeedVerifiedPosts = false,
-			AvoidWords = ["cum"]
+			AvoidWords = ["cum"],
+			TelegramSessionId = GlobalConst.Worked.TelegramSessionId
 		};
 
 		var updateResponse = await anotherClient.PutAsync(Url + "/" + parseId, updateRequest.ToStringContent());
@@ -176,7 +185,8 @@ public class ParseChannelEndpointTest(EndpointTestFixture fixture) : IClassFixtu
 			ScheduleId = GlobalConst.Worked.ScheduleId,
 			AlwaysCheckNewPosts = false,
 			NeedVerifiedPosts = false,
-			AvoidWords = ["cum"]
+			AvoidWords = ["cum"],
+			TelegramSessionId = GlobalConst.Worked.TelegramSessionId
 		};
 
 		var updateResponse = await client.PutAsync(Url + "/" + nonExistId, updateRequest.ToStringContent());
@@ -193,7 +203,8 @@ public class ParseChannelEndpointTest(EndpointTestFixture fixture) : IClassFixtu
 			ScheduleId = GlobalConst.Worked.ScheduleId,
 			AlwaysCheckNewPosts = false,
 			NeedVerifiedPosts = false,
-			AvoidWords = ["cum"]
+			AvoidWords = ["cum"],
+			TelegramSessionId = GlobalConst.Worked.TelegramSessionId
 		};
 
 		var updateResponse = await client.PutAsync(Url + "/" + parseId, updateRequest.ToStringContent());

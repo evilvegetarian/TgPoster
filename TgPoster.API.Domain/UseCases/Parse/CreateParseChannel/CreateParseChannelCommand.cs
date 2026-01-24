@@ -12,4 +12,5 @@ public sealed record CreateParseChannelCommand(
 	bool NeedVerifiedPosts,
 	DateTime? DateFrom,
 	DateTime? DateTo,
-	bool UseAiForPosts) : IRequest<CreateParseChannelResponse>;
+	bool UseAiForPosts,
+	Guid TelegramSessionId) : IRequest<CreateParseChannelResponse>;

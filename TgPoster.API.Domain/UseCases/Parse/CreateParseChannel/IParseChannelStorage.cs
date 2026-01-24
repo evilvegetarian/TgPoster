@@ -13,6 +13,7 @@ public interface IParseChannelStorage
 		DateTime? dateFrom,
 		DateTime? dateTo,
 		bool useAiForPosts,
+		Guid telegramSessionId,
 		CancellationToken ct
 	);
 

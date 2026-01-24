@@ -23,4 +23,9 @@ public class ParseChannelsResponse
 
 	public required string Channel { get; set; }
 	public DateTime? LastParseDate { get; set; }
+
+	/// <summary>
+	///     Telegram сессия для парсинга канала.
+	/// </summary>
+	public required Guid TelegramSessionId { get; set; }
 }

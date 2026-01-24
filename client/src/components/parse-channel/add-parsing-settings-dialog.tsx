@@ -18,6 +18,7 @@ import {AlertCircle, Loader2, X} from "lucide-react"
 import {toast} from "sonner"
 import type {CreateParseChannelRequest} from "@/api/endpoints/tgPosterAPI.schemas.ts";
 import {useGetApiV1Schedule} from "@/api/endpoints/schedule/schedule.ts";
+import {useGetApiV1TelegramSession} from "@/api/endpoints/telegram-session/telegram-session.ts";
 
 interface AddParsingSettingsDialogProps {
     open: boolean
@@ -42,11 +43,13 @@ export function AddParsingSettingsDialog({
         needVerifiedPosts: false,
         dateFrom: "",
         dateTo: "",
+        telegramSessionId: "",
     })
 
     const [newAvoidWord, setNewAvoidWord] = useState("")
 
     const {data: schedules = [], isLoading: schedulesLoading, error: schedulesError} = useGetApiV1Schedule()
+    const {data: telegramSessions = [], isLoading: sessionsLoading, error: sessionsError} = useGetApiV1TelegramSession()
     const getUtcString = (dateValue: string | Date | null | undefined): string | null => {
         if (!dateValue) {
             return null;
@@ -84,6 +87,7 @@ export function AddParsingSettingsDialog({
             needVerifiedPosts: false,
             dateFrom: "",
             dateTo: "",
+            telegramSessionId: "",
         })
         setNewAvoidWord("")
     }
@@ -191,6 +195,59 @@ export function AddParsingSettingsDialog({
                                                             {schedule.name && (
                                                                 <span
                                                                     className="text-xs text-muted-foreground">{schedule.name}</span>
+                                                            )}
+                                                        </div>
+                                                    </SelectItem>
+                                                ))
+                                        )}
+                                    </SelectContent>
+                                </Select>
+                            )}
+                        </div>
+
+                        <div className="space-y-2">
+                            <Label htmlFor="telegramSession">Telegram сессия (необязательно)</Label>
+                            <p className="text-sm text-muted-foreground">Для доступа к приватным каналам</p>
+                            {sessionsError ? (
+                                <div className="flex items-center gap-2 p-2 text-sm text-red-600 bg-red-50 rounded-md">
+                                    <AlertCircle className="h-4 w-4"/>
+                                    <span>Ошибка загрузки сессий</span>
+                                </div>
+                            ) : (
+                                <Select
+                                    value={formData.telegramSessionId || "none"}
+                                    onValueChange={(value) => setFormData({...formData, telegramSessionId: value })}
+                                    disabled={isLoading || sessionsLoading}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue
+                                            placeholder={sessionsLoading ? "Загрузка..." : "Выберите сессию (необязательно)"}/>
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="none">
+                                            Не использовать
+                                        </SelectItem>
+                                        {sessionsLoading ? (
+                                            <SelectItem value="loading" disabled>
+                                                <div className="flex items-center gap-2">
+                                                    <Loader2 className="h-4 w-4 animate-spin"/>
+                                                    Загрузка сессий...
+                                                </div>
+                                            </SelectItem>
+                                        ) : telegramSessions.length === 0 ? (
+                                            <SelectItem value="empty" disabled>
+                                                Нет доступных сессий
+                                            </SelectItem>
+                                        ) : (
+                                            telegramSessions
+                                                .filter((session) => session.isActive)
+                                                .map((session) => (
+                                                    <SelectItem key={session.id} value={session.id!}>
+                                                        <div className="flex flex-col">
+                                                            <span>{session.name || session.phoneNumber}</span>
+                                                            {session.name && (
+                                                                <span
+                                                                    className="text-xs text-muted-foreground">{session.phoneNumber}</span>
                                                             )}
                                                         </div>
                                                     </SelectItem>

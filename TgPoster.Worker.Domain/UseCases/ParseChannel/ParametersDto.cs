@@ -19,5 +19,5 @@ public class ParametersDto
 	public string? TokenOpenRouter { get; set; }
 	public string? ModelOpenRouter { get; set; }
 	public string? Prompt { get; set; }
-	public Guid? TelegramSessionId { get; set; }
+	public required Guid TelegramSessionId { get; set; }
 }

@@ -46,16 +46,10 @@ internal sealed class ProcessMessageConsumer(
 		var ct = context.CancellationToken;
 		logger.LogInformation("Начата обработка поста для ScheduleId: {ScheduleId}", scheduleId);
 
-		if (parameters.TelegramSessionId is null)
-		{
-			logger.LogError("Не указана Telegram сессия для обработки сообщений. Id настроек: {id}", command.Id);
-			return;
-		}
-
 		var token = cryptoAes.Decrypt(telegramOptions.SecretKey, encryptedToken);
 		var telegramBot = new TelegramBotClient(token);
 
-		var client = await authService.GetClientAsync(parameters.TelegramSessionId.Value, ct);
+		var client = await authService.GetClientAsync(parameters.TelegramSessionId, ct);
 
 		var resolveResult = await client.Contacts_ResolveUsername(channelName);
 		if (resolveResult.Chat is not Channel channel)

@@ -19,6 +19,7 @@ internal class ParseChannelStorage(PosterContext context, GuidFactory factory) :
 		DateTime? dateFrom,
 		DateTime? dateTo,
 		bool useAiForPosts,
+		Guid telegramSessionId,
 		CancellationToken ct
 	)
 	{
@@ -36,7 +37,8 @@ internal class ParseChannelStorage(PosterContext context, GuidFactory factory) :
 			Status = ParsingStatus.New,
 			DateFrom = dateFrom,
 			DateTo = dateTo,
-			UseAiForPosts = useAiForPosts
+			UseAiForPosts = useAiForPosts,
+			TelegramSessionId = telegramSessionId
 		};
 		await context.AddAsync(param, ct);
 		await context.SaveChangesAsync(ct);

@@ -60,6 +60,11 @@ public class UpdateParseChannelRequest : IValidatableObject
 	public bool UseAiForPosts { get; set; }
 
 	/// <summary>
+	///     Telegram сессия для парсинга канала (для доступа к приватным каналам).
+	/// </summary>
+	public required Guid TelegramSessionId { get; set; }
+
+	/// <summary>
 	///     Валидация запроса на обновление настроек парсинга канала
 	/// </summary>
 	public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)

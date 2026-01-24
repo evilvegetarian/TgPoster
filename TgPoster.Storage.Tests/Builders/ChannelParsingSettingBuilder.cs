@@ -23,7 +23,8 @@ public class ChannelParsingSettingBuilder(PosterContext context)
 		NeedVerifiedPosts = true,
 		ScheduleId = new ScheduleBuilder(context).Create().Id,
 		Status = faker.Random.Enum<ParsingStatus>(),
-		CheckNewPosts = faker.Random.Bool()
+		CheckNewPosts = faker.Random.Bool(),
+		TelegramSessionId = Guid.NewGuid()
 	};
 
 	public ChannelParsingSettingBuilder WithScheduleId(Guid scheduleId)

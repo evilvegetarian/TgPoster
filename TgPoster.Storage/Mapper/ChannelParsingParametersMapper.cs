@@ -21,7 +21,8 @@ public static class ChannelParsingParametersMapper
 			NeedVerifiedPosts = entity.NeedVerifiedPosts,
 			IsActive = entity.Status.IsActive(),
 			Channel = entity.Channel,
-			LastParseDate = entity.LastParseDate
+			LastParseDate = entity.LastParseDate,
+			TelegramSessionId = entity.TelegramSessionId
 		};
 
 	public static ChannelParsingSetting ToEntity(this UpdateParseChannelCommand request) =>
@@ -37,6 +38,7 @@ public static class ChannelParsingParametersMapper
 			CheckNewPosts = request.AlwaysCheckNewPosts,
 			NeedVerifiedPosts = request.NeedVerifiedPosts,
 			DeleteMedia = request.DeleteMedia,
-			UseAiForPosts = request.UseAiForPosts
+			UseAiForPosts = request.UseAiForPosts,
+			TelegramSessionId = request.TelegramSessionId
 		};
 }

@@ -21,12 +21,6 @@ internal class ParseChannelUseCase(
 			return;
 		}
 
-		if (parameters.TelegramSessionId is null)
-		{
-			logger.LogError("Не указана Telegram сессия для парсинга канала. Id настроек: {id}", id);
-			return;
-		}
-
 		logger.LogInformation("Начали парсить данный канал: {ChannelName}", parameters.ChannelName);
 		await storage.UpdateInHandleStatusAsync(id, ct);
 
@@ -38,7 +32,7 @@ internal class ParseChannelUseCase(
 		var checkNewPosts = parameters.CheckNewPosts;
 		var telegramBotId = parameters.TelegramBotId;
 
-		var client = await authService.GetClientAsync(parameters.TelegramSessionId.Value, ct);
+		var client = await authService.GetClientAsync(parameters.TelegramSessionId, ct);
 
 		var resolveResult = await client.Contacts_ResolveUsername(channelName);
 		if (resolveResult.Chat is not Channel channel)

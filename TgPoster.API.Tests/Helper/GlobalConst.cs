@@ -22,5 +22,6 @@ internal static class GlobalConst
 		public static readonly string UserName = "Default_User_For_APP";
 		public static readonly string Password = "string";
 		public static readonly string Model = "openai/gpt-3.5-turbo-0613";
+		public static readonly Guid TelegramSessionId = Guid.Parse("D003BC5F-63AD-4562-9D07-7464075C740C");
 	}
 }
