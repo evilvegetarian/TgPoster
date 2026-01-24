@@ -36,6 +36,11 @@ public sealed class Message : BaseEntity
 	/// </summary>
 	public bool IsVerified { get; set; }
 
+	/// <summary>
+	///     ID сообщения в Telegram после отправки.
+	/// </summary>
+	public int? TelegramMessageId { get; set; }
+
 	#region Navigtion
 
 	/// <summary>
@@ -47,6 +52,11 @@ public sealed class Message : BaseEntity
 	///     Файлы сообщения
 	/// </summary>
 	public ICollection<MessageFile> MessageFiles { get; set; } = [];
+
+	/// <summary>
+	///     Журналы репостов этого сообщения
+	/// </summary>
+	public ICollection<RepostLog> RepostLogs { get; set; } = [];
 
 	#endregion
 }

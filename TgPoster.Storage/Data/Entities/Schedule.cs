@@ -81,5 +81,10 @@ public sealed class Schedule : BaseEntity
 	/// </summary>
 	public YouTubeAccount? YouTubeAccount { get; set; }
 
+	/// <summary>
+	///     Настройки репоста для этого расписания
+	/// </summary>
+	public RepostSettings? RepostSettings { get; set; }
+
 	#endregion
 }

@@ -25,5 +25,9 @@ internal class MessageConfiguration : BaseEntityConfiguration<Message>
 		builder.HasMany(x => x.MessageFiles)
 			.WithOne(x => x.Message)
 			.HasForeignKey(x => x.MessageId);
+
+		builder.HasMany(x => x.RepostLogs)
+			.WithOne(x => x.Message)
+			.HasForeignKey(x => x.MessageId);
 	}
 }
