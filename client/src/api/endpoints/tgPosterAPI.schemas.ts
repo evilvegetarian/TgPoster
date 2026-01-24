@@ -5,6 +5,22 @@
  * OpenAPI spec version: 1.0
  */
 /**
+ * Добавление целевого канала для репоста.
+ */
+export interface AddRepostDestinationRequest {
+  /**
+   * ID или @username целевого канала/чата/группы.
+   * @minLength 0
+   * @maxLength 255
+   */
+  chatIdentifier: string;
+}
+
+export interface AddRepostDestinationResponse {
+  id: string;
+}
+
+/**
  * Запрос на подтверждение сообщений
  */
 export interface ApproveMessagesRequest {
@@ -107,6 +123,22 @@ export interface CreatePromptSettingRequest {
    * @nullable
    */
   photoPrompt?: string | null;
+}
+
+/**
+ * Создание настроек репоста для расписания.
+ */
+export interface CreateRepostSettingsRequest {
+  /** ID расписания, для которого создаются настройки репоста. */
+  scheduleId: string;
+  /** ID Telegram сессии для выполнения репостов. */
+  telegramSessionId: string;
+  /** Список целевых каналов/чатов для репоста (ID или @username). */
+  destinations?: string[];
+}
+
+export interface CreateRepostSettingsResponse {
+  id: string;
 }
 
 /**
@@ -267,6 +299,19 @@ export interface GetDaysResponse {
 export interface GetOpenRouterSettingResponse {
   model: string;
   id?: string;
+}
+
+export interface GetRepostDestinationDto {
+  id: string;
+  chatIdentifier: string;
+  isActive: boolean;
+}
+
+export interface GetRepostSettingsResponse {
+  id: string;
+  scheduleId: string;
+  telegramSessionId: string;
+  destinations: GetRepostDestinationDto[];
 }
 
 export interface GetTimeResponse {
@@ -577,6 +622,14 @@ export interface UpdateParseChannelRequest {
   useAiForPosts?: boolean;
   /** Telegram сессия для парсинга канала (для доступа к приватным каналам). */
   telegramSessionId: string;
+}
+
+/**
+ * Обновление целевого канала репоста.
+ */
+export interface UpdateRepostDestinationRequest {
+  /** Активен ли целевой канал. */
+  isActive: boolean;
 }
 
 /**
