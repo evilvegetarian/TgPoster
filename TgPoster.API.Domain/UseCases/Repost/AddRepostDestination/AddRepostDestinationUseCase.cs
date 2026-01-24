@@ -38,6 +38,6 @@ internal sealed class AddRepostDestinationUseCase(
 			request.ChatIdentifier,
 			ct);
 
-		return new AddRepostDestinationResponse(destinationId);
+		return new AddRepostDestinationResponse { Id = destinationId };
 	}
 }

@@ -27,7 +27,7 @@ public sealed class RepostController(ISender sender) : ControllerBase
 	/// <param name="ct">Токен отмены операции</param>
 	/// <returns>Созданные настройки репоста</returns>
 	[HttpPost(Routes.Repost.CreateSettings)]
-	[ProducesResponseType(StatusCodes.Status201Created, Type = typeof(CreateRepostSettingsResult))]
+	[ProducesResponseType(StatusCodes.Status201Created, Type = typeof(CreateRepostSettingsResponse))]
 	[ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
 	[ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
 	[ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
@@ -55,7 +55,7 @@ public sealed class RepostController(ISender sender) : ControllerBase
 	/// <param name="ct">Токен отмены операции</param>
 	/// <returns>Настройки репоста или 404 если не найдены</returns>
 	[HttpGet(Routes.Repost.GetSettings)]
-	[ProducesResponseType(StatusCodes.Status200OK, Type = typeof(CreateRepostSettingsResponse))]
+	[ProducesResponseType(StatusCodes.Status200OK, Type = typeof(GetRepostSettingsResponse))]
 	[ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
 	[ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
 	public async Task<IActionResult> GetSettings([FromRoute] [Required] Guid scheduleId, CancellationToken ct)

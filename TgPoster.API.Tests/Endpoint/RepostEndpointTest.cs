@@ -4,6 +4,7 @@ using Shouldly;
 using TgPoster.API.Common;
 using TgPoster.API.Domain.UseCases.Repost.AddRepostDestination;
 using TgPoster.API.Domain.UseCases.Repost.CreateRepostSettings;
+using TgPoster.API.Domain.UseCases.Repost.GetRepostSettings;
 using TgPoster.API.Models;
 using TgPoster.API.Tests.Helper;
 
@@ -30,8 +31,7 @@ public sealed class RepostEndpointTest(EndpointTestFixture fixture) : IClassFixt
 
 		var createdSettings = await response.Content.ReadFromJsonAsync<CreateRepostSettingsResponse>();
 		createdSettings.ShouldNotBeNull();
-		createdSettings.ScheduleId.ShouldBe(request.ScheduleId);
-		createdSettings.TelegramSessionId.ShouldBe(request.TelegramSessionId);
+		createdSettings.Id.ShouldNotBe(Guid.Empty);
 	}
 
 	[Fact]
@@ -96,7 +96,7 @@ public sealed class RepostEndpointTest(EndpointTestFixture fixture) : IClassFixt
 		var getResponse = await client.GetAsync($"{Url}/settings/{GlobalConst.Worked.ScheduleId}");
 		getResponse.StatusCode.ShouldBe(HttpStatusCode.OK);
 
-		var settings = await getResponse.Content.ReadFromJsonAsync<CreateRepostSettingsResponse>();
+		var settings = await getResponse.Content.ReadFromJsonAsync<GetRepostSettingsResponse>();
 		settings.ShouldNotBeNull();
 		settings.ScheduleId.ShouldBe(GlobalConst.Worked.ScheduleId);
 	}

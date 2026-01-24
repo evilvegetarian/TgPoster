@@ -6,9 +6,9 @@ using TL;
 namespace TgPoster.API.Domain.UseCases.Repost.CreateRepostSettings;
 
 internal sealed class CreateRepostSettingsUseCase(ICreateRepostSettingsStorage storage, TelegramAuthService authService)
-	: IRequestHandler<CreateRepostSettingsCommand, CreateRepostSettingsResult>
+	: IRequestHandler<CreateRepostSettingsCommand, CreateRepostSettingsResponse>
 {
-	public async Task<CreateRepostSettingsResult> Handle(CreateRepostSettingsCommand request, CancellationToken ct)
+	public async Task<CreateRepostSettingsResponse> Handle(CreateRepostSettingsCommand request, CancellationToken ct)
 	{
 		if (!await storage.ScheduleExistsAsync(request.ScheduleId, ct))
 			throw new ScheduleNotFoundException(request.ScheduleId);
@@ -42,6 +42,6 @@ internal sealed class CreateRepostSettingsUseCase(ICreateRepostSettingsStorage s
 			request.Destinations,
 			ct);
 
-		return new CreateRepostSettingsResult(settingsId);
+		return new CreateRepostSettingsResponse { Id = settingsId };
 	}
 }
