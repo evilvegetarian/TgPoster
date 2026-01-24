@@ -12,4 +12,21 @@ public interface ISenderMessageStorage
 		string? refreshToken,
 		CancellationToken ct
 	);
+
+	Task SaveTelegramMessageIdAsync(Guid messageId, int telegramMessageId, CancellationToken ct);
+	Task<RepostSettingsDto?> GetRepostSettingsForMessageAsync(Guid messageId, CancellationToken ct);
+}
+
+public sealed class RepostSettingsDto
+{
+	public required Guid Id { get; init; }
+	public required Guid ScheduleId { get; init; }
+	public required Guid TelegramSessionId { get; init; }
+	public List<RepostDestinationDto> Destinations { get; init; } = [];
+}
+
+public sealed class RepostDestinationDto
+{
+	public required Guid Id { get; init; }
+	public required string ChatIdentifier { get; init; }
 }

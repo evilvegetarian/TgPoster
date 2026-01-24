@@ -1,5 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using Hangfire;
+using MassTransit;
 using Microsoft.Extensions.Logging;
 using Security.Cryptography;
 using Shared.Utilities;
@@ -8,6 +9,7 @@ using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using TgPoster.Worker.Domain.ConfigModels;
+using TgPoster.Worker.Domain.UseCases.RepostMessageConsumer;
 
 namespace TgPoster.Worker.Domain.UseCases.SenderMessageWorker;
 
@@ -16,7 +18,8 @@ public class SenderMessageWorker(
 	ILogger<SenderMessageWorker> logger,
 	ICryptoAES crypto,
 	TelegramOptions options,
-	YouTubeService youTubeService
+	YouTubeService youTubeService,
+	IPublishEndpoint publishEndpoint
 )
 {
 	public async Task ProcessMessagesAsync()
@@ -78,6 +81,8 @@ public class SenderMessageWorker(
 			}
 		}
 
+		int? telegramMessageId = null;
+
 		if (medias.Any())
 		{
 			var captionText = message.Message ?? string.Empty;
@@ -88,11 +93,13 @@ public class SenderMessageWorker(
 			{
 				medias[0].Caption = captionText;
 				medias[0].ParseMode = ParseMode.Html;
-				await bot.SendMediaGroup(chatId, medias.Select(x => (IAlbumInputMedia)x));
+				var messages = await bot.SendMediaGroup(chatId, medias.Select(x => (IAlbumInputMedia)x));
+				telegramMessageId = messages.FirstOrDefault()?.MessageId;
 			}
 			else
 			{
-				await bot.SendMediaGroup(chatId, medias.Select(x => (IAlbumInputMedia)x));
+				var messages = await bot.SendMediaGroup(chatId, medias.Select(x => (IAlbumInputMedia)x));
+				telegramMessageId = messages.FirstOrDefault()?.MessageId;
 
 				if (!string.IsNullOrWhiteSpace(captionText))
 				{
@@ -102,11 +109,34 @@ public class SenderMessageWorker(
 		}
 		else
 		{
-			await bot.SendMessage(chatId, message.Message!);
+			var sentMessage = await bot.SendMessage(chatId, message.Message!);
+			telegramMessageId = sentMessage.MessageId;
 		}
 
 		await storage.UpdateSendStatusMessageAsync(messageId);
 		logger.LogInformation("Отправлено сообщение в чат {chatId}", chatId);
+
+		if (telegramMessageId.HasValue)
+		{
+			await storage.SaveTelegramMessageIdAsync(messageId, telegramMessageId.Value, CancellationToken.None);
+			logger.LogInformation("Сохранен TelegramMessageId: {TelegramMessageId} для сообщения {MessageId}",
+				telegramMessageId.Value, messageId);
+
+			var repostSettings = await storage.GetRepostSettingsForMessageAsync(messageId, CancellationToken.None);
+			if (repostSettings != null && repostSettings.Destinations.Count > 0)
+			{
+				var command = new RepostMessageCommand
+				{
+					MessageId = messageId,
+					ScheduleId = repostSettings.ScheduleId
+				};
+
+				await publishEndpoint.Publish(command, CancellationToken.None);
+				logger.LogInformation(
+					"Опубликовано событие репоста для сообщения {MessageId} в {Count} направлений",
+					messageId, repostSettings.Destinations.Count);
+			}
+		}
 
 		if (youTubeAccount?.AutoPostingVideo == true)
 		{

@@ -103,4 +103,38 @@ internal class SenderMessageStorage(PosterContext context) : ISenderMessageStora
 			await context.SaveChangesAsync(ct);
 		}
 	}
+
+	public async Task SaveTelegramMessageIdAsync(Guid messageId, int telegramMessageId, CancellationToken ct)
+	{
+		var message = await context.Messages
+			.FirstOrDefaultAsync(m => m.Id == messageId, ct);
+
+		if (message != null)
+		{
+			message.TelegramMessageId = telegramMessageId;
+			await context.SaveChangesAsync(ct);
+		}
+	}
+
+	public Task<RepostSettingsDto?> GetRepostSettingsForMessageAsync(Guid messageId, CancellationToken ct)
+	{
+		return context.Messages
+			.Where(m => m.Id == messageId)
+			.Select(m => m.Schedule.RepostSettings != null && m.Schedule.RepostSettings.IsActive
+				? new RepostSettingsDto
+				{
+					Id = m.Schedule.RepostSettings.Id,
+					ScheduleId = m.Schedule.RepostSettings.ScheduleId,
+					TelegramSessionId = m.Schedule.RepostSettings.TelegramSessionId,
+					Destinations = m.Schedule.RepostSettings.Destinations
+						.Where(d => d.IsActive)
+						.Select(d => new RepostDestinationDto
+						{
+							Id = d.Id,
+							ChatIdentifier = d.ChatIdentifier
+						}).ToList()
+				}
+				: null)
+			.FirstOrDefaultAsync(ct);
+	}
 }

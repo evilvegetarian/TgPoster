@@ -120,4 +120,184 @@ public class SenderMessageStorageShould(StorageTestFixture fixture) : IClassFixt
 		var nonExistentId = Guid.NewGuid();
 		await Should.NotThrowAsync(() => sut.UpdateSendStatusMessageAsync(nonExistentId));
 	}
+
+	[Fact]
+	public async Task SaveTelegramMessageIdAsync_WithValidMessage_ShouldSaveTelegramMessageId()
+	{
+		var schedule = await new ScheduleBuilder(context).CreateAsync();
+		var msg = new Message
+		{
+			Id = Guid.NewGuid(),
+			ScheduleId = schedule.Id,
+			TimePosting = DateTimeOffset.UtcNow.AddMinutes(1),
+			Status = MessageStatus.Register,
+			TextMessage = "test",
+			IsTextMessage = false
+		};
+		await context.Messages.AddAsync(msg);
+		await context.SaveChangesAsync();
+
+		var telegramMessageId = 12345;
+
+		await sut.SaveTelegramMessageIdAsync(msg.Id, telegramMessageId, CancellationToken.None);
+		await context.Entry(msg).ReloadAsync();
+
+		msg.TelegramMessageId.ShouldBe(telegramMessageId);
+	}
+
+	[Fact]
+	public async Task SaveTelegramMessageIdAsync_WithNonExistingMessage_ShouldNotThrow()
+	{
+		var nonExistingId = Guid.NewGuid();
+		var telegramMessageId = 12345;
+
+		await Should.NotThrowAsync(async () =>
+			await sut.SaveTelegramMessageIdAsync(nonExistingId, telegramMessageId, CancellationToken.None));
+	}
+
+	[Fact]
+	public async Task GetRepostSettingsForMessageAsync_WithActiveSettings_ShouldReturnSettings()
+	{
+		var session = await new TelegramSessionBuilder(context).CreateAsync();
+		var schedule = await new ScheduleBuilder(context).CreateAsync();
+		var msg = new Message
+		{
+			Id = Guid.NewGuid(),
+			ScheduleId = schedule.Id,
+			TimePosting = DateTimeOffset.UtcNow.AddMinutes(1),
+			Status = MessageStatus.Register,
+			TextMessage = "test",
+			IsTextMessage = false
+		};
+		await context.Messages.AddAsync(msg);
+		await context.SaveChangesAsync();
+
+		var settings = await new RepostSettingsBuilder(context)
+			.WithScheduleId(schedule.Id)
+			.WithTelegramSessionId(session.Id)
+			.WithIsActive(true)
+			.CreateAsync();
+
+		await new RepostDestinationBuilder(context)
+			.WithRepostSettingsId(settings.Id)
+			.WithChatIdentifier("@channel1")
+			.WithIsActive(true)
+			.CreateAsync();
+
+		await new RepostDestinationBuilder(context)
+			.WithRepostSettingsId(settings.Id)
+			.WithChatIdentifier("@channel2")
+			.WithIsActive(true)
+			.CreateAsync();
+
+		var result = await sut.GetRepostSettingsForMessageAsync(msg.Id, CancellationToken.None);
+
+		result.ShouldNotBeNull();
+		result.ScheduleId.ShouldBe(schedule.Id);
+		result.TelegramSessionId.ShouldBe(session.Id);
+		result.Destinations.Count.ShouldBe(2);
+		result.Destinations.ShouldContain(d => d.ChatIdentifier == "@channel1");
+		result.Destinations.ShouldContain(d => d.ChatIdentifier == "@channel2");
+	}
+
+	[Fact]
+	public async Task GetRepostSettingsForMessageAsync_WithInactiveSettings_ShouldReturnNull()
+	{
+		var session = await new TelegramSessionBuilder(context).CreateAsync();
+		var schedule = await new ScheduleBuilder(context).CreateAsync();
+		var msg = new Message
+		{
+			Id = Guid.NewGuid(),
+			ScheduleId = schedule.Id,
+			TimePosting = DateTimeOffset.UtcNow.AddMinutes(1),
+			Status = MessageStatus.Register,
+			TextMessage = "test",
+			IsTextMessage = false
+		};
+		await context.Messages.AddAsync(msg);
+		await context.SaveChangesAsync();
+
+		await new RepostSettingsBuilder(context)
+			.WithScheduleId(schedule.Id)
+			.WithTelegramSessionId(session.Id)
+			.WithIsActive(false)
+			.CreateAsync();
+
+		var result = await sut.GetRepostSettingsForMessageAsync(msg.Id, CancellationToken.None);
+
+		result.ShouldBeNull();
+	}
+
+	[Fact]
+	public async Task GetRepostSettingsForMessageAsync_WithInactiveDestinations_ShouldReturnOnlyActive()
+	{
+		var session = await new TelegramSessionBuilder(context).CreateAsync();
+		var schedule = await new ScheduleBuilder(context).CreateAsync();
+		var msg = new Message
+		{
+			Id = Guid.NewGuid(),
+			ScheduleId = schedule.Id,
+			TimePosting = DateTimeOffset.UtcNow.AddMinutes(1),
+			Status = MessageStatus.Register,
+			TextMessage = "test",
+			IsTextMessage = false
+		};
+		await context.Messages.AddAsync(msg);
+		await context.SaveChangesAsync();
+
+		var settings = await new RepostSettingsBuilder(context)
+			.WithScheduleId(schedule.Id)
+			.WithTelegramSessionId(session.Id)
+			.WithIsActive(true)
+			.CreateAsync();
+
+		await new RepostDestinationBuilder(context)
+			.WithRepostSettingsId(settings.Id)
+			.WithChatIdentifier("@active")
+			.WithIsActive(true)
+			.CreateAsync();
+
+		await new RepostDestinationBuilder(context)
+			.WithRepostSettingsId(settings.Id)
+			.WithChatIdentifier("@inactive")
+			.WithIsActive(false)
+			.CreateAsync();
+
+		var result = await sut.GetRepostSettingsForMessageAsync(msg.Id, CancellationToken.None);
+
+		result.ShouldNotBeNull();
+		result.Destinations.Count.ShouldBe(1);
+		result.Destinations[0].ChatIdentifier.ShouldBe("@active");
+	}
+
+	[Fact]
+	public async Task GetRepostSettingsForMessageAsync_WithNoRepostSettings_ShouldReturnNull()
+	{
+		var schedule = await new ScheduleBuilder(context).CreateAsync();
+		var msg = new Message
+		{
+			Id = Guid.NewGuid(),
+			ScheduleId = schedule.Id,
+			TimePosting = DateTimeOffset.UtcNow.AddMinutes(1),
+			Status = MessageStatus.Register,
+			TextMessage = "test",
+			IsTextMessage = false
+		};
+		await context.Messages.AddAsync(msg);
+		await context.SaveChangesAsync();
+
+		var result = await sut.GetRepostSettingsForMessageAsync(msg.Id, CancellationToken.None);
+
+		result.ShouldBeNull();
+	}
+
+	[Fact]
+	public async Task GetRepostSettingsForMessageAsync_WithNonExistingMessage_ShouldReturnNull()
+	{
+		var nonExistingId = Guid.NewGuid();
+
+		var result = await sut.GetRepostSettingsForMessageAsync(nonExistingId, CancellationToken.None);
+
+		result.ShouldBeNull();
+	}
 }
