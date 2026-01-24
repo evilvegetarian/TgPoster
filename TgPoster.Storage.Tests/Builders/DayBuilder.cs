@@ -24,6 +24,13 @@ public class DayBuilder(PosterContext context)
 		return day;
 	}
 
+	public async Task<Day> CreateAsync(CancellationToken ct = default)
+	{
+		await context.Days.AddRangeAsync(day);
+		await context.SaveChangesAsync(ct);
+		return day;
+	}
+
 	public DayBuilder WithScheduleId(Guid scheduleId)
 	{
 		day.ScheduleId = scheduleId;
@@ -33,6 +40,12 @@ public class DayBuilder(PosterContext context)
 	public DayBuilder WithDayOfWeek(DayOfWeek dayOfWeek)
 	{
 		day.DayOfWeek = dayOfWeek;
+		return this;
+	}
+
+	public DayBuilder WithTimePostings(IEnumerable<TimeOnly> timePostings)
+	{
+		day.TimePostings = timePostings.ToList();
 		return this;
 	}
 }

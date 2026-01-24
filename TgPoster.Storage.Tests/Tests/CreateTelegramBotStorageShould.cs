@@ -1,20 +1,20 @@
 using Shouldly;
 using TgPoster.Storage.Data;
 using TgPoster.Storage.Storages;
+using TgPoster.Storage.Tests.Builders;
 
 namespace TgPoster.Storage.Tests.Tests;
 
 public class CreateTelegramBotStorageShould(StorageTestFixture fixture) : IClassFixture<StorageTestFixture>
 {
 	private readonly PosterContext context = fixture.GetDbContext();
-	private readonly Helper helper = new(fixture.GetDbContext());
 	private readonly CreateTelegramBotStorage sut = new(fixture.GetDbContext(), new GuidFactory());
 
 	[Fact]
 	public async Task CreateTelegramBotAsync_WithValidData_ShouldCreateBot()
 	{
 		var botName = "nameBot";
-		var user = await helper.CreateUserAsync();
+		var user = await new UserBuilder(context).CreateAsync();
 		var botId = await sut.CreateTelegramBotAsync(
 			"Api Token",
 			long.MaxValue,
@@ -30,7 +30,7 @@ public class CreateTelegramBotStorageShould(StorageTestFixture fixture) : IClass
 	[Fact]
 	public async Task CreateTelegramBotAsync_WithDuplicate_ShouldCreateBot()
 	{
-		var telegramBot = await helper.CreateTelegramBotAsync();
+		var telegramBot = await new TelegramBotBuilder(context).CreateAsync();
 		var botId = await sut.CreateTelegramBotAsync(
 			telegramBot.ApiTelegram,
 			telegramBot.ChatId,

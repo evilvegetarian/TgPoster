@@ -3,6 +3,7 @@ using Shouldly;
 using TgPoster.Storage.Data;
 using TgPoster.Storage.Data.Enum;
 using TgPoster.Storage.Storages;
+using TgPoster.Storage.Tests.Builders;
 using TgPoster.Worker.Domain.UseCases.ParseChannel;
 
 namespace TgPoster.Storage.Tests.Tests;
@@ -10,7 +11,6 @@ namespace TgPoster.Storage.Tests.Tests;
 public class ParseChannelUseCaseStorageShould(StorageTestFixture fixture) : IClassFixture<StorageTestFixture>
 {
 	private readonly PosterContext context = fixture.GetDbContext();
-	private readonly Helper helper = new(fixture.GetDbContext());
 	private readonly ParseChannelUseCaseStorage sut = new(fixture.GetDbContext(), new GuidFactory());
 
 	[Fact]
@@ -24,9 +24,9 @@ public class ParseChannelUseCaseStorageShould(StorageTestFixture fixture) : ICla
 	[Fact]
 	public async Task GetChannelParsingParameters_WithExistId_ShouldReturnsParameters()
 	{
-		var schedule = await helper.CreateScheduleAsync();
+		var schedule = await new ScheduleBuilder(context).CreateAsync();
 
-		var cpp = await helper.CreateChannelParsingParametersAsync(schedule.Id);
+		var cpp = await new ChannelParsingSettingBuilder(context).WithScheduleId(schedule.Id).CreateAsync();
 
 		var result = await sut.GetChannelParsingParametersAsync(cpp.Id, CancellationToken.None);
 
@@ -39,7 +39,7 @@ public class ParseChannelUseCaseStorageShould(StorageTestFixture fixture) : ICla
 	[Fact]
 	public async Task CreateMessages_WithValidData_ShouldInsertsMessages()
 	{
-		var schedule = await helper.CreateScheduleAsync();
+		var schedule = await new ScheduleBuilder(context).CreateAsync();
 
 		var messageText = "Test message";
 		var photoId = "7c307ab7-6ea2-4b3a-bbca-c6e09b507b7e";
@@ -83,7 +83,7 @@ public class ParseChannelUseCaseStorageShould(StorageTestFixture fixture) : ICla
 	[Fact]
 	public async Task UpdateChannelParsingParameters_WithValidData_ShouldUpdate()
 	{
-		var cpp = await helper.CreateChannelParsingParametersAsync();
+		var cpp = await new ChannelParsingSettingBuilder(context).CreateAsync();
 		var offsetId = 777;
 		await sut.UpdateChannelParsingParametersAsync(cpp.Id, offsetId, true, CancellationToken.None);
 
@@ -97,7 +97,7 @@ public class ParseChannelUseCaseStorageShould(StorageTestFixture fixture) : ICla
 	[Fact]
 	public async Task UpdateChannelParsingParameters_WithCheckNewPosts_ShouldParsingWaiting()
 	{
-		var cpp = await helper.CreateChannelParsingParametersAsync();
+		var cpp = await new ChannelParsingSettingBuilder(context).CreateAsync();
 		await sut.UpdateChannelParsingParametersAsync(cpp.Id, int.MaxValue, true, CancellationToken.None);
 
 		var updated = await context.ChannelParsingParameters
@@ -109,7 +109,7 @@ public class ParseChannelUseCaseStorageShould(StorageTestFixture fixture) : ICla
 	[Fact]
 	public async Task UpdateChannelParsingParameters_WithNotCheckNewPosts_ShouldParsingFinished()
 	{
-		var cpp = await helper.CreateChannelParsingParametersAsync();
+		var cpp = await new ChannelParsingSettingBuilder(context).CreateAsync();
 		await sut.UpdateChannelParsingParametersAsync(cpp.Id, int.MaxValue, false, CancellationToken.None);
 
 		var updated = await context.ChannelParsingParameters
@@ -121,7 +121,7 @@ public class ParseChannelUseCaseStorageShould(StorageTestFixture fixture) : ICla
 	[Fact]
 	public async Task UpdateInHandleStatus_WithValidData_ShouldUpdate()
 	{
-		var cpp = await helper.CreateChannelParsingParametersAsync();
+		var cpp = await new ChannelParsingSettingBuilder(context).CreateAsync();
 		await sut.UpdateInHandleStatusAsync(cpp.Id, CancellationToken.None);
 		var updated = await context.ChannelParsingParameters
 			.AsNoTracking()
@@ -132,7 +132,7 @@ public class ParseChannelUseCaseStorageShould(StorageTestFixture fixture) : ICla
 	[Fact]
 	public async Task UpdateErrorStatus_WithValidData_ShouldUpdate()
 	{
-		var cpp = await helper.CreateChannelParsingParametersAsync();
+		var cpp = await new ChannelParsingSettingBuilder(context).CreateAsync();
 		await sut.UpdateErrorStatusAsync(cpp.Id, CancellationToken.None);
 		var updated = await context.ChannelParsingParameters
 			.AsNoTracking()
@@ -143,7 +143,7 @@ public class ParseChannelUseCaseStorageShould(StorageTestFixture fixture) : ICla
 	[Fact]
 	public async Task GetScheduleTime_WithDays_ShouldReturnDictionary()
 	{
-		var day = await helper.CreateDayAsync();
+		var day = await new DayBuilder(context).CreateAsync();
 		var result = await sut.GetScheduleTimeAsync(day.ScheduleId, CancellationToken.None);
 		result.ShouldContainKey(day.DayOfWeek);
 		day.TimePostings.All(tp => result[day.DayOfWeek].Contains(tp)).ShouldBeTrue();
@@ -152,7 +152,7 @@ public class ParseChannelUseCaseStorageShould(StorageTestFixture fixture) : ICla
 	[Fact]
 	public async Task GetScheduleTime_WithNoDays_ShouldReturnEmptyDictionary()
 	{
-		var schedule = await helper.CreateScheduleAsync();
+		var schedule = await new ScheduleBuilder(context).CreateAsync();
 		var result = await sut.GetScheduleTimeAsync(schedule.Id, CancellationToken.None);
 		result.ShouldBeEmpty();
 	}
@@ -202,7 +202,7 @@ public class ParseChannelUseCaseStorageShould(StorageTestFixture fixture) : ICla
 	[Fact]
 	public async Task GetExistMessageTimePosting_WithNoMessages_ShouldReturnEmptyList()
 	{
-		var schedule = await helper.CreateScheduleAsync();
+		var schedule = await new ScheduleBuilder(context).CreateAsync();
 		var result = await sut.GetExistMessageTimePostingAsync(schedule.Id, CancellationToken.None);
 		result.ShouldBeEmpty();
 	}

@@ -3,19 +3,19 @@ using Shouldly;
 using TgPoster.Storage.Data;
 using TgPoster.Storage.Data.Enum;
 using TgPoster.Storage.Storages;
+using TgPoster.Storage.Tests.Builders;
 
 namespace TgPoster.Storage.Tests.Tests;
 
 public class ParseChannelStorageShould(StorageTestFixture fixture) : IClassFixture<StorageTestFixture>
 {
 	private readonly PosterContext context = fixture.GetDbContext();
-	private readonly Helper helper = new(fixture.GetDbContext());
 	private readonly ParseChannelStorage sut = new(fixture.GetDbContext(), new GuidFactory());
 
 	[Fact]
 	public async Task AddParseChannelParametersAsync_WithValidData_ShouldCreateChannelParsingParameters()
 	{
-		var schedule = await helper.CreateScheduleAsync();
+		var schedule = await new ScheduleBuilder(context).CreateAsync();
 		var channel = "TestChannel";
 		var alwaysCheckNewPosts = true;
 		var deleteText = false;
@@ -57,7 +57,7 @@ public class ParseChannelStorageShould(StorageTestFixture fixture) : IClassFixtu
 	[Fact]
 	public async Task AddParseChannelParametersAsync_WithNullDates_ShouldCreateParametersWithNullDates()
 	{
-		var schedule = await helper.CreateScheduleAsync();
+		var schedule = await new ScheduleBuilder(context).CreateAsync();
 		var channel = "TestChannel";
 		var avoidWords = new[] { "spam" };
 
@@ -87,7 +87,7 @@ public class ParseChannelStorageShould(StorageTestFixture fixture) : IClassFixtu
 	[Fact]
 	public async Task AddParseChannelParametersAsync_WithEmptyAvoidWords_ShouldCreateParameters()
 	{
-		var schedule = await helper.CreateScheduleAsync();
+		var schedule = await new ScheduleBuilder(context).CreateAsync();
 		var channel = "TestChannel";
 		var avoidWords = Array.Empty<string>();
 
@@ -116,7 +116,7 @@ public class ParseChannelStorageShould(StorageTestFixture fixture) : IClassFixtu
 	[Fact]
 	public async Task GetTelegramTokenAsync_WithExistingSchedule_ShouldReturnToken()
 	{
-		var schedule = await helper.CreateScheduleAsync();
+		var schedule = await new ScheduleBuilder(context).CreateAsync();
 
 		var result = await sut.GetTelegramTokenAsync(schedule.Id, schedule.UserId, CancellationToken.None);
 

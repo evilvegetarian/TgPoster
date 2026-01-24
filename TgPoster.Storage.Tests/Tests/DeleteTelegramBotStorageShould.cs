@@ -2,20 +2,20 @@ using Microsoft.EntityFrameworkCore;
 using Shouldly;
 using TgPoster.Storage.Data;
 using TgPoster.Storage.Storages;
+using TgPoster.Storage.Tests.Builders;
 
 namespace TgPoster.Storage.Tests.Tests;
 
 public class DeleteTelegramBotStorageShould(StorageTestFixture fixture) : IClassFixture<StorageTestFixture>
 {
 	private readonly PosterContext context = fixture.GetDbContext();
-	private readonly Helper helper = new(fixture.GetDbContext());
 	private readonly DeleteTelegramBotStorage sut = new(fixture.GetDbContext());
 
 	[Fact]
 	public async Task ExistsAsync_WithExistingTelegramBot_ShouldReturnTrue()
 	{
-		var user = await helper.CreateUserAsync();
-		var telegramBot = await helper.CreateTelegramBotAsync(user.Id);
+		var user = await new UserBuilder(context).CreateAsync();
+		var telegramBot = await new TelegramBotBuilder(context).WithOwnerId(user.Id).CreateAsync();
 
 		var result = await sut.ExistsAsync(telegramBot.Id, user.Id, CancellationToken.None);
 
@@ -25,7 +25,7 @@ public class DeleteTelegramBotStorageShould(StorageTestFixture fixture) : IClass
 	[Fact]
 	public async Task ExistsAsync_WithNonExistingTelegramBot_ShouldReturnFalse()
 	{
-		var user = await helper.CreateUserAsync();
+		var user = await new UserBuilder(context).CreateAsync();
 		var nonExistingBotId = Guid.NewGuid();
 
 		var result = await sut.ExistsAsync(nonExistingBotId, user.Id, CancellationToken.None);
@@ -36,8 +36,8 @@ public class DeleteTelegramBotStorageShould(StorageTestFixture fixture) : IClass
 	[Fact]
 	public async Task ExistsAsync_WithWrongUserId_ShouldReturnFalse()
 	{
-		var user = await helper.CreateUserAsync();
-		var telegramBot = await helper.CreateTelegramBotAsync(user.Id);
+		var user = await new UserBuilder(context).CreateAsync();
+		var telegramBot = await new TelegramBotBuilder(context).WithOwnerId(user.Id).CreateAsync();
 		var wrongUserId = Guid.NewGuid();
 
 		var result = await sut.ExistsAsync(telegramBot.Id, wrongUserId, CancellationToken.None);
@@ -48,24 +48,24 @@ public class DeleteTelegramBotStorageShould(StorageTestFixture fixture) : IClass
 	[Fact]
 	public async Task DeleteTelegramBotAsync_WithExistingBot_ShouldMarkAsDeleted()
 	{
-	    var user = await helper.CreateUserAsync();
-	    var telegramBot = await helper.CreateTelegramBotAsync(user.Id);
+		var user = await new UserBuilder(context).CreateAsync();
+		var telegramBot = await new TelegramBotBuilder(context).WithOwnerId(user.Id).CreateAsync();
 
-	    await sut.DeleteTelegramBotAsync(telegramBot.Id, user.Id, CancellationToken.None);
+		await sut.DeleteTelegramBotAsync(telegramBot.Id, user.Id, CancellationToken.None);
+		context.ChangeTracker.Clear();
+		var deletedBot = await context.TelegramBots
+			.IgnoreQueryFilters()
+			.FirstOrDefaultAsync(x => x.Id == telegramBot.Id);
 
-	    var deletedBot = await context.TelegramBots
-		    .IgnoreQueryFilters()
-	        .FirstOrDefaultAsync(x => x.Id == telegramBot.Id);
-
-	    deletedBot.ShouldNotBeNull();
-	    deletedBot.Deleted.ShouldNotBeNull();
+		deletedBot.ShouldNotBeNull();
+		deletedBot.Deleted.ShouldNotBeNull();
 	}
 
 	[Fact]
 	public async Task DeleteTelegramBotAsync_WithWrongUserId_ShouldNotDeleteBot()
 	{
-		var user = await helper.CreateUserAsync();
-		var telegramBot = await helper.CreateTelegramBotAsync(user.Id);
+		var user = await new UserBuilder(context).CreateAsync();
+		var telegramBot = await new TelegramBotBuilder(context).WithOwnerId(user.Id).CreateAsync();
 		var wrongUserId = Guid.NewGuid();
 
 		await sut.DeleteTelegramBotAsync(telegramBot.Id, wrongUserId, CancellationToken.None);

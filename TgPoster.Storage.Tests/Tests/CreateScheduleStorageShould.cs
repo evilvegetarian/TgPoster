@@ -2,20 +2,20 @@ using Microsoft.EntityFrameworkCore;
 using Shouldly;
 using TgPoster.Storage.Data;
 using TgPoster.Storage.Storages;
+using TgPoster.Storage.Tests.Builders;
 
 namespace TgPoster.Storage.Tests.Tests;
 
 public class CreateScheduleStorageShould(StorageTestFixture fixture) : IClassFixture<StorageTestFixture>
 {
 	private readonly PosterContext context = fixture.GetDbContext();
-	private readonly Helper helper = new(fixture.GetDbContext());
 	private readonly CreateScheduleStorage sut = new(fixture.GetDbContext(), new GuidFactory());
 
 	[Fact]
 	public async Task CreateScheduleAsync_WithValidData_ShouldCreateSchedule()
 	{
-		var user = await helper.CreateUserAsync();
-		var telegramBot = await helper.CreateTelegramBotAsync(user.Id);
+		var user = await new UserBuilder(context).CreateAsync();
+		var telegramBot = await new TelegramBotBuilder(context).WithOwnerId(user.Id).CreateAsync();
 		var name = "Test Schedule";
 		var channelId = -1001234567890L;
 		var channelName = "Test Channel";
@@ -45,8 +45,8 @@ public class CreateScheduleStorageShould(StorageTestFixture fixture) : IClassFix
 	[Fact]
 	public async Task GetApiTokenAsync_WithExistingTelegramBot_ShouldReturnApiToken()
 	{
-		var user = await helper.CreateUserAsync();
-		var telegramBot = await helper.CreateTelegramBotAsync(user.Id);
+		var user = await new UserBuilder(context).CreateAsync();
+		var telegramBot = await new TelegramBotBuilder(context).WithOwnerId(user.Id).CreateAsync();
 
 		var result = await sut.GetApiTokenAsync(telegramBot.Id, user.Id, CancellationToken.None);
 
@@ -57,7 +57,7 @@ public class CreateScheduleStorageShould(StorageTestFixture fixture) : IClassFix
 	[Fact]
 	public async Task GetApiTokenAsync_WithNonExistingTelegramBot_ShouldReturnNull()
 	{
-		var user = await helper.CreateUserAsync();
+		var user = await new UserBuilder(context).CreateAsync();
 		var nonExistingBotId = Guid.NewGuid();
 
 		var result = await sut.GetApiTokenAsync(nonExistingBotId, user.Id, CancellationToken.None);
@@ -68,8 +68,8 @@ public class CreateScheduleStorageShould(StorageTestFixture fixture) : IClassFix
 	[Fact]
 	public async Task GetApiTokenAsync_WithWrongUserId_ShouldReturnNull()
 	{
-		var user = await helper.CreateUserAsync();
-		var telegramBot = await helper.CreateTelegramBotAsync(user.Id);
+		var user = await new UserBuilder(context).CreateAsync();
+		var telegramBot = await new TelegramBotBuilder(context).WithOwnerId(user.Id).CreateAsync();
 		var wrongUserId = Guid.NewGuid();
 
 		var result = await sut.GetApiTokenAsync(telegramBot.Id, wrongUserId, CancellationToken.None);

@@ -3,19 +3,19 @@ using Shouldly;
 using TgPoster.Storage.Data;
 using TgPoster.Storage.Data.Entities;
 using TgPoster.Storage.Storages;
+using TgPoster.Storage.Tests.Builders;
 
 namespace TgPoster.Storage.Tests.Tests;
 
 public class RefreshTokenStorageShould(StorageTestFixture fixture) : IClassFixture<StorageTestFixture>
 {
 	private readonly PosterContext context = fixture.GetDbContext();
-	private readonly Helper helper = new(fixture.GetDbContext());
 	private readonly RefreshTokenStorage sut = new(fixture.GetDbContext());
 
 	[Fact]
 	public async Task GetUserIdAsync_WithValidRefreshToken_ShouldReturnUserId()
 	{
-		var refreshSession = await helper.CreateRefreshSessionAsync();
+		var refreshSession = await new RefreshSessionBuilder(context).CreateAsync();
 
 		var result = await sut.GetUserIdAsync(refreshSession.RefreshToken, CancellationToken.None);
 
@@ -25,7 +25,7 @@ public class RefreshTokenStorageShould(StorageTestFixture fixture) : IClassFixtu
 	[Fact]
 	public async Task GetUserIdAsync_WithExpiredRefreshToken_ShouldReturnEmptyGuid()
 	{
-		var user = await helper.CreateUserAsync();
+		var user = await new UserBuilder(context).CreateAsync();
 		var expiredRefreshSession = new RefreshSession
 		{
 			Id = Guid.NewGuid(),
@@ -54,7 +54,7 @@ public class RefreshTokenStorageShould(StorageTestFixture fixture) : IClassFixtu
 	[Fact]
 	public async Task UpdateRefreshSessionAsync_WithValidData_ShouldUpdateRefreshSession()
 	{
-		var refreshSession = await helper.CreateRefreshSessionAsync();
+		var refreshSession = await new RefreshSessionBuilder(context).CreateAsync();
 		var newRefreshToken = Guid.NewGuid();
 		var newExpiresAt = DateTimeOffset.UtcNow.AddDays(14);
 
@@ -63,7 +63,7 @@ public class RefreshTokenStorageShould(StorageTestFixture fixture) : IClassFixtu
 			newRefreshToken,
 			newExpiresAt,
 			CancellationToken.None);
-
+		context.ChangeTracker.Clear();
 		var updatedSession = await context.RefreshSessions
 			.FirstOrDefaultAsync(x => x.Id == refreshSession.Id);
 

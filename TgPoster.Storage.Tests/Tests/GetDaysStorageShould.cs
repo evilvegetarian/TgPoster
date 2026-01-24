@@ -1,17 +1,19 @@
 using Shouldly;
+using TgPoster.Storage.Data;
 using TgPoster.Storage.Storages;
+using TgPoster.Storage.Tests.Builders;
 
 namespace TgPoster.Storage.Tests.Tests;
 
 public class GetDaysStorageShould(StorageTestFixture fixture) : IClassFixture<StorageTestFixture>
 {
-	private readonly Helper helper = new(fixture.GetDbContext());
+	private readonly PosterContext context = fixture.GetDbContext();
 	private readonly GetDaysStorage sut = new(fixture.GetDbContext());
 
 	[Fact]
 	public async Task ScheduleExistAsync_WithExistingSchedule_ShouldReturnTrue()
 	{
-		var schedule = await helper.CreateScheduleAsync();
+		var schedule = await new ScheduleBuilder(context).CreateAsync();
 
 		var result = await sut.ScheduleExistAsync(schedule.Id, schedule.UserId, CancellationToken.None);
 
@@ -21,7 +23,7 @@ public class GetDaysStorageShould(StorageTestFixture fixture) : IClassFixture<St
 	[Fact]
 	public async Task ScheduleExistAsync_WithNonExistingSchedule_ShouldReturnFalse()
 	{
-		var user = await helper.CreateUserAsync();
+		var user = await new UserBuilder(context).CreateAsync();
 		var nonExistingScheduleId = Guid.NewGuid();
 
 		var result = await sut.ScheduleExistAsync(nonExistingScheduleId, user.Id, CancellationToken.None);
@@ -32,7 +34,7 @@ public class GetDaysStorageShould(StorageTestFixture fixture) : IClassFixture<St
 	[Fact]
 	public async Task ScheduleExistAsync_WithWrongUserId_ShouldReturnFalse()
 	{
-		var schedule = await helper.CreateScheduleAsync();
+		var schedule = await new ScheduleBuilder(context).CreateAsync();
 		var wrongUserId = Guid.NewGuid();
 
 		var result = await sut.ScheduleExistAsync(schedule.Id, wrongUserId, CancellationToken.None);
@@ -43,9 +45,9 @@ public class GetDaysStorageShould(StorageTestFixture fixture) : IClassFixture<St
 	[Fact]
 	public async Task GetDaysAsync_WithExistingDays_ShouldReturnDays()
 	{
-		var schedule = await helper.CreateScheduleAsync();
-		var day1 = await helper.CreateDayAsync(schedule.Id, DayOfWeek.Friday);
-		var day2 = await helper.CreateDayAsync(schedule.Id, DayOfWeek.Sunday);
+		var schedule = await new ScheduleBuilder(context).CreateAsync();
+		var day1 = await new DayBuilder(context).WithScheduleId(schedule.Id).WithDayOfWeek(DayOfWeek.Friday).CreateAsync();
+		var day2 = await new DayBuilder(context).WithScheduleId(schedule.Id).WithDayOfWeek(DayOfWeek.Sunday).CreateAsync();
 
 		var result = await sut.GetDaysAsync(schedule.Id, CancellationToken.None);
 
@@ -69,7 +71,7 @@ public class GetDaysStorageShould(StorageTestFixture fixture) : IClassFixture<St
 	[Fact]
 	public async Task GetDaysAsync_WithScheduleWithoutDays_ShouldReturnEmptyList()
 	{
-		var schedule = await helper.CreateScheduleAsync();
+		var schedule = await new ScheduleBuilder(context).CreateAsync();
 
 		var result = await sut.GetDaysAsync(schedule.Id, CancellationToken.None);
 
@@ -79,8 +81,8 @@ public class GetDaysStorageShould(StorageTestFixture fixture) : IClassFixture<St
 	[Fact]
 	public async Task GetDaysAsync_ShouldReturnCorrectDayData()
 	{
-		var schedule = await helper.CreateScheduleAsync();
-		var day = await helper.CreateDayAsync(schedule.Id);
+		var schedule = await new ScheduleBuilder(context).CreateAsync();
+		var day = await new DayBuilder(context).WithScheduleId(schedule.Id).CreateAsync();
 
 		var result = await sut.GetDaysAsync(schedule.Id, CancellationToken.None);
 

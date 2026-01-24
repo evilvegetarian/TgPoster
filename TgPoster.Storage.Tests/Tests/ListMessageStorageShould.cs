@@ -14,7 +14,6 @@ public sealed class ListMessageStorageShould(StorageTestFixture fixture) : IClas
 {
 	private static readonly CancellationToken Ct = CancellationToken.None;
 	private readonly PosterContext context = fixture.GetDbContext();
-	private readonly Helper helper = new(fixture.GetDbContext());
 	private readonly ListMessageStorage sut = new(fixture.GetDbContext());
 
 	private static ListMessageQuery CreateQuery(
@@ -31,7 +30,7 @@ public sealed class ListMessageStorageShould(StorageTestFixture fixture) : IClas
 	[Fact]
 	public async Task ExistScheduleAsync_WithExistingSchedule_ShouldReturnTrue()
 	{
-		var schedule = await helper.CreateScheduleAsync();
+		var schedule = await new ScheduleBuilder(context).CreateAsync();
 		var result = await sut.ExistScheduleAsync(schedule.Id, schedule.UserId, Ct);
 		result.ShouldBeTrue();
 	}
@@ -39,7 +38,7 @@ public sealed class ListMessageStorageShould(StorageTestFixture fixture) : IClas
 	[Fact]
 	public async Task ExistScheduleAsync_WithScheduleForAnotherUser_ShouldReturnFalse()
 	{
-		var schedule = await helper.CreateScheduleAsync();
+		var schedule = await new ScheduleBuilder(context).CreateAsync();
 		var result = await sut.ExistScheduleAsync(schedule.Id, Guid.NewGuid(), Ct);
 		result.ShouldBeFalse();
 	}
@@ -54,7 +53,7 @@ public sealed class ListMessageStorageShould(StorageTestFixture fixture) : IClas
 	[Fact]
 	public async Task GetApiTokenAsync_WithExistingSchedule_ShouldReturnApiToken()
 	{
-		var schedule = await helper.CreateScheduleAsync();
+		var schedule = await new ScheduleBuilder(context).CreateAsync();
 		var result = await sut.GetApiTokenAsync(schedule.Id, Ct);
 		result.ShouldNotBeNull();
 		result.ShouldNotBeEmpty();
@@ -70,10 +69,10 @@ public sealed class ListMessageStorageShould(StorageTestFixture fixture) : IClas
 	[Fact]
 	public async Task GetMessagesAsync_WithExistingMessages_ShouldReturnMessages()
 	{
-		var schedule = await helper.CreateScheduleAsync();
-		var message1 = await helper.CreateMessageAsync(schedule.Id);
-		var message2 = await helper.CreateMessageAsync(schedule.Id);
-		await helper.CreateMessageFileAsync(message1.Id);
+		var schedule = await new ScheduleBuilder(context).CreateAsync();
+		var message1 = await new MessageBuilder(context).WithScheduleId(schedule.Id).CreateAsync();
+		var message2 = await new MessageBuilder(context).WithScheduleId(schedule.Id).CreateAsync();
+		new MessageFileBuilder(context).WithMessageId(message1.Id).Create();
 		//await helper.CreateVideoMessageFileAsync(message2.Id);
 		var request = CreateQuery(schedule.Id, sortBy: MessageSortBy.SentAt);
 
@@ -89,7 +88,7 @@ public sealed class ListMessageStorageShould(StorageTestFixture fixture) : IClas
 	[Fact]
 	public async Task GetMessagesAsync_WithScheduleWithoutMessages_ShouldReturnEmptyList()
 	{
-		var schedule = await helper.CreateScheduleAsync();
+		var schedule = await new ScheduleBuilder(context).CreateAsync();
 		var request = CreateQuery(schedule.Id);
 		var result = await sut.GetMessagesAsync(request, Ct);
 		result.TotalCount.ShouldBe(0);
@@ -108,7 +107,7 @@ public sealed class ListMessageStorageShould(StorageTestFixture fixture) : IClas
 	[Fact]
 	public async Task GetMessagesAsync_WithFiles_ShouldReturnMessagesWithFiles()
 	{
-		var schedule = await helper.CreateScheduleAsync();
+		var schedule = await new ScheduleBuilder(context).CreateAsync();
 		new MessageBuilder(context).WithScheduleId(schedule.Id).WithPhotoMessageFile().WithVideoMessageFile().Create();
 		var request = CreateQuery(schedule.Id);
 
@@ -143,12 +142,12 @@ public sealed class ListMessageStorageShould(StorageTestFixture fixture) : IClas
 	[Fact]
 	public async Task GetMessagesAsync_WithSearchText_ShouldReturnOnlyMatchingMessages()
 	{
-		var schedule = await helper.CreateScheduleAsync();
-		var matching = await helper.CreateMessageAsync(schedule.Id);
+		var schedule = await new ScheduleBuilder(context).CreateAsync();
+		var matching = await new MessageBuilder(context).WithScheduleId(schedule.Id).CreateAsync();
 		matching.TextMessage = "Hello World";
-		var nonMatching = await helper.CreateMessageAsync(schedule.Id);
+		var nonMatching = await new MessageBuilder(context).WithScheduleId(schedule.Id).CreateAsync();
 		nonMatching.TextMessage = "Something Else";
-		var nullText = await helper.CreateMessageAsync(schedule.Id);
+		var nullText = await new MessageBuilder(context).WithScheduleId(schedule.Id).CreateAsync();
 		nullText.TextMessage = null;
 		await context.SaveChangesAsync();
 

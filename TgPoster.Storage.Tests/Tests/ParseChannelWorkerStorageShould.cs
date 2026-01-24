@@ -3,26 +3,26 @@ using Shouldly;
 using TgPoster.Storage.Data;
 using TgPoster.Storage.Data.Enum;
 using TgPoster.Storage.Storages;
+using TgPoster.Storage.Tests.Builders;
 
 namespace TgPoster.Storage.Tests.Tests;
 
 public class ParseChannelWorkerStorageShould(StorageTestFixture fixture) : IClassFixture<StorageTestFixture>
 {
 	private readonly PosterContext context = fixture.GetDbContext();
-	private readonly Helper helper = new(fixture.GetDbContext());
 	private readonly ParseChannelWorkerStorage sut = new(fixture.GetDbContext());
 
 	[Fact]
 	public async Task GetChannelParsingParametersAsync_ShouldReturnIdsWithCorrectStatusAndCheckNewPosts()
 	{
 		// Arrange
-		var cpp1 = await helper.CreateChannelParsingParametersAsync(null, ParsingStatus.InHandle, true);
+		var cpp1 = await new ChannelParsingSettingBuilder(context).WithStatus(ParsingStatus.InHandle).WithCheckNewPosts(true).CreateAsync();
 
-		var cpp2 = await helper.CreateChannelParsingParametersAsync(null, ParsingStatus.Finished, true);
+		var cpp2 = await new ChannelParsingSettingBuilder(context).WithStatus(ParsingStatus.Finished).WithCheckNewPosts(true).CreateAsync();
 
-		var cpp3 = await helper.CreateChannelParsingParametersAsync(null, ParsingStatus.InHandle);
+		var cpp3 = await new ChannelParsingSettingBuilder(context).WithStatus(ParsingStatus.InHandle).CreateAsync();
 
-		var cpp4 = await helper.CreateChannelParsingParametersAsync(null, ParsingStatus.Waiting, true);
+		var cpp4 = await new ChannelParsingSettingBuilder(context).WithStatus(ParsingStatus.Waiting).WithCheckNewPosts(true).CreateAsync();
 
 		await context.SaveChangesAsync();
 
@@ -40,7 +40,7 @@ public class ParseChannelWorkerStorageShould(StorageTestFixture fixture) : IClas
 	public async Task GetChannelParsingParametersAsync_ShouldReturnEmptyListIfNoMatch()
 	{
 		// Arrange
-		var cpp = await helper.CreateChannelParsingParametersAsync(null, ParsingStatus.Waiting);
+		var cpp = await new ChannelParsingSettingBuilder(context).WithStatus(ParsingStatus.Waiting).CreateAsync();
 
 		// Act
 		var result = await sut.GetChannelParsingParametersAsync();
@@ -53,11 +53,8 @@ public class ParseChannelWorkerStorageShould(StorageTestFixture fixture) : IClas
 	public async Task SetInHandleStatusAsync_ShouldUpdateStatusForGivenIds()
 	{
 		// Arrange
-		var cpp1 = await helper.CreateChannelParsingParametersAsync();
-		cpp1.Status = ParsingStatus.Waiting;
-		var cpp2 = await helper.CreateChannelParsingParametersAsync();
-		cpp2.Status = ParsingStatus.Finished;
-		await context.SaveChangesAsync();
+		var cpp1 = await new ChannelParsingSettingBuilder(context).WithStatus(ParsingStatus.Waiting).CreateAsync();
+		var cpp2 = await new ChannelParsingSettingBuilder(context).WithStatus(ParsingStatus.Finished).CreateAsync();
 
 		// Act
 		await sut.SetInHandleStatusAsync([cpp1.Id, cpp2.Id]);
@@ -86,9 +83,7 @@ public class ParseChannelWorkerStorageShould(StorageTestFixture fixture) : IClas
 	public async Task SetWaitingStatusAsync_ShouldUpdateStatusForExistingId()
 	{
 		// Arrange
-		var cpp = await helper.CreateChannelParsingParametersAsync();
-		cpp.Status = ParsingStatus.InHandle;
-		await context.SaveChangesAsync();
+		var cpp = await new ChannelParsingSettingBuilder(context).WithStatus(ParsingStatus.InHandle).CreateAsync();
 
 		// Act
 		await sut.SetWaitingStatusAsync(cpp.Id);
@@ -101,12 +96,10 @@ public class ParseChannelWorkerStorageShould(StorageTestFixture fixture) : IClas
 	[Fact]
 	public async Task SetErrorStatusAsync_ShouldUpdateStatusForExistingId()
 	{
-		var cpp = await helper.CreateChannelParsingParametersAsync();
-		cpp.Status = ParsingStatus.InHandle;
-		await context.SaveChangesAsync();
+		var cpp = await new ChannelParsingSettingBuilder(context).WithStatus(ParsingStatus.InHandle).CreateAsync();
 
 		await sut.SetErrorStatusAsync(cpp.Id);
-
+		context.ChangeTracker.Clear();
 		var channelParsingParameters = await context.ChannelParsingParameters.FirstOrDefaultAsync(x => x.Id == cpp.Id);
 		channelParsingParameters.ShouldNotBeNull();
 		channelParsingParameters.Status.ShouldBe(ParsingStatus.Failed);

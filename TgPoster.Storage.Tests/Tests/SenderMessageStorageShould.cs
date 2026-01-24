@@ -3,19 +3,19 @@ using TgPoster.Storage.Data;
 using TgPoster.Storage.Data.Entities;
 using TgPoster.Storage.Data.Enum;
 using TgPoster.Storage.Storages;
+using TgPoster.Storage.Tests.Builders;
 
 namespace TgPoster.Storage.Tests.Tests;
 
 public class SenderMessageStorageShould(StorageTestFixture fixture) : IClassFixture<StorageTestFixture>
 {
 	private readonly PosterContext context = fixture.GetDbContext();
-	private readonly Helper helper = new(fixture.GetDbContext());
 	private readonly SenderMessageStorage sut = new(fixture.GetDbContext());
 
 	[Fact]
 	public async Task GetMessagesAsync_ShouldReturnMessagesInNext5MinutesWithRegisterStatus()
 	{
-		var schedule = await helper.CreateScheduleAsync();
+		var schedule = await new ScheduleBuilder(context).CreateAsync();
 		var now = DateTimeOffset.UtcNow;
 
 		var msgInWindow = new Message
@@ -60,7 +60,7 @@ public class SenderMessageStorageShould(StorageTestFixture fixture) : IClassFixt
 	[Fact]
 	public async Task UpdateStatusInHandleMessageAsync_ShouldUpdateStatusForGivenIds()
 	{
-		var schedule = await helper.CreateScheduleAsync();
+		var schedule = await new ScheduleBuilder(context).CreateAsync();
 		var msg = new Message
 		{
 			Id = Guid.NewGuid(),
@@ -95,7 +95,7 @@ public class SenderMessageStorageShould(StorageTestFixture fixture) : IClassFixt
 	[Fact]
 	public async Task UpdateStatusMessageAsync_ShouldUpdateStatusToSend()
 	{
-		var schedule = await helper.CreateScheduleAsync();
+		var schedule = await new ScheduleBuilder(context).CreateAsync();
 		var msg = new Message
 		{
 			Id = Guid.NewGuid(),

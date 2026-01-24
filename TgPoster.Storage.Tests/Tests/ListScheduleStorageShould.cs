@@ -2,24 +2,29 @@ using Shouldly;
 using TgPoster.Storage.Data;
 using TgPoster.Storage.Data.Entities;
 using TgPoster.Storage.Storages;
+using TgPoster.Storage.Tests.Builders;
 
 namespace TgPoster.Storage.Tests.Tests;
 
 public class ListScheduleStorageShould(StorageTestFixture fixture) : IClassFixture<StorageTestFixture>
 {
 	private readonly PosterContext context = fixture.GetDbContext();
-	private readonly Helper helper = new(fixture.GetDbContext());
 	private readonly ListScheduleStorage sut = new(fixture.GetDbContext());
 
 	[Fact]
 	public async Task GetListScheduleAsync_WithExistingSchedules_ShouldReturnSchedules()
 	{
-		var user = await helper.CreateUserAsync();
-		var telegramBot1 = await helper.CreateTelegramBotAsync(user.Id);
-		var telegramBot2 = await helper.CreateTelegramBotAsync(user.Id);
+		var user = await new UserBuilder(context).CreateAsync();
+		var telegramBot1 = await new TelegramBotBuilder(context).WithOwnerId(user.Id).CreateAsync();
+		var telegramBot2 = await new TelegramBotBuilder(context).WithOwnerId(user.Id).CreateAsync();
 
-		var schedule1 = await CreateScheduleForUser(user.Id, telegramBot1.Id, "Schedule 1");
-		var schedule2 = await CreateScheduleForUser(user.Id, telegramBot2.Id, "Schedule 2");
+		var schedule1 = await new ScheduleBuilder(context).WithUserId(user.Id).WithTelegramBotId(telegramBot1.Id)
+			.CreateAsync();
+		schedule1.Name = "Schedule 1";
+		var schedule2 = await new ScheduleBuilder(context).WithUserId(user.Id).WithTelegramBotId(telegramBot2.Id)
+			.CreateAsync();
+		schedule2.Name = "Schedule 2";
+		await context.SaveChangesAsync();
 
 		var result = await sut.GetListScheduleAsync(user.Id, CancellationToken.None);
 
@@ -33,7 +38,7 @@ public class ListScheduleStorageShould(StorageTestFixture fixture) : IClassFixtu
 	[Fact]
 	public async Task GetListScheduleAsync_WithNoSchedules_ShouldReturnEmptyList()
 	{
-		var user = await helper.CreateUserAsync();
+		var user = await new UserBuilder(context).CreateAsync();
 
 		var result = await sut.GetListScheduleAsync(user.Id, CancellationToken.None);
 
@@ -53,14 +58,19 @@ public class ListScheduleStorageShould(StorageTestFixture fixture) : IClassFixtu
 	[Fact]
 	public async Task GetListScheduleAsync_ShouldReturnOnlyUserSchedules()
 	{
-		var user1 = await helper.CreateUserAsync();
-		var user2 = await helper.CreateUserAsync();
+		var user1 = await new UserBuilder(context).CreateAsync();
+		var user2 = await new UserBuilder(context).CreateAsync();
 
-		var telegramBot1 = await helper.CreateTelegramBotAsync(user1.Id);
-		var telegramBot2 = await helper.CreateTelegramBotAsync(user2.Id);
+		var telegramBot1 = await new TelegramBotBuilder(context).WithOwnerId(user1.Id).CreateAsync();
+		var telegramBot2 = await new TelegramBotBuilder(context).WithOwnerId(user2.Id).CreateAsync();
 
-		var schedule1 = await CreateScheduleForUser(user1.Id, telegramBot1.Id, "User1 Schedule");
-		var schedule2 = await CreateScheduleForUser(user2.Id, telegramBot2.Id, "User2 Schedule");
+		var schedule1 = await new ScheduleBuilder(context).WithUserId(user1.Id).WithTelegramBotId(telegramBot1.Id)
+			.CreateAsync();
+		schedule1.Name = "User1 Schedule";
+		var schedule2 = await new ScheduleBuilder(context).WithUserId(user2.Id).WithTelegramBotId(telegramBot2.Id)
+			.CreateAsync();
+		schedule2.Name = "User2 Schedule";
+		await context.SaveChangesAsync();
 
 		var result = await sut.GetListScheduleAsync(user1.Id, CancellationToken.None);
 
@@ -74,9 +84,13 @@ public class ListScheduleStorageShould(StorageTestFixture fixture) : IClassFixtu
 	public async Task GetListScheduleAsync_ShouldReturnCorrectScheduleData()
 	{
 		var scheduleName = "Test Schedule";
-		var user = await helper.CreateUserAsync();
-		var telegramBot = await helper.CreateTelegramBotAsync(user.Id);
-		var schedule = await CreateScheduleForUser(user.Id, telegramBot.Id, scheduleName, true);
+		var user = await new UserBuilder(context).CreateAsync();
+		var telegramBot = await new TelegramBotBuilder(context).WithOwnerId(user.Id).CreateAsync();
+		var schedule = await new ScheduleBuilder(context).WithUserId(user.Id).WithTelegramBotId(telegramBot.Id)
+			.CreateAsync();
+		schedule.Name = scheduleName;
+		schedule.IsActive = true;
+		await context.SaveChangesAsync();
 
 		var result = await sut.GetListScheduleAsync(user.Id, CancellationToken.None);
 		result.ShouldNotBeEmpty();
@@ -85,27 +99,5 @@ public class ListScheduleStorageShould(StorageTestFixture fixture) : IClassFixtu
 		returnedSchedule.Id.ShouldBe(schedule.Id);
 		returnedSchedule.Name.ShouldBe(scheduleName);
 		returnedSchedule.IsActive.ShouldBe(true);
-	}
-
-	private async Task<Schedule> CreateScheduleForUser(
-		Guid userId,
-		Guid telegramBotId,
-		string name,
-		bool isActive = false
-	)
-	{
-		var schedule = new Schedule
-		{
-			Id = Guid.NewGuid(),
-			Name = name,
-			UserId = userId,
-			TelegramBotId = telegramBotId,
-			ChannelId = -1001234567890L,
-			ChannelName = "Test Channel",
-			IsActive = isActive
-		};
-		await context.Schedules.AddAsync(schedule);
-		await context.SaveChangesAsync();
-		return schedule;
 	}
 }

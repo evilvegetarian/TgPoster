@@ -17,12 +17,23 @@ public class TelegramBotBuilder(PosterContext context)
 		Name = faker.Internet.UserName()
 	};
 
-	public TelegramBot Build() => telegramBot;
+	public TelegramBotBuilder WithOwnerId(Guid ownerId)
+	{
+		telegramBot.OwnerId = ownerId;
+		return this;
+	}
 
 	public TelegramBot Create()
 	{
 		context.TelegramBots.AddRange(telegramBot);
 		context.SaveChanges();
+		return telegramBot;
+	}
+
+	public async Task<TelegramBot> CreateAsync(CancellationToken ct = default)
+	{
+		await context.TelegramBots.AddRangeAsync(telegramBot);
+		await context.SaveChangesAsync(ct);
 		return telegramBot;
 	}
 }

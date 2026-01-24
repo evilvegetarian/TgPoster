@@ -9,15 +9,14 @@ namespace TgPoster.Storage.Tests.Tests;
 public class GetMessageStorageShould(StorageTestFixture fixture) : IClassFixture<StorageTestFixture>
 {
 	private readonly PosterContext context = fixture.GetDbContext();
-	private readonly Helper helper = new(fixture.GetDbContext());
 	private readonly GetMessageStorage sut = new(fixture.GetDbContext());
 
 	[Fact]
 	public async Task GetMessagesAsync_WithExistingMessage_ShouldReturnMessage()
 	{
-		var schedule = await helper.CreateScheduleAsync();
-		var message = await helper.CreateMessageAsync(schedule.Id);
-		var messageFile = await helper.CreateMessageFileAsync(message.Id);
+		var schedule = await new ScheduleBuilder(context).CreateAsync();
+		var message = await new MessageBuilder(context).WithScheduleId(schedule.Id).CreateAsync();
+		var messageFile = await new MessageFileBuilder(context).WithMessageId(message.Id).CreateAsync();
 
 		var result = await sut.GetMessagesAsync(message.Id, schedule.UserId, CancellationToken.None);
 
@@ -36,7 +35,7 @@ public class GetMessageStorageShould(StorageTestFixture fixture) : IClassFixture
 	[Fact]
 	public async Task GetMessagesAsync_WithVideoMessageFile_ShouldReturnVideoWithThumbnails()
 	{
-		var schedule = await helper.CreateScheduleAsync();
+		var schedule = await new ScheduleBuilder(context).CreateAsync();
 		var message = new MessageBuilder(context).WithScheduleId(schedule.Id).WithVideoMessageFile().Create();
 
 		var result = await sut.GetMessagesAsync(message.Id, schedule.UserId, CancellationToken.None);
@@ -51,7 +50,7 @@ public class GetMessageStorageShould(StorageTestFixture fixture) : IClassFixture
 	[Fact]
 	public async Task GetMessagesAsync_WithNonExistingMessage_ShouldReturnNull()
 	{
-		var user = await helper.CreateUserAsync();
+		var user = await new UserBuilder(context).CreateAsync();
 		var nonExistingMessageId = Guid.NewGuid();
 
 		var result = await sut.GetMessagesAsync(nonExistingMessageId, user.Id, CancellationToken.None);
@@ -62,8 +61,8 @@ public class GetMessageStorageShould(StorageTestFixture fixture) : IClassFixture
 	[Fact]
 	public async Task GetMessagesAsync_WithWrongUserId_ShouldReturnNull()
 	{
-		var schedule = await helper.CreateScheduleAsync();
-		var message = await helper.CreateMessageAsync(schedule.Id);
+		var schedule = await new ScheduleBuilder(context).CreateAsync();
+		var message = await new MessageBuilder(context).WithScheduleId(schedule.Id).CreateAsync();
 		var wrongUserId = Guid.NewGuid();
 
 		var result = await sut.GetMessagesAsync(message.Id, wrongUserId, CancellationToken.None);
@@ -74,8 +73,8 @@ public class GetMessageStorageShould(StorageTestFixture fixture) : IClassFixture
 	[Fact]
 	public async Task GetMessagesAsync_WithMessageWithoutFiles_ShouldReturnMessageWithEmptyFiles()
 	{
-		var schedule = await helper.CreateScheduleAsync();
-		var message = await helper.CreateMessageAsync(schedule.Id);
+		var schedule = await new ScheduleBuilder(context).CreateAsync();
+		var message = await new MessageBuilder(context).WithScheduleId(schedule.Id).CreateAsync();
 
 		var result = await sut.GetMessagesAsync(message.Id, schedule.UserId, CancellationToken.None);
 
@@ -87,7 +86,7 @@ public class GetMessageStorageShould(StorageTestFixture fixture) : IClassFixture
 	[Fact]
 	public async Task GetMessagesAsync_WithMultipleFiles_ShouldReturnAllFiles()
 	{
-		var schedule = await helper.CreateScheduleAsync();
+		var schedule = await new ScheduleBuilder(context).CreateAsync();
 		var message = new MessageBuilder(context).WithScheduleId(schedule.Id).WithPhotoMessageFile()
 			.WithVideoMessageFile().Create();
 

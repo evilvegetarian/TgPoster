@@ -4,13 +4,13 @@ using TgPoster.Storage.Data;
 using TgPoster.Storage.Data.Entities;
 using TgPoster.Storage.Data.VO;
 using TgPoster.Storage.Storages;
+using TgPoster.Storage.Tests.Builders;
 
 namespace TgPoster.Storage.Tests.Tests;
 
 public class SignInStorageShould(StorageTestFixture fixture) : IClassFixture<StorageTestFixture>
 {
 	private readonly PosterContext context = fixture.GetDbContext();
-	private readonly Helper helper = new(fixture.GetDbContext());
 	private readonly SignInStorage sut = new(fixture.GetDbContext(), new GuidFactory());
 
 	[Fact]
@@ -40,7 +40,7 @@ public class SignInStorageShould(StorageTestFixture fixture) : IClassFixture<Sto
 	[Fact]
 	public async Task CreateRefreshSessionAsync_WithValidData_ShouldCreateRefreshSession()
 	{
-		var user = await helper.CreateUserAsync();
+		var user = await new UserBuilder(context).CreateAsync();
 		var refreshToken = Guid.NewGuid();
 		await sut.CreateRefreshSessionAsync(user.Id, refreshToken, DateTimeOffset.UtcNow.AddDays(5),
 			CancellationToken.None);

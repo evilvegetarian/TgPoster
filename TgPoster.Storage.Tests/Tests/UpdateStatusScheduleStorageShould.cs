@@ -2,19 +2,19 @@ using Microsoft.EntityFrameworkCore;
 using Shouldly;
 using TgPoster.Storage.Data;
 using TgPoster.Storage.Storages;
+using TgPoster.Storage.Tests.Builders;
 
 namespace TgPoster.Storage.Tests.Tests;
 
 public class UpdateStatusScheduleStorageShould(StorageTestFixture fixture) : IClassFixture<StorageTestFixture>
 {
 	private readonly PosterContext context = fixture.GetDbContext();
-	private readonly Helper helper = new(fixture.GetDbContext());
 	private readonly UpdateStatusScheduleStorage sut = new(fixture.GetDbContext());
 
 	[Fact]
 	public async Task ExistSchedule_WithExistingSchedule_ShouldReturnTrue()
 	{
-		var schedule = await helper.CreateScheduleAsync();
+		var schedule = await new ScheduleBuilder(context).CreateAsync();
 
 		var result = await sut.ExistSchedule(schedule.Id, schedule.UserId, CancellationToken.None);
 
@@ -34,10 +34,10 @@ public class UpdateStatusScheduleStorageShould(StorageTestFixture fixture) : ICl
 	[Fact]
 	public async Task UpdateStatus_WithActiveSchedule_ShouldMakeItInactive()
 	{
-		var schedule = await helper.CreateScheduleAsync();
+		var schedule = await new ScheduleBuilder(context).CreateAsync();
 
 		await sut.UpdateStatus(schedule.Id, CancellationToken.None);
-
+		context.ChangeTracker.Clear();
 		var updatedSchedule = await context.Schedules.FindAsync(schedule.Id);
 		updatedSchedule.ShouldNotBeNull();
 		updatedSchedule.IsActive.ShouldBeFalse();
@@ -46,7 +46,7 @@ public class UpdateStatusScheduleStorageShould(StorageTestFixture fixture) : ICl
 	[Fact]
 	public async Task UpdateStatus_WithInactiveSchedule_ShouldMakeItActive()
 	{
-		var schedule = await helper.CreateScheduleAsync();
+		var schedule = await new ScheduleBuilder(context).CreateAsync();
 		schedule.IsActive = false;
 		context.Schedules.Update(schedule);
 		await context.SaveChangesAsync();
@@ -73,7 +73,7 @@ public class UpdateStatusScheduleStorageShould(StorageTestFixture fixture) : ICl
 	[Fact]
 	public async Task UpdateStatus_ShouldToggleStatusMultipleTimes()
 	{
-		var schedule = await helper.CreateScheduleAsync();
+		var schedule = await new ScheduleBuilder(context).CreateAsync();
 		var originalStatus = schedule.IsActive;
 
 		await sut.UpdateStatus(schedule.Id, CancellationToken.None);

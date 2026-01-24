@@ -3,19 +3,19 @@ using Shouldly;
 using TgPoster.API.Domain.Services;
 using TgPoster.Storage.Data;
 using TgPoster.Storage.Storages;
+using TgPoster.Storage.Tests.Builders;
 
 namespace TgPoster.Storage.Tests.Tests;
 
 public class CreateMessageStorageShould(StorageTestFixture fixture) : IClassFixture<StorageTestFixture>
 {
 	private readonly PosterContext context = fixture.GetDbContext();
-	private readonly Helper helper = new(fixture.GetDbContext());
 	private readonly CreateMessageStorage sut = new(fixture.GetDbContext(), new GuidFactory());
 
 	[Fact]
 	public async Task ExistScheduleAsync_WithExistingSchedule_ShouldReturnTrue()
 	{
-		var schedule = await helper.CreateScheduleAsync();
+		var schedule = await new ScheduleBuilder(context).CreateAsync();
 
 		var result = await sut.ExistScheduleAsync(schedule.UserId, schedule.Id, CancellationToken.None);
 
@@ -25,7 +25,7 @@ public class CreateMessageStorageShould(StorageTestFixture fixture) : IClassFixt
 	[Fact]
 	public async Task ExistScheduleAsync_WithNonExistingSchedule_ShouldReturnFalse()
 	{
-		var user = await helper.CreateUserAsync();
+		var user = await new UserBuilder(context).CreateAsync();
 		var nonExistingScheduleId = Guid.NewGuid();
 
 		var result = await sut.ExistScheduleAsync(user.Id, nonExistingScheduleId, CancellationToken.None);
@@ -36,7 +36,7 @@ public class CreateMessageStorageShould(StorageTestFixture fixture) : IClassFixt
 	[Fact]
 	public async Task ExistScheduleAsync_WithWrongUserId_ShouldReturnFalse()
 	{
-		var schedule = await helper.CreateScheduleAsync();
+		var schedule = await new ScheduleBuilder(context).CreateAsync();
 		var wrongUserId = Guid.NewGuid();
 
 		var result = await sut.ExistScheduleAsync(wrongUserId, schedule.Id, CancellationToken.None);
@@ -47,7 +47,7 @@ public class CreateMessageStorageShould(StorageTestFixture fixture) : IClassFixt
 	[Fact]
 	public async Task GetTelegramBotAsync_WithExistingSchedule_ShouldReturnTelegramBot()
 	{
-		var schedule = await helper.CreateScheduleAsync();
+		var schedule = await new ScheduleBuilder(context).CreateAsync();
 
 		var result = await sut.GetTelegramBotAsync(schedule.Id, schedule.UserId, CancellationToken.None);
 
@@ -59,7 +59,7 @@ public class CreateMessageStorageShould(StorageTestFixture fixture) : IClassFixt
 	[Fact]
 	public async Task GetTelegramBotAsync_WithNonExistingSchedule_ShouldReturnNull()
 	{
-		var user = await helper.CreateUserAsync();
+		var user = await new UserBuilder(context).CreateAsync();
 		var nonExistingScheduleId = Guid.NewGuid();
 
 		var result = await sut.GetTelegramBotAsync(nonExistingScheduleId, user.Id, CancellationToken.None);
@@ -70,7 +70,7 @@ public class CreateMessageStorageShould(StorageTestFixture fixture) : IClassFixt
 	[Fact]
 	public async Task GetTelegramBotAsync_WithWrongUserId_ShouldReturnNull()
 	{
-		var schedule = await helper.CreateScheduleAsync();
+		var schedule = await new ScheduleBuilder(context).CreateAsync();
 		var wrongUserId = Guid.NewGuid();
 
 		var result = await sut.GetTelegramBotAsync(schedule.Id, wrongUserId, CancellationToken.None);
@@ -81,7 +81,7 @@ public class CreateMessageStorageShould(StorageTestFixture fixture) : IClassFixt
 	[Fact]
 	public async Task CreateMessagesAsync_WithValidData_ShouldCreateMessage()
 	{
-		var schedule = await helper.CreateScheduleAsync();
+		var schedule = await new ScheduleBuilder(context).CreateAsync();
 		var text = "Test message";
 		var time = DateTimeOffset.UtcNow.AddHours(1);
 		var files = new List<MediaFileResult>
@@ -109,7 +109,7 @@ public class CreateMessageStorageShould(StorageTestFixture fixture) : IClassFixt
 	[Fact]
 	public async Task CreateMessagesAsync_WithoutFiles_ShouldCreateMessageWithoutFiles()
 	{
-		var schedule = await helper.CreateScheduleAsync();
+		var schedule = await new ScheduleBuilder(context).CreateAsync();
 		var text = "Test message without files";
 		var time = DateTimeOffset.UtcNow.AddHours(1);
 		var files = new List<MediaFileResult>();
@@ -132,7 +132,7 @@ public class CreateMessageStorageShould(StorageTestFixture fixture) : IClassFixt
 	[Fact]
 	public async Task CreateMessagesAsync_WithoutText_ShouldCreateMessageWithoutText()
 	{
-		var schedule = await helper.CreateScheduleAsync();
+		var schedule = await new ScheduleBuilder(context).CreateAsync();
 		var time = DateTimeOffset.UtcNow.AddHours(1);
 		var files = new List<MediaFileResult>
 		{

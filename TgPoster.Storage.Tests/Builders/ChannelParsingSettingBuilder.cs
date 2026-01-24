@@ -26,12 +26,37 @@ public class ChannelParsingSettingBuilder(PosterContext context)
 		CheckNewPosts = faker.Random.Bool()
 	};
 
+	public ChannelParsingSettingBuilder WithScheduleId(Guid scheduleId)
+	{
+		setting.ScheduleId = scheduleId;
+		return this;
+	}
+
+	public ChannelParsingSettingBuilder WithStatus(ParsingStatus status)
+	{
+		setting.Status = status;
+		return this;
+	}
+
+	public ChannelParsingSettingBuilder WithCheckNewPosts(bool checkNewPosts)
+	{
+		setting.CheckNewPosts = checkNewPosts;
+		return this;
+	}
+
 	public ChannelParsingSetting Build() => setting;
 
 	public ChannelParsingSetting Create()
 	{
 		context.ChannelParsingParameters.AddRange(setting);
 		context.SaveChanges();
+		return setting;
+	}
+
+	public async Task<ChannelParsingSetting> CreateAsync(CancellationToken ct = default)
+	{
+		await context.ChannelParsingParameters.AddRangeAsync(setting);
+		await context.SaveChangesAsync(ct);
 		return setting;
 	}
 }
