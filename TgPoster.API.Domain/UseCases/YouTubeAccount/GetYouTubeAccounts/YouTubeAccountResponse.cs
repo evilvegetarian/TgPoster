@@ -1,11 +1,11 @@
 namespace TgPoster.API.Domain.UseCases.YouTubeAccount.GetYouTubeAccounts;
 
-public class YouTubeAccountResponse
+public sealed record YouTubeAccountResponse
 {
-	public required Guid Id { get; set; }
-	public required string Name { get; set; }
-	public string? DefaultTitle { get; set; }
-	public string? DefaultDescription { get; set; }
-	public string? DefaultTags { get; set; }
-	public bool AutoPostingVideo { get; set; }
+	public required Guid Id { get; init; }
+	public required string Name { get; init; }
+	public string? DefaultTitle { get; init; }
+	public string? DefaultDescription { get; init; }
+	public string? DefaultTags { get; init; }
+	public bool AutoPostingVideo { get; init; }
 }

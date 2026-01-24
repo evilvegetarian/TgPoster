@@ -1,3 +1,3 @@
 namespace TgPoster.API.Domain.UseCases.OpenRouterSetting.CreateOpenRouterSetting;
 
-public record CreateOpenRouterSettingResponse(Guid Id);
+public sealed record CreateOpenRouterSettingResponse(Guid Id);

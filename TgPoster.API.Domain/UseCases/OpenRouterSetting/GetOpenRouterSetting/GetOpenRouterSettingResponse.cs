@@ -1,7 +1,7 @@
 namespace TgPoster.API.Domain.UseCases.OpenRouterSetting.GetOpenRouterSetting;
 
-public class GetOpenRouterSettingResponse
+public sealed record GetOpenRouterSettingResponse
 {
-	public required string Model { get; set; }
-	public Guid Id { get; set; }
+	public required string Model { get; init; }
+	public required Guid Id { get; init; }
 }

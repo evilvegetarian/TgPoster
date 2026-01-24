@@ -110,7 +110,7 @@ public class MessageController(ISender sender) : ControllerBase
 	/// <returns>Результат выполнения операции</returns>
 	[HttpPut(Routes.Message.Update)]
 	[Consumes("multipart/form-data")]
-	[ProducesResponseType(StatusCodes.Status200OK)]
+	[ProducesResponseType(StatusCodes.Status204NoContent)]
 	[ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
 	[ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
 	[ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
@@ -123,7 +123,7 @@ public class MessageController(ISender sender) : ControllerBase
 		await sender.Send(new EditMessageCommand(
 				id, request.ScheduleId, request.TimePosting, request.TextMessage, request.OldFiles, request.NewFiles),
 			ct);
-		return Ok();
+		return NoContent();
 	}
 
 	/// <summary>
@@ -134,7 +134,7 @@ public class MessageController(ISender sender) : ControllerBase
 	/// <param name="ct">Токен отмены операции</param>
 	/// <returns>Результат выполнения операции</returns>
 	[HttpDelete(Routes.Message.DeleteFileMessage)]
-	[ProducesResponseType(StatusCodes.Status200OK)]
+	[ProducesResponseType(StatusCodes.Status204NoContent)]
 	[ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
 	[ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
 	public async Task<IActionResult> DeleteFileMessage(
@@ -144,7 +144,7 @@ public class MessageController(ISender sender) : ControllerBase
 	)
 	{
 		await sender.Send(new DeleteFileMessageCommand(id, fileId), ct);
-		return Ok();
+		return NoContent();
 	}
 
 	/// <summary>
@@ -155,7 +155,7 @@ public class MessageController(ISender sender) : ControllerBase
 	/// <param name="ct">Токен отмены операции</param>
 	/// <returns>Результат выполнения операции</returns>
 	[HttpPatch(Routes.Message.LoadFiles)]
-	[ProducesResponseType(StatusCodes.Status200OK)]
+	[ProducesResponseType(StatusCodes.Status204NoContent)]
 	[ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
 	[ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
 	public async Task<IActionResult> LoadFiles(
@@ -165,7 +165,7 @@ public class MessageController(ISender sender) : ControllerBase
 	)
 	{
 		await sender.Send(new LoadFilesMessageCommand(id, files), ct);
-		return Ok();
+		return NoContent();
 	}
 
 	/// <summary>
@@ -175,7 +175,7 @@ public class MessageController(ISender sender) : ControllerBase
 	/// <param name="ct">Токен отмены операции</param>
 	/// <returns>Результат выполнения операции</returns>
 	[HttpPatch(Routes.Message.ApproveMessages)]
-	[ProducesResponseType(StatusCodes.Status200OK)]
+	[ProducesResponseType(StatusCodes.Status204NoContent)]
 	[ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
 	[ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
 	public async Task<IActionResult> ApproveMessages(
@@ -184,7 +184,7 @@ public class MessageController(ISender sender) : ControllerBase
 	)
 	{
 		await sender.Send(new ApproveMessagesCommand(request.MessagesIds), ct);
-		return Ok();
+		return NoContent();
 	}
 
 	/// <summary>
@@ -194,13 +194,13 @@ public class MessageController(ISender sender) : ControllerBase
 	/// <param name="ct">Токен отмены операции</param>
 	/// <returns>Результат выполнения операции</returns>
 	[HttpDelete(Routes.Message.Delete)]
-	[ProducesResponseType(StatusCodes.Status200OK)]
+	[ProducesResponseType(StatusCodes.Status204NoContent)]
 	[ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
 	[ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
 	public async Task<IActionResult> DeleteMessages([FromBody] [Required] List<Guid> ids, CancellationToken ct)
 	{
 		await sender.Send(new DeleteMessagesCommand(ids), ct);
-		return Ok();
+		return NoContent();
 	}
 
 	/// <summary>
@@ -243,12 +243,12 @@ public class MessageController(ISender sender) : ControllerBase
 	/// <param name="ct">Токен отмены операции</param>
 	/// <returns>Результат выполнения операции</returns>
 	[HttpPut(Routes.Message.UpdateAllTime)]
-	[ProducesResponseType(StatusCodes.Status200OK)]
+	[ProducesResponseType(StatusCodes.Status204NoContent)]
 	[ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
 	[ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
 	public async Task<IActionResult> UpdateAllTime([Required] [FromRoute] Guid scheduleId, CancellationToken ct)
 	{
 		await sender.Send(new UpdateAllTimeCommand(scheduleId), ct);
-		return Ok();
+		return NoContent();
 	}
 }

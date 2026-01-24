@@ -26,7 +26,7 @@ public class TelegramBotController(ISender sender) : ControllerBase
 	/// <param name="ct">Токен отмены операции</param>
 	/// <returns>Ответ с данными созданного Telegram бота</returns>
 	[HttpPost(Routes.TelegramBot.Create)]
-	[ProducesResponseType(StatusCodes.Status200OK, Type = typeof(CreateTelegramBotResponse))]
+	[ProducesResponseType(StatusCodes.Status201Created, Type = typeof(CreateTelegramBotResponse))]
 	[ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
 	[ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
 	public async Task<IActionResult> Create(
@@ -35,7 +35,7 @@ public class TelegramBotController(ISender sender) : ControllerBase
 	)
 	{
 		var response = await sender.Send(new CreateTelegramBotCommand(request.Token), ct);
-		return Ok(response);
+		return Created(Routes.TelegramBot.Create, response);
 	}
 
 	/// <summary>
@@ -46,8 +46,9 @@ public class TelegramBotController(ISender sender) : ControllerBase
 	/// <param name="ct">Токен отмены операции</param>
 	/// <returns>Результат выполнения операции</returns>
 	[HttpPut(Routes.TelegramBot.Update)]
-	[ProducesResponseType(StatusCodes.Status200OK)]
+	[ProducesResponseType(StatusCodes.Status204NoContent)]
 	[ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
+	[ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
 	[ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
 	public async Task<IActionResult> Update(
 		[FromRoute] [Required] Guid id,
@@ -56,7 +57,7 @@ public class TelegramBotController(ISender sender) : ControllerBase
 	)
 	{
 		await sender.Send(new UpdateTelegramBotCommand(id, request.Name, request.IsActive), ct);
-		return Ok();
+		return NoContent();
 	}
 
 	/// <summary>
@@ -81,12 +82,12 @@ public class TelegramBotController(ISender sender) : ControllerBase
 	/// <param name="ct">Токен отмены операции</param>
 	/// <returns>Результат выполнения операции</returns>
 	[HttpDelete(Routes.TelegramBot.Delete)]
-	[ProducesResponseType(StatusCodes.Status200OK)]
+	[ProducesResponseType(StatusCodes.Status204NoContent)]
 	[ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
 	[ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
 	public async Task<IActionResult> Delete([FromRoute] [Required] Guid id, CancellationToken ct)
 	{
 		await sender.Send(new DeleteTelegramCommand(id), ct);
-		return Ok();
+		return NoContent();
 	}
 }

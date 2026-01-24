@@ -82,14 +82,14 @@ public class OpenRouterSettingController(ISender sender) : ControllerBase
 	/// <param name="ctx">Токен отмены операции</param>
 	/// <returns>Результат выполнения операции</returns>
 	[HttpDelete(Routes.OpenRouterSetting.Delete)]
-	[ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ListOpenRouterSettingResponse))]
+	[ProducesResponseType(StatusCodes.Status204NoContent)]
 	[ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
 	[ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
 	public async Task<IActionResult> Delete([FromRoute] [Required] Guid id, CancellationToken ctx)
 	{
 		var command = new DeleteOpenRouterSettingCommand(id);
 		await sender.Send(command, ctx);
-		return Ok();
+		return NoContent();
 	}
 
 	/// <summary>
@@ -100,7 +100,7 @@ public class OpenRouterSettingController(ISender sender) : ControllerBase
 	/// <param name="ctx">Токен отмены операции</param>
 	/// <returns>Результат выполнения операции</returns>
 	[HttpPatch(Routes.OpenRouterSetting.AddSchedule)]
-	[ProducesResponseType(StatusCodes.Status200OK)]
+	[ProducesResponseType(StatusCodes.Status204NoContent)]
 	[ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
 	[ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
 	public async Task<IActionResult> AddSchedule(
@@ -111,6 +111,6 @@ public class OpenRouterSettingController(ISender sender) : ControllerBase
 	{
 		var command = new AddScheduleOpenRouterSettingCommand(id, scheduleId);
 		await sender.Send(command, ctx);
-		return Ok();
+		return NoContent();
 	}
 }

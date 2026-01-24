@@ -4,7 +4,7 @@ namespace TgPoster.API.Domain.UseCases.Messages.ListMessage;
 ///     Ответ, содержащий пагинированную коллекцию.
 /// </summary>
 /// <typeparam name="T">Тип элементов в коллекции.</typeparam>
-public class PagedResponse<T>
+public sealed record PagedResponse<T>
 {
 	public PagedResponse(List<T> data, int totalCount, int currentPage, int pageSize)
 	{
@@ -15,7 +15,6 @@ public class PagedResponse<T>
 		TotalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
 	}
 
-	// Properties remain the same
 	public int CurrentPage { get; }
 	public int TotalPages { get; }
 	public int PageSize { get; }

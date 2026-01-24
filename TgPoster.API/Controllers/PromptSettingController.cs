@@ -27,7 +27,8 @@ public class PromptSettingController(ISender sender) : ControllerBase
 	/// <param name="ctx">Токен отмены операции</param>
 	/// <returns>Ответ с данными созданных промптов</returns>
 	[HttpPost(Routes.PromptSetting.Create)]
-	[ProducesResponseType(StatusCodes.Status201Created)]
+	[ProducesResponseType(StatusCodes.Status201Created, Type = typeof(CreatePromptSettingResponse))]
+	[ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
 	[ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
 	[ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
 	public async Task<IActionResult> CreatePromptSetting(
@@ -88,7 +89,8 @@ public class PromptSettingController(ISender sender) : ControllerBase
 	/// <param name="ctx">Токен отмены операции</param>
 	/// <returns>Результат выполнения операции</returns>
 	[HttpPut(Routes.PromptSetting.Update)]
-	[ProducesResponseType(StatusCodes.Status201Created)]
+	[ProducesResponseType(StatusCodes.Status204NoContent)]
+	[ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
 	[ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
 	[ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
 	public async Task<IActionResult> EditPromptSetting(
@@ -99,6 +101,6 @@ public class PromptSettingController(ISender sender) : ControllerBase
 	{
 		var command = new EditPromptSettingCommand(id, request.TextPrompt, request.VideoPrompt, request.PhotoPrompt);
 		await sender.Send(command, ctx);
-		return Ok();
+		return NoContent();
 	}
 }

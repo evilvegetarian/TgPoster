@@ -1,6 +1,6 @@
 namespace TgPoster.API.Domain.UseCases.Messages.GenerateAiContent;
 
-public class GenerateAiContentResponse
+public sealed record GenerateAiContentResponse
 {
-	public required string Content { get; set; }
+	public required string Content { get; init; }
 }

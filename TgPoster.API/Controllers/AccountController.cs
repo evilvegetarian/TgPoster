@@ -22,13 +22,13 @@ public class AccountController(ISender sender) : ControllerBase
 	/// <param name="ct">Токен отмены операции</param>
 	/// <returns>Ответ с данными зарегистрированного пользователя и токенами доступа</returns>
 	[HttpPost(Routes.Account.SignOn)]
-	[ProducesResponseType(StatusCodes.Status200OK, Type = typeof(SignOnResponse))]
+	[ProducesResponseType(StatusCodes.Status201Created, Type = typeof(SignOnResponse))]
 	[ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
 	[ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
 	public async Task<IActionResult> SignOn([FromBody] SignOnRequest request, CancellationToken ct)
 	{
 		var response = await sender.Send(new SignOnCommand(request.Login, request.Password), ct);
-		return Ok(response);
+		return Created(Routes.Account.SignOn, response);
 	}
 
 	/// <summary>

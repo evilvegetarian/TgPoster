@@ -2,27 +2,27 @@ using Shared.Utilities;
 
 namespace TgPoster.API.Domain.UseCases.Messages.ListMessage;
 
-public class FileResponse
+public sealed record FileResponse
 {
 	/// <summary>
 	///     Id файла
 	/// </summary>
-	public required Guid Id { get; set; }
+	public required Guid Id { get; init; }
 
 	/// <summary>
 	///     Тип файла.
 	/// </summary>
-	public FileTypes FileType { get; set; }
+	public FileTypes FileType { get; init; }
 
 	/// <summary>
 	///     Url картинки
 	/// </summary>
-	public string? Url { get; set; }
+	public string? Url { get; init; }
 
-	public List<PreviewFileResponse> PreviewFiles { get; set; } = [];
+	public List<PreviewFileResponse> PreviewFiles { get; init; } = [];
 }
 
-public sealed class PreviewFileResponse
+public sealed record PreviewFileResponse
 {
-	public string Url { get; set; }
+	public required string Url { get; init; }
 }

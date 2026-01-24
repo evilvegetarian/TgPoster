@@ -1,6 +1,6 @@
 namespace TgPoster.API.Domain.UseCases.Schedules.ListSchedule;
 
-public sealed class ScheduleResponse
+public sealed record ScheduleResponse
 {
 	/// <summary>
 	///     Id расписания

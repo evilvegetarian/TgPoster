@@ -1,9 +1,6 @@
-using System.ComponentModel.DataAnnotations;
-
 namespace TgPoster.API.Domain.UseCases.OpenRouterSetting.ListOpenRouterSetting;
 
-public class ListOpenRouterSettingResponse
+public sealed record ListOpenRouterSettingResponse
 {
-	[Required]
-	public required List<OpenRouterSettingResponse> OpenRouterSettingResponses { get; set; } = [];
+	public required List<OpenRouterSettingResponse> OpenRouterSettingResponses { get; init; } = [];
 }

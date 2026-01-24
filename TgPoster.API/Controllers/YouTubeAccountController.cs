@@ -26,7 +26,7 @@ public class YouTubeAccountController(ISender sender) : ControllerBase
 	/// <param name="ct">Токен отмены операции</param>
 	/// <returns>URL для авторизации через Google</returns>
 	[HttpPost(Routes.YouTubeAccount.Create)]
-	[ProducesResponseType(StatusCodes.Status200OK, Type = typeof(CreateYouTubeAccountResponse))]
+	[ProducesResponseType(StatusCodes.Status201Created, Type = typeof(CreateYouTubeAccountResponse))]
 	[ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
 	[ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
 	public async Task<IActionResult> AuthYouTube(
@@ -37,7 +37,7 @@ public class YouTubeAccountController(ISender sender) : ControllerBase
 		var uri = "http://localhost:5173/api/v1/youtube/callback";
 		var command = new LoginYouTubeCommand(request.JsonFile, request.ClientId, request.ClientSecret, uri);
 		var response = await sender.Send(command, ct);
-		return Ok(response);
+		return Created(Routes.YouTubeAccount.Create, response);
 	}
 
 	/// <summary>
@@ -68,14 +68,15 @@ public class YouTubeAccountController(ISender sender) : ControllerBase
 	/// <param name="ct">Токен отмены операции</param>
 	/// <returns>Результат выполнения операции</returns>
 	[HttpPost(Routes.YouTubeAccount.SendVideo)]
-	[ProducesResponseType(StatusCodes.Status200OK)]
+	[ProducesResponseType(StatusCodes.Status204NoContent)]
 	[ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
+	[ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
 	[ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
 	public async Task<IActionResult> SendVideoInYoutube(Guid messageId, CancellationToken ct)
 	{
 		var command = new SendVideoOnYouTubeCommand(messageId);
 		await sender.Send(command, ct);
-		return Ok();
+		return NoContent();
 	}
 
 	/// <summary>
@@ -101,12 +102,12 @@ public class YouTubeAccountController(ISender sender) : ControllerBase
 	/// <param name="ct">Токен отмены операции</param>
 	/// <returns>Результат выполнения операции</returns>
 	[HttpDelete(Routes.YouTubeAccount.Delete)]
-	[ProducesResponseType(StatusCodes.Status200OK)]
+	[ProducesResponseType(StatusCodes.Status204NoContent)]
 	[ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
 	[ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
 	public async Task<IActionResult> Delete([FromRoute] Guid id, CancellationToken ct)
 	{
 		await sender.Send(new DeleteYouTubeAccountCommand(id), ct);
-		return Ok();
+		return NoContent();
 	}
 }

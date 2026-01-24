@@ -1,15 +1,15 @@
 namespace TgPoster.API.Domain.UseCases.Messages.ListMessage;
 
-public sealed class MessageResponse
+public sealed record MessageResponse
 {
-	public required Guid Id { get; set; }
-	public string? TextMessage { get; set; }
-	public required DateTimeOffset TimePosting { get; set; }
-	public required Guid ScheduleId { get; set; }
-	public required bool NeedApprove { get; set; }
-	public required bool CanApprove { get; set; }
-	public List<FileResponse> Files { get; set; } = [];
-	public required bool IsSent { get; set; }
-	public required bool HasVideo { get; set; }
-	public required bool HasYouTubeAccount { get; set; }
+	public required Guid Id { get; init; }
+	public string? TextMessage { get; init; }
+	public required DateTimeOffset TimePosting { get; init; }
+	public required Guid ScheduleId { get; init; }
+	public required bool NeedApprove { get; init; }
+	public required bool CanApprove { get; init; }
+	public List<FileResponse> Files { get; init; } = [];
+	public required bool IsSent { get; init; }
+	public required bool HasVideo { get; init; }
+	public required bool HasYouTubeAccount { get; init; }
 }

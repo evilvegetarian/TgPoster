@@ -1,6 +1,6 @@
 namespace TgPoster.API.Domain.UseCases.Messages.CreateMessage;
 
-public sealed class CreateMessageResponse
+public sealed record CreateMessageResponse
 {
-	public required Guid Id { get; set; }
+	public required Guid Id { get; init; }
 }

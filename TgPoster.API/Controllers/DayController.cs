@@ -86,12 +86,13 @@ public class DayController(ISender sender) : ControllerBase
 	/// <param name="ct">Токен отмены операции</param>
 	/// <returns>Результат выполнения операции</returns>
 	[HttpPatch(Routes.Day.UpdateTime)]
-	[ProducesResponseType(StatusCodes.Status200OK)]
+	[ProducesResponseType(StatusCodes.Status204NoContent)]
+	[ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
 	[ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
 	[ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
 	public async Task<IActionResult> UpdateTime(UpdateTimeRequest request, CancellationToken ct)
 	{
 		await sender.Send(new UpdateTimeCommand(request.ScheduleId, request.DayOfWeek, request.Times), ct);
-		return Ok();
+		return NoContent();
 	}
 }

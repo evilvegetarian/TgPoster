@@ -1,9 +1,9 @@
 namespace TgPoster.API.Domain.UseCases.Days.GetDays;
 
-public class GetDaysResponse
+public sealed record GetDaysResponse
 {
-	public required Guid Id { get; set; }
-	public required Guid ScheduleId { get; set; }
-	public required DayOfWeek DayOfWeek { get; set; }
-	public ICollection<TimeOnly> TimePostings { get; set; } = [];
+	public required Guid Id { get; init; }
+	public required Guid ScheduleId { get; init; }
+	public required DayOfWeek DayOfWeek { get; init; }
+	public ICollection<TimeOnly> TimePostings { get; init; } = [];
 }

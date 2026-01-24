@@ -1,7 +1,7 @@
 namespace TgPoster.API.Domain.UseCases.TelegramBots.ListTelegramBot;
 
-public sealed class TelegramBotResponse
+public sealed record TelegramBotResponse
 {
-	public required Guid Id { get; set; }
-	public required string Name { get; set; }
+	public required Guid Id { get; init; }
+	public required string Name { get; init; }
 }

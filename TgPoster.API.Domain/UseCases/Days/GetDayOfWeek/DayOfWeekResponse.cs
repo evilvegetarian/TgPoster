@@ -1,3 +1,3 @@
 namespace TgPoster.API.Domain.UseCases.Days.GetDayOfWeek;
 
-public record DayOfWeekResponse(int Id, string Name);
+public sealed record DayOfWeekResponse(int Id, string Name);

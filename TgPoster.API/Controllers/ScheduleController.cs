@@ -77,13 +77,13 @@ public class ScheduleController(ISender sender) : ControllerBase
 	/// <param name="ct">Токен отмены операции</param>
 	/// <returns>Результат операции удаления</returns>
 	[HttpDelete(Routes.Schedule.Delete)]
-	[ProducesResponseType(StatusCodes.Status200OK)]
+	[ProducesResponseType(StatusCodes.Status204NoContent)]
 	[ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
 	[ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
 	public async Task<IActionResult> Delete([FromRoute] [Required] Guid id, CancellationToken ct)
 	{
 		await sender.Send(new DeleteScheduleCommand(id), ct);
-		return Ok();
+		return NoContent();
 	}
 
 	/// <summary>
@@ -93,13 +93,13 @@ public class ScheduleController(ISender sender) : ControllerBase
 	/// <param name="ct">Токен отмены операции</param>
 	/// <returns>Результат операции обновления статуса</returns>
 	[HttpPatch(Routes.Schedule.UpdateStatus)]
-	[ProducesResponseType(StatusCodes.Status200OK)]
+	[ProducesResponseType(StatusCodes.Status204NoContent)]
 	[ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
 	[ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
 	public async Task<IActionResult> UpdateStatus([FromRoute] [Required] Guid id, CancellationToken ct)
 	{
 		await sender.Send(new UpdateStatusScheduleCommand(id), ct);
-		return Ok();
+		return NoContent();
 	}
 
 	/// <summary>
@@ -110,7 +110,8 @@ public class ScheduleController(ISender sender) : ControllerBase
 	/// <param name="ct">Токен отмены операции</param>
 	/// <returns>Результат операции обновления</returns>
 	[HttpPut(Routes.Schedule.Update)]
-	[ProducesResponseType(StatusCodes.Status200OK)]
+	[ProducesResponseType(StatusCodes.Status204NoContent)]
+	[ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
 	[ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
 	[ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
 	public async Task<IActionResult> Update(
@@ -120,6 +121,6 @@ public class ScheduleController(ISender sender) : ControllerBase
 	)
 	{
 		await sender.Send(new UpdateScheduleCommand(id, request.YouTubeAccountId), ct);
-		return Ok();
+		return NoContent();
 	}
 }

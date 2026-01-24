@@ -60,7 +60,8 @@ public class ParseChannelController(ISender sender) : ControllerBase
 	/// <param name="ct">Токен отмены операции</param>
 	/// <returns>Результат выполнения операции</returns>
 	[HttpPut(Routes.ParseChannel.Update)]
-	[ProducesResponseType(StatusCodes.Status200OK)]
+	[ProducesResponseType(StatusCodes.Status204NoContent)]
+	[ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
 	[ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
 	[ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
 	public async Task<IActionResult> Update(
@@ -70,7 +71,7 @@ public class ParseChannelController(ISender sender) : ControllerBase
 	)
 	{
 		await sender.Send(request.ToCommand(id), ct);
-		return Ok();
+		return NoContent();
 	}
 
 	/// <summary>
@@ -80,12 +81,12 @@ public class ParseChannelController(ISender sender) : ControllerBase
 	/// <param name="ct">Токен отмены операции</param>
 	/// <returns>Результат выполнения операции</returns>
 	[HttpDelete(Routes.ParseChannel.Delete)]
-	[ProducesResponseType(StatusCodes.Status200OK)]
+	[ProducesResponseType(StatusCodes.Status204NoContent)]
 	[ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
 	[ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
 	public async Task<IActionResult> Delete([FromRoute] [Required] Guid id, CancellationToken ct)
 	{
 		await sender.Send(new DeleteParseChannelCommand(id), ct);
-		return Ok();
+		return NoContent();
 	}
 }
