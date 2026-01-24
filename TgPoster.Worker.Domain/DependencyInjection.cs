@@ -13,6 +13,7 @@ using TgPoster.Worker.Domain.UseCases.ParseChannel;
 using TgPoster.Worker.Domain.UseCases.ParseChannelConsumer;
 using TgPoster.Worker.Domain.UseCases.ParseChannelWorker;
 using TgPoster.Worker.Domain.UseCases.ProcessMessageConsumer;
+using TgPoster.Worker.Domain.UseCases.RepostMessageConsumer;
 using TgPoster.Worker.Domain.UseCases.SenderMessageWorker;
 
 namespace TgPoster.Worker.Domain;
@@ -56,6 +57,10 @@ public static class DependencyInjection
 			x.AddConsumer<ProcessMessageConsumer>(opt =>
 			{
 				opt.ConcurrentMessageLimit = 1;
+			});
+			x.AddConsumer<RepostMessageConsumer>(opt =>
+			{
+				opt.ConcurrentMessageLimit = 5;
 			});
 
 			x.UsingPostgres((context, cfg) =>
