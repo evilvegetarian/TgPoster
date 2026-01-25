@@ -69,7 +69,7 @@ public class TelegramSessionController(ISender sender) : ControllerBase
 	/// <param name="ct">Токен отмены операции</param>
 	/// <returns>Список всех Telegram сессий текущего пользователя</returns>
 	[HttpGet(Routes.TelegramSession.List)]
-	[ProducesResponseType(StatusCodes.Status200OK, Type = typeof(List<TelegramSessionResponse>))]
+	[ProducesResponseType(StatusCodes.Status200OK, Type = typeof(TelegramSessionListResponse))]
 	[ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
 	[ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
 	public async Task<IActionResult> List(CancellationToken ct)

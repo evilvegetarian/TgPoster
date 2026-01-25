@@ -44,7 +44,7 @@ public class ParseChannelController(ISender sender) : ControllerBase
 	/// <param name="ct">Токен отмены операции</param>
 	/// <returns>Список всех задач парсинга каналов</returns>
 	[HttpGet(Routes.ParseChannel.List)]
-	[ProducesResponseType(StatusCodes.Status200OK, Type = typeof(List<ParseChannelsResponse>))]
+	[ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ParseChannelListResponse))]
 	[ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
 	public async Task<IActionResult> List(CancellationToken ct)
 	{

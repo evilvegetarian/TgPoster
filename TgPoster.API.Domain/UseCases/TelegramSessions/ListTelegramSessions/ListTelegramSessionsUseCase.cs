@@ -6,11 +6,14 @@ namespace TgPoster.API.Domain.UseCases.TelegramSessions.ListTelegramSessions;
 internal sealed class ListTelegramSessionsUseCase(
 	IListTelegramSessionsStorage storage,
 	IIdentityProvider identityProvider
-) : IRequestHandler<ListTelegramSessionsQuery, List<TelegramSessionResponse>>
+) : IRequestHandler<ListTelegramSessionsQuery, TelegramSessionListResponse>
 {
-	public Task<List<TelegramSessionResponse>> Handle(
+	public async Task<TelegramSessionListResponse> Handle(
 		ListTelegramSessionsQuery request,
 		CancellationToken ct
-	) =>
-		storage.GetByUserIdAsync(identityProvider.Current.UserId, ct);
+	)
+	{
+		var items = await storage.GetByUserIdAsync(identityProvider.Current.UserId, ct);
+		return new TelegramSessionListResponse { Items = items };
+	}
 }

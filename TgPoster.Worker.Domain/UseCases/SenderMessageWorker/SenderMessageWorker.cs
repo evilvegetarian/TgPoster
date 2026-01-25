@@ -81,7 +81,7 @@ public class SenderMessageWorker(
 			}
 		}
 
-		int? telegramMessageId = null;
+		int? telegramMessageId;
 
 		if (medias.Any())
 		{

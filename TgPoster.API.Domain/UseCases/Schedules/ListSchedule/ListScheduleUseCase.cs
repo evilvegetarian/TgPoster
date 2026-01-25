@@ -4,8 +4,11 @@ using Security.IdentityServices;
 namespace TgPoster.API.Domain.UseCases.Schedules.ListSchedule;
 
 internal sealed class ListScheduleUseCase(IListScheduleStorage storage, IIdentityProvider identity)
-	: IRequestHandler<ListScheduleQuery, List<ScheduleResponse>>
+	: IRequestHandler<ListScheduleQuery, ScheduleListResponse>
 {
-	public Task<List<ScheduleResponse>> Handle(ListScheduleQuery request, CancellationToken ct) =>
-		storage.GetListScheduleAsync(identity.Current.UserId, ct);
+	public async Task<ScheduleListResponse> Handle(ListScheduleQuery request, CancellationToken ct)
+	{
+		var items = await storage.GetListScheduleAsync(identity.Current.UserId, ct);
+		return new ScheduleListResponse { Items = items };
+	}
 }

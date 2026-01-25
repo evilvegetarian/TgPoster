@@ -7,7 +7,7 @@ namespace TgPoster.Storage.Mapper;
 
 public static class ChannelParsingParametersMapper
 {
-	public static ParseChannelsResponse ToDomain(this ChannelParsingSetting entity) =>
+	public static ParseChannelResponse ToDomain(this ChannelParsingSetting entity) =>
 		new()
 		{
 			Id = entity.Id,

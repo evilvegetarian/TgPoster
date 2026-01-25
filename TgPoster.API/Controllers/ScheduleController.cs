@@ -26,7 +26,7 @@ public class ScheduleController(ISender sender) : ControllerBase
 	/// <param name="ct">Токен отмены операции</param>
 	/// <returns>Список всех расписаний</returns>
 	[HttpGet(Routes.Schedule.List)]
-	[ProducesResponseType(StatusCodes.Status200OK, Type = typeof(List<ScheduleResponse>))]
+	[ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ScheduleListResponse))]
 	[ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
 	public async Task<IActionResult> List(CancellationToken ct)
 	{

@@ -25,7 +25,7 @@ public class DayController(ISender sender) : ControllerBase
 	/// <param name="ct">Токен отмены операции</param>
 	/// <returns>Список всех дней недели для выбора</returns>
 	[HttpGet(Routes.Day.DayOfWeek)]
-	[ProducesResponseType(StatusCodes.Status200OK, Type = typeof(List<DayOfWeekResponse>))]
+	[ProducesResponseType(StatusCodes.Status200OK, Type = typeof(DayOfWeekListResponse))]
 	[ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
 	public async Task<IActionResult> GetDayOfWeek(CancellationToken ct)
 	{
@@ -70,7 +70,7 @@ public class DayController(ISender sender) : ControllerBase
 	/// <param name="ct">Токен отмены операции</param>
 	/// <returns>Список дней недели с настройками публикации для указанного расписания</returns>
 	[HttpGet(Routes.Day.GetBySchedule)]
-	[ProducesResponseType(StatusCodes.Status200OK, Type = typeof(List<GetDaysResponse>))]
+	[ProducesResponseType(StatusCodes.Status200OK, Type = typeof(DayListResponse))]
 	[ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
 	[ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
 	public async Task<IActionResult> Get([FromQuery] [Required] Guid scheduleId, CancellationToken ct)

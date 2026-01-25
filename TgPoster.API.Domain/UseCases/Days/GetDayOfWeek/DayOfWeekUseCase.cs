@@ -2,12 +2,13 @@ using MediatR;
 
 namespace TgPoster.API.Domain.UseCases.Days.GetDayOfWeek;
 
-internal sealed class DayOfWeekUseCase : IRequestHandler<DayOfWeekQuery, List<DayOfWeekResponse>>
+internal sealed class DayOfWeekUseCase : IRequestHandler<DayOfWeekQuery, DayOfWeekListResponse>
 {
-	public Task<List<DayOfWeekResponse>> Handle(DayOfWeekQuery request, CancellationToken ct)
+	public Task<DayOfWeekListResponse> Handle(DayOfWeekQuery request, CancellationToken ct)
 	{
-		return Task.FromResult(Enum.GetValues<DayOfWeek>()
+		var items = Enum.GetValues<DayOfWeek>()
 			.Select(x => new DayOfWeekResponse((int)x, x.ToString()))
-			.ToList());
+			.ToList();
+		return Task.FromResult(new DayOfWeekListResponse { Items = items });
 	}
 }

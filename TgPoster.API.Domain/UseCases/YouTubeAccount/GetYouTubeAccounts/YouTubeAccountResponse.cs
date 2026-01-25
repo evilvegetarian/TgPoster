@@ -9,3 +9,8 @@ public sealed record YouTubeAccountResponse
 	public string? DefaultTags { get; init; }
 	public bool AutoPostingVideo { get; init; }
 }
+
+public sealed record YouTubeAccountListResponse
+{
+	public required List<YouTubeAccountResponse> Items { get; init; }
+}

@@ -10,3 +10,8 @@ public sealed record TelegramSessionResponse(
 	TelegramSessionStatus Status,
 	DateTimeOffset? Created
 );
+
+public sealed record TelegramSessionListResponse
+{
+	public required List<TelegramSessionResponse> Items { get; init; }
+}

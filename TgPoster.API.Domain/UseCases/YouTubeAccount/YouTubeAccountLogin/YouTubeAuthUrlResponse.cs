@@ -1,9 +1,9 @@
 namespace TgPoster.API.Domain.UseCases.YouTubeAccount.YouTubeAccountLogin;
 
 /// <summary>
-///     Ответ на создание Ютуб аккаунта
+///     Ответ с URL для авторизации YouTube
 /// </summary>
-public sealed record CreateYouTubeAccountResponse
+public sealed record YouTubeAuthUrlResponse
 {
 	public required string Url { get; init; }
 }

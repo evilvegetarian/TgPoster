@@ -21,9 +21,10 @@ public class DayEndpointTest(EndpointTestFixture fixture) : IClassFixture<Endpoi
 		var response = await client.GetAsync(Routes.Day.DayOfWeek);
 		response.StatusCode.ShouldBe(HttpStatusCode.OK);
 
-		var result = await response.Content.ReadFromJsonAsync<List<DayOfWeekResponse>>();
-		result.ShouldNotBeEmpty();
-		result.Count.ShouldBe(7);
+		var result = await response.Content.ReadFromJsonAsync<DayOfWeekListResponse>();
+		result.ShouldNotBeNull();
+		result.Items.ShouldNotBeEmpty();
+		result.Items.Count.ShouldBe(7);
 	}
 
 	[Fact]
@@ -74,9 +75,9 @@ public class DayEndpointTest(EndpointTestFixture fixture) : IClassFixture<Endpoi
 		var response = await client.PostAsync(Url, request.ToStringContent());
 		response.StatusCode.ShouldBe(HttpStatusCode.Created);
 
-		var getResponse = await client.GetAsync<List<GetDaysResponse>>(Url + "?scheduleId=" + scheduleId);
-		getResponse.ShouldContain(x => x.ScheduleId == scheduleId);
-		getResponse.ShouldContain(x => request.DaysOfWeek.Select(day => day.DayOfWeekPosting).Contains(x.DayOfWeek));
+		var getResponse = await client.GetAsync<DayListResponse>(Url + "?scheduleId=" + scheduleId);
+		getResponse.Items.ShouldContain(x => x.ScheduleId == scheduleId);
+		getResponse.Items.ShouldContain(x => request.DaysOfWeek.Select(day => day.DayOfWeekPosting).Contains(x.DayOfWeek));
 	}
 
 	[Fact]
@@ -144,8 +145,8 @@ public class DayEndpointTest(EndpointTestFixture fixture) : IClassFixture<Endpoi
 		var response = await client.PostAsync(Url, request.ToStringContent());
 		response.StatusCode.ShouldBe(HttpStatusCode.Created);
 
-		var getResponse = await client.GetAsync<List<GetDaysResponse>>(Url + "?scheduleId=" + scheduleId);
-		getResponse.Count.ShouldBe(2);
+		var getResponse = await client.GetAsync<DayListResponse>(Url + "?scheduleId=" + scheduleId);
+		getResponse.Items.Count.ShouldBe(2);
 	}
 
 	[Fact]
@@ -330,8 +331,8 @@ public class DayEndpointTest(EndpointTestFixture fixture) : IClassFixture<Endpoi
 		var response = await client.PatchAsync(Url + "/time", upd.ToStringContent());
 		response.StatusCode.ShouldBe(HttpStatusCode.OK);
 
-		var getResponse = await client.GetAsync<List<GetDaysResponse>>(Url + "?scheduleId=" + scheduleId);
-		getResponse.ShouldContain(x => x.DayOfWeek == upd.DayOfWeek);
+		var getResponse = await client.GetAsync<DayListResponse>(Url + "?scheduleId=" + scheduleId);
+		getResponse.Items.ShouldContain(x => x.DayOfWeek == upd.DayOfWeek);
 	}
 
 	[Fact]

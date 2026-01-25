@@ -26,7 +26,7 @@ public class YouTubeAccountController(ISender sender) : ControllerBase
 	/// <param name="ct">Токен отмены операции</param>
 	/// <returns>URL для авторизации через Google</returns>
 	[HttpPost(Routes.YouTubeAccount.Create)]
-	[ProducesResponseType(StatusCodes.Status201Created, Type = typeof(CreateYouTubeAccountResponse))]
+	[ProducesResponseType(StatusCodes.Status201Created, Type = typeof(YouTubeAuthUrlResponse))]
 	[ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
 	[ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
 	public async Task<IActionResult> AuthYouTube(
@@ -85,7 +85,7 @@ public class YouTubeAccountController(ISender sender) : ControllerBase
 	/// <param name="ct">Токен отмены операции</param>
 	/// <returns>Список всех YouTube аккаунтов пользователя</returns>
 	[HttpGet(Routes.YouTubeAccount.List)]
-	[ProducesResponseType(StatusCodes.Status200OK, Type = typeof(List<YouTubeAccountResponse>))]
+	[ProducesResponseType(StatusCodes.Status200OK, Type = typeof(YouTubeAccountListResponse))]
 	[ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
 	[ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
 	public async Task<IActionResult> GetYouTubeAccounts(CancellationToken ct)

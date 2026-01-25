@@ -3,10 +3,14 @@ using MediatR;
 namespace TgPoster.API.Domain.UseCases.YouTubeAccount.GetYouTubeAccounts;
 
 public class GetYouTubeAccountsUseCase(IGetYouTubeAccountsStorage storage)
-	: IRequestHandler<GetYouTubeAccountsQuery, List<YouTubeAccountResponse>>
+	: IRequestHandler<GetYouTubeAccountsQuery, YouTubeAccountListResponse>
 {
-	public async Task<List<YouTubeAccountResponse>> Handle(
+	public async Task<YouTubeAccountListResponse> Handle(
 		GetYouTubeAccountsQuery request,
 		CancellationToken cancellationToken
-	) => await storage.GetYouTubeAccounts(cancellationToken);
+	)
+	{
+		var items = await storage.GetYouTubeAccounts(cancellationToken);
+		return new YouTubeAccountListResponse { Items = items };
+	}
 }

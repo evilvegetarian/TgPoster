@@ -5,9 +5,9 @@ using TgPoster.API.Domain.Exceptions;
 namespace TgPoster.API.Domain.UseCases.Days.GetDays;
 
 internal sealed class GetDaysUseCase(IGetDaysStorage storage, IIdentityProvider identity)
-	: IRequestHandler<GetDaysQuery, List<GetDaysResponse>>
+	: IRequestHandler<GetDaysQuery, DayListResponse>
 {
-	public async Task<List<GetDaysResponse>> Handle(GetDaysQuery request, CancellationToken ct)
+	public async Task<DayListResponse> Handle(GetDaysQuery request, CancellationToken ct)
 	{
 		var existDays = await storage.ScheduleExistAsync(request.ScheduleId, identity.Current.UserId, ct);
 		if (!existDays)
@@ -15,6 +15,7 @@ internal sealed class GetDaysUseCase(IGetDaysStorage storage, IIdentityProvider 
 			throw new ScheduleNotFoundException(request.ScheduleId);
 		}
 
-		return await storage.GetDaysAsync(request.ScheduleId, ct);
+		var items = await storage.GetDaysAsync(request.ScheduleId, ct);
+		return new DayListResponse { Items = items };
 	}
 }

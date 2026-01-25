@@ -42,3 +42,8 @@ public sealed record ScheduleResponse
 	/// </summary>
 	public Guid? YouTubeAccountId { get; init; }
 }
+
+public sealed record ScheduleListResponse
+{
+	public required List<ScheduleResponse> Items { get; init; }
+}

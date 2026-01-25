@@ -11,14 +11,14 @@ internal sealed class GetDaysStorage(PosterContext context) : IGetDaysStorage
 		return context.Schedules.AnyAsync(x => x.Id == scheduleId && x.UserId == userId, ct);
 	}
 
-	public async Task<List<GetDaysResponse>> GetDaysAsync(Guid scheduleId, CancellationToken ct)
+	public async Task<List<DayResponse>> GetDaysAsync(Guid scheduleId, CancellationToken ct)
 	{
 		var daysFromDb = await context.Days
 			.Where(x => x.ScheduleId == scheduleId)
 			.OrderBy(x => x.DayOfWeek)
 			.ToListAsync(ct);
 
-		var result = daysFromDb.Select(x => new GetDaysResponse
+		var result = daysFromDb.Select(x => new DayResponse
 			{
 				Id = x.Id,
 				ScheduleId = x.ScheduleId,

@@ -48,7 +48,7 @@ public class OpenRouterSettingController(ISender sender) : ControllerBase
 	/// <param name="ctx">Токен отмены операции</param>
 	/// <returns>Данные настроек OpenRouter с указанным идентификатором</returns>
 	[HttpGet(Routes.OpenRouterSetting.Get)]
-	[ProducesResponseType(StatusCodes.Status200OK, Type = typeof(GetOpenRouterSettingResponse))]
+	[ProducesResponseType(StatusCodes.Status200OK, Type = typeof(OpenRouterSettingResponse))]
 	[ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
 	[ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
 	public async Task<IActionResult> GetOpenRouterSetting([FromRoute] [Required] Guid id, CancellationToken ctx)
@@ -68,7 +68,7 @@ public class OpenRouterSettingController(ISender sender) : ControllerBase
 	[ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ListOpenRouterSettingResponse))]
 	[ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
 	[ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
-	public async Task<IActionResult> GetOpenRouterSetting(CancellationToken ctx)
+	public async Task<IActionResult> ListOpenRouterSettings(CancellationToken ctx)
 	{
 		var command = new ListOpenRouterSettingQuery();
 		var response = await sender.Send(command, ctx);

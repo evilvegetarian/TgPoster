@@ -124,11 +124,11 @@ public class ParseChannelEndpointTest(EndpointTestFixture fixture) : IClassFixtu
 		var createdSchedule = await client.PostAsJsonAsync(Url, request);
 		createdSchedule.StatusCode.ShouldBe(HttpStatusCode.Created);
 
-		var list = await client.GetFromJsonAsync<List<ParseChannelsResponse>>(Url);
-		list!.Count.ShouldBeGreaterThan(0);
+		var list = await client.GetFromJsonAsync<ParseChannelListResponse>(Url);
 		list.ShouldNotBeNull();
-		list.ShouldNotBeEmpty();
-		list.ShouldContain(x =>
+		list.Items.Count.ShouldBeGreaterThan(0);
+		list.Items.ShouldNotBeEmpty();
+		list.Items.ShouldContain(x =>
 			x.NeedVerifiedPosts == request.NeedVerifiedPosts
 			&& x.DeleteMedia == request.DeleteMedia
 			&& x.DeleteText == request.DeleteText);
@@ -150,8 +150,9 @@ public class ParseChannelEndpointTest(EndpointTestFixture fixture) : IClassFixtu
 
 		var anotherClient = fixture.GetClient(fixture.GenerateTestToken(GlobalConst.UserIdEmpty));
 
-		var list = await anotherClient.GetFromJsonAsync<List<ParseChannelsResponse>>(Url);
-		list!.Count.ShouldBe(0);
+		var list = await anotherClient.GetFromJsonAsync<ParseChannelListResponse>(Url);
+		list.ShouldNotBeNull();
+		list.Items.Count.ShouldBe(0);
 	}
 
 	[Fact]
@@ -210,8 +211,8 @@ public class ParseChannelEndpointTest(EndpointTestFixture fixture) : IClassFixtu
 		var updateResponse = await client.PutAsync(Url + "/" + parseId, updateRequest.ToStringContent());
 		updateResponse.StatusCode.ShouldBe(HttpStatusCode.OK);
 
-		var list = await client.GetAsync<List<ParseChannelsResponse>>(Url);
-		var existParse = list.FirstOrDefault(x => x.Id == parseId);
+		var list = await client.GetAsync<ParseChannelListResponse>(Url);
+		var existParse = list.Items.FirstOrDefault(x => x.Id == parseId);
 		existParse.ShouldNotBeNull();
 		existParse.NeedVerifiedPosts.ShouldBe(updateRequest.NeedVerifiedPosts);
 		existParse.Channel.ShouldBe(updateRequest.Channel);

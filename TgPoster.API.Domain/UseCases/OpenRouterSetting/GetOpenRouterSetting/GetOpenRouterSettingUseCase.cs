@@ -1,13 +1,14 @@
 using MediatR;
 using Security.IdentityServices;
 using Shared.Exceptions;
+using TgPoster.API.Domain.UseCases.OpenRouterSetting.ListOpenRouterSetting;
 
 namespace TgPoster.API.Domain.UseCases.OpenRouterSetting.GetOpenRouterSetting;
 
 public class GetOpenRouterSettingUseCase(IGetOpenRouterSettingStorage storage, IIdentityProvider provider)
-	: IRequestHandler<GetOpenRouterSettingQuery, GetOpenRouterSettingResponse>
+	: IRequestHandler<GetOpenRouterSettingQuery, OpenRouterSettingResponse>
 {
-	public async Task<GetOpenRouterSettingResponse> Handle(GetOpenRouterSettingQuery query, CancellationToken ctx)
+	public async Task<OpenRouterSettingResponse> Handle(GetOpenRouterSettingQuery query, CancellationToken ctx)
 	{
 		var settings = await storage.Get(query.Id, provider.Current.UserId, ctx);
 		if (settings is null)
@@ -15,7 +16,7 @@ public class GetOpenRouterSettingUseCase(IGetOpenRouterSettingStorage storage, I
 			throw new OpenRouterSettingNotFoundException();
 		}
 
-		return new GetOpenRouterSettingResponse
+		return new OpenRouterSettingResponse
 		{
 			Model = settings.Model,
 			Id = settings.Id

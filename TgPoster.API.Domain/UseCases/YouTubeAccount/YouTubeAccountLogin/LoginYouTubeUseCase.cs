@@ -8,9 +8,9 @@ using TgPoster.API.Domain.Exceptions;
 namespace TgPoster.API.Domain.UseCases.YouTubeAccount.YouTubeAccountLogin;
 
 public class LoginYouTubeUseCase(ILoginYouTubeStorage storage, IIdentityProvider provider)
-	: IRequestHandler<LoginYouTubeCommand, CreateYouTubeAccountResponse>
+	: IRequestHandler<LoginYouTubeCommand, YouTubeAuthUrlResponse>
 {
-	public async Task<CreateYouTubeAccountResponse> Handle(LoginYouTubeCommand request, CancellationToken ct)
+	public async Task<YouTubeAuthUrlResponse> Handle(LoginYouTubeCommand request, CancellationToken ct)
 	{
 		var clientSecrets = new ClientSecrets();
 		if (request.JsonFile != null)
@@ -45,6 +45,6 @@ public class LoginYouTubeUseCase(ILoginYouTubeStorage storage, IIdentityProvider
 			provider.Current.UserId, ct);
 		var authRequestUrl = flow.CreateAuthorizationCodeRequest(request.RedirectUrl);
 		authRequestUrl.State = guid.ToString();
-		return new CreateYouTubeAccountResponse { Url = authRequestUrl.Build().ToString() };
+		return new YouTubeAuthUrlResponse { Url = authRequestUrl.Build().ToString() };
 	}
 }
