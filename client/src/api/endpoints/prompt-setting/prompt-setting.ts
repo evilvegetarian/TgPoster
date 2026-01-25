@@ -25,6 +25,7 @@ import type {
 
 import type {
   CreatePromptSettingRequest,
+  CreatePromptSettingResponse,
   EditPromptSettingRequest,
   GetApiV1PromptSettingParams,
   ProblemDetails,
@@ -46,7 +47,7 @@ export const postApiV1PromptSetting = (
 ) => {
       
       
-      return customInstance<void>(
+      return customInstance<CreatePromptSettingResponse>(
       {url: `/api/v1/prompt-setting`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
       data: createPromptSettingRequest, signal

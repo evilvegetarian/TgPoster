@@ -24,11 +24,11 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
-  CreateYouTubeAccountResponse,
   GetApiV1YoutubeCallbackParams,
   PostApiV1YoutubeBody,
   ProblemDetails,
-  YouTubeAccountResponse
+  YouTubeAccountListResponse,
+  YouTubeAuthUrlResponse
 } from '../tgPosterAPI.schemas';
 
 import { customInstance } from '../../axios-instance';
@@ -55,7 +55,7 @@ if(postApiV1YoutubeBody.ClientSecret !== undefined) {
  formData.append(`ClientSecret`, postApiV1YoutubeBody.ClientSecret)
  }
 
-      return customInstance<CreateYouTubeAccountResponse>(
+      return customInstance<YouTubeAuthUrlResponse>(
       {url: `/api/v1/youtube`, method: 'POST',
       headers: {'Content-Type': 'multipart/form-data', },
        data: formData, signal
@@ -119,7 +119,7 @@ export const getApiV1Youtube = (
 ) => {
       
       
-      return customInstance<YouTubeAccountResponse[]>(
+      return customInstance<YouTubeAccountListResponse>(
       {url: `/api/v1/youtube`, method: 'GET', signal
     },
       );

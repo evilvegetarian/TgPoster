@@ -27,7 +27,7 @@ import type {
   CreateTelegramBotRequest,
   CreateTelegramBotResponse,
   ProblemDetails,
-  TelegramBotResponse,
+  TelegramBotListResponse,
   UpdateTelegramBotRequest
 } from '../tgPosterAPI.schemas';
 
@@ -109,7 +109,7 @@ export const getApiV1TelegramBot = (
 ) => {
       
       
-      return customInstance<TelegramBotResponse[]>(
+      return customInstance<TelegramBotListResponse>(
       {url: `/api/v1/telegram-bot`, method: 'GET', signal
     },
       );

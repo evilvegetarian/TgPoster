@@ -30,7 +30,7 @@ import type {
   SendPasswordRequest,
   SendPasswordResponse,
   StartAuthResponse,
-  TelegramSessionResponse,
+  TelegramSessionListResponse,
   UpdateTelegramSessionRequest,
   VerifyCodeRequest,
   VerifyCodeResponse
@@ -114,7 +114,7 @@ export const getApiV1TelegramSession = (
 ) => {
       
       
-      return customInstance<TelegramSessionResponse[]>(
+      return customInstance<TelegramSessionListResponse>(
       {url: `/api/v1/telegram-session`, method: 'GET', signal
     },
       );

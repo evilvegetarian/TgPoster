@@ -27,6 +27,7 @@ import type {
   CreateScheduleRequest,
   CreateScheduleResponse,
   ProblemDetails,
+  ScheduleListResponse,
   ScheduleResponse,
   UpdateScheduleRequest
 } from '../tgPosterAPI.schemas';
@@ -45,7 +46,7 @@ export const getApiV1Schedule = (
 ) => {
       
       
-      return customInstance<ScheduleResponse[]>(
+      return customInstance<ScheduleListResponse>(
       {url: `/api/v1/schedule`, method: 'GET', signal
     },
       );

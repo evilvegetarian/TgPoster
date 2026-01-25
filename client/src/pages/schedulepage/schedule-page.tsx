@@ -78,7 +78,8 @@ const DEFAULT_INTERVAL_TIME_SLOT: IntervalTimeSlot = {
 }
 
 export function SchedulePage() {
-    const {data: schedules = [], isLoading: schedulesLoading, refetch: refetchSchedules} = useGetApiV1Schedule();
+    const {data: schedulesData, isLoading: schedulesLoading, refetch: refetchSchedules} = useGetApiV1Schedule();
+    const schedules = schedulesData?.items ?? [];
 
 
     const {mutate: deleteScheduleMutate, isPending: deleteSchedulePending} = useDeleteApiV1ScheduleId({
@@ -115,7 +116,8 @@ export function SchedulePage() {
         },
     });
 
-    const {data: youtubeAccounts = [], isLoading: youtubeLoading} = useGetApiV1Youtube();
+    const {data: youtubeAccountsData, isLoading: youtubeLoading} = useGetApiV1Youtube();
+    const youtubeAccounts = youtubeAccountsData?.items ?? [];
 
     const {mutate: updateScheduleMutate, isPending: updateSchedulePending} = usePutApiV1ScheduleId({
         mutation: {
@@ -147,10 +149,11 @@ export function SchedulePage() {
     )
 
     const scheduleDays = useMemo<ScheduleDay[]>(() => {
-        if (!Array.isArray(scheduleDaysData)) {
+        const daysItems = scheduleDaysData?.items;
+        if (!Array.isArray(daysItems)) {
             return [];
         }
-        return scheduleDaysData.map(day => {
+        return daysItems.map(day => {
             const localTimePostings = day.timePostings?.sort().map(utcTime => convertUtcTimeToLocalTime(utcTime));
             return {
                 ...day,

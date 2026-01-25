@@ -67,7 +67,8 @@ export function YouTubeAccountPage() {
             },
         },
     });
-    const {data: accounts, isLoading, refetch} = useGetApiV1Youtube();
+    const {data: accountsData, isLoading, refetch} = useGetApiV1Youtube();
+    const accounts = accountsData?.items ?? [];
     const {mutate: deleteAccount} = useDeleteApiV1YoutubeId({
         mutation: {
             onSuccess: () => {

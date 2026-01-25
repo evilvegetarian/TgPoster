@@ -26,8 +26,8 @@ import type {
 import type {
   CreateOpenRouterSettingRequest,
   CreateOpenRouterSettingResponse,
-  GetOpenRouterSettingResponse,
   ListOpenRouterSettingResponse,
+  OpenRouterSettingResponse,
   ProblemDetails
 } from '../tgPosterAPI.schemas';
 
@@ -201,7 +201,7 @@ export const getApiV1OpenRouterSettingId = (
 ) => {
       
       
-      return customInstance<GetOpenRouterSettingResponse>(
+      return customInstance<OpenRouterSettingResponse>(
       {url: `/api/v1/open-router-setting/${id}`, method: 'GET', signal
     },
       );
@@ -292,7 +292,7 @@ export const deleteApiV1OpenRouterSettingId = (
  ) => {
       
       
-      return customInstance<ListOpenRouterSettingResponse>(
+      return customInstance<void>(
       {url: `/api/v1/open-router-setting/${id}`, method: 'DELETE'
     },
       );

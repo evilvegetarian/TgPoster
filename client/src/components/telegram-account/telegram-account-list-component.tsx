@@ -55,7 +55,7 @@ function getStatusConfig(status?: string) {
 }
 
 export function TelegramAccountListComponent() {
-    const { data, error, isLoading } = useGetApiV1TelegramSession();
+    const { data: sessionsData, error, isLoading } = useGetApiV1TelegramSession();
     const queryClient = useQueryClient();
     const [accountToDelete, setAccountToDelete] = useState<TelegramSessionResponse | null>(null);
 
@@ -120,7 +120,7 @@ export function TelegramAccountListComponent() {
         );
     }
 
-    const accounts = data || [];
+    const accounts = sessionsData?.items || [];
 
     return (
         <>

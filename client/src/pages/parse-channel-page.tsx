@@ -13,7 +13,7 @@ import {
 } from "@/api/endpoints/parse-channel/parse-channel.ts";
 import type {
     CreateParseChannelRequest,
-    ParseChannelsResponse,
+    ParseChannelResponse,
     UpdateParseChannelRequest
 } from "@/api/endpoints/tgPosterAPI.schemas.ts";
 import {AddParsingSettingsDialog} from "@/components/parse-channel/add-parsing-settings-dialog.tsx";
@@ -22,9 +22,10 @@ import {EditParsingSettingsDialog} from "@/components/parse-channel/edit-parsing
 export function ParseChannelPage() {
     const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
-    const [editingSettings, setEditingSettings] = useState<ParseChannelsResponse | null>(null)
+    const [editingSettings, setEditingSettings] = useState<ParseChannelResponse | null>(null)
 
-    const {data: settings = [], isLoading, error, refetch} = useGetApiV1ParseChannel()
+    const {data, isLoading, error, refetch} = useGetApiV1ParseChannel()
+    const settings = data?.items ?? []
 
     const createMutation = usePostApiV1ParseChannel({
         mutation: {
@@ -90,7 +91,7 @@ export function ParseChannelPage() {
         })
     }
 
-    const openEditDialog = (settings: ParseChannelsResponse) => {
+    const openEditDialog = (settings: ParseChannelResponse) => {
         setEditingSettings(settings)
         setIsEditDialogOpen(true)
     }

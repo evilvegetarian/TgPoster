@@ -46,7 +46,8 @@ export function FiltersPanel({
                                  onSortDirectionChange,
                                  onDateRangeChange,
                              }: FiltersPanelProps) {
-    const {data: schedules, isLoading: schedulesLoading} = useGetApiV1Schedule()
+    const {data: schedulesData, isLoading: schedulesLoading} = useGetApiV1Schedule()
+    const schedules = schedulesData?.items
     const {data: sortFields, isLoading: sortFieldsLoading} = useGetApiOptionsMessageSortFields()
     const {data: statusMessage, isLoading: statusMessageLoading} = useGetApiOptionsMessageStatuses()
     const {data: sortDirections, isLoading: sortDirectionsLoading} = useGetApiOptionsSortDirections()

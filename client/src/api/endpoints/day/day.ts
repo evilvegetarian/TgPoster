@@ -25,9 +25,9 @@ import type {
 
 import type {
   CreateDaysRequest,
-  DayOfWeekResponse,
+  DayListResponse,
+  DayOfWeekListResponse,
   GetApiV1DayParams,
-  GetDaysResponse,
   ProblemDetails,
   UpdateTimeRequest
 } from '../tgPosterAPI.schemas';
@@ -46,7 +46,7 @@ export const getApiV1DayDayOfWeek = (
 ) => {
       
       
-      return customInstance<DayOfWeekResponse[]>(
+      return customInstance<DayOfWeekListResponse>(
       {url: `/api/v1/day/day-of-week`, method: 'GET', signal
     },
       );
@@ -202,7 +202,7 @@ export const getApiV1Day = (
 ) => {
       
       
-      return customInstance<GetDaysResponse[]>(
+      return customInstance<DayListResponse>(
       {url: `/api/v1/day`, method: 'GET',
         params, signal
     },

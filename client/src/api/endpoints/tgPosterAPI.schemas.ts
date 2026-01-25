@@ -125,6 +125,10 @@ export interface CreatePromptSettingRequest {
   photoPrompt?: string | null;
 }
 
+export interface CreatePromptSettingResponse {
+  id?: string;
+}
+
 /**
  * Создание настроек репоста для расписания.
  */
@@ -197,8 +201,8 @@ export interface CreateTelegramSessionResponse {
   authStatus?: string;
 }
 
-export interface CreateYouTubeAccountResponse {
-  url: string;
+export interface DayListResponse {
+  items: DayResponse[];
 }
 
 export type DayOfWeek = typeof DayOfWeek[keyof typeof DayOfWeek];
@@ -214,6 +218,10 @@ export const DayOfWeek = {
   Friday: 'Friday',
   Saturday: 'Saturday',
 } as const;
+
+export interface DayOfWeekListResponse {
+  items: DayOfWeekResponse[];
+}
 
 /**
  * Настройки публикации для дня недели
@@ -235,6 +243,13 @@ export interface DayOfWeekRequest {
 export interface DayOfWeekResponse {
   id?: number;
   name?: string;
+}
+
+export interface DayResponse {
+  id: string;
+  scheduleId: string;
+  dayOfWeek: DayOfWeek;
+  timePostings?: string[];
 }
 
 /**
@@ -287,18 +302,6 @@ export interface FileTypesEnumViewModel {
 
 export interface GenerateAiContentResponse {
   content: string;
-}
-
-export interface GetDaysResponse {
-  id: string;
-  scheduleId: string;
-  dayOfWeek: DayOfWeek;
-  timePostings?: string[];
-}
-
-export interface GetOpenRouterSettingResponse {
-  model: string;
-  id?: string;
 }
 
 export interface GetRepostDestinationDto {
@@ -396,7 +399,11 @@ export interface OpenRouterSettingResponse {
   id: string;
 }
 
-export interface ParseChannelsResponse {
+export interface ParseChannelListResponse {
+  items: ParseChannelResponse[];
+}
+
+export interface ParseChannelResponse {
   id: string;
   scheduleId: string;
   deleteText: boolean;
@@ -416,7 +423,7 @@ export interface ParseChannelsResponse {
 }
 
 export interface PreviewFileResponse {
-  url?: string;
+  url: string;
 }
 
 export interface ProblemDetails {
@@ -465,6 +472,10 @@ export interface RefreshTokenResponse {
   accessToken: string;
   refreshToken: string;
   refreshTokenExpiration: string;
+}
+
+export interface ScheduleListResponse {
+  items: ScheduleResponse[];
 }
 
 export interface ScheduleResponse {
@@ -560,9 +571,17 @@ export interface StartAuthResponse {
   message?: string;
 }
 
+export interface TelegramBotListResponse {
+  items: TelegramBotResponse[];
+}
+
 export interface TelegramBotResponse {
   id: string;
   name: string;
+}
+
+export interface TelegramSessionListResponse {
+  items: TelegramSessionResponse[];
 }
 
 export interface TelegramSessionResponse {
@@ -684,6 +703,10 @@ export interface VerifyCodeResponse {
   message?: string | null;
 }
 
+export interface YouTubeAccountListResponse {
+  items: YouTubeAccountResponse[];
+}
+
 export interface YouTubeAccountResponse {
   id: string;
   name: string;
@@ -694,6 +717,10 @@ export interface YouTubeAccountResponse {
   /** @nullable */
   defaultTags?: string | null;
   autoPostingVideo?: boolean;
+}
+
+export interface YouTubeAuthUrlResponse {
+  url: string;
 }
 
 export type GetApiV1DayParams = {

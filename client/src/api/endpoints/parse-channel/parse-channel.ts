@@ -26,7 +26,7 @@ import type {
 import type {
   CreateParseChannelRequest,
   CreateParseChannelResponse,
-  ParseChannelsResponse,
+  ParseChannelListResponse,
   ProblemDetails,
   UpdateParseChannelRequest
 } from '../tgPosterAPI.schemas';
@@ -109,7 +109,7 @@ export const getApiV1ParseChannel = (
 ) => {
       
       
-      return customInstance<ParseChannelsResponse[]>(
+      return customInstance<ParseChannelListResponse>(
       {url: `/api/v1/parse-channel`, method: 'GET', signal
     },
       );

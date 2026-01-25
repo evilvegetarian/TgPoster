@@ -19,7 +19,7 @@ import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/c
 import {Badge} from "@/components/ui/badge"
 import {AlertCircle, Loader2, X} from "lucide-react"
 import {toast} from "sonner"
-import type {ParseChannelsResponse, UpdateParseChannelRequest} from "@/api/endpoints/tgPosterAPI.schemas.ts";
+import type {ParseChannelResponse, UpdateParseChannelRequest} from "@/api/endpoints/tgPosterAPI.schemas.ts";
 import {useGetApiV1Schedule} from "@/api/endpoints/schedule/schedule.ts";
 import {useGetApiV1TelegramSession} from "@/api/endpoints/telegram-session/telegram-session.ts";
 
@@ -42,7 +42,7 @@ interface EditParsingSettingsDialogProps {
     open: boolean
     onOpenChange: (open: boolean) => void
     onSubmit: (settings: UpdateParseChannelRequest) => void
-    initialData: ParseChannelsResponse
+    initialData: ParseChannelResponse
     isLoading?: boolean
 }
 
@@ -80,8 +80,10 @@ export function EditParsingSettingsDialog({
     const newAvoidWordRef = useRef<HTMLInputElement>(null)
     const avoidWords = watch("avoidWords")
 
-    const {data: schedules = [], isLoading: schedulesLoading, error: schedulesError} = useGetApiV1Schedule()
-    const {data: telegramSessions = [], isLoading: sessionsLoading, error: sessionsError} = useGetApiV1TelegramSession()
+    const {data: schedulesData, isLoading: schedulesLoading, error: schedulesError} = useGetApiV1Schedule()
+    const {data: sessionsData, isLoading: sessionsLoading, error: sessionsError} = useGetApiV1TelegramSession()
+    const schedules = schedulesData?.items ?? []
+    const telegramSessions = sessionsData?.items ?? []
 
     useEffect(() => {
         if (open && initialData) {

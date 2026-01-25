@@ -80,8 +80,10 @@ export function AddParsingSettingsDialog({
     const newAvoidWordRef = useRef<HTMLInputElement>(null)
     const avoidWords = watch("avoidWords")
 
-    const {data: schedules = [], isLoading: schedulesLoading, error: schedulesError} = useGetApiV1Schedule()
-    const {data: telegramSessions = [], isLoading: sessionsLoading, error: sessionsError} = useGetApiV1TelegramSession()
+    const {data: schedulesData, isLoading: schedulesLoading, error: schedulesError} = useGetApiV1Schedule()
+    const {data: sessionsData, isLoading: sessionsLoading, error: sessionsError} = useGetApiV1TelegramSession()
+    const schedules = schedulesData?.items ?? []
+    const telegramSessions = sessionsData?.items ?? []
     const getUtcString = (dateValue: string | Date | null | undefined): string | null => {
         if (!dateValue) {
             return null;

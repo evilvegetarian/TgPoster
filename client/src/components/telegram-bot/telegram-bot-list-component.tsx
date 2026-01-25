@@ -30,7 +30,8 @@ import {toast} from "sonner";
 import {useQueryClient} from "@tanstack/react-query";
 
 export function TelegramBotListComponent() {
-    const {data, error, isLoading, refetch} = useGetApiV1TelegramBot();
+    const {data: botsData, error, isLoading, refetch} = useGetApiV1TelegramBot();
+    const data = botsData?.items;
     const [botToDelete, setBotToDelete] = useState<TelegramBotResponse | null>(null);
     const queryClient = useQueryClient();
 

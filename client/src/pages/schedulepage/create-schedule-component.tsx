@@ -58,8 +58,10 @@ export function CreateScheduleComponent() {
         },
     });
 
-    const {data: telegramBots = [], isLoading: botsLoading} = useGetApiV1TelegramBot();
-    const {data: youtubeAccounts = [], isLoading: youtubeLoading} = useGetApiV1Youtube();
+    const {data: botsData, isLoading: botsLoading} = useGetApiV1TelegramBot();
+    const {data: youtubeAccountsData, isLoading: youtubeLoading} = useGetApiV1Youtube();
+    const telegramBots = botsData?.items ?? [];
+    const youtubeAccounts = youtubeAccountsData?.items ?? [];
 
     const {mutate: createScheduleMutate, isPending} = usePostApiV1Schedule({
         mutation: {
