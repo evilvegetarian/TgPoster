@@ -1,3 +1,3 @@
 namespace TgPoster.API.Domain.Exceptions;
 
-public class DaysNotFoundException() : NotFoundException("Days not found.");
+public class DaysNotFoundException() : NotFoundException("Дни не найдены.");

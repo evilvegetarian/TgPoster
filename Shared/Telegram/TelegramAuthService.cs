@@ -13,11 +13,10 @@ public sealed class TelegramAuthService(
 	ILogger<TelegramAuthService> logger,
 	ITelegramAuthRepository authRepository,
 	IServiceScopeFactory scopeFactory,
-	TelegramClientManager clientManager) : IDisposable
+	TelegramClientManager clientManager)
 {
 	public void Dispose()
 	{
-		clientManager.Dispose();
 		logger.LogInformation("TelegramAuthService освобожден");
 	}
 
