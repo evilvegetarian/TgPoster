@@ -23,7 +23,7 @@ public interface ICreateRepostSettingsStorage
 	Task<Guid> CreateRepostSettingsAsync(
 		Guid scheduleId,
 		Guid telegramSessionId,
-		List<string> destinations,
+		List<long> destinations,
 		CancellationToken ct
 	);
 }

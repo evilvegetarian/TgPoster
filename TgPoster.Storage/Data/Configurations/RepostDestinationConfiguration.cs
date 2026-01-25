@@ -13,8 +13,7 @@ internal sealed class RepostDestinationConfiguration : BaseEntityConfiguration<R
 		builder.Property(x => x.RepostSettingsId)
 			.IsRequired();
 
-		builder.Property(x => x.ChatIdentifier)
-			.HasMaxLength(255)
+		builder.Property(x => x.ChatId)
 			.IsRequired();
 
 		builder.Property(x => x.IsActive)

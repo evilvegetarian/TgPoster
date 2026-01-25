@@ -10,13 +10,13 @@ public interface IAddRepostDestinationStorage
 	/// <summary>
 	///     Проверяет существует ли уже destination с таким ChatIdentifier для данного RepostSettings.
 	/// </summary>
-	Task<bool> DestinationExistsAsync(Guid repostSettingsId, string chatIdentifier, CancellationToken ct);
+	Task<bool> DestinationExistsAsync(Guid repostSettingsId, long chatIdentifier, CancellationToken ct);
 
 	/// <summary>
 	///     Добавляет новый destination. Возвращает ID созданного destination.
 	/// </summary>
 	Task<Guid> AddDestinationAsync(
 		Guid repostSettingsId,
-		string chatIdentifier,
+		long chatIdentifier,
 		CancellationToken ct);
 }

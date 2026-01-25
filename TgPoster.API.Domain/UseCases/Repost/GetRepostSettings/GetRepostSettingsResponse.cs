@@ -11,6 +11,6 @@ public sealed record GetRepostSettingsResponse
 public sealed record GetRepostDestinationDto
 {
 	public required Guid Id { get; init; }
-	public required string ChatIdentifier { get; init; }
+	public required long ChatIdentifier { get; init; }
 	public required bool IsActive { get; init; }
 }

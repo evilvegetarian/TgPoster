@@ -19,15 +19,16 @@ public sealed class GetRepostSettingsStorageShould(StorageTestFixture fixture) :
 			.WithScheduleId(schedule.Id)
 			.WithTelegramSessionId(session.Id)
 			.CreateAsync();
-
+		var channel1 = 14123414421;
+		var channel2 = 356356565;
 		await new RepostDestinationBuilder(context)
 			.WithRepostSettingsId(settings.Id)
-			.WithChatIdentifier("@channel1")
+			.WithChatIdentifier(channel1)
 			.CreateAsync();
 
 		await new RepostDestinationBuilder(context)
 			.WithRepostSettingsId(settings.Id)
-			.WithChatIdentifier("@channel2")
+			.WithChatIdentifier(channel2)
 			.CreateAsync();
 
 		var result = await sut.GetRepostSettingsByScheduleIdAsync(schedule.Id, CancellationToken.None);
@@ -37,8 +38,8 @@ public sealed class GetRepostSettingsStorageShould(StorageTestFixture fixture) :
 		result.ScheduleId.ShouldBe(schedule.Id);
 		result.TelegramSessionId.ShouldBe(session.Id);
 		result.Destinations.Count.ShouldBe(2);
-		result.Destinations.ShouldContain(d => d.ChatIdentifier == "@channel1");
-		result.Destinations.ShouldContain(d => d.ChatIdentifier == "@channel2");
+		result.Destinations.ShouldContain(d => d.ChatIdentifier == channel1);
+		result.Destinations.ShouldContain(d => d.ChatIdentifier == channel2);
 	}
 
 	[Fact]

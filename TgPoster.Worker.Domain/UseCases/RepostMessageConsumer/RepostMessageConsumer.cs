@@ -43,7 +43,8 @@ internal sealed class RepostMessageConsumer(
 			return;
 		}
 
-		foreach (var destination in repostData.Destinations)
+		//TODO:Поменять
+		/*foreach (var destination in repostData.Destinations)
 		{
 			try
 			{
@@ -111,7 +112,7 @@ internal sealed class RepostMessageConsumer(
 					e.Message,
 					context.CancellationToken);
 			}
-		}
+		}*/
 
 		logger.LogInformation("Завершена обработка репоста для сообщения {MessageId}", command.MessageId);
 	}

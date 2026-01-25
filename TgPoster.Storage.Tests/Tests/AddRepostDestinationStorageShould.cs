@@ -39,13 +39,14 @@ public sealed class AddRepostDestinationStorageShould(StorageTestFixture fixture
 	[Fact]
 	public async Task DestinationExistsAsync_WithExistingDestination_ShouldReturnTrue()
 	{
+		var chatId = 12314124;
 		var settings = await new RepostSettingsBuilder(context).CreateAsync();
 		await new RepostDestinationBuilder(context)
 			.WithRepostSettingsId(settings.Id)
-			.WithChatIdentifier("@channel1")
+			.WithChatIdentifier(chatId)
 			.CreateAsync();
 
-		var result = await sut.DestinationExistsAsync(settings.Id, "@channel1", CancellationToken.None);
+		var result = await sut.DestinationExistsAsync(settings.Id, chatId, CancellationToken.None);
 
 		result.ShouldBeTrue();
 	}
@@ -55,7 +56,7 @@ public sealed class AddRepostDestinationStorageShould(StorageTestFixture fixture
 	{
 		var settings = await new RepostSettingsBuilder(context).CreateAsync();
 
-		var result = await sut.DestinationExistsAsync(settings.Id, "@channel1", CancellationToken.None);
+		var result = await sut.DestinationExistsAsync(settings.Id, 1565488, CancellationToken.None);
 
 		result.ShouldBeFalse();
 	}
@@ -64,7 +65,7 @@ public sealed class AddRepostDestinationStorageShould(StorageTestFixture fixture
 	public async Task AddDestinationAsync_WithValidData_ShouldCreateDestination()
 	{
 		var settings = await new RepostSettingsBuilder(context).CreateAsync();
-		var chatIdentifier = "@channel1";
+		var chatIdentifier = 12141241;
 
 		var response = await sut.AddDestinationAsync(
 			settings.Id,
@@ -76,7 +77,7 @@ public sealed class AddRepostDestinationStorageShould(StorageTestFixture fixture
 
 		createdDestination.ShouldNotBeNull();
 		createdDestination.Id.ShouldBe(settings.Id);
-		createdDestination.ChatIdentifier.ShouldBe(chatIdentifier);
+		createdDestination.ChatId.ShouldBe(chatIdentifier);
 		createdDestination.IsActive.ShouldBeTrue();
 		createdDestination.RepostSettingsId.ShouldBe(settings.Id);
 	}

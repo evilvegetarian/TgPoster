@@ -63,15 +63,6 @@ public sealed class RepostController(ISender sender) : ControllerBase
 		var query = new GetRepostSettingsQuery(scheduleId);
 		var response = await sender.Send(query, ct);
 
-		if (response == null)
-		{
-			return NotFound(new ProblemDetails
-			{
-				Title = "Настройки репоста не найдены",
-				Detail = $"Для расписания {scheduleId} настройки репоста не настроены"
-			});
-		}
-
 		return Ok(response);
 	}
 

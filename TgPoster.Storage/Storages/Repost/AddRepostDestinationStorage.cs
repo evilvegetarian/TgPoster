@@ -15,22 +15,22 @@ internal sealed class AddRepostDestinationStorage(PosterContext context, GuidFac
 			.FirstOrDefaultAsync(ct);
 	}
 
-	public Task<bool> DestinationExistsAsync(Guid repostSettingsId, string chatIdentifier, CancellationToken ct)
+	public Task<bool> DestinationExistsAsync(Guid repostSettingsId, long chatIdentifier, CancellationToken ct)
 	{
 		return context.Set<RepostDestination>()
-			.AnyAsync(x => x.RepostSettingsId == repostSettingsId && x.ChatIdentifier == chatIdentifier, ct);
+			.AnyAsync(x => x.RepostSettingsId == repostSettingsId && x.ChatId == chatIdentifier, ct);
 	}
 
 	public async Task<Guid> AddDestinationAsync(
 		Guid repostSettingsId,
-		string chatIdentifier,
+		long chatId,
 		CancellationToken ct)
 	{
 		var destination = new RepostDestination
 		{
 			Id = guidFactory.New(),
 			RepostSettingsId = repostSettingsId,
-			ChatIdentifier = chatIdentifier,
+			ChatId = chatId,
 			IsActive = true
 		};
 

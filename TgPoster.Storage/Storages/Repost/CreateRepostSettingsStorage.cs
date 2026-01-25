@@ -25,7 +25,7 @@ internal sealed class CreateRepostSettingsStorage(PosterContext context, GuidFac
 	public async Task<Guid> CreateRepostSettingsAsync(
 		Guid scheduleId,
 		Guid telegramSessionId,
-		List<string> destinations,
+		List<long> destinations,
 		CancellationToken ct
 	)
 	{
@@ -44,7 +44,7 @@ internal sealed class CreateRepostSettingsStorage(PosterContext context, GuidFac
 		{
 			Id = guidFactory.New(),
 			RepostSettingsId = settingsId,
-			ChatIdentifier = d,
+			ChatId = d,
 			IsActive = true
 		}).ToList();
 

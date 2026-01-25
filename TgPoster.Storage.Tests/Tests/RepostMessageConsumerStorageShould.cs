@@ -30,7 +30,8 @@ public sealed class RepostMessageConsumerStorageShould(StorageTestFixture fixtur
 		};
 		await context.Messages.AddAsync(msg);
 		await context.SaveChangesAsync();
-
+		var channel1 = 1241241245;
+		var channel2 = 46489315;
 		var settings = await new RepostSettingsBuilder(context)
 			.WithScheduleId(schedule.Id)
 			.WithTelegramSessionId(session.Id)
@@ -39,13 +40,13 @@ public sealed class RepostMessageConsumerStorageShould(StorageTestFixture fixtur
 
 		await new RepostDestinationBuilder(context)
 			.WithRepostSettingsId(settings.Id)
-			.WithChatIdentifier("@channel1")
+			.WithChatIdentifier(channel1)
 			.WithIsActive(true)
 			.CreateAsync();
 
 		await new RepostDestinationBuilder(context)
 			.WithRepostSettingsId(settings.Id)
-			.WithChatIdentifier("@channel2")
+			.WithChatIdentifier(channel2)
 			.WithIsActive(true)
 			.CreateAsync();
 
@@ -56,8 +57,8 @@ public sealed class RepostMessageConsumerStorageShould(StorageTestFixture fixtur
 		result.TelegramSessionId.ShouldBe(session.Id);
 		result.SourceChannelIdentifier.ShouldBe(schedule.ChannelName);
 		result.Destinations.Count.ShouldBe(2);
-		result.Destinations.ShouldContain(d => d.ChatIdentifier == "@channel1");
-		result.Destinations.ShouldContain(d => d.ChatIdentifier == "@channel2");
+		result.Destinations.ShouldContain(d => d.ChatIdentifier == channel1);
+		result.Destinations.ShouldContain(d => d.ChatIdentifier == channel2);
 	}
 
 	[Fact]
@@ -106,7 +107,8 @@ public sealed class RepostMessageConsumerStorageShould(StorageTestFixture fixtur
 		};
 		await context.Messages.AddAsync(msg);
 		await context.SaveChangesAsync();
-
+		var active = 1412342421;
+		var inactive = 1412342421241;
 		var settings = await new RepostSettingsBuilder(context)
 			.WithScheduleId(schedule.Id)
 			.WithTelegramSessionId(session.Id)
@@ -115,13 +117,13 @@ public sealed class RepostMessageConsumerStorageShould(StorageTestFixture fixtur
 
 		await new RepostDestinationBuilder(context)
 			.WithRepostSettingsId(settings.Id)
-			.WithChatIdentifier("@active")
+			.WithChatIdentifier(active)
 			.WithIsActive(true)
 			.CreateAsync();
 
 		await new RepostDestinationBuilder(context)
 			.WithRepostSettingsId(settings.Id)
-			.WithChatIdentifier("@inactive")
+			.WithChatIdentifier(inactive)
 			.WithIsActive(false)
 			.CreateAsync();
 
@@ -129,7 +131,7 @@ public sealed class RepostMessageConsumerStorageShould(StorageTestFixture fixtur
 
 		result.ShouldNotBeNull();
 		result.Destinations.Count.ShouldBe(1);
-		result.Destinations[0].ChatIdentifier.ShouldBe("@active");
+		result.Destinations[0].ChatIdentifier.ShouldBe(active);
 	}
 
 	[Fact]
@@ -265,15 +267,16 @@ public sealed class RepostMessageConsumerStorageShould(StorageTestFixture fixtur
 			.WithScheduleId(schedule.Id)
 			.WithTelegramSessionId(session.Id)
 			.CreateAsync();
-
+		var channel1 = 14123414421;
+		var channel2 = 356356565;
 		var destination1 = await new RepostDestinationBuilder(context)
 			.WithRepostSettingsId(settings.Id)
-			.WithChatIdentifier("@channel1")
+			.WithChatIdentifier(channel1)
 			.CreateAsync();
 
 		var destination2 = await new RepostDestinationBuilder(context)
 			.WithRepostSettingsId(settings.Id)
-			.WithChatIdentifier("@channel2")
+			.WithChatIdentifier(channel2)
 			.CreateAsync();
 
 		await sut.CreateRepostLogAsync(msg.Id, destination1.Id, 111, null, CancellationToken.None);

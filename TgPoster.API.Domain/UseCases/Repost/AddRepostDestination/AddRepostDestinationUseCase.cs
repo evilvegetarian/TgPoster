@@ -7,7 +7,8 @@ namespace TgPoster.API.Domain.UseCases.Repost.AddRepostDestination;
 
 internal sealed class AddRepostDestinationUseCase(
 	IAddRepostDestinationStorage storage,
-	TelegramAuthService authService)
+	TelegramAuthService authService,
+	TelegramChatService chatService)
 	: IRequestHandler<AddRepostDestinationCommand, AddRepostDestinationResponse>
 {
 	public async Task<AddRepostDestinationResponse> Handle(AddRepostDestinationCommand request, CancellationToken ct)
@@ -16,26 +17,16 @@ internal sealed class AddRepostDestinationUseCase(
 		if (telegramSessionId == null)
 			throw new RepostSettingsNotFoundException(request.RepostSettingsId);
 
-		if (await storage.DestinationExistsAsync(request.RepostSettingsId, request.ChatIdentifier, ct))
-			throw new RepostDestinationAlreadyExistsException(request.ChatIdentifier);
+		// if (await storage.DestinationExistsAsync(request.RepostSettingsId, request.ChatIdentifier, ct))
+		// 	throw new RepostDestinationAlreadyExistsException(request.ChatIdentifier);
 
 		var client = await authService.GetClientAsync(telegramSessionId.Value, ct);
 
-		try
-		{
-			var resolveResult = await client.Contacts_ResolveUsername(request.ChatIdentifier);
-
-			if (resolveResult.Chat == null)
-				throw new TelegramChannelNotFoundException(request.ChatIdentifier);
-		}
-		catch (Exception ex) when (ex is not TelegramChannelNotFoundException)
-		{
-			throw new TelegramChannelAccessException(request.ChatIdentifier, ex.Message);
-		}
+		var info = await chatService.GetChatInfoAsync(client, request.ChatIdentifier);
 
 		var destinationId = await storage.AddDestinationAsync(
 			request.RepostSettingsId,
-			request.ChatIdentifier,
+			info.Id,
 			ct);
 
 		return new AddRepostDestinationResponse { Id = destinationId };

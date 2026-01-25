@@ -5,7 +5,10 @@ using TL;
 
 namespace TgPoster.API.Domain.UseCases.Repost.CreateRepostSettings;
 
-internal sealed class CreateRepostSettingsUseCase(ICreateRepostSettingsStorage storage, TelegramAuthService authService)
+internal sealed class CreateRepostSettingsUseCase(
+	ICreateRepostSettingsStorage storage,
+	TelegramAuthService authService,
+	TelegramChatService chatService)
 	: IRequestHandler<CreateRepostSettingsCommand, CreateRepostSettingsResponse>
 {
 	public async Task<CreateRepostSettingsResponse> Handle(CreateRepostSettingsCommand request, CancellationToken ct)
@@ -20,11 +23,13 @@ internal sealed class CreateRepostSettingsUseCase(ICreateRepostSettingsStorage s
 			throw new RepostSettingsAlreadyExistsException(request.ScheduleId);
 
 		var client = await authService.GetClientAsync(request.TelegramSessionId, ct);
-
+		var chats = new List<long>();
 		foreach (var destination in request.Destinations)
 		{
 			try
 			{
+				var info = await chatService.GetChatInfoAsync(client, destination);
+				chats.Add(info.Id);
 				var resolveResult = await client.Contacts_ResolveUsername(destination.TrimStart('@'));
 
 				if (resolveResult.Chat == null)
@@ -39,7 +44,7 @@ internal sealed class CreateRepostSettingsUseCase(ICreateRepostSettingsStorage s
 		var settingsId = await storage.CreateRepostSettingsAsync(
 			request.ScheduleId,
 			request.TelegramSessionId,
-			request.Destinations,
+			chats,
 			ct);
 
 		return new CreateRepostSettingsResponse { Id = settingsId };

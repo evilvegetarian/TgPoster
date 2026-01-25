@@ -12,7 +12,7 @@ public sealed class RepostDestinationBuilder(PosterContext context)
 	{
 		Id = Guid.NewGuid(),
 		RepostSettingsId = new RepostSettingsBuilder(context).Create().Id,
-		ChatIdentifier = $"@{faker.Internet.UserName()}",
+		ChatId = faker.Random.Long(),
 		IsActive = true
 	};
 
@@ -45,9 +45,9 @@ public sealed class RepostDestinationBuilder(PosterContext context)
 		return this;
 	}
 
-	public RepostDestinationBuilder WithChatIdentifier(string chatIdentifier)
+	public RepostDestinationBuilder WithChatIdentifier(long chatIdentifier)
 	{
-		destination.ChatIdentifier = chatIdentifier;
+		destination.ChatId = chatIdentifier;
 		return this;
 	}
 

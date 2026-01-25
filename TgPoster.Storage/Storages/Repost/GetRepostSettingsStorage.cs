@@ -19,7 +19,7 @@ internal sealed class GetRepostSettingsStorage(PosterContext context) : IGetRepo
 				Destinations = x.Destinations.Select(d => new GetRepostDestinationDto
 				{
 					Id = d.Id,
-					ChatIdentifier = d.ChatIdentifier,
+					ChatIdentifier = d.ChatId,
 					IsActive = d.IsActive
 				}).ToList()
 			})

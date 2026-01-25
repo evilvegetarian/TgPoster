@@ -23,7 +23,7 @@ internal sealed class RepostMessageConsumerStorage(PosterContext context) : IRep
 						.Select(d => new RepostDestinationDataDto
 						{
 							Id = d.Id,
-							ChatIdentifier = d.ChatIdentifier
+							ChatIdentifier = d.ChatId
 						}).ToList()
 				}
 				: null)

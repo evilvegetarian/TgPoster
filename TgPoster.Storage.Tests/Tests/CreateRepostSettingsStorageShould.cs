@@ -93,10 +93,10 @@ public sealed class CreateRepostSettingsStorageShould(StorageTestFixture fixture
 	{
 		var schedule = await new ScheduleBuilder(context).CreateAsync();
 		var session = await new TelegramSessionBuilder(context).CreateAsync();
-		var destinations = new List<string>
+		var destinations = new List<long>
 		{
-			"@channel1",
-			"@channel2"
+			5132513256,
+			252352366
 		};
 
 		var response = await sut.CreateRepostSettingsAsync(
@@ -114,8 +114,8 @@ public sealed class CreateRepostSettingsStorageShould(StorageTestFixture fixture
 		createdSettings.ScheduleId.ShouldBe(schedule.Id);
 		createdSettings.TelegramSessionId.ShouldBe(session.Id);
 		createdSettings.Destinations.Count.ShouldBe(2);
-		createdSettings.Destinations.ShouldContain(d => d.ChatIdentifier == "@channel1");
-		createdSettings.Destinations.ShouldContain(d => d.ChatIdentifier == "@channel2");
+		createdSettings.Destinations.ShouldContain(d => d.ChatId == destinations.First());
+		createdSettings.Destinations.ShouldContain(d => d.ChatId == destinations.Last());
 		createdSettings.IsActive.ShouldBeTrue();
 		createdSettings.Destinations.Count.ShouldBe(2);
 	}

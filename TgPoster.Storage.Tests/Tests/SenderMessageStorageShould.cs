@@ -171,7 +171,8 @@ public class SenderMessageStorageShould(StorageTestFixture fixture) : IClassFixt
 		};
 		await context.Messages.AddAsync(msg);
 		await context.SaveChangesAsync();
-
+		var channel1 = 14123414421;
+		var channel2 = 356356565;
 		var settings = await new RepostSettingsBuilder(context)
 			.WithScheduleId(schedule.Id)
 			.WithTelegramSessionId(session.Id)
@@ -180,13 +181,13 @@ public class SenderMessageStorageShould(StorageTestFixture fixture) : IClassFixt
 
 		await new RepostDestinationBuilder(context)
 			.WithRepostSettingsId(settings.Id)
-			.WithChatIdentifier("@channel1")
+			.WithChatIdentifier(channel1)
 			.WithIsActive(true)
 			.CreateAsync();
 
 		await new RepostDestinationBuilder(context)
 			.WithRepostSettingsId(settings.Id)
-			.WithChatIdentifier("@channel2")
+			.WithChatIdentifier(channel2)
 			.WithIsActive(true)
 			.CreateAsync();
 
@@ -196,8 +197,8 @@ public class SenderMessageStorageShould(StorageTestFixture fixture) : IClassFixt
 		result.ScheduleId.ShouldBe(schedule.Id);
 		result.TelegramSessionId.ShouldBe(session.Id);
 		result.Destinations.Count.ShouldBe(2);
-		result.Destinations.ShouldContain(d => d.ChatIdentifier == "@channel1");
-		result.Destinations.ShouldContain(d => d.ChatIdentifier == "@channel2");
+		result.Destinations.ShouldContain(d => d.ChatIdentifier == channel1);
+		result.Destinations.ShouldContain(d => d.ChatIdentifier ==channel1);
 	}
 
 	[Fact]
@@ -244,7 +245,8 @@ public class SenderMessageStorageShould(StorageTestFixture fixture) : IClassFixt
 		};
 		await context.Messages.AddAsync(msg);
 		await context.SaveChangesAsync();
-
+		var active = 141234142421;
+		var inactive = 3563356565;
 		var settings = await new RepostSettingsBuilder(context)
 			.WithScheduleId(schedule.Id)
 			.WithTelegramSessionId(session.Id)
@@ -253,13 +255,13 @@ public class SenderMessageStorageShould(StorageTestFixture fixture) : IClassFixt
 
 		await new RepostDestinationBuilder(context)
 			.WithRepostSettingsId(settings.Id)
-			.WithChatIdentifier("@active")
+			.WithChatIdentifier(active)
 			.WithIsActive(true)
 			.CreateAsync();
 
 		await new RepostDestinationBuilder(context)
 			.WithRepostSettingsId(settings.Id)
-			.WithChatIdentifier("@inactive")
+			.WithChatIdentifier(inactive)
 			.WithIsActive(false)
 			.CreateAsync();
 
@@ -267,7 +269,7 @@ public class SenderMessageStorageShould(StorageTestFixture fixture) : IClassFixt
 
 		result.ShouldNotBeNull();
 		result.Destinations.Count.ShouldBe(1);
-		result.Destinations[0].ChatIdentifier.ShouldBe("@active");
+		result.Destinations[0].ChatIdentifier.ShouldBe(active);
 	}
 
 	[Fact]

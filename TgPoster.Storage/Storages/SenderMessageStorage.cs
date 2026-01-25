@@ -131,7 +131,7 @@ internal class SenderMessageStorage(PosterContext context) : ISenderMessageStora
 						.Select(d => new RepostDestinationDto
 						{
 							Id = d.Id,
-							ChatIdentifier = d.ChatIdentifier
+							ChatIdentifier = d.ChatId
 						}).ToList()
 				}
 				: null)

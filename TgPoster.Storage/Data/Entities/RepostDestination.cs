@@ -13,7 +13,7 @@ public sealed class RepostDestination : BaseEntity
 	/// <summary>
 	///     ID или @username целевого канала/чата/группы.
 	/// </summary>
-	public required string ChatIdentifier { get; set; }
+	public required long ChatId { get; set; }
 
 	/// <summary>
 	///     Активен ли целевой канал.
