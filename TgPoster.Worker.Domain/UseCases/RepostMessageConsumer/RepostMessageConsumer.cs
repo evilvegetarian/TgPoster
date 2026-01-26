@@ -43,37 +43,26 @@ internal sealed class RepostMessageConsumer(
 			return;
 		}
 
-		//TODO:Поменять
-		/*foreach (var destination in repostData.Destinations)
+		var dialogs = await client.Messages_GetAllDialogs();
+		var destinations = dialogs.chats
+			.Where(x => repostData.Destinations
+				.Select(dto => dto.ChatIdentifier)
+				.Contains(x.Key))
+			.Select(x=>x.Value)
+			.ToList();
+		foreach (var destination in destinations)
 		{
+			var dest=repostData.Destinations.FirstOrDefault(x => x.ChatIdentifier==destination.ID);
+			if (dest is null)
+			{
+				continue;
+			}
 			try
 			{
-				var destResolveResult = await client.Contacts_ResolveUsername(destination.ChatIdentifier);
-				InputPeer toPeer;
-
-				switch (destResolveResult.Chat)
-				{
-					case Channel destChannel:
-						toPeer = new InputPeerChannel(destChannel.ID, destChannel.access_hash);
-						break;
-					case ChatBase destChat:
-						toPeer = new InputPeerChat(destChat.ID);
-						break;
-					default:
-						logger.LogError("Не удалось определить тип чата для {ChatIdentifier}", destination.ChatIdentifier);
-						await storage.CreateRepostLogAsync(
-							command.MessageId,
-							destination.Id,
-							null,
-							"Не удалось определить тип чата",
-							context.CancellationToken);
-						continue;
-				}
-
 				var result = await client.Messages_ForwardMessages(
 					from_peer: new InputPeerChannel(sourceChannel.ID, sourceChannel.access_hash),
 					id: [repostData.TelegramMessageId.Value],
-					to_peer: toPeer,
+					to_peer: destination.ToInputPeer(),
 					random_id: [Random.Shared.NextInt64()]
 				);
 
@@ -92,7 +81,7 @@ internal sealed class RepostMessageConsumer(
 
 				await storage.CreateRepostLogAsync(
 					command.MessageId,
-					destination.Id,
+					dest.Id,
 					repostedMessageId,
 					null,
 					context.CancellationToken);
@@ -100,19 +89,19 @@ internal sealed class RepostMessageConsumer(
 				logger.LogInformation(
 					"Сообщение {MessageId} успешно репостнуто в {ChatIdentifier}",
 					command.MessageId,
-					destination.ChatIdentifier);
+					destination.ID);
 			}
 			catch (Exception e)
 			{
-				logger.LogError(e, "Ошибка при репосте в {ChatIdentifier}", destination.ChatIdentifier);
+				logger.LogError(e, "Ошибка при репосте в {ChatIdentifier}", destination.ID);
 				await storage.CreateRepostLogAsync(
 					command.MessageId,
-					destination.Id,
+					dest.Id,
 					null,
 					e.Message,
 					context.CancellationToken);
 			}
-		}*/
+		}
 
 		logger.LogInformation("Завершена обработка репоста для сообщения {MessageId}", command.MessageId);
 	}
