@@ -7,7 +7,7 @@ using TgPoster.API.Domain.UseCases.Repost.AddRepostDestination;
 using TgPoster.API.Domain.UseCases.Repost.CreateRepostSettings;
 using TgPoster.API.Domain.UseCases.Repost.DeleteRepostDestination;
 using TgPoster.API.Domain.UseCases.Repost.DeleteRepostSettings;
-using TgPoster.API.Domain.UseCases.Repost.GetRepostSettings;
+using TgPoster.API.Domain.UseCases.Repost.ListRepostSettings;
 using TgPoster.API.Domain.UseCases.Repost.UpdateRepostDestination;
 using TgPoster.API.Models;
 
@@ -43,26 +43,22 @@ public sealed class RepostController(ISender sender) : ControllerBase
 		var result = await sender.Send(command, ct);
 
 		return CreatedAtAction(
-			nameof(GetSettings),
-			new { scheduleId = request.ScheduleId },
+			nameof(ListSettings),
+			null,
 			result);
 	}
 
 	/// <summary>
-	///     Получение настроек репоста для расписания.
+	///     Получение списка всех настроек репоста пользователя.
 	/// </summary>
-	/// <param name="scheduleId">ID расписания</param>
 	/// <param name="ct">Токен отмены операции</param>
-	/// <returns>Настройки репоста или 404 если не найдены</returns>
-	[HttpGet(Routes.Repost.GetSettings)]
-	[ProducesResponseType(StatusCodes.Status200OK, Type = typeof(GetRepostSettingsResponse))]
-	[ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
+	/// <returns>Список настроек репоста</returns>
+	[HttpGet(Routes.Repost.ListSettings)]
+	[ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ListRepostSettingsResponse))]
 	[ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
-	public async Task<IActionResult> GetSettings([FromRoute] [Required] Guid scheduleId, CancellationToken ct)
+	public async Task<IActionResult> ListSettings(CancellationToken ct)
 	{
-		var query = new GetRepostSettingsQuery(scheduleId);
-		var response = await sender.Send(query, ct);
-
+		var response = await sender.Send(new ListRepostSettingsQuery(), ct);
 		return Ok(response);
 	}
 
@@ -105,8 +101,8 @@ public sealed class RepostController(ISender sender) : ControllerBase
 		var result = await sender.Send(command, ct);
 
 		return CreatedAtAction(
-			nameof(GetSettings),
-			new { scheduleId = settingsId },
+			nameof(ListSettings),
+			null,
 			result);
 	}
 

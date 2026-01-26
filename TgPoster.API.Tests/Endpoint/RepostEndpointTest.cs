@@ -4,7 +4,7 @@ using Shouldly;
 using TgPoster.API.Common;
 using TgPoster.API.Domain.UseCases.Repost.AddRepostDestination;
 using TgPoster.API.Domain.UseCases.Repost.CreateRepostSettings;
-using TgPoster.API.Domain.UseCases.Repost.GetRepostSettings;
+using TgPoster.API.Domain.UseCases.Repost.ListRepostSettings;
 using TgPoster.API.Models;
 using TgPoster.API.Tests.Helper;
 
@@ -82,7 +82,7 @@ public sealed class RepostEndpointTest(EndpointTestFixture fixture) : IClassFixt
 	}
 
 	[Fact]
-	public async Task GetSettings_WithExistingSettings_ShouldReturnSettings()
+	public async Task ListSettings_WithExistingSettings_ShouldReturnList()
 	{
 		var createRequest = new CreateRepostSettingsRequest
 		{
@@ -93,22 +93,12 @@ public sealed class RepostEndpointTest(EndpointTestFixture fixture) : IClassFixt
 
 		await client.PostAsJsonAsync(Url + "/settings", createRequest);
 
-		var getResponse = await client.GetAsync($"{Url}/settings/{GlobalConst.Worked.ScheduleId}");
+		var getResponse = await client.GetAsync($"{Url}/settings");
 		getResponse.StatusCode.ShouldBe(HttpStatusCode.OK);
 
-		var settings = await getResponse.Content.ReadFromJsonAsync<GetRepostSettingsResponse>();
-		settings.ShouldNotBeNull();
-		settings.ScheduleId.ShouldBe(GlobalConst.Worked.ScheduleId);
-	}
-
-	[Fact]
-	public async Task GetSettings_WithNonExistingSettings_ShouldReturnNotFound()
-	{
-		var nonExistingScheduleId = Guid.NewGuid();
-
-		var response = await client.GetAsync($"{Url}/settings/{nonExistingScheduleId}");
-
-		response.StatusCode.ShouldBe(HttpStatusCode.NotFound);
+		var response = await getResponse.Content.ReadFromJsonAsync<ListRepostSettingsResponse>();
+		response.ShouldNotBeNull();
+		response.Items.ShouldNotBeEmpty();
 	}
 
 	[Fact]
@@ -127,9 +117,6 @@ public sealed class RepostEndpointTest(EndpointTestFixture fixture) : IClassFixt
 		var deleteResponse = await client.DeleteAsync($"{Url}/settings/{createdSettings!.Id}");
 
 		deleteResponse.StatusCode.ShouldBe(HttpStatusCode.NoContent);
-
-		var getResponse = await client.GetAsync($"{Url}/settings/{GlobalConst.Worked.ScheduleId}");
-		getResponse.StatusCode.ShouldBe(HttpStatusCode.NotFound);
 	}
 
 	[Fact]
