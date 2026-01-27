@@ -7,6 +7,7 @@ using TgPoster.API.Domain.UseCases.Repost.AddRepostDestination;
 using TgPoster.API.Domain.UseCases.Repost.CreateRepostSettings;
 using TgPoster.API.Domain.UseCases.Repost.DeleteRepostDestination;
 using TgPoster.API.Domain.UseCases.Repost.DeleteRepostSettings;
+using TgPoster.API.Domain.UseCases.Repost.GetRepostSettings;
 using TgPoster.API.Domain.UseCases.Repost.ListRepostSettings;
 using TgPoster.API.Domain.UseCases.Repost.UpdateRepostDestination;
 using TgPoster.API.Models;
@@ -59,6 +60,22 @@ public sealed class RepostController(ISender sender) : ControllerBase
 	public async Task<IActionResult> ListSettings(CancellationToken ct)
 	{
 		var response = await sender.Send(new ListRepostSettingsQuery(), ct);
+		return Ok(response);
+	}
+
+	/// <summary>
+	///     Получение подробной информации о настройках репоста.
+	/// </summary>
+	/// <param name="id">ID настроек репоста</param>
+	/// <param name="ct">Токен отмены операции</param>
+	/// <returns>Подробная информация о настройках репоста с каналами</returns>
+	[HttpGet(Routes.Repost.GetSettings)]
+	[ProducesResponseType(StatusCodes.Status200OK, Type = typeof(RepostSettingsResponse))]
+	[ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
+	[ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
+	public async Task<IActionResult> GetSettings([FromRoute] [Required] Guid id, CancellationToken ct)
+	{
+		var response = await sender.Send(new GetRepostSettingsQuery(id), ct);
 		return Ok(response);
 	}
 
