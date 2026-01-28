@@ -14,7 +14,7 @@ public interface ISenderMessageStorage
 	);
 
 	Task SaveTelegramMessageIdAsync(Guid messageId, int telegramMessageId, CancellationToken ct);
-	Task<RepostSettingsDto?> GetRepostSettingsForMessageAsync(Guid messageId, CancellationToken ct);
+	Task<List<RepostSettingsDto>> GetRepostSettingsForMessageAsync(Guid messageId, CancellationToken ct);
 }
 
 public sealed class RepostSettingsDto

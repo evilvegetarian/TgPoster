@@ -194,11 +194,12 @@ public class SenderMessageStorageShould(StorageTestFixture fixture) : IClassFixt
 		var result = await sut.GetRepostSettingsForMessageAsync(msg.Id, CancellationToken.None);
 
 		result.ShouldNotBeNull();
-		result.ScheduleId.ShouldBe(schedule.Id);
-		result.TelegramSessionId.ShouldBe(session.Id);
-		result.Destinations.Count.ShouldBe(2);
-		result.Destinations.ShouldContain(d => d.ChatIdentifier == channel1);
-		result.Destinations.ShouldContain(d => d.ChatIdentifier ==channel1);
+		result.Count.ShouldBe(1);
+		result[0].ScheduleId.ShouldBe(schedule.Id);
+		result[0].TelegramSessionId.ShouldBe(session.Id);
+		result[0].Destinations.Count.ShouldBe(2);
+		result[0].Destinations.ShouldContain(d => d.ChatIdentifier == channel1);
+		result[0].Destinations.ShouldContain(d => d.ChatIdentifier == channel2);
 	}
 
 	[Fact]
@@ -226,7 +227,7 @@ public class SenderMessageStorageShould(StorageTestFixture fixture) : IClassFixt
 
 		var result = await sut.GetRepostSettingsForMessageAsync(msg.Id, CancellationToken.None);
 
-		result.ShouldBeNull();
+		result.ShouldBeEmpty();
 	}
 
 	[Fact]
@@ -268,8 +269,9 @@ public class SenderMessageStorageShould(StorageTestFixture fixture) : IClassFixt
 		var result = await sut.GetRepostSettingsForMessageAsync(msg.Id, CancellationToken.None);
 
 		result.ShouldNotBeNull();
-		result.Destinations.Count.ShouldBe(1);
-		result.Destinations[0].ChatIdentifier.ShouldBe(active);
+		result.Count.ShouldBe(1);
+		result[0].Destinations.Count.ShouldBe(1);
+		result[0].Destinations[0].ChatIdentifier.ShouldBe(active);
 	}
 
 	[Fact]
@@ -290,7 +292,7 @@ public class SenderMessageStorageShould(StorageTestFixture fixture) : IClassFixt
 
 		var result = await sut.GetRepostSettingsForMessageAsync(msg.Id, CancellationToken.None);
 
-		result.ShouldBeNull();
+		result.ShouldBeEmpty();
 	}
 
 	[Fact]
@@ -300,6 +302,6 @@ public class SenderMessageStorageShould(StorageTestFixture fixture) : IClassFixt
 
 		var result = await sut.GetRepostSettingsForMessageAsync(nonExistingId, CancellationToken.None);
 
-		result.ShouldBeNull();
+		result.ShouldBeEmpty();
 	}
 }

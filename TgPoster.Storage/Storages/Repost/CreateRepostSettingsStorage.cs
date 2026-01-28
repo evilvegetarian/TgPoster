@@ -17,11 +17,6 @@ internal sealed class CreateRepostSettingsStorage(PosterContext context, GuidFac
 		return context.TelegramSessions.AnyAsync(x => x.Id == telegramSessionId && x.IsActive, ct);
 	}
 
-	public Task<bool> RepostSettingsExistForScheduleAsync(Guid scheduleId, CancellationToken ct)
-	{
-		return context.Set<RepostSettings>().AnyAsync(x => x.ScheduleId == scheduleId, ct);
-	}
-
 	public async Task<Guid> CreateRepostSettingsAsync(
 		Guid scheduleId,
 		Guid telegramSessionId,

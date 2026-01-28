@@ -19,9 +19,6 @@ internal sealed class CreateRepostSettingsUseCase(
 		if (!await storage.TelegramSessionExistsAndActiveAsync(request.TelegramSessionId, ct))
 			throw new TelegramSessionNotFoundException(request.TelegramSessionId);
 
-		if (await storage.RepostSettingsExistForScheduleAsync(request.ScheduleId, ct))
-			throw new RepostSettingsAlreadyExistsException(request.ScheduleId);
-
 		var client = await authService.GetClientAsync(request.TelegramSessionId, ct);
 		var chats = new List<long>();
 		foreach (var destination in request.Destinations)

@@ -50,8 +50,8 @@ internal class ScheduleConfiguration : BaseEntityConfiguration<Schedule>
 			.HasForeignKey(x => x.YouTubeAccountId)
 			.OnDelete(DeleteBehavior.SetNull);
 
-		builder.HasOne(x => x.RepostSettings)
+		builder.HasMany(x => x.RepostSettings)
 			.WithOne(x => x.Schedule)
-			.HasForeignKey<RepostSettings>(x => x.ScheduleId);
+			.HasForeignKey(x => x.ScheduleId);
 	}
 }

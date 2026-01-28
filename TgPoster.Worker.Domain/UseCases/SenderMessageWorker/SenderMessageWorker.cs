@@ -122,13 +122,14 @@ public class SenderMessageWorker(
 			logger.LogInformation("Сохранен TelegramMessageId: {TelegramMessageId} для сообщения {MessageId}",
 				telegramMessageId.Value, messageId);
 
-			var repostSettings = await storage.GetRepostSettingsForMessageAsync(messageId, CancellationToken.None);
-			if (repostSettings != null && repostSettings.Destinations.Count > 0)
+			var repostSettingsList = await storage.GetRepostSettingsForMessageAsync(messageId, CancellationToken.None);
+			foreach (var repostSettings in repostSettingsList.Where(rs => rs.Destinations.Count > 0))
 			{
 				var command = new RepostMessageCommand
 				{
 					MessageId = messageId,
-					ScheduleId = repostSettings.ScheduleId
+					ScheduleId = repostSettings.ScheduleId,
+					RepostSettingsId = repostSettings.Id
 				};
 
 				await publishEndpoint.Publish(command, CancellationToken.None);

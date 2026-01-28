@@ -66,29 +66,6 @@ public sealed class CreateRepostSettingsStorageShould(StorageTestFixture fixture
 	}
 
 	[Fact]
-	public async Task RepostSettingsExistForScheduleAsync_WithExistingSettings_ShouldReturnTrue()
-	{
-		var schedule = await new ScheduleBuilder(context).CreateAsync();
-		await new RepostSettingsBuilder(context)
-			.WithScheduleId(schedule.Id)
-			.CreateAsync();
-
-		var result = await sut.RepostSettingsExistForScheduleAsync(schedule.Id, CancellationToken.None);
-
-		result.ShouldBeTrue();
-	}
-
-	[Fact]
-	public async Task RepostSettingsExistForScheduleAsync_WithoutSettings_ShouldReturnFalse()
-	{
-		var schedule = await new ScheduleBuilder(context).CreateAsync();
-
-		var result = await sut.RepostSettingsExistForScheduleAsync(schedule.Id, CancellationToken.None);
-
-		result.ShouldBeFalse();
-	}
-
-	[Fact]
 	public async Task CreateRepostSettingsAsync_WithValidData_ShouldCreateSettings()
 	{
 		var schedule = await new ScheduleBuilder(context).CreateAsync();

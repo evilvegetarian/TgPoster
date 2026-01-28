@@ -13,11 +13,6 @@ public interface ICreateRepostSettingsStorage
 	Task<bool> TelegramSessionExistsAndActiveAsync(Guid telegramSessionId, CancellationToken ct);
 
 	/// <summary>
-	///     Проверяет существуют ли уже настройки репоста для Schedule.
-	/// </summary>
-	Task<bool> RepostSettingsExistForScheduleAsync(Guid scheduleId, CancellationToken ct);
-
-	/// <summary>
 	///     Создает настройки репоста и целевые каналы. Возвращает ID созданных настроек.
 	/// </summary>
 	Task<Guid> CreateRepostSettingsAsync(

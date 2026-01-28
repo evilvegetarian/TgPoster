@@ -2,7 +2,7 @@ namespace TgPoster.Worker.Domain.UseCases.RepostMessageConsumer;
 
 public interface IRepostMessageConsumerStorage
 {
-	Task<RepostDataDto?> GetRepostDataAsync(Guid messageId, CancellationToken ct);
+	Task<RepostDataDto?> GetRepostDataAsync(Guid messageId, Guid repostSettingsId, CancellationToken ct);
 
 	Task CreateRepostLogAsync(
 		Guid messageId,

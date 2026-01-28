@@ -50,7 +50,7 @@ public sealed class RepostMessageConsumerStorageShould(StorageTestFixture fixtur
 			.WithIsActive(true)
 			.CreateAsync();
 
-		var result = await sut.GetRepostDataAsync(msg.Id, CancellationToken.None);
+		var result = await sut.GetRepostDataAsync(msg.Id,settings.Id, CancellationToken.None);
 
 		result.ShouldNotBeNull();
 		result.TelegramMessageId.ShouldBe(12345);
@@ -79,13 +79,13 @@ public sealed class RepostMessageConsumerStorageShould(StorageTestFixture fixtur
 		await context.Messages.AddAsync(msg);
 		await context.SaveChangesAsync();
 
-		await new RepostSettingsBuilder(context)
+	var settings=	await new RepostSettingsBuilder(context)
 			.WithScheduleId(schedule.Id)
 			.WithTelegramSessionId(session.Id)
 			.WithIsActive(false)
 			.CreateAsync();
 
-		var result = await sut.GetRepostDataAsync(msg.Id, CancellationToken.None);
+		var result = await sut.GetRepostDataAsync(msg.Id,settings.Id, CancellationToken.None);
 
 		result.ShouldBeNull();
 	}
@@ -127,7 +127,7 @@ public sealed class RepostMessageConsumerStorageShould(StorageTestFixture fixtur
 			.WithIsActive(false)
 			.CreateAsync();
 
-		var result = await sut.GetRepostDataAsync(msg.Id, CancellationToken.None);
+		var result = await sut.GetRepostDataAsync(msg.Id, settings.Id, CancellationToken.None);
 
 		result.ShouldNotBeNull();
 		result.Destinations.Count.ShouldBe(1);
@@ -151,7 +151,7 @@ public sealed class RepostMessageConsumerStorageShould(StorageTestFixture fixtur
 		await context.Messages.AddAsync(msg);
 		await context.SaveChangesAsync();
 
-		var result = await sut.GetRepostDataAsync(msg.Id, CancellationToken.None);
+		var result = await sut.GetRepostDataAsync(msg.Id, Guid.NewGuid(), CancellationToken.None);
 
 		result.ShouldBeNull();
 	}
@@ -161,7 +161,7 @@ public sealed class RepostMessageConsumerStorageShould(StorageTestFixture fixtur
 	{
 		var nonExistingId = Guid.NewGuid();
 
-		var result = await sut.GetRepostDataAsync(nonExistingId, CancellationToken.None);
+		var result = await sut.GetRepostDataAsync(nonExistingId, nonExistingId, CancellationToken.None);
 
 		result.ShouldBeNull();
 	}

@@ -19,12 +19,9 @@ internal sealed class RepostSettingsConfiguration : BaseEntityConfiguration<Repo
 		builder.Property(x => x.IsActive)
 			.HasDefaultValue(true);
 
-		builder.HasIndex(x => x.ScheduleId)
-			.IsUnique();
-
 		builder.HasOne(x => x.Schedule)
-			.WithOne(x => x.RepostSettings)
-			.HasForeignKey<RepostSettings>(x => x.ScheduleId)
+			.WithMany(x => x.RepostSettings)
+			.HasForeignKey(x => x.ScheduleId)
 			.OnDelete(DeleteBehavior.Cascade);
 
 		builder.HasOne(x => x.TelegramSession)

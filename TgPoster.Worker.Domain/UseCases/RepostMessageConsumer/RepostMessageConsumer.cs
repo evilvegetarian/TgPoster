@@ -15,7 +15,7 @@ internal sealed class RepostMessageConsumer(
 		var command = context.Message;
 		logger.LogInformation("Начал обработку репоста для сообщения {MessageId}", command.MessageId);
 
-		var repostData = await storage.GetRepostDataAsync(command.MessageId, context.CancellationToken);
+		var repostData = await storage.GetRepostDataAsync(command.MessageId, command.RepostSettingsId, context.CancellationToken);
 		if (repostData is null)
 		{
 			logger.LogWarning("Данные для репоста не найдены для сообщения {MessageId}", command.MessageId);
@@ -111,4 +111,5 @@ public sealed record RepostMessageCommand
 {
 	public required Guid MessageId { get; init; }
 	public required Guid ScheduleId { get; init; }
+	public required Guid RepostSettingsId { get; init; }
 }

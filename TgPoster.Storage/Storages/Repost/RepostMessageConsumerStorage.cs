@@ -8,25 +8,26 @@ namespace TgPoster.Storage.Storages.Repost;
 
 internal sealed class RepostMessageConsumerStorage(PosterContext context) : IRepostMessageConsumerStorage
 {
-	public Task<RepostDataDto?> GetRepostDataAsync(Guid messageId, CancellationToken ct)
+	public Task<RepostDataDto?> GetRepostDataAsync(Guid messageId, Guid repostSettingsId, CancellationToken ct)
 	{
-		return context.Messages
-			.Where(m => m.Id == messageId)
-			.Select(m => m.Schedule.RepostSettings != null && m.Schedule.RepostSettings.IsActive
-				? new RepostDataDto
-				{
-					TelegramMessageId = m.TelegramMessageId,
-					TelegramSessionId = m.Schedule.RepostSettings.TelegramSessionId,
-					SourceChannelIdentifier = m.Schedule.ChannelName,
-					Destinations = m.Schedule.RepostSettings.Destinations
-						.Where(d => d.IsActive)
-						.Select(d => new RepostDestinationDataDto
-						{
-							Id = d.Id,
-							ChatIdentifier = d.ChatId
-						}).ToList()
-				}
-				: null)
+		return context.Set<RepostSettings>()
+			.Where(rs => rs.Id == repostSettingsId && rs.IsActive)
+			.Select(rs => new RepostDataDto
+			{
+				TelegramMessageId = rs.Schedule.Messages
+					.Where(m => m.Id == messageId)
+					.Select(m => m.TelegramMessageId)
+					.FirstOrDefault(),
+				TelegramSessionId = rs.TelegramSessionId,
+				SourceChannelIdentifier = rs.Schedule.ChannelName,
+				Destinations = rs.Destinations
+					.Where(d => d.IsActive)
+					.Select(d => new RepostDestinationDataDto
+					{
+						Id = d.Id,
+						ChatIdentifier = d.ChatId
+					}).ToList()
+			})
 			.FirstOrDefaultAsync(ct);
 	}
 

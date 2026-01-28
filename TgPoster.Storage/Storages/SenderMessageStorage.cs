@@ -116,25 +116,25 @@ internal class SenderMessageStorage(PosterContext context) : ISenderMessageStora
 		}
 	}
 
-	public Task<RepostSettingsDto?> GetRepostSettingsForMessageAsync(Guid messageId, CancellationToken ct)
+	public Task<List<RepostSettingsDto>> GetRepostSettingsForMessageAsync(Guid messageId, CancellationToken ct)
 	{
 		return context.Messages
 			.Where(m => m.Id == messageId)
-			.Select(m => m.Schedule.RepostSettings != null && m.Schedule.RepostSettings.IsActive
-				? new RepostSettingsDto
+			.SelectMany(m => m.Schedule.RepostSettings
+				.Where(rs => rs.IsActive)
+				.Select(rs => new RepostSettingsDto
 				{
-					Id = m.Schedule.RepostSettings.Id,
-					ScheduleId = m.Schedule.RepostSettings.ScheduleId,
-					TelegramSessionId = m.Schedule.RepostSettings.TelegramSessionId,
-					Destinations = m.Schedule.RepostSettings.Destinations
+					Id = rs.Id,
+					ScheduleId = rs.ScheduleId,
+					TelegramSessionId = rs.TelegramSessionId,
+					Destinations = rs.Destinations
 						.Where(d => d.IsActive)
 						.Select(d => new RepostDestinationDto
 						{
 							Id = d.Id,
 							ChatIdentifier = d.ChatId
 						}).ToList()
-				}
-				: null)
-			.FirstOrDefaultAsync(ct);
+				}))
+			.ToListAsync(ct);
 	}
 }

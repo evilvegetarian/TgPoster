@@ -84,7 +84,7 @@ public sealed class Schedule : BaseEntity
 	/// <summary>
 	///     Настройки репоста для этого расписания
 	/// </summary>
-	public RepostSettings? RepostSettings { get; set; }
+	public List<RepostSettings> RepostSettings { get; set; } = [];
 
 	#endregion
 }
