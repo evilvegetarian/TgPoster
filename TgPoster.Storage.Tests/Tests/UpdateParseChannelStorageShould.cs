@@ -25,7 +25,7 @@ public class UpdateParseChannelStorageShould(StorageTestFixture fixture) : IClas
 	[Fact]
 	public async Task ExistParseChannelAsync_NonExistingParseChannel_ShouldReturnFalse()
 	{
-		var parseChannel = new ChannelParsingSettingBuilder(_context).Create();
+		var parseChannel = await new ChannelParsingSettingBuilder(_context).CreateAsync(ct);
 		var exist = await sut.ExistParseChannelAsync(Guid.NewGuid(), parseChannel.Schedule.UserId, ct);
 		exist.ShouldBeFalse();
 	}
@@ -43,12 +43,12 @@ public class UpdateParseChannelStorageShould(StorageTestFixture fixture) : IClas
 	public async Task UpdateParseChannelAsync_NonExistingUserId_ShouldReturnFalse()
 	{
 		string[] avoids = ["New Word", "Perfectly"];
-		var parseChannel = new ChannelParsingSettingBuilder(_context).Create();
+		var parseChannel = await new ChannelParsingSettingBuilder(_context).CreateAsync(ct);
 		parseChannel.AvoidWords = avoids;
-		_context.ChangeTracker.Clear();
 		await sut.UpdateParseChannelAsync(parseChannel.ToCommand(), ct);
-		var parseChannelUpdated =
-			await _context.ChannelParsingParameters.FirstOrDefaultAsync(x => x.Id == parseChannel.Id, ct);
+		_context.ChangeTracker.Clear();
+		var parseChannelUpdated = await _context.ChannelParsingParameters
+			.FirstOrDefaultAsync(x => x.Id == parseChannel.Id, ct);
 		parseChannelUpdated!.AvoidWords.ShouldBe(avoids);
 	}
 }

@@ -1,23 +1,25 @@
 using Microsoft.Extensions.Caching.Memory;
 using TgPoster.API.Domain.Services;
 using TgPoster.API.Tests.Helper;
+using TgPoster.Storage.Data;
+using TgPoster.Storage.Data.Entities;
+using TgPoster.Storage.Data.Enum;
 
 namespace TgPoster.API.Tests.Seeder;
 
-internal class MemorySeeder(IMemoryCache memoryCache) : BaseSeeder
+internal class MemorySeeder(PosterContext context) : BaseSeeder
 {
 	public override async Task Seed()
 	{
-		var fileCacheItem = new FileCacheItem
+		var file = new MessageFile
 		{
-			Data = [1, 2, 3, 4],
-			ContentType = "image/jpeg"
+			MessageId = GlobalConst.MessageId,
+			FileType = FileTypes.NoOne,
+			TgFileId = "afasfdasf",
+			ContentType = "text/plain",
+			Id = GlobalConst.FileId
 		};
-
-		var memoryCacheOptions = new MemoryCacheEntryOptions
-		{
-			AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(10)
-		};
-		memoryCache.Set(GlobalConst.FileId, fileCacheItem, memoryCacheOptions);
+		
+		await context.MessageFiles.AddRangeAsync(file);
 	}
 }

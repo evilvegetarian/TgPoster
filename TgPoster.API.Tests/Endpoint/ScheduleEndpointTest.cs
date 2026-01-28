@@ -79,23 +79,23 @@ public class ScheduleEndpointTest(EndpointTestFixture fixture) : IClassFixture<E
 	public async Task List_ShouldReturnList()
 	{
 		var scheduleId = await helper.CreateSchedule();
-		var schedules = await client.GetAsync<List<ScheduleResponse>>(Url);
+		var schedules = await client.GetAsync<ScheduleListResponse>(Url);
 		schedules.ShouldNotBeNull();
-		schedules.ShouldNotBeEmpty();
-		schedules.ShouldContain(x => x.Id == scheduleId);
+		schedules.Items.ShouldNotBeEmpty();
+		schedules.Items.ShouldContain(x => x.Id == scheduleId);
 	}
 
 	[Fact]
 	public async Task List_WithAnotherUser_ShouldReturnEmptyList()
 	{
-		var response = await client.GetAsync<List<ScheduleResponse>>(Url);
+		var response = await client.GetAsync<ScheduleListResponse>(Url);
 		response.ShouldNotBeNull();
-		response.Count.ShouldBeGreaterThan(0);
+		response.Items.Count.ShouldBeGreaterThan(0);
 
 		var anotherClient = fixture.GetClient(fixture.GenerateTestToken(GlobalConst.UserIdEmpty));
 
-		var listAnotherResponse = await anotherClient.GetAsync<List<ScheduleResponse>>(Url);
-		listAnotherResponse!.Count.ShouldBeEquivalentTo(0);
+		var listAnotherResponse = await anotherClient.GetAsync<ScheduleListResponse>(Url);
+		listAnotherResponse.Items.Count.ShouldBeEquivalentTo(0);
 	}
 
 	[Fact]
@@ -129,7 +129,7 @@ public class ScheduleEndpointTest(EndpointTestFixture fixture) : IClassFixture<E
 		var createSchedule = await client.PostAsync<CreateScheduleResponse>(Url, request);
 
 		var deleteResponse = await client.DeleteAsync(Url + "/" + createSchedule.Id);
-		deleteResponse.StatusCode.ShouldBe(HttpStatusCode.OK);
+		deleteResponse.StatusCode.ShouldBe(HttpStatusCode.NoContent);
 
 		var response = await client.GetAsync(Url + "/" + createSchedule.Id);
 		response.StatusCode.ShouldBe(HttpStatusCode.NotFound);
@@ -177,7 +177,7 @@ public class ScheduleEndpointTest(EndpointTestFixture fixture) : IClassFixture<E
 		var scheduleId = await helper.CreateSchedule();
 
 		var response = await client.PatchAsync(Url + "/" + scheduleId + "/status", null);
-		response.StatusCode.ShouldBe(HttpStatusCode.OK);
+		response.StatusCode.ShouldBe(HttpStatusCode.NoContent);
 
 		var getResponse = await client.GetAsync<ScheduleResponse>(Url + "/" + scheduleId);
 		getResponse.IsActive.ShouldBe(!initalStatus);

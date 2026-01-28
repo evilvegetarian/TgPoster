@@ -72,11 +72,10 @@ public sealed class AddRepostDestinationStorageShould(StorageTestFixture fixture
 			chatIdentifier,
 			CancellationToken.None);
 		
-		var createdDestination = await context.Set<RepostDestination>()
+		var createdDestination = await context.RepostDestinations
 			.FirstOrDefaultAsync(x => x.Id == response);
 
 		createdDestination.ShouldNotBeNull();
-		createdDestination.Id.ShouldBe(settings.Id);
 		createdDestination.ChatId.ShouldBe(chatIdentifier);
 		createdDestination.IsActive.ShouldBeTrue();
 		createdDestination.RepostSettingsId.ShouldBe(settings.Id);

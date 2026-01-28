@@ -15,6 +15,7 @@ public class ParseChannelStorageShould(StorageTestFixture fixture) : IClassFixtu
 	[Fact]
 	public async Task AddParseChannelParametersAsync_WithValidData_ShouldCreateChannelParsingParameters()
 	{
+		var telegramSession=await new TelegramSessionBuilder(context).CreateAsync();
 		var schedule = await new ScheduleBuilder(context).CreateAsync();
 		var channel = "TestChannel";
 		var alwaysCheckNewPosts = true;
@@ -36,7 +37,7 @@ public class ParseChannelStorageShould(StorageTestFixture fixture) : IClassFixtu
 			dateFrom,
 			dateTo,
 			true,
-			Guid.NewGuid(),
+			telegramSession.Id,
 			CancellationToken.None);
 
 		result.ShouldNotBe(Guid.Empty);
@@ -58,6 +59,7 @@ public class ParseChannelStorageShould(StorageTestFixture fixture) : IClassFixtu
 	[Fact]
 	public async Task AddParseChannelParametersAsync_WithNullDates_ShouldCreateParametersWithNullDates()
 	{
+		var telegramSession = await new TelegramSessionBuilder(context).CreateAsync();
 		var schedule = await new ScheduleBuilder(context).CreateAsync();
 		var channel = "TestChannel";
 		var avoidWords = new[] { "spam" };
@@ -73,7 +75,7 @@ public class ParseChannelStorageShould(StorageTestFixture fixture) : IClassFixtu
 			null,
 			null,
 			true,
-			Guid.NewGuid(),
+			telegramSession.Id,
 			CancellationToken.None);
 
 		result.ShouldNotBe(Guid.Empty);
@@ -90,6 +92,7 @@ public class ParseChannelStorageShould(StorageTestFixture fixture) : IClassFixtu
 	public async Task AddParseChannelParametersAsync_WithEmptyAvoidWords_ShouldCreateParameters()
 	{
 		var schedule = await new ScheduleBuilder(context).CreateAsync();
+		var telegramSession = await new TelegramSessionBuilder(context).CreateAsync();
 		var channel = "TestChannel";
 		var avoidWords = Array.Empty<string>();
 
@@ -104,7 +107,7 @@ public class ParseChannelStorageShould(StorageTestFixture fixture) : IClassFixtu
 			null,
 			null,
 			true,
-			Guid.NewGuid(),
+			telegramSession.Id,
 			CancellationToken.None);
 
 		result.ShouldNotBe(Guid.Empty);

@@ -31,22 +31,22 @@ public class TelegramBotEndpointTest(EndpointTestFixture fixture) : IClassFixtur
 	{
 		var listResponse = await client.GetAsync(Url);
 		listResponse.StatusCode.ShouldBe(HttpStatusCode.OK);
-		var bots = await listResponse.Content.ReadFromJsonAsync<List<TelegramBotResponse>>();
+		var bots = await listResponse.Content.ReadFromJsonAsync<TelegramBotListResponse>();
 		bots.ShouldNotBeNull();
-		bots.Count.ShouldBeGreaterThan(0);
+		bots.Items.Count.ShouldBeGreaterThan(0);
 	}
 
 	[Fact]
 	public async Task List_WithAnotherUser_ShouldReturnEmptyList()
 	{
-		var response = await client.GetAsync<List<TelegramBotResponse>>(Url);
+		var response = await client.GetAsync<TelegramBotListResponse>(Url);
 		response.ShouldNotBeNull();
-		response.Count.ShouldBeGreaterThan(0);
+		response.Items.Count.ShouldBeGreaterThan(0);
 
 		var anotherClient = fixture.GetClient(fixture.GenerateTestToken(GlobalConst.UserIdEmpty));
 
-		var listAnotherResponse = await anotherClient.GetAsync<List<TelegramBotResponse>>(Url);
-		listAnotherResponse.Count.ShouldBeEquivalentTo(0);
+		var listAnotherResponse = await anotherClient.GetAsync<TelegramBotListResponse>(Url);
+		listAnotherResponse.Items.Count.ShouldBeEquivalentTo(0);
 	}
 
 	[Fact]
@@ -61,7 +61,7 @@ public class TelegramBotEndpointTest(EndpointTestFixture fixture) : IClassFixtur
 	public async Task DeleteTelegramBot_WithValidId_ShouldReturnOK()
 	{
 		var deleteResponse = await client.DeleteAsync(Url + "/" + GlobalConst.TelegramBotId);
-		deleteResponse.StatusCode.ShouldBe(HttpStatusCode.OK);
+		deleteResponse.StatusCode.ShouldBe(HttpStatusCode.NoContent);
 
 		var repeatDeleteResponse = await client.DeleteAsync(Url + "/" + GlobalConst.TelegramBotId);
 		repeatDeleteResponse.StatusCode.ShouldBe(HttpStatusCode.NotFound);

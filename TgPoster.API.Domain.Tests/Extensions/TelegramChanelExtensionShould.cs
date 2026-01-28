@@ -1,4 +1,5 @@
 using Shouldly;
+using TgPoster.API.Domain.Exceptions;
 using TgPoster.API.Domain.Extensions;
 
 namespace TgPoster.API.Domain.Tests.Extensions;
@@ -27,6 +28,6 @@ public class TelegramChanelExtensionShould
 	[InlineData("  ")]
 	public void ConvertToTelegramHandle_ReturnsThrow(string input)
 	{
-		Should.Throw<ArgumentException>(input.ConvertToTelegramHandle);
+		Should.Throw<InvalidTelegramChannelException>(input.ConvertToTelegramHandle);
 	}
 }

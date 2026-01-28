@@ -11,7 +11,7 @@ public sealed class RepostDestination : BaseEntity
 	public required Guid RepostSettingsId { get; set; }
 
 	/// <summary>
-	///     ID или @username целевого канала/чата/группы.
+	///     ID целевого канала/чата/группы.
 	/// </summary>
 	public required long ChatId { get; set; }
 

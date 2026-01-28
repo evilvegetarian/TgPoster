@@ -39,8 +39,9 @@ public sealed class UpdateRepostDestinationStorageShould(StorageTestFixture fixt
 			.CreateAsync();
 
 		await sut.UpdateDestinationAsync(destination.Id, false, CancellationToken.None);
+		context.ChangeTracker.Clear();
 
-		var updatedDestination = await context.Set<Data.Entities.RepostDestination>()
+		var updatedDestination = await context.RepostDestinations
 			.FirstOrDefaultAsync(x => x.Id == destination.Id);
 
 		updatedDestination.ShouldNotBeNull();
@@ -55,8 +56,8 @@ public sealed class UpdateRepostDestinationStorageShould(StorageTestFixture fixt
 			.CreateAsync();
 
 		await sut.UpdateDestinationAsync(destination.Id, true, CancellationToken.None);
-
-		var updatedDestination = await context.Set<Data.Entities.RepostDestination>()
+		context.ChangeTracker.Clear();
+		var updatedDestination = await context.RepostDestinations
 			.FirstOrDefaultAsync(x => x.Id == destination.Id);
 
 		updatedDestination.ShouldNotBeNull();

@@ -6,9 +6,14 @@ namespace Security.Tests;
 /// <summary>
 ///     Тесты для класса CryptoAES
 /// </summary>
-public sealed class CryptoAESShould(ICryptoAES cryptoAES)
+public sealed class CryptoAesShould
 {
-	private const string SecretKey = "1234567890123456"; // 16 байт для AES-128
+	private readonly ICryptoAES cryptoAES;
+	public CryptoAesShould()
+	{
+		cryptoAES = new CryptoAES();
+	}
+	private const string SecretKey = "1234567890123456";
 
 	[Fact]
 	public void EncryptPlainText()

@@ -15,7 +15,7 @@ public class ParseChannelWorkerStorageShould(StorageTestFixture fixture) : IClas
 	[Fact]
 	public async Task GetChannelParsingParametersAsync_ShouldReturnIdsWithCorrectStatusAndCheckNewPosts()
 	{
-		// Arrange
+		
 		var cpp1 = await new ChannelParsingSettingBuilder(context).WithStatus(ParsingStatus.InHandle).WithCheckNewPosts(true).CreateAsync();
 
 		var cpp2 = await new ChannelParsingSettingBuilder(context).WithStatus(ParsingStatus.Finished).WithCheckNewPosts(true).CreateAsync();
@@ -26,10 +26,10 @@ public class ParseChannelWorkerStorageShould(StorageTestFixture fixture) : IClas
 
 		await context.SaveChangesAsync();
 
-		// Act
+		
 		var result = await sut.GetChannelParsingParametersAsync();
 
-		// Assert
+		
 		result.ShouldContain(cpp4.Id);
 		result.ShouldNotContain(cpp2.Id);
 		result.ShouldNotContain(cpp3.Id);
@@ -39,29 +39,23 @@ public class ParseChannelWorkerStorageShould(StorageTestFixture fixture) : IClas
 	[Fact]
 	public async Task GetChannelParsingParametersAsync_ShouldReturnEmptyListIfNoMatch()
 	{
-		// Arrange
-		var cpp = await new ChannelParsingSettingBuilder(context).WithStatus(ParsingStatus.Waiting).CreateAsync();
+		var cpp = await new ChannelParsingSettingBuilder(context).WithStatus(ParsingStatus.Canceled).CreateAsync();
 
-		// Act
 		var result = await sut.GetChannelParsingParametersAsync();
 
-		// Assert
 		result.ShouldNotContain(cpp.Id);
 	}
 
 	[Fact]
 	public async Task SetInHandleStatusAsync_ShouldUpdateStatusForGivenIds()
 	{
-		// Arrange
 		var cpp1 = await new ChannelParsingSettingBuilder(context).WithStatus(ParsingStatus.Waiting).CreateAsync();
 		var cpp2 = await new ChannelParsingSettingBuilder(context).WithStatus(ParsingStatus.Finished).CreateAsync();
-
-		// Act
+		
 		await sut.SetInHandleStatusAsync([cpp1.Id, cpp2.Id]);
 		await context.Entry(cpp1).ReloadAsync();
 		await context.Entry(cpp2).ReloadAsync();
 
-		// Assert
 		cpp1.Status.ShouldBe(ParsingStatus.InHandle);
 		cpp2.Status.ShouldBe(ParsingStatus.InHandle);
 	}
@@ -69,10 +63,9 @@ public class ParseChannelWorkerStorageShould(StorageTestFixture fixture) : IClas
 	[Fact]
 	public async Task SetInHandleStatusAsync_ShouldNotThrowIfIdsNotFound()
 	{
-		// Arrange
+		
 		var nonExistentId = Guid.NewGuid();
 
-		// Act & Assert
 		await Should.NotThrowAsync(async () =>
 		{
 			await sut.SetInHandleStatusAsync([nonExistentId]);
@@ -82,14 +75,12 @@ public class ParseChannelWorkerStorageShould(StorageTestFixture fixture) : IClas
 	[Fact]
 	public async Task SetWaitingStatusAsync_ShouldUpdateStatusForExistingId()
 	{
-		// Arrange
+		
 		var cpp = await new ChannelParsingSettingBuilder(context).WithStatus(ParsingStatus.InHandle).CreateAsync();
 
-		// Act
 		await sut.SetWaitingStatusAsync(cpp.Id);
 		await context.Entry(cpp).ReloadAsync();
 
-		// Assert
 		cpp.Status.ShouldBe(ParsingStatus.Waiting);
 	}
 

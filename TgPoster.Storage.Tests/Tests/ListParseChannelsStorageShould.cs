@@ -20,7 +20,7 @@ public class ListParseChannelsStorageShould(StorageTestFixture fixture) : IClass
 	[Fact]
 	public async Task GetChannelAsync_WithExistingUserId_ShouldReturnList()
 	{
-		var settings = new ChannelParsingSettingBuilder(context).Create();
+		var settings = await new ChannelParsingSettingBuilder(context).CreateAsync();
 
 		var result = await sut.GetChannelParsingParametersAsync(settings.Schedule.UserId, CancellationToken.None);
 		result.Count.ShouldBe(1);

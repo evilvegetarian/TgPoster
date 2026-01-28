@@ -18,6 +18,8 @@ public class PosterContext(DbContextOptions<PosterContext> options) : DbContext(
 	public DbSet<PromptSetting> PromptSettings { get; set; }
 	public DbSet<YouTubeAccount> YouTubeAccounts { get; set; }
 	public DbSet<TelegramSession> TelegramSessions { get; set; }
+	public DbSet<RepostDestination> RepostDestinations { get; set; }
+	public DbSet<RepostSettings> RepostSettings { get; set; }
 
 	public override Task<int> SaveChangesAsync(CancellationToken ct = new())
 	{

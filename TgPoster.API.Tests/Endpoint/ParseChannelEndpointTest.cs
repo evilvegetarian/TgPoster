@@ -209,7 +209,7 @@ public class ParseChannelEndpointTest(EndpointTestFixture fixture) : IClassFixtu
 		};
 
 		var updateResponse = await client.PutAsync(Url + "/" + parseId, updateRequest.ToStringContent());
-		updateResponse.StatusCode.ShouldBe(HttpStatusCode.OK);
+		updateResponse.StatusCode.ShouldBe(HttpStatusCode.NoContent);
 
 		var list = await client.GetAsync<ParseChannelListResponse>(Url);
 		var existParse = list.Items.FirstOrDefault(x => x.Id == parseId);
@@ -238,7 +238,7 @@ public class ParseChannelEndpointTest(EndpointTestFixture fixture) : IClassFixtu
 		var parseId = await helper.CreateParseChannel();
 
 		var deleteResponse = await client.DeleteAsync(Url + $"/{parseId}");
-		deleteResponse.StatusCode.ShouldBe(HttpStatusCode.OK);
+		deleteResponse.StatusCode.ShouldBe(HttpStatusCode.NoContent);
 
 		var deleteResponse2 = await client.DeleteAsync(Url + $"/{parseId}");
 		deleteResponse2.StatusCode.ShouldBe(HttpStatusCode.NotFound);

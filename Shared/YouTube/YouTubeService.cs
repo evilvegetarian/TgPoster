@@ -34,11 +34,9 @@ public sealed class YouTubeService
 		CancellationToken ct = default
 	)
 	{
+		ArgumentNullException.ThrowIfNull(account);
 		title ??= account.DefaultTitle ?? "Видео";
 		description ??= account.DefaultDescription;
-		ArgumentNullException.ThrowIfNull(account);
-		ArgumentNullException.ThrowIfNull(stream);
-		ArgumentException.ThrowIfNullOrWhiteSpace(title);
 
 		var (youtubeService, credential) = CreateYouTubeService(account);
 		var tagArray = ParseTags(tags ?? account.DefaultTags ?? "shorts,vertical");

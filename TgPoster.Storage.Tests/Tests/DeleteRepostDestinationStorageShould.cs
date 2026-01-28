@@ -37,7 +37,7 @@ public sealed class DeleteRepostDestinationStorageShould(StorageTestFixture fixt
 		var destination = await new RepostDestinationBuilder(context).CreateAsync();
 
 		await sut.DeleteDestinationAsync(destination.Id, CancellationToken.None);
-
+		context.ChangeTracker.Clear();
 		var deletedDestination = await context.Set<Data.Entities.RepostDestination>()
 			.IgnoreQueryFilters()
 			.FirstOrDefaultAsync(x => x.Id == destination.Id);

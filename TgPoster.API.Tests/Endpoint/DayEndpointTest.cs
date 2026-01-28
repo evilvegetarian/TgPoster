@@ -329,7 +329,7 @@ public class DayEndpointTest(EndpointTestFixture fixture) : IClassFixture<Endpoi
 			]
 		};
 		var response = await client.PatchAsync(Url + "/time", upd.ToStringContent());
-		response.StatusCode.ShouldBe(HttpStatusCode.OK);
+		response.StatusCode.ShouldBe(HttpStatusCode.NoContent);
 
 		var getResponse = await client.GetAsync<DayListResponse>(Url + "?scheduleId=" + scheduleId);
 		getResponse.Items.ShouldContain(x => x.DayOfWeek == upd.DayOfWeek);

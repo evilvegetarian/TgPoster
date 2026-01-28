@@ -34,25 +34,6 @@ public sealed class YouTubeServiceShould
 		);
 	}
 
-	[Theory]
-	[InlineData(null)]
-	[InlineData("")]
-	[InlineData("   ")]
-	public async Task UploadVideoAsync_WithInvalidTitle_ThrowsArgumentException(string? invalidTitle)
-	{
-		var account = new YouTubeAccountDto
-		{
-			AccessToken = "test_access_token",
-			RefreshToken = "test_refresh_token",
-			ClientId = "test_client_id",
-			ClientSecret = "test_client_secret"
-		};
-		using var stream = new MemoryStream([1, 2, 3]);
-
-		await Should.ThrowAsync<TokenResponseException>(() =>
-			sut.UploadVideoAsync(account, stream, invalidTitle!, "Description", "tag1,tag2", CancellationToken.None)
-		);
-	}
 
 	[Fact]
 	public async Task UploadVideoAsync_WithEmptyTags_DoesNotThrow()

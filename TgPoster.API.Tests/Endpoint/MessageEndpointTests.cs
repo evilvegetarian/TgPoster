@@ -211,7 +211,7 @@ public class MessageEndpointTests(EndpointTestFixture fixture) : IClassFixture<E
 
 		var response = await client.PutAsync(Url + "/" + messageId, request.ToMultipartForm());
 		var ss = await response.Content.ReadAsStringAsync();
-		response.StatusCode.ShouldBe(HttpStatusCode.OK);
+		response.StatusCode.ShouldBe(HttpStatusCode.NoContent);
 
 		var updatedMessage = await client.GetAsync<MessageResponse>(Url + "/" + messageId);
 		updatedMessage.TextMessage.ShouldBe(request.TextMessage);
@@ -255,7 +255,7 @@ public class MessageEndpointTests(EndpointTestFixture fixture) : IClassFixture<E
 		var fileId = message.Files.First().Id;
 
 		var response = await client.DeleteAsync(Url + "/" + messageId + "/files/" + fileId);
-		response.StatusCode.ShouldBe(HttpStatusCode.OK);
+		response.StatusCode.ShouldBe(HttpStatusCode.NoContent);
 
 		var updatedMessage = await client.GetAsync<MessageResponse>(Url + "/" + messageId);
 		updatedMessage.Files.ShouldNotContain(f => f.Id == fileId);

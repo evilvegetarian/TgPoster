@@ -21,8 +21,6 @@ public class EndpointTestFixture : WebApplicationFactory<Program>, IAsyncLifetim
 	private readonly PostgreSqlContainer dbContainer = new PostgreSqlBuilder()
 		.Build();
 
-	private IMemoryCache? memoryCache;
-
 	public string? Token;
 	public HttpClient AuthClient { get; private set; } = null!;
 
@@ -32,7 +30,6 @@ public class EndpointTestFixture : WebApplicationFactory<Program>, IAsyncLifetim
 		var context = new PosterContext(new DbContextOptionsBuilder<PosterContext>()
 			.UseNpgsql(dbContainer.GetConnectionString()).Options);
 		await context.Database.MigrateAsync();
-		memoryCache = new MemoryCache(new MemoryCacheOptions());
 		await InsertSeed(context);
 		await CreateAuthClient();
 	}
@@ -83,8 +80,6 @@ public class EndpointTestFixture : WebApplicationFactory<Program>, IAsyncLifetim
 
 		builder.ConfigureServices(services =>
 		{
-			services.AddSingleton(memoryCache!);
-
 			var busDescriptor = services.FirstOrDefault(d => d.ServiceType == typeof(IBus));
 			if (busDescriptor != null)
 			{
@@ -116,7 +111,7 @@ public class EndpointTestFixture : WebApplicationFactory<Program>, IAsyncLifetim
 			new UserSeeder(context, hash),
 			new DaySeeder(context),
 			new TelegramSessionSeeder(context),
-			new MemorySeeder(memoryCache!),
+			new MemorySeeder(context),
 			new YouTubeAccountSeeder(context)
 		};
 

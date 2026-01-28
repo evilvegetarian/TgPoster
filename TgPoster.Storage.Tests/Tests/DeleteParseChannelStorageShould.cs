@@ -23,8 +23,8 @@ public sealed class DeleteParseChannelStorageShould : IClassFixture<StorageTestF
 	public async Task DeleteParseChannel_ChannelExists_RemovesEntity()
 	{
 		var schedule = await new ScheduleBuilder(context).CreateAsync();
-		var target = await new ChannelParsingParameterBuilder(context).WithSchedule(schedule).CreateAsync(Ct);
-		var untouched = await new ChannelParsingParameterBuilder(context).CreateAsync(Ct);
+		var target = await new ChannelParsingSettingBuilder(context).WithSchedule(schedule).CreateAsync(Ct);
+		var untouched = await new ChannelParsingSettingBuilder(context).CreateAsync(Ct);
 
 		await sut.DeleteParseChannel(target.Id, Ct);
 		var untouchedExist = await context.ChannelParsingParameters.AnyAsync(x => x.Id == untouched.Id, Ct);
@@ -38,7 +38,7 @@ public sealed class DeleteParseChannelStorageShould : IClassFixture<StorageTestF
 	public async Task ExistParseChannel_ChannelBelongsToUser_ReturnsTrue()
 	{
 		var schedule = await new ScheduleBuilder(context).CreateAsync();
-		var parameter = await new ChannelParsingParameterBuilder(context).WithSchedule(schedule).CreateAsync(Ct);
+		var parameter = await new ChannelParsingSettingBuilder(context).WithSchedule(schedule).CreateAsync(Ct);
 
 		var result = await sut.ExistParseChannel(parameter.Id, schedule.UserId, Ct);
 
@@ -49,7 +49,7 @@ public sealed class DeleteParseChannelStorageShould : IClassFixture<StorageTestF
 	public async Task ExistParseChannel_ChannelBelongsToAnotherUser_ReturnsFalse()
 	{
 		var schedule = await new ScheduleBuilder(context).CreateAsync();
-		var parameter = await new ChannelParsingParameterBuilder(context).WithSchedule(schedule).CreateAsync(Ct);
+		var parameter = await new ChannelParsingSettingBuilder(context).WithSchedule(schedule).CreateAsync(Ct);
 		var outsider = new UserBuilder(context).Create();
 
 		var result = await sut.ExistParseChannel(parameter.Id, outsider.Id, Ct);
@@ -70,7 +70,7 @@ public sealed class DeleteParseChannelStorageShould : IClassFixture<StorageTestF
 	public async Task ExistParseChannel_UserIdNotExist_ReturnsFalse()
 	{
 		var schedule = await new ScheduleBuilder(context).CreateAsync();
-		var parameter = await new ChannelParsingParameterBuilder(context).WithSchedule(schedule).CreateAsync(Ct);
+		var parameter = await new ChannelParsingSettingBuilder(context).WithSchedule(schedule).CreateAsync(Ct);
 
 		var result = await sut.ExistParseChannel(parameter.Id, Guid.NewGuid(), Ct);
 

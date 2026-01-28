@@ -40,7 +40,7 @@ public sealed class DeleteRepostSettingsStorageShould(StorageTestFixture fixture
 			.CreateAsync();
 
 		await sut.DeleteRepostSettingsAsync(settings.Id, CancellationToken.None);
-
+		context.ChangeTracker.Clear();
 		var deletedSettings = await context.Set<Data.Entities.RepostSettings>()
 			.IgnoreQueryFilters()
 			.FirstOrDefaultAsync(x => x.Id == settings.Id);

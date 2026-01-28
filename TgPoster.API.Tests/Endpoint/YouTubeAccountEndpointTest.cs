@@ -18,7 +18,7 @@ public class YouTubeAccountEndpointTest(EndpointTestFixture fixture) : IClassFix
 		var youtubeAccountId = new YouTubeAccountBuilder(context).WithUserId(GlobalConst.Worked.UserId).Create().Id;
 		var deleteResponse = await client.DeleteAsync($"{Url}/{youtubeAccountId}");
 
-		deleteResponse.StatusCode.ShouldBe(HttpStatusCode.OK);
+		deleteResponse.StatusCode.ShouldBe(HttpStatusCode.NoContent);
 	}
 
 	[Fact]
@@ -47,7 +47,7 @@ public class YouTubeAccountEndpointTest(EndpointTestFixture fixture) : IClassFix
 		var youtubeAccountId = new YouTubeAccountBuilder(context).WithUserId(GlobalConst.Worked.UserId).Create().Id;
 
 		var firstDeleteResponse = await client.DeleteAsync($"{Url}/{youtubeAccountId}");
-		firstDeleteResponse.StatusCode.ShouldBe(HttpStatusCode.OK);
+		firstDeleteResponse.StatusCode.ShouldBe(HttpStatusCode.NoContent);
 
 		var secondDeleteResponse = await client.DeleteAsync($"{Url}/{youtubeAccountId}");
 		secondDeleteResponse.StatusCode.ShouldBe(HttpStatusCode.NotFound);

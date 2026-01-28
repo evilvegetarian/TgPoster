@@ -107,19 +107,19 @@ public sealed class TelegramSessionRepositoryShould(StorageTestFixture fixture)
 		var session = await new TelegramSessionBuilder(context)
 			.WithUserId(user.Id)
 			.CreateAsync();
-
+context.ChangeTracker.Clear();
 		await sut.UpdateStatusAsync(session.Id, SharedTelegramSessionStatus.CodeSent, CancellationToken.None);
 		var updated1 = await context.TelegramSessions.FirstAsync(s => s.Id == session.Id, CancellationToken.None);
 		updated1.Status.ShouldBe(StorageTelegramSessionStatus.CodeSent);
-
+		context.ChangeTracker.Clear();
 		await sut.UpdateStatusAsync(session.Id, SharedTelegramSessionStatus.AwaitingPassword, CancellationToken.None);
 		var updated2 = await context.TelegramSessions.FirstAsync(s => s.Id == session.Id, CancellationToken.None);
 		updated2.Status.ShouldBe(StorageTelegramSessionStatus.AwaitingPassword);
-
+		context.ChangeTracker.Clear();
 		await sut.UpdateStatusAsync(session.Id, SharedTelegramSessionStatus.Authorized, CancellationToken.None);
 		var updated3 = await context.TelegramSessions.FirstAsync(s => s.Id == session.Id, CancellationToken.None);
 		updated3.Status.ShouldBe(StorageTelegramSessionStatus.Authorized);
-
+		context.ChangeTracker.Clear();
 		await sut.UpdateStatusAsync(session.Id, SharedTelegramSessionStatus.Failed, CancellationToken.None);
 		var updated4 = await context.TelegramSessions.FirstAsync(s => s.Id == session.Id, CancellationToken.None);
 		updated4.Status.ShouldBe(StorageTelegramSessionStatus.Failed);

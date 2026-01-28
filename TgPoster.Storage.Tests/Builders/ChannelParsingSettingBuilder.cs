@@ -24,7 +24,7 @@ public class ChannelParsingSettingBuilder(PosterContext context)
 		ScheduleId = new ScheduleBuilder(context).Create().Id,
 		Status = faker.Random.Enum<ParsingStatus>(),
 		CheckNewPosts = faker.Random.Bool(),
-		TelegramSessionId = Guid.NewGuid()
+		TelegramSessionId = new TelegramSessionBuilder(context).Create().Id
 	};
 
 	public ChannelParsingSettingBuilder WithScheduleId(Guid scheduleId)
@@ -59,5 +59,12 @@ public class ChannelParsingSettingBuilder(PosterContext context)
 		await context.ChannelParsingParameters.AddRangeAsync(setting);
 		await context.SaveChangesAsync(ct);
 		return setting;
+	}
+
+	public ChannelParsingSettingBuilder WithSchedule(Schedule schedule)
+	{
+		setting.Schedule = schedule;
+		setting.ScheduleId = schedule.Id;
+		return this;
 	}
 }

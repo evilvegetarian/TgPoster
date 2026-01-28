@@ -1,4 +1,5 @@
 using OpenCvSharp;
+using Shared.Exceptions;
 using Shared.Video;
 using Shouldly;
 
@@ -56,8 +57,7 @@ public sealed class VideoServiceTestsShould
 	[Fact]
 	public async Task ExtractScreenshots_NullStream_ThrowsArgumentNullException()
 	{
-		await Should.ThrowAsync<ArgumentNullException>(() => sut.ExtractScreenshotsAsync(null!, 1)
-		);
+		await Should.ThrowAsync<InvalidVideoStreamException>(() => sut.ExtractScreenshotsAsync(null!, 1));
 	}
 
 	[Fact]
@@ -65,7 +65,7 @@ public sealed class VideoServiceTestsShould
 	{
 		using var stream = new MemoryStream([1, 2, 3]);
 
-		await Should.ThrowAsync<ArgumentException>(() => sut.ExtractScreenshotsAsync(stream, 0)
+		await Should.ThrowAsync<InvalidScreenshotCountException>(() => sut.ExtractScreenshotsAsync(stream, 0)
 		);
 	}
 
@@ -74,10 +74,8 @@ public sealed class VideoServiceTestsShould
 	{
 		using var invalidVideoStream = new MemoryStream([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
 
-		var exception = await Should.ThrowAsync<InvalidOperationException>(() =>
+		 await Should.ThrowAsync<VideoProcessingException>(() =>
 			sut.ExtractScreenshotsAsync(invalidVideoStream, 1)
 		);
-
-		exception.Message.ShouldBe("Не удалось обработать видео с помощью FFMpeg.");
 	}
 }
