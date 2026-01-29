@@ -6,10 +6,16 @@ using TgPoster.Storage.Tests.Builders;
 
 namespace TgPoster.Storage.Tests.Tests;
 
-public sealed class UpdateRepostDestinationStorageShould(StorageTestFixture fixture) : IClassFixture<StorageTestFixture>
+public sealed class UpdateRepostDestinationStorageShould : IClassFixture<StorageTestFixture>
 {
-	private readonly PosterContext context = fixture.GetDbContext();
-	private readonly UpdateRepostDestinationStorage sut = new(fixture.GetDbContext());
+	private readonly PosterContext context;
+	private readonly UpdateRepostDestinationStorage sut;
+
+	public UpdateRepostDestinationStorageShould(StorageTestFixture fixture)
+	{
+		context = fixture.GetDbContext();
+		sut = new(context);
+	}
 
 	[Fact]
 	public async Task DestinationExistsAsync_WithExistingDestination_ShouldReturnTrue()
@@ -39,7 +45,6 @@ public sealed class UpdateRepostDestinationStorageShould(StorageTestFixture fixt
 			.CreateAsync();
 
 		await sut.UpdateDestinationAsync(destination.Id, false, CancellationToken.None);
-		context.ChangeTracker.Clear();
 
 		var updatedDestination = await context.RepostDestinations
 			.FirstOrDefaultAsync(x => x.Id == destination.Id);
@@ -56,7 +61,7 @@ public sealed class UpdateRepostDestinationStorageShould(StorageTestFixture fixt
 			.CreateAsync();
 
 		await sut.UpdateDestinationAsync(destination.Id, true, CancellationToken.None);
-		context.ChangeTracker.Clear();
+
 		var updatedDestination = await context.RepostDestinations
 			.FirstOrDefaultAsync(x => x.Id == destination.Id);
 

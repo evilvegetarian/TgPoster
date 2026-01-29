@@ -8,11 +8,17 @@ using TgPoster.Storage.Tests.Builders;
 
 namespace TgPoster.Storage.Tests.Tests;
 
-public class UpdateParseChannelStorageShould(StorageTestFixture fixture) : IClassFixture<StorageTestFixture>
+public class UpdateParseChannelStorageShould : IClassFixture<StorageTestFixture>
 {
-	private readonly PosterContext _context = fixture.GetDbContext();
+	private readonly PosterContext _context;
 	private readonly CancellationToken ct = CancellationToken.None;
-	private readonly UpdateParseChannelStorage sut = new(fixture.GetDbContext());
+	private readonly UpdateParseChannelStorage sut;
+
+	public UpdateParseChannelStorageShould(StorageTestFixture fixture)
+	{
+		_context = fixture.GetDbContext();
+		sut = new(_context);
+	}
 
 	[Fact]
 	public async Task ExistParseChannelAsync_ExistingParseChannel_ShouldReturnTrue()
@@ -45,8 +51,9 @@ public class UpdateParseChannelStorageShould(StorageTestFixture fixture) : IClas
 		string[] avoids = ["New Word", "Perfectly"];
 		var parseChannel = await new ChannelParsingSettingBuilder(_context).CreateAsync(ct);
 		parseChannel.AvoidWords = avoids;
+		_context.Entry(parseChannel).State = EntityState.Detached;
 		await sut.UpdateParseChannelAsync(parseChannel.ToCommand(), ct);
-		_context.ChangeTracker.Clear();
+
 		var parseChannelUpdated = await _context.ChannelParsingParameters
 			.FirstOrDefaultAsync(x => x.Id == parseChannel.Id, ct);
 		parseChannelUpdated!.AvoidWords.ShouldBe(avoids);

@@ -6,10 +6,16 @@ using TgPoster.Storage.Tests.Builders;
 
 namespace TgPoster.Storage.Tests.Tests;
 
-public class UpdateTimeStorageShould(StorageTestFixture fixture) : IClassFixture<StorageTestFixture>
+public class UpdateTimeStorageShould : IClassFixture<StorageTestFixture>
 {
-	private readonly PosterContext context = fixture.GetDbContext();
-	private readonly UpdateTimeStorage sut = new(fixture.GetDbContext(), new GuidFactory());
+	private readonly PosterContext context;
+	private readonly UpdateTimeStorage sut;
+
+	public UpdateTimeStorageShould(StorageTestFixture fixture)
+	{
+		context = fixture.GetDbContext();
+		sut = new(context, new GuidFactory());
+	}
 
 	[Fact]
 	public async Task UpdateTimeDay_WithValidData_ShouldUpdateTime()
@@ -22,7 +28,7 @@ public class UpdateTimeStorageShould(StorageTestFixture fixture) : IClassFixture
 			new(15, 14)
 		};
 		await sut.UpdateTimeDayAsync(day.Id, time, CancellationToken.None);
-		context.ChangeTracker.Clear();
+
 		var updDay = await context.Days.FirstOrDefaultAsync(x => x.Id == day.Id);
 		updDay!.TimePostings.ShouldBe(time);
 	}

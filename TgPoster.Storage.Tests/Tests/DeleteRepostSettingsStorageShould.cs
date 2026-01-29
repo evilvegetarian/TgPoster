@@ -6,10 +6,16 @@ using TgPoster.Storage.Tests.Builders;
 
 namespace TgPoster.Storage.Tests.Tests;
 
-public sealed class DeleteRepostSettingsStorageShould(StorageTestFixture fixture) : IClassFixture<StorageTestFixture>
+public sealed class DeleteRepostSettingsStorageShould : IClassFixture<StorageTestFixture>
 {
-	private readonly PosterContext context = fixture.GetDbContext();
-	private readonly DeleteRepostSettingsStorage sut = new(fixture.GetDbContext());
+	private readonly PosterContext context;
+	private readonly DeleteRepostSettingsStorage sut;
+
+	public DeleteRepostSettingsStorageShould(StorageTestFixture fixture)
+	{
+		context = fixture.GetDbContext();
+		sut = new(context);
+	}
 
 	[Fact]
 	public async Task RepostSettingsExistsAsync_WithExistingSettings_ShouldReturnTrue()
@@ -40,7 +46,7 @@ public sealed class DeleteRepostSettingsStorageShould(StorageTestFixture fixture
 			.CreateAsync();
 
 		await sut.DeleteRepostSettingsAsync(settings.Id, CancellationToken.None);
-		context.ChangeTracker.Clear();
+
 		var deletedSettings = await context.Set<Data.Entities.RepostSettings>()
 			.IgnoreQueryFilters()
 			.FirstOrDefaultAsync(x => x.Id == settings.Id);

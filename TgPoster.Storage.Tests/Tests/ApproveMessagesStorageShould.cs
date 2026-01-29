@@ -30,7 +30,6 @@ public sealed class ApproveMessagesStorageShould : IClassFixture<StorageTestFixt
 		}.Select(x => x.Id).ToList();
 
 		await sut.ApproveMessage(messageIds, ct);
-		context.ChangeTracker.Clear();
 
 		var messages = await context.Messages
 			.AsNoTracking()
@@ -52,7 +51,6 @@ public sealed class ApproveMessagesStorageShould : IClassFixture<StorageTestFixt
 		var untouched = await new MessageBuilder(context).WithSchedule(schedule).WithIsVerified(false).CreateAsync();
 
 		await sut.ApproveMessage([first.Id, second.Id], ct);
-		context.ChangeTracker.Clear();
 
 		var messages = await context.Messages
 			.AsNoTracking()
@@ -72,7 +70,6 @@ public sealed class ApproveMessagesStorageShould : IClassFixture<StorageTestFixt
 
 		await sut.ApproveMessage([Guid.NewGuid()], ct);
 
-		context.ChangeTracker.Clear();
 
 		var actual = await context.Messages
 			.AsNoTracking()
@@ -88,7 +85,6 @@ public sealed class ApproveMessagesStorageShould : IClassFixture<StorageTestFixt
 		var verified = await new MessageBuilder(context).WithSchedule(schedule).WithIsVerified(true).CreateAsync();
 		var pending = await new MessageBuilder(context).WithSchedule(schedule).WithIsVerified(false).CreateAsync();
 
-		context.ChangeTracker.Clear();
 
 		var before = await context.Messages
 			.AsNoTracking()
@@ -99,7 +95,6 @@ public sealed class ApproveMessagesStorageShould : IClassFixture<StorageTestFixt
 
 		await sut.ApproveMessage([], ct);
 
-		context.ChangeTracker.Clear();
 
 		var after = await context.Messages
 			.AsNoTracking()

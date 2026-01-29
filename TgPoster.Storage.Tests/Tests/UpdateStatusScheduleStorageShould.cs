@@ -6,10 +6,16 @@ using TgPoster.Storage.Tests.Builders;
 
 namespace TgPoster.Storage.Tests.Tests;
 
-public class UpdateStatusScheduleStorageShould(StorageTestFixture fixture) : IClassFixture<StorageTestFixture>
+public class UpdateStatusScheduleStorageShould : IClassFixture<StorageTestFixture>
 {
-	private readonly PosterContext context = fixture.GetDbContext();
-	private readonly UpdateStatusScheduleStorage sut = new(fixture.GetDbContext());
+	private readonly PosterContext context;
+	private readonly UpdateStatusScheduleStorage sut;
+
+	public UpdateStatusScheduleStorageShould(StorageTestFixture fixture)
+	{
+		context = fixture.GetDbContext();
+		sut = new(context);
+	}
 
 	[Fact]
 	public async Task ExistSchedule_WithExistingSchedule_ShouldReturnTrue()
@@ -37,7 +43,7 @@ public class UpdateStatusScheduleStorageShould(StorageTestFixture fixture) : ICl
 		var schedule = await new ScheduleBuilder(context).CreateAsync();
 
 		await sut.UpdateStatus(schedule.Id, CancellationToken.None);
-		context.ChangeTracker.Clear();
+
 		var updatedSchedule = await context.Schedules.FindAsync(schedule.Id);
 		updatedSchedule.ShouldNotBeNull();
 		updatedSchedule.IsActive.ShouldBeFalse();

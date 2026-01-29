@@ -7,10 +7,16 @@ using TgPoster.Storage.Tests.Builders;
 
 namespace TgPoster.Storage.Tests.Tests;
 
-public class RefreshTokenStorageShould(StorageTestFixture fixture) : IClassFixture<StorageTestFixture>
+public class RefreshTokenStorageShould : IClassFixture<StorageTestFixture>
 {
-	private readonly PosterContext context = fixture.GetDbContext();
-	private readonly RefreshTokenStorage sut = new(fixture.GetDbContext());
+	private readonly PosterContext context;
+	private readonly RefreshTokenStorage sut;
+
+	public RefreshTokenStorageShould(StorageTestFixture fixture)
+	{
+		context = fixture.GetDbContext();
+		sut = new(context);
+	}
 
 	[Fact]
 	public async Task GetUserIdAsync_WithValidRefreshToken_ShouldReturnUserId()
@@ -63,7 +69,7 @@ public class RefreshTokenStorageShould(StorageTestFixture fixture) : IClassFixtu
 			newRefreshToken,
 			newExpiresAt,
 			CancellationToken.None);
-		context.ChangeTracker.Clear();
+
 		var updatedSession = await context.RefreshSessions
 			.FirstOrDefaultAsync(x => x.Id == refreshSession.Id);
 

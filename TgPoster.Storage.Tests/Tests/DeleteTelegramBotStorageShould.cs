@@ -6,10 +6,16 @@ using TgPoster.Storage.Tests.Builders;
 
 namespace TgPoster.Storage.Tests.Tests;
 
-public class DeleteTelegramBotStorageShould(StorageTestFixture fixture) : IClassFixture<StorageTestFixture>
+public class DeleteTelegramBotStorageShould : IClassFixture<StorageTestFixture>
 {
-	private readonly PosterContext context = fixture.GetDbContext();
-	private readonly DeleteTelegramBotStorage sut = new(fixture.GetDbContext());
+	private readonly PosterContext context;
+	private readonly DeleteTelegramBotStorage sut;
+
+	public DeleteTelegramBotStorageShould(StorageTestFixture fixture)
+	{
+		context = fixture.GetDbContext();
+		sut = new(context);
+	}
 
 	[Fact]
 	public async Task ExistsAsync_WithExistingTelegramBot_ShouldReturnTrue()
@@ -52,7 +58,7 @@ public class DeleteTelegramBotStorageShould(StorageTestFixture fixture) : IClass
 		var telegramBot = await new TelegramBotBuilder(context).WithOwnerId(user.Id).CreateAsync();
 
 		await sut.DeleteTelegramBotAsync(telegramBot.Id, user.Id, CancellationToken.None);
-		context.ChangeTracker.Clear();
+
 		var deletedBot = await context.TelegramBots
 			.IgnoreQueryFilters()
 			.FirstOrDefaultAsync(x => x.Id == telegramBot.Id);

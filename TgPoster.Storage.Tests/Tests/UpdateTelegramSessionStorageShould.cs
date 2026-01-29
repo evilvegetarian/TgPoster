@@ -6,11 +6,16 @@ using TgPoster.Storage.Tests.Builders;
 
 namespace TgPoster.Storage.Tests.Tests;
 
-public sealed class UpdateTelegramSessionStorageShould(StorageTestFixture fixture)
-	: IClassFixture<StorageTestFixture>
+public sealed class UpdateTelegramSessionStorageShould : IClassFixture<StorageTestFixture>
 {
-	private readonly PosterContext context = fixture.GetDbContext();
-	private readonly UpdateTelegramSessionStorage sut = new(fixture.GetDbContext());
+	private readonly PosterContext context;
+	private readonly UpdateTelegramSessionStorage sut;
+
+	public UpdateTelegramSessionStorageShould(StorageTestFixture fixture)
+	{
+		context = fixture.GetDbContext();
+		sut = new(context);
+	}
 
 	[Fact]
 	public async Task GetByIdAsync_WithValidUserAndSession_ShouldReturnSession()
@@ -63,7 +68,6 @@ public sealed class UpdateTelegramSessionStorageShould(StorageTestFixture fixtur
 		var newIsActive = false;
 
 		await sut.UpdateAsync(session.Id, newName, newIsActive, CancellationToken.None);
-		context.ChangeTracker.Clear();
 		var updated = await context.TelegramSessions
 			.FirstAsync(s => s.Id == session.Id, CancellationToken.None);
 
@@ -80,7 +84,6 @@ public sealed class UpdateTelegramSessionStorageShould(StorageTestFixture fixtur
 			.CreateAsync();
 
 		await sut.UpdateAsync(session.Id, null, true, CancellationToken.None);
-		context.ChangeTracker.Clear();
 		var updated = await context.TelegramSessions
 			.FirstAsync(s => s.Id == session.Id, CancellationToken.None);
 

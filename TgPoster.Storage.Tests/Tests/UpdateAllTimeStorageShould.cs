@@ -7,10 +7,16 @@ using TgPoster.Storage.Tests.Builders;
 
 namespace TgPoster.Storage.Tests.Tests;
 
-public class UpdateAllTimeStorageShould(StorageTestFixture fixture) : IClassFixture<StorageTestFixture>
+public class UpdateAllTimeStorageShould : IClassFixture<StorageTestFixture>
 {
-	private readonly PosterContext _context = fixture.GetDbContext();
-	private readonly UpdateAllTimeStorage sut = new(fixture.GetDbContext());
+	private readonly PosterContext _context;
+	private readonly UpdateAllTimeStorage sut;
+
+	public UpdateAllTimeStorageShould(StorageTestFixture fixture)
+	{
+		_context = fixture.GetDbContext();
+		sut = new(_context);
+	}
 
 	[Fact]
 	public async Task UpdateTimeAsync_WithValidDate_ShouldCorrectUpdateTime()
@@ -30,7 +36,7 @@ public class UpdateAllTimeStorageShould(StorageTestFixture fixture) : IClassFixt
 		};
 
 		await sut.UpdateTimeAsync(messages.Select(x => x.Id).ToList(), times, CancellationToken.None);
-		_context.ChangeTracker.Clear();
+
 		var updatedMessages = await _context.Messages.Where(x => x.ScheduleId == schedule.Id)
 			.OrderBy(x => x.TimePosting).ToListAsync();
 		updatedMessages.Select(x => x.TimePosting.ToString()).ShouldBe(times.OrderBy(x => x).Select(x => x.ToString()));

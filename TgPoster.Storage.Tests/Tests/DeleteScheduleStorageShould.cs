@@ -6,10 +6,16 @@ using TgPoster.Storage.Tests.Builders;
 
 namespace TgPoster.Storage.Tests.Tests;
 
-public class DeleteScheduleStorageShould(StorageTestFixture fixture) : IClassFixture<StorageTestFixture>
+public class DeleteScheduleStorageShould : IClassFixture<StorageTestFixture>
 {
-	private readonly PosterContext context = fixture.GetDbContext();
-	private readonly DeleteScheduleStorage sut = new(fixture.GetDbContext());
+	private readonly PosterContext context;
+	private readonly DeleteScheduleStorage sut;
+
+	public DeleteScheduleStorageShould(StorageTestFixture fixture)
+	{
+		context = fixture.GetDbContext();
+		sut = new(context);
+	}
 
 	[Fact]
 	public async Task ScheduleExist_WithExistingSchedule_ShouldReturnTrue()
@@ -32,7 +38,7 @@ public class DeleteScheduleStorageShould(StorageTestFixture fixture) : IClassFix
 	{
 		var newSchedule = new ScheduleBuilder(context).Create();
 		await sut.DeleteScheduleAsync(newSchedule.Id);
-		context.ChangeTracker.Clear();
+
 		var schedule = await context.Schedules
 			.IgnoreQueryFilters()
 			.FirstOrDefaultAsync(x => x.Id == newSchedule.Id);

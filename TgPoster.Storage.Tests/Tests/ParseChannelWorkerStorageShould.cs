@@ -7,10 +7,16 @@ using TgPoster.Storage.Tests.Builders;
 
 namespace TgPoster.Storage.Tests.Tests;
 
-public class ParseChannelWorkerStorageShould(StorageTestFixture fixture) : IClassFixture<StorageTestFixture>
+public class ParseChannelWorkerStorageShould : IClassFixture<StorageTestFixture>
 {
-	private readonly PosterContext context = fixture.GetDbContext();
-	private readonly ParseChannelWorkerStorage sut = new(fixture.GetDbContext());
+	private readonly PosterContext context;
+	private readonly ParseChannelWorkerStorage sut;
+
+	public ParseChannelWorkerStorageShould(StorageTestFixture fixture)
+	{
+		context = fixture.GetDbContext();
+		sut = new(context);
+	}
 
 	[Fact]
 	public async Task GetChannelParsingParametersAsync_ShouldReturnIdsWithCorrectStatusAndCheckNewPosts()
@@ -90,7 +96,7 @@ public class ParseChannelWorkerStorageShould(StorageTestFixture fixture) : IClas
 		var cpp = await new ChannelParsingSettingBuilder(context).WithStatus(ParsingStatus.InHandle).CreateAsync();
 
 		await sut.SetErrorStatusAsync(cpp.Id);
-		context.ChangeTracker.Clear();
+
 		var channelParsingParameters = await context.ChannelParsingParameters.FirstOrDefaultAsync(x => x.Id == cpp.Id);
 		channelParsingParameters.ShouldNotBeNull();
 		channelParsingParameters.Status.ShouldBe(ParsingStatus.Failed);
