@@ -28,8 +28,9 @@ import type {
   AddRepostDestinationResponse,
   CreateRepostSettingsRequest,
   CreateRepostSettingsResponse,
-  GetRepostSettingsResponse,
+  ListRepostSettingsResponse,
   ProblemDetails,
+  RepostSettingsResponse,
   UpdateRepostDestinationRequest
 } from '../tgPosterAPI.schemas';
 
@@ -103,16 +104,16 @@ export const usePostApiV1RepostSettings = <TError = ProblemDetails,
       return useMutation(mutationOptions, queryClient);
     }
     /**
- * @summary Получение настроек репоста для расписания.
+ * @summary Получение списка всех настроек репоста пользователя.
  */
-export const getApiV1RepostSettingsScheduleId = (
-    scheduleId: string,
+export const getApiV1RepostSettings = (
+    
  signal?: AbortSignal
 ) => {
       
       
-      return customInstance<GetRepostSettingsResponse>(
-      {url: `/api/v1/repost/settings/${scheduleId}`, method: 'GET', signal
+      return customInstance<ListRepostSettingsResponse>(
+      {url: `/api/v1/repost/settings`, method: 'GET', signal
     },
       );
     }
@@ -120,69 +121,161 @@ export const getApiV1RepostSettingsScheduleId = (
 
 
 
-export const getGetApiV1RepostSettingsScheduleIdQueryKey = (scheduleId?: string,) => {
+export const getGetApiV1RepostSettingsQueryKey = () => {
     return [
-    `/api/v1/repost/settings/${scheduleId}`
+    `/api/v1/repost/settings`
     ] as const;
     }
 
     
-export const getGetApiV1RepostSettingsScheduleIdQueryOptions = <TData = Awaited<ReturnType<typeof getApiV1RepostSettingsScheduleId>>, TError = ProblemDetails>(scheduleId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1RepostSettingsScheduleId>>, TError, TData>>, }
+export const getGetApiV1RepostSettingsQueryOptions = <TData = Awaited<ReturnType<typeof getApiV1RepostSettings>>, TError = ProblemDetails>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1RepostSettings>>, TError, TData>>, }
 ) => {
 
 const {query: queryOptions} = options ?? {};
 
-  const queryKey =  queryOptions?.queryKey ?? getGetApiV1RepostSettingsScheduleIdQueryKey(scheduleId);
+  const queryKey =  queryOptions?.queryKey ?? getGetApiV1RepostSettingsQueryKey();
 
   
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getApiV1RepostSettingsScheduleId>>> = ({ signal }) => getApiV1RepostSettingsScheduleId(scheduleId, signal);
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getApiV1RepostSettings>>> = ({ signal }) => getApiV1RepostSettings(signal);
 
       
 
       
 
-   return  { queryKey, queryFn, enabled: !!(scheduleId), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getApiV1RepostSettingsScheduleId>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getApiV1RepostSettings>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
-export type GetApiV1RepostSettingsScheduleIdQueryResult = NonNullable<Awaited<ReturnType<typeof getApiV1RepostSettingsScheduleId>>>
-export type GetApiV1RepostSettingsScheduleIdQueryError = ProblemDetails
+export type GetApiV1RepostSettingsQueryResult = NonNullable<Awaited<ReturnType<typeof getApiV1RepostSettings>>>
+export type GetApiV1RepostSettingsQueryError = ProblemDetails
 
 
-export function useGetApiV1RepostSettingsScheduleId<TData = Awaited<ReturnType<typeof getApiV1RepostSettingsScheduleId>>, TError = ProblemDetails>(
- scheduleId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1RepostSettingsScheduleId>>, TError, TData>> & Pick<
+export function useGetApiV1RepostSettings<TData = Awaited<ReturnType<typeof getApiV1RepostSettings>>, TError = ProblemDetails>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1RepostSettings>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getApiV1RepostSettingsScheduleId>>,
+          Awaited<ReturnType<typeof getApiV1RepostSettings>>,
           TError,
-          Awaited<ReturnType<typeof getApiV1RepostSettingsScheduleId>>
+          Awaited<ReturnType<typeof getApiV1RepostSettings>>
         > , 'initialData'
       >, }
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetApiV1RepostSettingsScheduleId<TData = Awaited<ReturnType<typeof getApiV1RepostSettingsScheduleId>>, TError = ProblemDetails>(
- scheduleId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1RepostSettingsScheduleId>>, TError, TData>> & Pick<
+export function useGetApiV1RepostSettings<TData = Awaited<ReturnType<typeof getApiV1RepostSettings>>, TError = ProblemDetails>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1RepostSettings>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getApiV1RepostSettingsScheduleId>>,
+          Awaited<ReturnType<typeof getApiV1RepostSettings>>,
           TError,
-          Awaited<ReturnType<typeof getApiV1RepostSettingsScheduleId>>
+          Awaited<ReturnType<typeof getApiV1RepostSettings>>
         > , 'initialData'
       >, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetApiV1RepostSettingsScheduleId<TData = Awaited<ReturnType<typeof getApiV1RepostSettingsScheduleId>>, TError = ProblemDetails>(
- scheduleId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1RepostSettingsScheduleId>>, TError, TData>>, }
+export function useGetApiV1RepostSettings<TData = Awaited<ReturnType<typeof getApiV1RepostSettings>>, TError = ProblemDetails>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1RepostSettings>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
- * @summary Получение настроек репоста для расписания.
+ * @summary Получение списка всех настроек репоста пользователя.
  */
 
-export function useGetApiV1RepostSettingsScheduleId<TData = Awaited<ReturnType<typeof getApiV1RepostSettingsScheduleId>>, TError = ProblemDetails>(
- scheduleId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1RepostSettingsScheduleId>>, TError, TData>>, }
+export function useGetApiV1RepostSettings<TData = Awaited<ReturnType<typeof getApiV1RepostSettings>>, TError = ProblemDetails>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1RepostSettings>>, TError, TData>>, }
  , queryClient?: QueryClient 
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
-  const queryOptions = getGetApiV1RepostSettingsScheduleIdQueryOptions(scheduleId,options)
+  const queryOptions = getGetApiV1RepostSettingsQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+
+/**
+ * @summary Получение подробной информации о настройках репоста.
+ */
+export const getApiV1RepostSettingsId = (
+    id: string,
+ signal?: AbortSignal
+) => {
+      
+      
+      return customInstance<RepostSettingsResponse>(
+      {url: `/api/v1/repost/settings/${id}`, method: 'GET', signal
+    },
+      );
+    }
+  
+
+
+
+export const getGetApiV1RepostSettingsIdQueryKey = (id?: string,) => {
+    return [
+    `/api/v1/repost/settings/${id}`
+    ] as const;
+    }
+
+    
+export const getGetApiV1RepostSettingsIdQueryOptions = <TData = Awaited<ReturnType<typeof getApiV1RepostSettingsId>>, TError = ProblemDetails>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1RepostSettingsId>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetApiV1RepostSettingsIdQueryKey(id);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getApiV1RepostSettingsId>>> = ({ signal }) => getApiV1RepostSettingsId(id, signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getApiV1RepostSettingsId>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetApiV1RepostSettingsIdQueryResult = NonNullable<Awaited<ReturnType<typeof getApiV1RepostSettingsId>>>
+export type GetApiV1RepostSettingsIdQueryError = ProblemDetails
+
+
+export function useGetApiV1RepostSettingsId<TData = Awaited<ReturnType<typeof getApiV1RepostSettingsId>>, TError = ProblemDetails>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1RepostSettingsId>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getApiV1RepostSettingsId>>,
+          TError,
+          Awaited<ReturnType<typeof getApiV1RepostSettingsId>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetApiV1RepostSettingsId<TData = Awaited<ReturnType<typeof getApiV1RepostSettingsId>>, TError = ProblemDetails>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1RepostSettingsId>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getApiV1RepostSettingsId>>,
+          TError,
+          Awaited<ReturnType<typeof getApiV1RepostSettingsId>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetApiV1RepostSettingsId<TData = Awaited<ReturnType<typeof getApiV1RepostSettingsId>>, TError = ProblemDetails>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1RepostSettingsId>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Получение подробной информации о настройках репоста.
+ */
+
+export function useGetApiV1RepostSettingsId<TData = Awaited<ReturnType<typeof getApiV1RepostSettingsId>>, TError = ProblemDetails>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1RepostSettingsId>>, TError, TData>>, }
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetApiV1RepostSettingsIdQueryOptions(id,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 

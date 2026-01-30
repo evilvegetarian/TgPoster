@@ -20,6 +20,7 @@ import {SchedulePage} from "@/pages/schedulepage/schedule-page.tsx";
 import {OpenRouterPage} from "@/pages/openrouterpage/open-router-page.tsx";
 import {YouTubeAccountPage} from "@/pages/youtube-account-page.tsx";
 import TelegramAccountPage from "@/pages/telegram-account-page.tsx";
+import {RepostSettingsPage} from "@/pages/repostpage/repost-settings-page.tsx";
 
 const router = createBrowserRouter([
     {
@@ -89,6 +90,10 @@ const router = createBrowserRouter([
                             {
                                 path: "/telegram-accounts",
                                 element: <TelegramAccountPage/>,
+                            },
+                            {
+                                path: "/repost-settings",
+                                element: <RepostSettingsPage/>,
                             }
                         ]
                     }

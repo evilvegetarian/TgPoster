@@ -6,6 +6,7 @@ import {
     Home,
     LogIn, LogOut,
     MessageCircleMore,
+    Repeat2,
     Settings,
     SignatureIcon,
     Smartphone,
@@ -77,6 +78,11 @@ export function SideBar() {
                 title: "Telegram Аккаунты",
                 path: "/telegram-accounts",
                 icon: Smartphone
+            },
+            {
+                title: "Настройки репоста",
+                path: "/repost-settings",
+                icon: Repeat2
             }
         ]
         : [

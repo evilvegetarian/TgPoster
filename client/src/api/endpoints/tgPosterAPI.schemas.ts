@@ -304,25 +304,16 @@ export interface GenerateAiContentResponse {
   content: string;
 }
 
-export interface GetRepostDestinationDto {
-  id: string;
-  chatIdentifier: string;
-  isActive: boolean;
-}
-
-export interface GetRepostSettingsResponse {
-  id: string;
-  scheduleId: string;
-  telegramSessionId: string;
-  destinations: GetRepostDestinationDto[];
-}
-
 export interface GetTimeResponse {
   postingTimes?: string[];
 }
 
 export interface ListOpenRouterSettingResponse {
   openRouterSettingResponses: OpenRouterSettingResponse[];
+}
+
+export interface ListRepostSettingsResponse {
+  items: RepostSettingsItemDto[];
 }
 
 export interface MessageResponse {
@@ -472,6 +463,33 @@ export interface RefreshTokenResponse {
   accessToken: string;
   refreshToken: string;
   refreshTokenExpiration: string;
+}
+
+export interface RepostDestinationDto {
+  id: string;
+  chatId: number;
+  isActive: boolean;
+}
+
+export interface RepostSettingsItemDto {
+  id: string;
+  scheduleId: string;
+  scheduleName: string;
+  telegramSessionId: string;
+  isActive: boolean;
+  destinationsCount: number;
+}
+
+export interface RepostSettingsResponse {
+  id: string;
+  scheduleId: string;
+  scheduleName: string;
+  telegramSessionId: string;
+  /** @nullable */
+  telegramSessionName: string | null;
+  isActive: boolean;
+  created: string;
+  destinations: RepostDestinationDto[];
 }
 
 export interface ScheduleListResponse {
