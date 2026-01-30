@@ -8,7 +8,8 @@ namespace TgPoster.Worker.Domain.UseCases.RepostMessageConsumer;
 internal sealed class RepostMessageConsumer(
 	IRepostMessageConsumerStorage storage,
 	TelegramAuthService authService,
-	ILogger<RepostMessageConsumer> logger) : IConsumer<RepostMessageCommand>
+	ILogger<RepostMessageConsumer> logger) 
+	: IConsumer<RepostMessageCommand>
 {
 	public async Task Consume(ConsumeContext<RepostMessageCommand> context)
 	{
@@ -35,15 +36,14 @@ internal sealed class RepostMessageConsumer(
 		}
 
 		var client = await authService.GetClientAsync(repostData.TelegramSessionId, context.CancellationToken);
-
-		var resolveResult = await client.Contacts_ResolveUsername(repostData.SourceChannelIdentifier);
+		var dialogs = await client.Messages_GetAllDialogs();
+		var resolveResult = await client.Contacts_ResolveUsername(repostData.SourceChannelIdentifier.Replace("@",""));
 		if (resolveResult.Chat is not Channel sourceChannel)
 		{
 			logger.LogError("Не удалось найти исходный канал: {ChannelName}", repostData.SourceChannelIdentifier);
 			return;
 		}
 
-		var dialogs = await client.Messages_GetAllDialogs();
 		var destinations = dialogs.chats
 			.Where(x => repostData.Destinations
 				.Select(dto => dto.ChatIdentifier)
@@ -105,11 +105,4 @@ internal sealed class RepostMessageConsumer(
 
 		logger.LogInformation("Завершена обработка репоста для сообщения {MessageId}", command.MessageId);
 	}
-}
-
-public sealed record RepostMessageCommand
-{
-	public required Guid MessageId { get; init; }
-	public required Guid ScheduleId { get; init; }
-	public required Guid RepostSettingsId { get; init; }
 }
