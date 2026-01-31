@@ -23,20 +23,11 @@ public sealed class TelegramBotManager : IDisposable
     /// </summary>
     public bool RemoveClient(string token)
     {
-        if (clients.TryRemove(token, out var client))
-        {
-            client.Dispose();
-            return true;
-        }
-        return false;
+        return clients.TryRemove(token, out _);
     }
 
     public void Dispose()
     {
-        foreach (var client in clients.Values)
-        {
-            client.Dispose();
-        }
         clients.Clear();
     }
 }

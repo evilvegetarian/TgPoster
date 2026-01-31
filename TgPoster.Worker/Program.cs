@@ -3,6 +3,7 @@ using FFMpegCore.Enums;
 using Microsoft.AspNetCore.Builder;
 using Security.Cryptography;
 using Serilog;
+using Shared;
 using TgPoster.Storage;
 using TgPoster.Worker.Configuration;
 using TgPoster.Worker.Domain;
@@ -26,6 +27,7 @@ GlobalFFOptions.Configure(options =>
 
 builder.Services.AddScoped<ICryptoAES, CryptoAES>();
 builder.Services
+	.AddShared()
 	.AddDomain(builder.Configuration)
 	.AddStorage(builder.Configuration);
 

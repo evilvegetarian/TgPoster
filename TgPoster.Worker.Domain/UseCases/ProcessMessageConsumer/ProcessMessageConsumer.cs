@@ -24,6 +24,7 @@ internal sealed class ProcessMessageConsumer(
 	TimePostingService timePostingService,
 	IProcessMessageConsumerStorage storage,
 	TelegramAuthService authService,
+	TelegramBotManager botManager,
 	ILogger<ProcessMessageConsumer> logger
 ) : IConsumer<ProcessMessage>
 {
@@ -47,7 +48,7 @@ internal sealed class ProcessMessageConsumer(
 		logger.LogInformation("Начата обработка поста для ScheduleId: {ScheduleId}", scheduleId);
 
 		var token = cryptoAes.Decrypt(telegramOptions.SecretKey, encryptedToken);
-		var telegramBot = new TelegramBotClient(token);
+		var telegramBot = botManager.GetClient(token);
 
 		var client = await authService.GetClientAsync(parameters.TelegramSessionId, ct);
 

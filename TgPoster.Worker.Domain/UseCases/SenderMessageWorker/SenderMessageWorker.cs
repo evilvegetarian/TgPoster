@@ -3,6 +3,7 @@ using Hangfire;
 using MassTransit;
 using Microsoft.Extensions.Logging;
 using Security.Cryptography;
+using Shared.Telegram;
 using Shared.Utilities;
 using Shared.YouTube;
 using Telegram.Bot;
@@ -19,7 +20,8 @@ public class SenderMessageWorker(
 	ICryptoAES crypto,
 	TelegramOptions options,
 	YouTubeService youTubeService,
-	IPublishEndpoint publishEndpoint
+	IPublishEndpoint publishEndpoint,
+	TelegramBotManager botManager
 )
 {
 	public async Task ProcessMessagesAsync()
@@ -66,7 +68,7 @@ public class SenderMessageWorker(
 		YouTubeAccountDto? youTubeAccount
 	)
 	{
-		var bot = new TelegramBotClient(token);
+		var bot = botManager.GetClient(token);
 		var medias = new List<InputMedia>();
 
 		foreach (var file in message.File)

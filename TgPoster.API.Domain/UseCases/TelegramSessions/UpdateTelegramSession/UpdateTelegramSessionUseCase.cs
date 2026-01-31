@@ -1,11 +1,13 @@
 using MediatR;
 using Security.IdentityServices;
+using Shared.Telegram;
 using TgPoster.API.Domain.Exceptions;
 
 namespace TgPoster.API.Domain.UseCases.TelegramSessions.UpdateTelegramSession;
 
 internal sealed class UpdateTelegramSessionUseCase(
 	IUpdateTelegramSessionStorage storage,
+	TelegramClientManager clientManager,
 	IIdentityProvider identityProvider
 ) : IRequestHandler<UpdateTelegramSessionCommand>
 {
@@ -16,6 +18,11 @@ internal sealed class UpdateTelegramSessionUseCase(
 		if (session == null)
 		{
 			throw new TelegramSessionNotFoundException(request.SessionId);
+		}
+
+		if (request.IsActive == false)
+		{
+			await clientManager.RemoveActiveClientAsync(request.SessionId);
 		}
 
 		await storage.UpdateAsync(request.SessionId, request.Name, request.IsActive, ct);
