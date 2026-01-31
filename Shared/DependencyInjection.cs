@@ -16,6 +16,7 @@ public static class DependencyInjection
 	{
 		services.AddHttpClient();
 		services.AddSingleton<TelegramClientManager>();
+		services.AddSingleton<TelegramBotManager>();
 		services.AddScoped<TelegramAuthService>();
 		services.AddScoped<TelegramChatService>();
 
