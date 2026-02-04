@@ -20,6 +20,8 @@ public class PosterContext(DbContextOptions<PosterContext> options) : DbContext(
 	public DbSet<TelegramSession> TelegramSessions { get; set; }
 	public DbSet<RepostDestination> RepostDestinations { get; set; }
 	public DbSet<RepostSettings> RepostSettings { get; set; }
+	public DbSet<CommentRepostSettings> CommentRepostSettings { get; set; }
+	public DbSet<CommentRepostLog> CommentRepostLogs { get; set; }
 
 	public override Task<int> SaveChangesAsync(CancellationToken ct = new())
 	{
