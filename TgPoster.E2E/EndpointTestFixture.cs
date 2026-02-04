@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Security.IdentityServices;
 using Testcontainers.PostgreSql;
 using TgPoster.Storage.Data;
 
@@ -11,12 +12,13 @@ namespace TgPoster.E2E;
 public class EndpointTestFixture : WebApplicationFactory<Program>, IAsyncLifetime
 {
 	private readonly PostgreSqlContainer dbContainer = new PostgreSqlBuilder().Build();
+	private readonly IIdentityProvider identityProvider = new TestIdentityProvider();
 
 	public async Task InitializeAsync()
 	{
 		await dbContainer.StartAsync();
 		var forumDbContext = new PosterContext(new DbContextOptionsBuilder<PosterContext>()
-			.UseNpgsql(dbContainer.GetConnectionString()).Options);
+			.UseNpgsql(dbContainer.GetConnectionString()).Options, identityProvider);
 		await forumDbContext.Database.MigrateAsync();
 	}
 
@@ -37,5 +39,15 @@ public class EndpointTestFixture : WebApplicationFactory<Program>, IAsyncLifetim
 		builder.UseConfiguration(configuration);
 		builder.ConfigureLogging(cfg => cfg.ClearProviders());
 		base.ConfigureWebHost(builder);
+	}
+}
+
+internal sealed class TestIdentityProvider : IIdentityProvider
+{
+	public Identity Current { get; private set; } = Identity.Anonymous;
+
+	public void Set(Identity identity)
+	{
+		Current = identity;
 	}
 }

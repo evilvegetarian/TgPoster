@@ -1,10 +1,13 @@
 ﻿using System.Reflection;
 using Microsoft.EntityFrameworkCore;
+using Security.IdentityServices;
 using TgPoster.Storage.Data.Entities;
 
 namespace TgPoster.Storage.Data;
 
-public class PosterContext(DbContextOptions<PosterContext> options) : DbContext(options)
+public class PosterContext(
+	DbContextOptions<PosterContext> options,
+	IIdentityProvider identityProvider) : DbContext(options)
 {
 	public DbSet<User> Users { get; set; }
 	public DbSet<RefreshSession> RefreshSessions { get; set; }
@@ -29,17 +32,22 @@ public class PosterContext(DbContextOptions<PosterContext> options) : DbContext(
 			.Where(e => e.State is EntityState.Added or EntityState.Modified or EntityState.Deleted);
 
 		foreach (var entityEntry in entries)
-			//TODO: Когда сделаю определение пользователя добавить пользователя сюда
 		{
 			if (entityEntry.State == EntityState.Added)
 			{
-				entityEntry.Entity.Created = DateTime.UtcNow;
+				entityEntry.Entity.Created = DateTimeOffset.UtcNow;
+				entityEntry.Entity.CreatedById = identityProvider.Current.IsAuthenticated
+					? identityProvider.Current.UserId
+					: null;
 			}
 			else if (entityEntry.State == EntityState.Modified)
 			{
 				entityEntry.Property(x => x.Created).IsModified = false;
 				entityEntry.Property(x => x.CreatedById).IsModified = false;
-				entityEntry.Entity.Updated = DateTime.UtcNow;
+				entityEntry.Entity.Updated = DateTimeOffset.UtcNow;
+				entityEntry.Entity.UpdatedById = identityProvider.Current.IsAuthenticated
+					? identityProvider.Current.UserId
+					: null;
 			}
 			else if (entityEntry.State == EntityState.Deleted)
 			{
@@ -48,7 +56,10 @@ public class PosterContext(DbContextOptions<PosterContext> options) : DbContext(
 				entityEntry.Property(x => x.CreatedById).IsModified = false;
 				entityEntry.Property(x => x.Updated).IsModified = false;
 				entityEntry.Property(x => x.UpdatedById).IsModified = false;
-				entityEntry.Entity.Deleted = DateTime.UtcNow;
+				entityEntry.Entity.Deleted = DateTimeOffset.UtcNow;
+				entityEntry.Entity.DeletedById = identityProvider.Current.IsAuthenticated
+					? identityProvider.Current.UserId
+					: null;
 			}
 		}
 

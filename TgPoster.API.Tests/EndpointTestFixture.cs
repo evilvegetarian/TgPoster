@@ -9,6 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 using Security.Authentication;
+using Security.IdentityServices;
 using Testcontainers.PostgreSql;
 using TgPoster.API.Tests.Helper;
 using TgPoster.API.Tests.Seeder;
@@ -23,12 +24,13 @@ public class EndpointTestFixture : WebApplicationFactory<Program>, IAsyncLifetim
 
 	public string? Token;
 	public HttpClient AuthClient { get; private set; } = null!;
+	private readonly IIdentityProvider identityProvider = new TestIdentityProvider();
 
 	public async Task InitializeAsync()
 	{
 		await dbContainer.StartAsync();
 		var context = new PosterContext(new DbContextOptionsBuilder<PosterContext>()
-			.UseNpgsql(dbContainer.GetConnectionString()).Options);
+			.UseNpgsql(dbContainer.GetConnectionString()).Options, identityProvider);
 		await context.Database.MigrateAsync();
 		await InsertSeed(context);
 		await CreateAuthClient();
@@ -65,7 +67,7 @@ public class EndpointTestFixture : WebApplicationFactory<Program>, IAsyncLifetim
 
 	public PosterContext GetDbContext() =>
 		new(new DbContextOptionsBuilder<PosterContext>()
-			.UseNpgsql(dbContainer.GetConnectionString()).Options);
+			.UseNpgsql(dbContainer.GetConnectionString()).Options, identityProvider);
 
 	protected override void ConfigureWebHost(IWebHostBuilder builder)
 	{
@@ -121,5 +123,15 @@ public class EndpointTestFixture : WebApplicationFactory<Program>, IAsyncLifetim
 		}
 
 		await context.SaveChangesAsync();
+	}
+}
+
+internal sealed class TestIdentityProvider : IIdentityProvider
+{
+	public Identity Current { get; private set; } = Identity.Anonymous;
+
+	public void Set(Identity identity)
+	{
+		Current = identity;
 	}
 }
