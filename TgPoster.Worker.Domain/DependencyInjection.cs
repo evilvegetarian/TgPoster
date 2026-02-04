@@ -13,7 +13,9 @@ using TgPoster.Worker.Domain.UseCases.ParseChannel;
 using TgPoster.Worker.Domain.UseCases.ParseChannelConsumer;
 using TgPoster.Worker.Domain.UseCases.ParseChannelWorker;
 using TgPoster.Worker.Domain.UseCases.ProcessMessageConsumer;
+using TgPoster.Worker.Domain.UseCases.CommentRepostMonitor;
 using TgPoster.Worker.Domain.UseCases.RepostMessageConsumer;
+using TgPoster.Worker.Domain.UseCases.SendCommentConsumer;
 using TgPoster.Worker.Domain.UseCases.SenderMessageWorker;
 
 namespace TgPoster.Worker.Domain;
@@ -40,6 +42,7 @@ public static class DependencyInjection
 		services.AddScoped<SenderMessageWorker>();
 		services.AddScoped<ParseChannelWorker>();
 		services.AddScoped<ParseChannelUseCase>();
+		services.AddScoped<CommentRepostMonitorWorker>();
 		services.AddScoped<TelegramExecuteServices>();
 
 		return services;
@@ -61,6 +64,10 @@ public static class DependencyInjection
 			x.AddConsumer<RepostMessageConsumer>(opt =>
 			{
 				opt.ConcurrentMessageLimit = 5;
+			});
+			x.AddConsumer<SendCommentConsumer>(opt =>
+			{
+				opt.ConcurrentMessageLimit = 3;
 			});
 
 			x.UsingPostgres((context, cfg) =>
@@ -92,6 +99,11 @@ public static class DependencyInjection
 			"process-parse-channel-job",
 			worker => worker.ProcessMessagesAsync(),
 			Cron.Daily());
+
+		recurringJobManager.AddOrUpdate<CommentRepostMonitorWorker>(
+			"comment-repost-monitor-job",
+			worker => worker.CheckForNewPostsAsync(),
+			Cron.Minutely());
 	}
 
 	public class AllowAllAuthorizationFilter : IDashboardAuthorizationFilter
