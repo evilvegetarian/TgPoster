@@ -11,6 +11,7 @@ public class DomainMetrics(IMeterFactory meterFactory)
 
 	public void IncrementCount(string? name, int value, IDictionary<string, object?>? additionalTags = null)
 	{
+		if (name is null) return;
 		var counter = meter.CreateCounter<int>(name);
 		counter.Add(value, additionalTags?.ToArray() ?? ReadOnlySpan<KeyValuePair<string, object?>>.Empty);
 	}

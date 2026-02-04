@@ -96,7 +96,12 @@ internal sealed class FileService(
 	{
 		using var memoryStream = new MemoryStream();
 		var file = await botClient.GetInfoAndDownloadFile(telegramFileId, memoryStream, ct);
-		contentTypeProvider.TryGetContentType(file.FilePath, out var contentType);
+
+		if (file.FilePath == null || !contentTypeProvider.TryGetContentType(file.FilePath, out var contentType))
+		{
+			contentType = "application/octet-stream";
+		}
+
 		return CacheFile(memoryStream.ToArray(), contentType);
 	}
 

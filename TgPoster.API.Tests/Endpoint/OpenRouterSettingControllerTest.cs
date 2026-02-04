@@ -19,7 +19,7 @@ public class OpenRouterSettingControllerTest(EndpointTestFixture fixture)
 		var request = new CreateOpenRouterSettingRequest
 		{
 			Model = "deepseek/dsd",
-			Token = Token
+			Token = Token!
 		};
 		var createResponse = await client.PostAsync(Url, request.ToStringContent());
 		createResponse.StatusCode.ShouldBe(HttpStatusCode.BadRequest);

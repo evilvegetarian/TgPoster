@@ -21,7 +21,7 @@ internal sealed class UpdateTelegramBotUseCase(TelegramTokenService service, IUp
 		{
 			var bot = new TelegramBotClient(token);
 			var botInfo = await bot.GetMe(ct);
-			nameBot = botInfo.Username;
+			nameBot = botInfo.Username ?? throw new InvalidOperationException("Имя бота не может быть null");
 		}
 
 		await storage.UpdateTelegramBotAsync(request.Id, nameBot, request.IsActive, ct);
