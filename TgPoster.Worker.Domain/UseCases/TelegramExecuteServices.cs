@@ -11,78 +11,29 @@ namespace TgPoster.Worker.Domain.UseCases;
 
 public class TelegramExecuteServices(ILogger<TelegramExecuteServices> logger)
 {
-	public async Task<Telegram.Bot.Types.Message[]> SendMedia(
+	public Task<Telegram.Bot.Types.Message[]> SendMedia(
 		TelegramBotClient telegramBot,
 		long chatId,
 		List<IAlbumInputMedia> album,
 		int maxRetries,
-		CancellationToken ct
-	)
+		CancellationToken ct)
 	{
-		var retryCount = 0;
-		while (true)
-			try
-			{
-				var messages = await telegramBot.SendMediaGroup(
-					chatId,
-					album,
-					disableNotification: true,
-					cancellationToken: ct);
-				return messages;
-			}
-			catch (ApiRequestException ex) when (ex.ErrorCode == 429)
-			{
-				retryCount++;
-				if (retryCount > maxRetries)
-				{
-					logger.LogError(ex, "Достигнуто максимальное количество попыток для API вызова. Отказ.");
-					throw;
-				}
-
-				var retryAfter = ex.Parameters?.RetryAfter ?? 30;
-				var waitTime = TimeSpan.FromSeconds(retryAfter + 1);
-
-				logger.LogWarning(
-					"Получен лимит запросов от Telegram API. Ожидание: {WaitTime} сек. Попытка {RetryCount}/{MaxRetries}",
-					retryAfter, retryCount, maxRetries);
-
-				await Task.Delay(waitTime, ct);
-			}
+		return ExecuteWithRetryAsync(
+			() => telegramBot.SendMediaGroup(chatId, album,
+				disableNotification: true, cancellationToken: ct),
+			maxRetries, ct);
 	}
 
-	public async Task<Telegram.Bot.Types.Message> SendPhoto(
+	public Task<Telegram.Bot.Types.Message> SendPhoto(
 		TelegramBotClient telegramBot,
 		long chatId,
 		InputFileStream photoStream,
 		int maxRetries,
-		CancellationToken ct
-	)
+		CancellationToken ct)
 	{
-		var retryCount = 0;
-		while (true)
-			try
-			{
-				var photoMessage = await telegramBot.SendPhoto(chatId, photoStream, cancellationToken: ct);
-				return photoMessage;
-			}
-			catch (ApiRequestException ex) when (ex.ErrorCode == 429)
-			{
-				retryCount++;
-				if (retryCount > maxRetries)
-				{
-					logger.LogError(ex, "Достигнуто максимальное количество попыток для API вызова. Отказ.");
-					throw;
-				}
-
-				var retryAfter = ex.Parameters?.RetryAfter ?? 30;
-				var waitTime = TimeSpan.FromSeconds(retryAfter + 1);
-
-				logger.LogWarning(
-					"Получен лимит запросов от Telegram API. Ожидание: {WaitTime} сек. Попытка {RetryCount}/{MaxRetries}",
-					retryAfter, retryCount, maxRetries);
-
-				await Task.Delay(waitTime, ct);
-			}
+		return ExecuteWithRetryAsync(
+			() => telegramBot.SendPhoto(chatId, photoStream, cancellationToken: ct),
+			maxRetries, ct);
 	}
 
 	public async Task DownloadVideoAsync(
