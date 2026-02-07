@@ -31,10 +31,15 @@ builder.Services
 	.AddDomain(builder.Configuration)
 	.AddStorage(builder.Configuration);
 
+var connectionString = builder.Configuration.GetSection("DataBase")["ConnectionString"]!;
+builder.Services.AddHealthChecks()
+	.AddNpgSql(connectionString, name: "postgresql");
+
 var openRouterOptions = builder.Configuration.GetSection(nameof(OpenRouterOptions)).Get<OpenRouterOptions>()!;
 builder.Services.AddSingleton(openRouterOptions);
 var app = builder.Build();
 app.UseOpenTelemetryPrometheusScrapingEndpoint();
+app.MapHealthChecks("/health");
 app.AddHangfire();
 
 app.Run();

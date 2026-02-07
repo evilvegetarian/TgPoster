@@ -74,6 +74,8 @@ builder.Services
 var openRouterOptions = builder.Configuration.GetSection(nameof(OpenRouterOptions)).Get<OpenRouterOptions>()!;
 builder.Services.AddSingleton(openRouterOptions);
 var dataBase = builder.Configuration.GetSection(nameof(DataBase)).Get<DataBase>()!;
+builder.Services.AddHealthChecks()
+	.AddNpgSql(dataBase.ConnectionString, name: "postgresql");
 builder.Services.AddMassTransit(x =>
 {
 	x.UsingPostgres();
@@ -90,6 +92,7 @@ app.UseAuthentication();
 app.UseMiddleware<AuthenticationMiddleware>();
 app.UseAuthorization();
 app.MapControllers();
+app.MapHealthChecks("/health");
 app.UseOpenTelemetryPrometheusScrapingEndpoint();
 app.Run();
 
