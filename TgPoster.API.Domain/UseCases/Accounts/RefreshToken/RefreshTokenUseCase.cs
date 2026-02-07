@@ -1,10 +1,14 @@
 using MediatR;
+using Microsoft.Extensions.Logging;
 using Security.Authentication;
 using TgPoster.API.Domain.Exceptions;
 
 namespace TgPoster.API.Domain.UseCases.Accounts.RefreshToken;
 
-internal class RefreshTokenUseCase(IJwtProvider jwtProvider, IRefreshTokenStorage storage)
+internal class RefreshTokenUseCase(
+	IJwtProvider jwtProvider,
+	IRefreshTokenStorage storage,
+	ILogger<RefreshTokenUseCase> logger)
 	: IRequestHandler<RefreshTokenCommand, RefreshTokenResponse>
 {
 	public async Task<RefreshTokenResponse> Handle(RefreshTokenCommand request, CancellationToken ct)
@@ -12,6 +16,15 @@ internal class RefreshTokenUseCase(IJwtProvider jwtProvider, IRefreshTokenStorag
 		var userId = await storage.GetUserIdAsync(request.RefreshToken, ct);
 		if (userId == Guid.Empty)
 		{
+			var replayUserId = await storage.GetUserIdByPreviousTokenAsync(request.RefreshToken, ct);
+			if (replayUserId != Guid.Empty)
+			{
+				await storage.RevokeAllUserSessionsAsync(replayUserId, ct);
+				logger.LogWarning(
+					"Обнаружено повторное использование refresh token. Все сессии пользователя {UserId} отозваны",
+					replayUserId);
+			}
+
 			throw new UserNotFoundException();
 		}
 
