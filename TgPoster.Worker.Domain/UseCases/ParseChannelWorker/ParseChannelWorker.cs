@@ -1,4 +1,5 @@
 using Hangfire;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using TgPoster.Worker.Domain.UseCases.ParseChannel;
 
@@ -7,7 +8,8 @@ namespace TgPoster.Worker.Domain.UseCases.ParseChannelWorker;
 internal class ParseChannelWorker(
 	IParseChannelWorkerStorage storage,
 	ParseChannelUseCase parseChannelUseCase,
-	ILogger<ParseChannelWorker> logger)
+	ILogger<ParseChannelWorker> logger,
+	IHostApplicationLifetime lifetime)
 {
 	/// <summary>
 	///     Раз в 4 дня
@@ -29,7 +31,7 @@ internal class ParseChannelWorker(
 		{
 			try
 			{
-				await parseChannelUseCase.Handle(id, CancellationToken.None);
+				await parseChannelUseCase.Handle(id, lifetime.ApplicationStopping);
 				await storage.SetWaitingStatusAsync(id);
 			}
 			catch (Exception e)

@@ -1,5 +1,6 @@
 using Hangfire;
 using MassTransit;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Shared.Telegram;
 using TgPoster.Worker.Domain.UseCases.SendCommentConsumer;
@@ -11,14 +12,15 @@ public class CommentRepostMonitorWorker(
 	ICommentRepostMonitorStorage storage,
 	TelegramAuthService authService,
 	IPublishEndpoint publishEndpoint,
-	ILogger<CommentRepostMonitorWorker> logger)
+	ILogger<CommentRepostMonitorWorker> logger,
+	IHostApplicationLifetime lifetime)
 {
 	[DisableConcurrentExecution(60)]
 	public async Task CheckForNewPostsAsync()
 	{
 		logger.LogInformation("Начали проверку новых постов для комментирующего репоста");
 
-		var settings = await storage.GetActiveSettingsAsync(CancellationToken.None);
+		var settings = await storage.GetActiveSettingsAsync(lifetime.ApplicationStopping);
 		if (settings.Count == 0)
 		{
 			logger.LogInformation("Нет активных настроек комментирующего репоста");
@@ -41,7 +43,7 @@ public class CommentRepostMonitorWorker(
 
 	private async Task ProcessSettingAsync(CommentRepostSettingDto setting)
 	{
-		var client = await authService.GetClientAsync(setting.TelegramSessionId, CancellationToken.None);
+		var client = await authService.GetClientAsync(setting.TelegramSessionId, lifetime.ApplicationStopping);
 
 		var peer = new InputPeerChannel(setting.WatchedChannelId, setting.WatchedChannelAccessHash ?? 0);
 		var history = await client.Messages_GetHistory(
@@ -75,10 +77,10 @@ public class CommentRepostMonitorWorker(
 				TelegramSessionId = setting.TelegramSessionId
 			};
 
-			await publishEndpoint.Publish(command, CancellationToken.None);
+			await publishEndpoint.Publish(command, lifetime.ApplicationStopping);
 		}
 
 		var maxPostId = newPosts.Max(m => m.ID);
-		await storage.UpdateLastProcessedAsync(setting.Id, maxPostId, CancellationToken.None);
+		await storage.UpdateLastProcessedAsync(setting.Id, maxPostId, lifetime.ApplicationStopping);
 	}
 }

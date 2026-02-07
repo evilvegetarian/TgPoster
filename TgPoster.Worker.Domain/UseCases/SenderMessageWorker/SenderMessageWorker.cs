@@ -1,6 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using Hangfire;
 using MassTransit;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Security.Cryptography;
 using Shared.Telegram;
@@ -21,7 +22,8 @@ public class SenderMessageWorker(
 	TelegramOptions options,
 	YouTubeService youTubeService,
 	IPublishEndpoint publishEndpoint,
-	TelegramBotManager botManager
+	TelegramBotManager botManager,
+	IHostApplicationLifetime lifetime
 )
 {
 	public async Task ProcessMessagesAsync()
@@ -120,11 +122,11 @@ public class SenderMessageWorker(
 
 		if (telegramMessageId.HasValue)
 		{
-			await storage.SaveTelegramMessageIdAsync(messageId, telegramMessageId.Value, CancellationToken.None);
+			await storage.SaveTelegramMessageIdAsync(messageId, telegramMessageId.Value, lifetime.ApplicationStopping);
 			logger.LogInformation("Сохранен TelegramMessageId: {TelegramMessageId} для сообщения {MessageId}",
 				telegramMessageId.Value, messageId);
 
-			var repostSettingsList = await storage.GetRepostSettingsForMessageAsync(messageId, CancellationToken.None);
+			var repostSettingsList = await storage.GetRepostSettingsForMessageAsync(messageId, lifetime.ApplicationStopping);
 			foreach (var repostSettings in repostSettingsList.Where(rs => rs.Destinations.Count > 0))
 			{
 				var command = new RepostMessageCommand
@@ -134,7 +136,7 @@ public class SenderMessageWorker(
 					RepostSettingsId = repostSettings.Id
 				};
 
-				await publishEndpoint.Publish(command, CancellationToken.None);
+				await publishEndpoint.Publish(command, lifetime.ApplicationStopping);
 				logger.LogInformation(
 					"Опубликовано событие репоста для сообщения {MessageId} в {Count} направлений",
 					messageId, repostSettings.Destinations.Count);
@@ -169,12 +171,12 @@ public class SenderMessageWorker(
 			try
 			{
 				using var stream = new MemoryStream();
-				await bot.GetInfoAndDownloadFile(videoFile.TgFileId, stream, CancellationToken.None);
+				await bot.GetInfoAndDownloadFile(videoFile.TgFileId, stream, lifetime.ApplicationStopping);
 
 				var result = await youTubeService.UploadVideoAsync(youTubeAccount, stream);
 
 				await storage.UpdateYouTubeTokensAsync(youTubeAccount.Id, result.AccessToken, result.RefreshToken,
-					CancellationToken.None);
+					lifetime.ApplicationStopping);
 
 				logger.LogInformation("Видео успешно загружено на YouTube с названием: {title}",
 					youTubeAccount.DefaultTitle);

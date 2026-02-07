@@ -18,7 +18,7 @@ internal class ParseChannelConsumer(
 		{
 			await storage.UpdateInHandleStatusAsync(id);
 			logger.LogInformation("Получил запрос на парсинг канала: {Id}", id);
-			await parseChannelUseCase.Handle(id, CancellationToken.None);
+			await parseChannelUseCase.Handle(id, context.CancellationToken);
 			logger.LogInformation("Спарсил канал: {Id}", id);
 		}
 		catch (Exception e)
