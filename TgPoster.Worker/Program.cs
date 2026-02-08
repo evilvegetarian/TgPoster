@@ -2,6 +2,7 @@ using FFMpegCore;
 using FFMpegCore.Enums;
 using Microsoft.AspNetCore.Builder;
 using Security.Cryptography;
+using Security.IdentityServices;
 using Serilog;
 using Shared;
 using TgPoster.Storage;
@@ -24,8 +25,8 @@ GlobalFFOptions.Configure(options =>
 {
 	options.LogLevel = FFMpegLogLevel.Debug;
 });
-
 builder.Services.AddScoped<ICryptoAES, CryptoAES>();
+builder.Services.AddScoped<IIdentityProvider, DesignTimeIdentityProvider>();
 builder.Services
 	.AddShared()
 	.AddDomain(builder.Configuration)
@@ -43,3 +44,10 @@ app.MapHealthChecks("/health");
 app.AddHangfire();
 
 app.Run();
+
+
+file sealed class DesignTimeIdentityProvider : IIdentityProvider
+{
+	public Identity Current => Identity.Anonymous;
+	public void Set(Identity identity) { }
+}
