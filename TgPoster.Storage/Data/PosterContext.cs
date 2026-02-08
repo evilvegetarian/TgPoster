@@ -5,7 +5,7 @@ using TgPoster.Storage.Data.Entities;
 
 namespace TgPoster.Storage.Data;
 
-public class PosterContext(
+internal class PosterContext(
 	DbContextOptions<PosterContext> options,
 	IIdentityProvider identityProvider) : DbContext(options)
 {

@@ -65,7 +65,7 @@ public class EndpointTestFixture : WebApplicationFactory<Program>, IAsyncLifetim
 		return client;
 	}
 
-	public PosterContext GetDbContext() =>
+	internal PosterContext GetDbContext() =>
 		new(new DbContextOptionsBuilder<PosterContext>()
 			.UseNpgsql(dbContainer.GetConnectionString()).Options, identityProvider);
 

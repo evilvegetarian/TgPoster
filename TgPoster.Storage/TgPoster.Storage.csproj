@@ -14,6 +14,11 @@
     </ItemGroup>
 
     <ItemGroup>
+        <InternalsVisibleTo Include="TgPoster.API.Tests" />
+        <InternalsVisibleTo Include="TgPoster.E2E" />
+    </ItemGroup>
+
+    <ItemGroup>
         <ProjectReference Include="..\Security\Security.csproj" />
         <ProjectReference Include="..\TgPoster.API.Domain\TgPoster.API.Domain.csproj" />
         <ProjectReference Include="..\TgPoster.Worker.Domain\TgPoster.Worker.Domain.csproj" />

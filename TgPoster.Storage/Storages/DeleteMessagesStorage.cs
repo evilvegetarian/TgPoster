@@ -4,7 +4,7 @@ using TgPoster.Storage.Data;
 
 namespace TgPoster.Storage.Storages;
 
-public class DeleteMessagesStorage(PosterContext context) : IDeleteMessagesStorage
+internal sealed class DeleteMessagesStorage(PosterContext context) : IDeleteMessagesStorage
 {
 	public async Task DeleteMessagesAsync(List<Guid> ids, Guid userId, CancellationToken ct)
 	{

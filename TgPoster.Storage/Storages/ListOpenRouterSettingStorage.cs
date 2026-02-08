@@ -5,7 +5,7 @@ using TgPoster.Storage.Data;
 
 namespace TgPoster.Storage.Storages;
 
-public class ListOpenRouterSettingStorage(PosterContext context) : IListOpenRouterSettingStorage
+internal sealed class ListOpenRouterSettingStorage(PosterContext context) : IListOpenRouterSettingStorage
 {
 	public Task<List<OpenRouterSettingDto>> GetAsync(Guid userId, CancellationToken ct)
 	{

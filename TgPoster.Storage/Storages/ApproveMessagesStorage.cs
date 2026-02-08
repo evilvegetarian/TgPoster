@@ -4,7 +4,7 @@ using TgPoster.Storage.Data;
 
 namespace TgPoster.Storage.Storages;
 
-public class ApproveMessagesStorage(PosterContext context) : IApproveMessagesStorage
+internal sealed class ApproveMessagesStorage(PosterContext context) : IApproveMessagesStorage
 {
 	public async Task ApproveMessage(List<Guid> messageIds, CancellationToken ct)
 	{

@@ -13,7 +13,7 @@ public static class DependencyInjection
 	public static IServiceCollection AddStorage(this IServiceCollection services, IConfiguration configuration)
 	{
 		var dataBase = configuration.GetSection(nameof(DataBase)).Get<DataBase>()!;
-		services.AddDbContextPool<PosterContext>(db =>
+		services.AddDbContext<PosterContext>(db =>
 			db.UseNpgsql(dataBase.ConnectionString)
 				.EnableSensitiveDataLogging());
 

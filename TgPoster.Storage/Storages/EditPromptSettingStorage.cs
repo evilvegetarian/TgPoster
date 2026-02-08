@@ -4,7 +4,7 @@ using TgPoster.Storage.Data;
 
 namespace TgPoster.Storage.Storages;
 
-public class EditPromptSettingStorage(PosterContext context) : IEditPromptSettingStorage
+internal sealed class EditPromptSettingStorage(PosterContext context) : IEditPromptSettingStorage
 {
 	public Task<bool> ExistPromptAsync(Guid id, Guid userId, CancellationToken ctx)
 	{

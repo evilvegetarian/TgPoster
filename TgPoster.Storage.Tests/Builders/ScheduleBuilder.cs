@@ -4,7 +4,7 @@ using TgPoster.Storage.Data.Entities;
 
 namespace TgPoster.Storage.Tests.Builders;
 
-public class ScheduleBuilder(PosterContext context)
+internal class ScheduleBuilder(PosterContext context)
 {
 	private static readonly Faker faker = FakerProvider.Instance;
 

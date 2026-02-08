@@ -5,7 +5,7 @@ using TgPoster.Storage.Data;
 
 namespace TgPoster.Storage.Storages;
 
-public class GetPromptSettingStorage(PosterContext context) : IGetPromptSettingStorage
+internal sealed class GetPromptSettingStorage(PosterContext context) : IGetPromptSettingStorage
 {
 	public Task<PromptSettingResponse?> GetAsync(
 		Guid id,

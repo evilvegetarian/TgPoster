@@ -5,7 +5,7 @@ using TgPoster.Storage.Data;
 
 namespace TgPoster.Storage.Storages;
 
-public class GenerateAiContentStorage(PosterContext context) : IGenerateAiContentStorage
+internal sealed class GenerateAiContentStorage(PosterContext context) : IGenerateAiContentStorage
 {
 	public Task<OpenRouterDto?> GetOpenRouterAsync(Guid messagId, CancellationToken ct)
 	{

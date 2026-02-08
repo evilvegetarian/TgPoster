@@ -4,7 +4,7 @@ using TgPoster.Storage.Data;
 
 namespace TgPoster.Storage.Storages;
 
-public class GetYouTubeAccountsStorage(PosterContext context) : IGetYouTubeAccountsStorage
+internal sealed class GetYouTubeAccountsStorage(PosterContext context) : IGetYouTubeAccountsStorage
 {
 	public async Task<List<YouTubeAccountResponse>> GetYouTubeAccounts(CancellationToken ct)
 	{

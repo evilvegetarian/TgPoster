@@ -4,7 +4,7 @@ using TgPoster.Storage.Data;
 
 namespace TgPoster.Storage.Storages;
 
-public class DeleteTelegramBotStorage(PosterContext context) : IDeleteTelegramBotStorage
+internal sealed class DeleteTelegramBotStorage(PosterContext context) : IDeleteTelegramBotStorage
 {
 	public Task<bool> ExistsAsync(Guid id, Guid currentUserId, CancellationToken ct)
 	{

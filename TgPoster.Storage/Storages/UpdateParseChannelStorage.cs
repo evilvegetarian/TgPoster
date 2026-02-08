@@ -5,7 +5,7 @@ using TgPoster.Storage.Mapper;
 
 namespace TgPoster.Storage.Storages;
 
-public class UpdateParseChannelStorage(PosterContext context) : IUpdateParseChannelStorage
+internal sealed class UpdateParseChannelStorage(PosterContext context) : IUpdateParseChannelStorage
 {
 	public Task<bool> ExistParseChannelAsync(Guid id, Guid userId, CancellationToken cancellationToken)
 	{

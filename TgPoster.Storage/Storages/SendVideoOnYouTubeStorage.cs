@@ -6,7 +6,7 @@ using TgPoster.Storage.Data;
 
 namespace TgPoster.Storage.Storages;
 
-public class SendVideoOnYouTubeStorage(PosterContext context) : ISendVideoOnYouTubeStorage
+internal sealed class SendVideoOnYouTubeStorage(PosterContext context) : ISendVideoOnYouTubeStorage
 {
 	public Task<List<FileDto>> GetVideoFileMessageAsync(Guid messageId, Guid userId, CancellationToken ct)
 	{

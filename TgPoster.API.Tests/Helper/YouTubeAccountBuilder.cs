@@ -3,7 +3,7 @@ using TgPoster.Storage.Data.Entities;
 
 namespace TgPoster.API.Tests.Helper;
 
-public class YouTubeAccountBuilder(PosterContext context)
+internal class YouTubeAccountBuilder(PosterContext context)
 {
 	private readonly YouTubeAccount youtube = new()
 	{

@@ -4,7 +4,7 @@ using TgPoster.Storage.Data;
 
 namespace TgPoster.Storage.Storages;
 
-public class GetTimeStorage(PosterContext context) : IGetTimeStorage
+internal sealed class GetTimeStorage(PosterContext context) : IGetTimeStorage
 {
 	public Task<DateTimeOffset> GetTime(Guid scheduleId, CancellationToken ct)
 	{

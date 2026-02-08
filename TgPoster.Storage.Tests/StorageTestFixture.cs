@@ -25,7 +25,7 @@ public class StorageTestFixture : IAsyncLifetime
 		await dbContainer.StopAsync();
 	}
 
-	public PosterContext GetDbContext() =>
+	internal PosterContext GetDbContext() =>
 		new(new DbContextOptionsBuilder<PosterContext>()
 			.UseNpgsql(dbContainer.GetConnectionString()).Options, identityProvider);
 }

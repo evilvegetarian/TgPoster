@@ -5,7 +5,7 @@ using TgPoster.Storage.Data.VO;
 
 namespace TgPoster.API.Tests.Helper;
 
-public class UserBuilder(PosterContext context)
+internal class UserBuilder(PosterContext context)
 {
 	private static readonly Faker faker = new("ru");
 

@@ -4,7 +4,7 @@ using TgPoster.Storage.Data;
 
 namespace TgPoster.Storage.Storages;
 
-public class AddScheduleOpenRouterSettingStorage(PosterContext context) : IAddScheduleOpenRouterSettingStorage
+internal sealed class AddScheduleOpenRouterSettingStorage(PosterContext context) : IAddScheduleOpenRouterSettingStorage
 {
 	public Task<bool> ExistScheduleAsync(Guid scheduleId, Guid userId, CancellationToken ctx)
 	{

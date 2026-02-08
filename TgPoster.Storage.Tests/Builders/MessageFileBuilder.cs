@@ -5,7 +5,7 @@ using TgPoster.Storage.Data.Enum;
 
 namespace TgPoster.Storage.Tests.Builders;
 
-public class MessageFileBuilder(PosterContext context)
+internal class MessageFileBuilder(PosterContext context)
 {
 	private static readonly Faker faker = FakerProvider.Instance;
 

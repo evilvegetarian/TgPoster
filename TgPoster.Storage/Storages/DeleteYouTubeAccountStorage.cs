@@ -4,7 +4,7 @@ using TgPoster.Storage.Data;
 
 namespace TgPoster.Storage.Storages;
 
-public class DeleteYouTubeAccountStorage(PosterContext context) : IDeleteYouTubeAccountStorage
+internal sealed class DeleteYouTubeAccountStorage(PosterContext context) : IDeleteYouTubeAccountStorage
 {
 	public Task<bool> ExistsAsync(Guid id, Guid currentUserId, CancellationToken ct)
 	{

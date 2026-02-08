@@ -5,7 +5,7 @@ using TgPoster.Storage.Data.Enum;
 
 namespace TgPoster.Storage.Tests.Builders;
 
-public sealed class TelegramSessionBuilder(PosterContext context)
+internal sealed class TelegramSessionBuilder(PosterContext context)
 {
 	private static readonly Faker faker = FakerProvider.Instance;
 

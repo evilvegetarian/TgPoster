@@ -4,7 +4,7 @@ using TgPoster.Storage.Data;
 
 namespace TgPoster.Storage.Storages;
 
-public class UpdateStatusScheduleStorage(PosterContext context) : IUpdateStatusScheduleStorage
+internal sealed class UpdateStatusScheduleStorage(PosterContext context) : IUpdateStatusScheduleStorage
 {
 	public Task<bool> ExistSchedule(Guid id, Guid userId, CancellationToken ct)
 	{

@@ -4,7 +4,7 @@ using TgPoster.Storage.Data;
 
 namespace TgPoster.Storage.Storages;
 
-public class DeleteOpenRouterSettingStorage(PosterContext context) : IDeleteOpenRouterSettingStorage
+internal sealed class DeleteOpenRouterSettingStorage(PosterContext context) : IDeleteOpenRouterSettingStorage
 {
 	public Task<bool> ExistsAsync(Guid id, CancellationToken ctx)
 	{

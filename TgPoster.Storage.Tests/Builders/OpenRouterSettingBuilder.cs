@@ -4,7 +4,7 @@ using TgPoster.Storage.Data.Entities;
 
 namespace TgPoster.Storage.Tests.Builders;
 
-public class OpenRouterSettingBuilder(PosterContext context)
+internal class OpenRouterSettingBuilder(PosterContext context)
 {
 	private static readonly Faker faker = FakerProvider.Instance;
 

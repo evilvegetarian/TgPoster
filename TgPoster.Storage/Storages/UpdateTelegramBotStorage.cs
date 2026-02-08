@@ -4,7 +4,7 @@ using TgPoster.Storage.Data;
 
 namespace TgPoster.Storage.Storages;
 
-public class UpdateTelegramBotStorage(PosterContext context) : IUpdateTelegramBotStorage
+internal sealed class UpdateTelegramBotStorage(PosterContext context) : IUpdateTelegramBotStorage
 {
 	public async Task UpdateTelegramBotAsync(Guid id, string name, bool isActive, CancellationToken ct)
 	{

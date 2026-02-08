@@ -5,7 +5,7 @@ using TgPoster.Storage.Data.Enum;
 
 namespace TgPoster.Storage.Storages;
 
-public class UpdateAllTimeStorage(PosterContext context) : IUpdateAllTimeStorage
+internal sealed class UpdateAllTimeStorage(PosterContext context) : IUpdateAllTimeStorage
 {
 	public Task<bool> ExistAsync(Guid scheduleId, Guid userId, CancellationToken ct)
 	{

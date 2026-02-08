@@ -4,7 +4,7 @@ using TgPoster.Storage.Data.Entities;
 
 namespace TgPoster.Storage.Tests.Builders;
 
-public sealed class RepostSettingsBuilder(PosterContext context)
+internal sealed class RepostSettingsBuilder(PosterContext context)
 {
 	private static readonly Faker faker = FakerProvider.Instance;
 

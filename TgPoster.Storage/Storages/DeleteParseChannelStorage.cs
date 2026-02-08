@@ -4,7 +4,7 @@ using TgPoster.Storage.Data;
 
 namespace TgPoster.Storage.Storages;
 
-public class DeleteParseChannelStorage(PosterContext context) : IDeleteParseChannelStorage
+internal sealed class DeleteParseChannelStorage(PosterContext context) : IDeleteParseChannelStorage
 {
 	public async Task DeleteParseChannel(Guid id, CancellationToken ct)
 	{

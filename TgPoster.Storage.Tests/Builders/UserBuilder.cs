@@ -5,7 +5,7 @@ using TgPoster.Storage.Data.VO;
 
 namespace TgPoster.Storage.Tests.Builders;
 
-public class UserBuilder(PosterContext context)
+internal class UserBuilder(PosterContext context)
 {
 	private static readonly Faker faker = FakerProvider.Instance;
 

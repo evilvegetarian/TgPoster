@@ -4,7 +4,7 @@ using TgPoster.Storage.Data;
 
 namespace TgPoster.Storage.Storages;
 
-public class CallBackYouTubeStorage(PosterContext context) : ICallBackYouTubeStorage
+internal sealed class CallBackYouTubeStorage(PosterContext context) : ICallBackYouTubeStorage
 {
 	public Task<(string ClientId, string ClientSecret)> GetClients(
 		Guid accountYouTubeId,
