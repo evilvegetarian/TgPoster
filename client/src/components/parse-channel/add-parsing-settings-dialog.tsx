@@ -233,8 +233,7 @@ export function AddParsingSettingsDialog({
                         </div>
 
                         <div className="space-y-2">
-                            <Label htmlFor="telegramSession">Telegram сессия (необязательно)</Label>
-                            <p className="text-sm text-muted-foreground">Для доступа к приватным каналам</p>
+                            <Label htmlFor="telegramSession">Telegram сессия</Label>
                             {sessionsError ? (
                                 <div className="flex items-center gap-2 p-2 text-sm text-red-600 bg-red-50 rounded-md">
                                     <AlertCircle className="h-4 w-4"/>

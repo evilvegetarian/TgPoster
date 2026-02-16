@@ -192,7 +192,6 @@ export function CreateScheduleComponent() {
                                                 <div className="p-2 text-sm text-muted-foreground">Загрузка...</div>
                                             ) : (
                                                 <>
-                                                    <SelectItem value="none">Не выбрано</SelectItem>
                                                     {youtubeAccounts.map((account) => (
                                                         <SelectItem key={account.id} value={account.id}>
                                                             {account.name}
