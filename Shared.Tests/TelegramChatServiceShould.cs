@@ -167,4 +167,17 @@ public sealed class TelegramChatServiceShould
         result.Type.ShouldBe(ChatInputType.PrivateChannelLink);
         result.Value.ShouldBe("1234567890");
     }
+
+    [Theory]
+    [InlineData(-1003871087674, 3871087674)]
+    [InlineData(-1001234567890, 1234567890)]
+    [InlineData(-123456, 123456)]
+    [InlineData(3871087674, 3871087674)]
+    [InlineData(0, 0)]
+    public void ResolveRawId_ConvertsCorrectly(long input, long expected)
+    {
+        var result = TelegramChatService.ResolveRawId(input);
+
+        result.ShouldBe(expected);
+    }
 }

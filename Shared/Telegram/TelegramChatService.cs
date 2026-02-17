@@ -232,7 +232,7 @@ public sealed partial class TelegramChatService
         );
     }
 
-    private static long ResolveRawId(long chatId)
+    public static long ResolveRawId(long chatId)
     {
         var s = chatId.ToString();
         if (s.StartsWith("-100")) return long.Parse(s.AsSpan(4));

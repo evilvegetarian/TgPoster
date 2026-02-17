@@ -30,7 +30,8 @@ internal sealed class SendCommentConsumer(
 				await storage.CreateLogAsync(
 					command.CommentRepostSettingsId,
 					command.OriginalPostId,
-					null, null,
+					null, 
+					null,
 					$"Канал-источник {command.SourceChannelId} не найден",
 					context.CancellationToken);
 				return;
@@ -123,7 +124,8 @@ internal sealed class SendCommentConsumer(
 
 	private static InputPeerChannel? GetChannelPeer(Messages_Dialogs dialogs, long channelId)
 	{
-		if (!dialogs.chats.TryGetValue(channelId, out var chat) || chat is not Channel channel)
+		var rawId = TelegramChatService.ResolveRawId(channelId);
+		if (!dialogs.chats.TryGetValue(rawId, out var chat) || chat is not Channel channel)
 			return null;
 
 		return new InputPeerChannel(channel.ID, channel.access_hash);
