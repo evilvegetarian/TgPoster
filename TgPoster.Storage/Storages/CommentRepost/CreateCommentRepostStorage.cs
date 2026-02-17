@@ -32,7 +32,8 @@ internal sealed class CreateCommentRepostStorage(PosterContext context, GuidFact
 		long? discussionGroupAccessHash,
 		Guid telegramSessionId,
 		Guid scheduleId,
-		CancellationToken ct)
+		CancellationToken ct
+	)
 	{
 		var id = guidFactory.New();
 		var settings = new CommentRepostSettings
@@ -52,5 +53,10 @@ internal sealed class CreateCommentRepostStorage(PosterContext context, GuidFact
 		await context.SaveChangesAsync(ct);
 
 		return id;
+	}
+
+	public Task<string?> GetSourceChannelAsync(Guid scheduleId, CancellationToken ct)
+	{
+		return context.Schedules.Where(x => x.Id == scheduleId).Select(x => x.ChannelName).FirstOrDefaultAsync( ct);
 	}
 }

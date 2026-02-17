@@ -29,4 +29,6 @@ public interface ICreateCommentRepostStorage
 		Guid telegramSessionId,
 		Guid scheduleId,
 		CancellationToken ct);
+
+	Task<string?> GetSourceChannelAsync(Guid scheduleId, CancellationToken ct);
 }

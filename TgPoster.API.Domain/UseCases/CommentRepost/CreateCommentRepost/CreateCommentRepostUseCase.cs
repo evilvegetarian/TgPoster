@@ -23,6 +23,10 @@ internal sealed class CreateCommentRepostUseCase(
 
 		var client = await authService.GetClientAsync(request.TelegramSessionId, ct);
 		var chatInfo = await chatService.GetChatInfoAsync(client, request.WatchedChannel);
+		var sourceChannel=await storage.GetSourceChannelAsync(request.ScheduleId, ct);
+		
+		//Проверка что вступил в канал откуда будет репост
+		var chatSource=await chatService.GetChatInfoAsync(client, sourceChannel);
 
 		if (await storage.SettingsExistsAsync(chatInfo.Id, request.ScheduleId, ct))
 			throw new CommentRepostSettingsAlreadyExistsException(request.WatchedChannel);
