@@ -11,4 +11,4 @@ internal sealed class ListScheduleUseCase(IListScheduleStorage storage, IIdentit
 		var items = await storage.GetListScheduleAsync(identity.Current.UserId, ct);
 		return new ScheduleListResponse { Items = items };
 	}
-}
+} 

@@ -21,6 +21,7 @@ import {OpenRouterPage} from "@/pages/openrouterpage/open-router-page.tsx";
 import {YouTubeAccountPage} from "@/pages/youtube-account-page.tsx";
 import TelegramAccountPage from "@/pages/telegram-account-page.tsx";
 import {RepostSettingsPage} from "@/pages/repostpage/repost-settings-page.tsx";
+import {CommentRepostPage} from "@/pages/commentrepostpage/comment-repost-page.tsx";
 
 const router = createBrowserRouter([
     {
@@ -94,6 +95,10 @@ const router = createBrowserRouter([
                             {
                                 path: "/repost-settings",
                                 element: <RepostSettingsPage/>,
+                            },
+                            {
+                                path: "/comment-repost",
+                                element: <CommentRepostPage/>,
                             }
                         ]
                     }

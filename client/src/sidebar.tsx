@@ -6,6 +6,7 @@ import {
     Home,
     LogIn, LogOut,
     MessageCircleMore,
+    MessageSquareShare,
     Repeat2,
     Settings,
     SignatureIcon,
@@ -83,6 +84,11 @@ export function SideBar() {
                 title: "Настройки репоста",
                 path: "/repost-settings",
                 icon: Repeat2
+            },
+            {
+                title: "Комментирующий репост",
+                path: "/comment-repost",
+                icon: MessageSquareShare
             }
         ]
         : [

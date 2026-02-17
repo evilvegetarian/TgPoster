@@ -28,6 +28,36 @@ export interface ApproveMessagesRequest {
   messagesIds?: string[];
 }
 
+export interface CommentRepostItemDto {
+  id: string;
+  watchedChannel: string;
+  scheduleId: string;
+  scheduleName: string;
+  isActive: boolean;
+  /** @nullable */
+  lastCheckDate?: string | null;
+}
+
+/**
+ * Создание настроек комментирующего репоста.
+ */
+export interface CreateCommentRepostRequest {
+  /** ID расписания (наш канал-источник). */
+  scheduleId: string;
+  /** ID Telegram сессии для мониторинга и отправки. */
+  telegramSessionId: string;
+  /**
+   * Username или ссылка на отслеживаемый канал (@channel или t.me/channel).
+   * @minLength 0
+   * @maxLength 256
+   */
+  watchedChannel: string;
+}
+
+export interface CreateCommentRepostResponse {
+  id: string;
+}
+
 /**
  * Запрос на создание дней недели с настройками публикации
  */
@@ -186,11 +216,20 @@ export interface CreateTelegramBotResponse {
   id: string;
 }
 
+/**
+ * Запрос на создание Telegram сессии
+ */
 export interface CreateTelegramSessionRequest {
+  /** API ID приложения Telegram */
   apiId?: string;
+  /** API Hash приложения Telegram */
   apiHash?: string;
+  /** Номер телефона */
   phoneNumber?: string;
-  /** @nullable */
+  /**
+   * Название сессии (опционально)
+   * @nullable
+   */
   name?: string | null;
 }
 
@@ -304,8 +343,29 @@ export interface GenerateAiContentResponse {
   content: string;
 }
 
+export interface GetCommentRepostResponse {
+  id: string;
+  watchedChannel: string;
+  watchedChannelId: number;
+  scheduleId: string;
+  scheduleName: string;
+  telegramSessionId: string;
+  /** @nullable */
+  telegramSessionName?: string | null;
+  isActive: boolean;
+  /** @nullable */
+  lastProcessedPostId?: number | null;
+  /** @nullable */
+  lastCheckDate?: string | null;
+  created: string;
+}
+
 export interface GetTimeResponse {
   postingTimes?: string[];
+}
+
+export interface ListCommentRepostResponse {
+  items: CommentRepostItemDto[];
 }
 
 export interface ListOpenRouterSettingResponse {
@@ -510,7 +570,11 @@ export interface ScheduleResponse {
   youTubeAccountId?: string | null;
 }
 
+/**
+ * Запрос на отправку пароля
+ */
 export interface SendPasswordRequest {
+  /** Пароль */
   password?: string;
 }
 
@@ -626,6 +690,14 @@ export const TelegramSessionStatus = {
 } as const;
 
 /**
+ * Обновление настроек комментирующего репоста.
+ */
+export interface UpdateCommentRepostRequest {
+  /** Активны ли настройки. */
+  isActive: boolean;
+}
+
+/**
  * Запрос на обновление настроек парсинга канала
  */
 export interface UpdateParseChannelRequest {
@@ -693,9 +765,16 @@ export interface UpdateTelegramBotRequest {
   isActive?: boolean;
 }
 
+/**
+ * Запрос на обновление Telegram сессии
+ */
 export interface UpdateTelegramSessionRequest {
-  /** @nullable */
+  /**
+   * Новое название сессии (опционально)
+   * @nullable
+   */
   name?: string | null;
+  /** Активна ли сессия */
   isActive?: boolean;
 }
 
@@ -710,7 +789,11 @@ export interface UpdateTimeRequest {
   times?: string[];
 }
 
+/**
+ * Запрос на верификацию кода подтверждения
+ */
 export interface VerifyCodeRequest {
+  /** Код подтверждения */
   code?: string;
 }
 
