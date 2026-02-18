@@ -23,20 +23,21 @@ internal sealed class SendCommentConsumer(
 
 			var dialogs = await client.Messages_GetAllDialogs();
 
-			var sourcePeer = GetChannelPeer(dialogs, command.SourceChannelId);
-			if (sourcePeer is null)
+			var sourceChannel = GetChannel(dialogs, command.SourceChannelId);
+			if (sourceChannel is null)
 			{
 				logger.LogWarning("Не удалось найти наш канал {ChannelId}", command.SourceChannelId);
 				await storage.CreateLogAsync(
 					command.CommentRepostSettingsId,
 					command.OriginalPostId,
-					null, 
+					null,
 					null,
 					$"Канал-источник {command.SourceChannelId} не найден",
 					context.CancellationToken);
 				return;
 			}
 
+			var sourcePeer = new InputPeerChannel(sourceChannel.ID, sourceChannel.access_hash);
 			var history = await client.Messages_GetHistory(sourcePeer, limit: 1);
 			var lastPost = history.Messages.OfType<TL.Message>().FirstOrDefault();
 			if (lastPost is null)
@@ -83,12 +84,16 @@ internal sealed class SendCommentConsumer(
 			}
 
 			var discussionPeer = new InputPeerChannel(command.DiscussionGroupId, command.DiscussionGroupAccessHash ?? 0);
-			var result = await client.Messages_ForwardMessages(
-				from_peer: sourcePeer,
-				id: [lastPost.ID],
-				to_peer: discussionPeer,
-				random_id: [Random.Shared.NextInt64()],
-				top_msg_id: discussionMsgId.Value);
+			var replyTo = new InputReplyToMessage { reply_to_msg_id = discussionMsgId.Value };
+
+			var exportedLink = await client.Channels_ExportMessageLink(new InputChannel(sourceChannel.ID, sourceChannel.access_hash), lastPost.ID);
+			var postLink = exportedLink.link;
+
+			var result = await client.Messages_SendMessage(
+				peer: discussionPeer,
+				message: postLink,
+				reply_to: replyTo,
+				random_id: Random.Shared.NextInt64());
 
 			int? commentMessageId = null;
 			if (result is UpdatesBase updates)
@@ -122,12 +127,12 @@ internal sealed class SendCommentConsumer(
 		}
 	}
 
-	private static InputPeerChannel? GetChannelPeer(Messages_Dialogs dialogs, long channelId)
+	private static Channel? GetChannel(Messages_Dialogs dialogs, long channelId)
 	{
 		var rawId = TelegramChatService.ResolveRawId(channelId);
 		if (!dialogs.chats.TryGetValue(rawId, out var chat) || chat is not Channel channel)
 			return null;
 
-		return new InputPeerChannel(channel.ID, channel.access_hash);
+		return channel;
 	}
 }
