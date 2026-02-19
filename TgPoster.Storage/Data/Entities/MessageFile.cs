@@ -44,6 +44,11 @@ public sealed class MessageFile : BaseEntity
 	/// </summary>
 	public bool IsInS3 { get; set; }
 
+	/// <summary>
+	///     Длительность видео (только для видео файлов)
+	/// </summary>
+	public TimeSpan? Duration { get; set; }
+
 	#region Навигация
 
 	/// <summary>

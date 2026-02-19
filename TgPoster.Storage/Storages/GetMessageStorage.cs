@@ -27,11 +27,24 @@ internal class GetMessageStorage(PosterContext context) : IGetMessageStorage
 						Id = file.Id,
 						ContentType = file.ContentType,
 						TgFileId = file.TgFileId,
-						Previews = file.Thumbnails.Select(x => new PreviewDto
-						{
-							Id = x.Id,
-							TgFileId = x.TgFileId
-						}).ToList()
+						IsInS3 = file.IsInS3,
+						Duration = file.Duration,
+						Previews = file.Thumbnails
+							.Where(x => x.FileType != Data.Enum.FileTypes.VideoClip)
+							.Select(x => new PreviewDto
+							{
+								Id = x.Id,
+								TgFileId = x.TgFileId,
+								IsInS3 = x.IsInS3
+							}).ToList(),
+						VideoClip = file.Thumbnails
+							.Where(x => x.FileType == Data.Enum.FileTypes.VideoClip)
+							.Select(x => new PreviewDto
+							{
+								Id = x.Id,
+								TgFileId = x.TgFileId,
+								IsInS3 = x.IsInS3
+							}).FirstOrDefault()
 					}).ToList()
 			}).FirstOrDefaultAsync(ct);
 	}

@@ -118,4 +118,96 @@ public sealed class VideoService
 			}
 		}
 	}
+
+	/// <summary>
+	///     Получает длительность видео из потока.
+	/// </summary>
+	/// <param name="videoStream">Видео в виде MemoryStream. Позиция потока будет сброшена.</param>
+	/// <returns>Длительность видео.</returns>
+	public async Task<TimeSpan> GetDurationAsync(MemoryStream videoStream)
+	{
+		var tempVideoPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid() + ".tmp");
+
+		try
+		{
+			videoStream.Position = 0;
+			await using (var fileStream = new FileStream(tempVideoPath, FileMode.Create, FileAccess.Write,
+				             FileShare.None, 4096, true))
+			{
+				await videoStream.CopyToAsync(fileStream);
+			}
+
+			var mediaInfo = await FFProbe.AnalyseAsync(tempVideoPath);
+			videoStream.Position = 0;
+			return mediaInfo.Duration;
+		}
+		catch (Exception ex)
+		{
+			throw new VideoProcessingException("Не удалось получить длительность видео", ex);
+		}
+		finally
+		{
+			if (File.Exists(tempVideoPath))
+			{
+				File.Delete(tempVideoPath);
+			}
+		}
+	}
+
+	/// <summary>
+	///     Обрезает видео до указанной длительности. Возвращает MemoryStream с MP4.
+	///     Вызывающий код несет ответственность за освобождение (Dispose) потока.
+	/// </summary>
+	/// <param name="videoStream">Видео в виде MemoryStream. Позиция потока будет сброшена.</param>
+	/// <param name="maxDuration">Максимальная длительность обрезанного видео.</param>
+	/// <returns>MemoryStream с обрезанным видео в формате MP4.</returns>
+	public async Task<MemoryStream> TrimVideoAsync(MemoryStream videoStream, TimeSpan maxDuration)
+	{
+		var tempInputPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid() + ".tmp");
+		var tempOutputPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid() + ".mp4");
+
+		try
+		{
+			videoStream.Position = 0;
+			await using (var fileStream = new FileStream(tempInputPath, FileMode.Create, FileAccess.Write,
+				             FileShare.None, 4096, true))
+			{
+				await videoStream.CopyToAsync(fileStream);
+			}
+
+			await FFMpegArguments
+				.FromFileInput(tempInputPath, false, options => options.WithDuration(maxDuration))
+				.OutputToFile(tempOutputPath, true, options => options
+					.WithVideoCodec("libx264")
+					.WithAudioCodec("aac")
+					.WithFastStart())
+				.ProcessAsynchronously();
+
+			var result = new MemoryStream();
+			await using (var outputFileStream = new FileStream(tempOutputPath, FileMode.Open, FileAccess.Read))
+			{
+				await outputFileStream.CopyToAsync(result);
+			}
+
+			result.Position = 0;
+			videoStream.Position = 0;
+			return result;
+		}
+		catch (Exception ex)
+		{
+			throw new VideoProcessingException("Не удалось обрезать видео", ex);
+		}
+		finally
+		{
+			if (File.Exists(tempInputPath))
+			{
+				File.Delete(tempInputPath);
+			}
+
+			if (File.Exists(tempOutputPath))
+			{
+				File.Delete(tempOutputPath);
+			}
+		}
+	}
 }

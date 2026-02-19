@@ -19,6 +19,16 @@ public sealed record FileResponse
 	/// </summary>
 	public string? Url { get; init; }
 
+	/// <summary>
+	///     URL видео для воспроизведения (полное видео или обрезанный клип)
+	/// </summary>
+	public string? VideoUrl { get; init; }
+
+	/// <summary>
+	///     Длительность оригинального видео в секундах
+	/// </summary>
+	public double? DurationSeconds { get; init; }
+
 	public List<PreviewFileResponse> PreviewFiles { get; init; } = [];
 }
 

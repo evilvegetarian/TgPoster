@@ -56,12 +56,28 @@ internal sealed class TelegramService(VideoService videoService)
 						await botClient.DeleteMessage(chat.Id, mess.MessageId, ct);
 					}
 
+					var videoDuration = await videoService.GetDurationAsync(memoryStream);
+
+					string? clipTgFileId = null;
+					if (videoDuration >= TimeSpan.FromMinutes(2))
+					{
+						await using var trimmedStream = await videoService.TrimVideoAsync(
+							memoryStream, TimeSpan.FromMinutes(1));
+						var clipInput = new InputFileStream(trimmedStream, "clip.mp4");
+						var clipMessage = await botClient.SendVideo(
+							chat.Id, clipInput, disableNotification: true, cancellationToken: ct);
+						clipTgFileId = clipMessage.Video?.FileId;
+						await botClient.DeleteMessage(chat.Id, clipMessage.MessageId, ct);
+					}
+
 					media.Add(new MediaFileResult
 					{
 						MimeType = file.ContentType,
 						FileId = fileVideoId!,
 						PreviewPhotoIds = previewPhotoIds!,
-						FileType = FileTypes.Video
+						FileType = FileTypes.Video,
+						Duration = videoDuration,
+						ClipFileId = clipTgFileId
 					});
 					break;
 
@@ -109,4 +125,6 @@ public class MediaFileResult
 	public required string FileId { get; set; }
 	public List<string> PreviewPhotoIds { get; set; } = [];
 	public FileTypes FileType { get; set; }
+	public TimeSpan? Duration { get; set; }
+	public string? ClipFileId { get; set; }
 }

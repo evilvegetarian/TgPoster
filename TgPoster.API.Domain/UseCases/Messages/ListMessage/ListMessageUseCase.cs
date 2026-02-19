@@ -38,6 +38,12 @@ internal sealed class ListMessageUseCase(
 				Url = file.ContentType.GetFileType() == FileTypes.Video
 					? null
 					: Url(file.IsInS3, file.Id),
+				VideoUrl = file.ContentType.GetFileType() == FileTypes.Video
+					? file.VideoClip is not null
+						? Url(file.VideoClip.IsInS3, file.VideoClip.Id)
+						: Url(file.IsInS3, file.Id)
+					: null,
+				DurationSeconds = file.Duration?.TotalSeconds,
 				PreviewFiles = file.Previews.Select(pr => new PreviewFileResponse
 				{
 					Url = Url(pr.IsInS3, pr.Id)

@@ -5,7 +5,8 @@ public enum FileTypes
 	NoOne = 0,
 	Photo = 1,
 	Video = 2,
-	Thumbnail = 3
+	Thumbnail = 3,
+	VideoClip = 4
 }
 
 public static class FileTypesExtensions
@@ -32,6 +33,7 @@ public static class FileTypesExtensions
 			FileTypes.Photo => "image/jpeg",
 			FileTypes.Thumbnail => "image/jpeg",
 			FileTypes.Video => "video/mp4",
+			FileTypes.VideoClip => "video/mp4",
 			_ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
 		};
 	}

@@ -20,7 +20,8 @@ internal static class MessageFileMapper
 			ContentType = file.MimeType,
 			FileType = (FileTypes)file.FileType,
 			ParentFileId = null,
-			Order = order
+			Order = order,
+			Duration = file.Duration
 		};
 		files.Add(mainFile);
 
@@ -36,6 +37,22 @@ internal static class MessageFileMapper
 		}).ToList();
 
 		files.AddRange(thumbnails);
+
+		if (file.ClipFileId is not null)
+		{
+			files.Add(new MessageFile
+			{
+				Id = guidFactory.New(),
+				MessageId = messageId,
+				TgFileId = file.ClipFileId,
+				ContentType = "video/mp4",
+				FileType = FileTypes.VideoClip,
+				ParentFileId = messageFileId,
+				Order = 0,
+				Duration = TimeSpan.FromMinutes(1)
+			});
+		}
+
 		return files;
 	}
 }

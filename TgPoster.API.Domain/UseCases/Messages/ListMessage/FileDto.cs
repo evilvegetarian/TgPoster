@@ -6,7 +6,9 @@ public sealed class FileDto
 	public required string TgFileId { get; set; }
 	public required string ContentType { get; set; }
 	public bool IsInS3 { get; set; }
+	public TimeSpan? Duration { get; set; }
 	public List<PreviewDto> Previews { get; set; } = [];
+	public PreviewDto? VideoClip { get; set; }
 }
 
 public sealed class PreviewDto

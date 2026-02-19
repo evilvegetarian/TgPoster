@@ -317,6 +317,10 @@ export interface FileResponse {
   fileType?: FileTypes;
   /** @nullable */
   url?: string | null;
+  /** @nullable */
+  videoUrl?: string | null;
+  /** @nullable */
+  durationSeconds?: number | null;
   previewFiles?: PreviewFileResponse[];
 }
 

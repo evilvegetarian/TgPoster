@@ -8,7 +8,8 @@ namespace TgPoster.API.Domain.UseCases.Messages.GetMessageById;
 
 internal sealed class GetMessageUseCase(
 	IGetMessageStorage storage,
-	IIdentityProvider identity
+	IIdentityProvider identity,
+	S3Options s3Options
 ) : IRequestHandler<GetMessageQuery, MessageResponse>
 {
 	public async Task<MessageResponse> Handle(GetMessageQuery request, CancellationToken ct)
@@ -35,8 +36,28 @@ internal sealed class GetMessageUseCase(
 			Files = message.Files.Select(file => new FileResponse
 			{
 				Id = file.Id,
-				FileType = file.ContentType.GetFileType()
+				FileType = file.ContentType.GetFileType(),
+				Url = file.ContentType.GetFileType() == FileTypes.Video
+					? null
+					: Url(file.IsInS3, file.Id),
+				VideoUrl = file.ContentType.GetFileType() == FileTypes.Video
+					? file.VideoClip is not null
+						? Url(file.VideoClip.IsInS3, file.VideoClip.Id)
+						: Url(file.IsInS3, file.Id)
+					: null,
+				DurationSeconds = file.Duration?.TotalSeconds,
+				PreviewFiles = file.Previews.Select(pr => new PreviewFileResponse
+				{
+					Url = Url(pr.IsInS3, pr.Id)
+				}).ToList()
 			}).ToList()
 		};
+
+		string Url(bool isCached, Guid fileId)
+		{
+			return isCached
+				? $"{s3Options.ServiceUrl}/{s3Options.BucketName}/{fileId}"
+				: $"/api/v1/file/{fileId}/upload-s3";
+		}
 	}
 }

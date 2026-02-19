@@ -100,12 +100,23 @@ internal sealed class ListMessageStorage(PosterContext context) : IListMessageSt
 						ContentType = file.ContentType,
 						TgFileId = file.TgFileId,
 						IsInS3 = file.IsInS3,
-						Previews = file.Thumbnails.Select(x => new PreviewDto
-						{
-							Id = x.Id,
-							TgFileId = x.TgFileId,
-							IsInS3 = x.IsInS3
-						}).ToList()
+						Duration = file.Duration,
+						Previews = file.Thumbnails
+							.Where(x => x.FileType != Data.Enum.FileTypes.VideoClip)
+							.Select(x => new PreviewDto
+							{
+								Id = x.Id,
+								TgFileId = x.TgFileId,
+								IsInS3 = x.IsInS3
+							}).ToList(),
+						VideoClip = file.Thumbnails
+							.Where(x => x.FileType == Data.Enum.FileTypes.VideoClip)
+							.Select(x => new PreviewDto
+							{
+								Id = x.Id,
+								TgFileId = x.TgFileId,
+								IsInS3 = x.IsInS3
+							}).FirstOrDefault()
 					}).ToList()
 			}).ToListAsync(ct);
 		return new PagedList<MessageDto>(messages, totalCount);
