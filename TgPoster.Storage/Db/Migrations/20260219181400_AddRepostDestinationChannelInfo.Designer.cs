@@ -2,18 +2,21 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using TgPoster.Storage.Data;
 
 #nullable disable
 
-namespace TgPoster.Storage.Data.Migrations
+namespace TgPoster.Storage.Db.Migrations
 {
     [DbContext(typeof(PosterContext))]
-    partial class PosterContextModelSnapshot : ModelSnapshot
+    [Migration("20260219181400_AddRepostDestinationChannelInfo")]
+    partial class AddRepostDestinationChannelInfo
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

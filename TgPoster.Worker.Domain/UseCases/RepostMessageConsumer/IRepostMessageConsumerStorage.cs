@@ -1,3 +1,5 @@
+using Shared.Enums;
+
 namespace TgPoster.Worker.Domain.UseCases.RepostMessageConsumer;
 
 public interface IRepostMessageConsumerStorage
@@ -10,6 +12,11 @@ public interface IRepostMessageConsumerStorage
 		int? telegramMessageId,
 		string? error,
 		CancellationToken ct);
+
+	/// <summary>
+	///     Обновляет статус доступа к целевому каналу.
+	/// </summary>
+	Task UpdateDestinationStatusAsync(Guid destinationId, ChatStatus chatStatus, CancellationToken ct);
 }
 
 public sealed class RepostDataDto

@@ -144,5 +144,6 @@ internal static class Routes
 		internal const string DeleteDestination = Root + "/destinations/{id:guid}";
 		internal const string ListDestinations = Root + "/settings/{settingsId:guid}/destinations";
 		internal const string UpdateDestination = Root + "/destinations/{id:guid}";
+		internal const string RefreshDestination = Root + "/destinations/{id:guid}/refresh";
 	}
 }

@@ -1,5 +1,6 @@
 using MassTransit;
 using Microsoft.Extensions.Logging;
+using Shared.Enums;
 using Shared.Telegram;
 using TL;
 
@@ -90,6 +91,19 @@ internal sealed class RepostMessageConsumer(
 					"Сообщение {MessageId} успешно репостнуто в {ChatIdentifier}",
 					command.MessageId,
 					destination.ID);
+			}
+			catch (RpcException rpcEx) when (
+				rpcEx.Message is "CHANNEL_PRIVATE" or "USER_BANNED_IN_CHANNEL"
+					or "CHAT_WRITE_FORBIDDEN" or "CHAT_RESTRICTED" or "CHAT_SEND_PLAIN_FORBIDDEN")
+			{
+				logger.LogWarning("Аккаунт заблокирован в канале {ChatId}: {Error}", destination.ID, rpcEx.Message);
+				await storage.UpdateDestinationStatusAsync(dest.Id, ChatStatus.Banned, context.CancellationToken);
+				await storage.CreateRepostLogAsync(
+					command.MessageId,
+					dest.Id,
+					null,
+					rpcEx.Message,
+					context.CancellationToken);
 			}
 			catch (Exception e)
 			{

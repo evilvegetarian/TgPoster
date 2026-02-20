@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Shared.Enums;
 using TgPoster.API.Domain.UseCases.Repost.AddRepostDestination;
 using TgPoster.Storage.Data;
 using TgPoster.Storage.Data.Entities;
@@ -24,6 +25,12 @@ internal sealed class AddRepostDestinationStorage(PosterContext context, GuidFac
 	public async Task<Guid> AddDestinationAsync(
 		Guid repostSettingsId,
 		long chatId,
+		string? title,
+		string? username,
+		int? memberCount,
+		ChatType chatType,
+		ChatStatus chatStatus,
+		string? avatarBase64,
 		CancellationToken ct)
 	{
 		var destination = new RepostDestination
@@ -31,7 +38,14 @@ internal sealed class AddRepostDestinationStorage(PosterContext context, GuidFac
 			Id = guidFactory.New(),
 			RepostSettingsId = repostSettingsId,
 			ChatId = chatId,
-			IsActive = true
+			IsActive = true,
+			Title = title,
+			Username = username,
+			MemberCount = memberCount,
+			ChatType = chatType,
+			ChatStatus = chatStatus,
+			AvatarBase64 = avatarBase64,
+			InfoUpdatedAt = DateTimeOffset.UtcNow
 		};
 
 		await context.AddAsync(destination, ct);

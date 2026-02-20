@@ -9,6 +9,7 @@ using TgPoster.API.Domain.UseCases.Repost.DeleteRepostDestination;
 using TgPoster.API.Domain.UseCases.Repost.DeleteRepostSettings;
 using TgPoster.API.Domain.UseCases.Repost.GetRepostSettings;
 using TgPoster.API.Domain.UseCases.Repost.ListRepostSettings;
+using TgPoster.API.Domain.UseCases.Repost.RefreshDestinationInfo;
 using TgPoster.API.Domain.UseCases.Repost.UpdateRepostDestination;
 using TgPoster.API.Models;
 
@@ -161,6 +162,22 @@ public sealed class RepostController(ISender sender) : ControllerBase
 		var command = new UpdateRepostDestinationCommand(id, request.IsActive);
 		await sender.Send(command, ct);
 
+		return NoContent();
+	}
+
+	/// <summary>
+	///     Обновление информации о целевом канале из Telegram.
+	/// </summary>
+	/// <param name="id">ID целевого канала</param>
+	/// <param name="ct">Токен отмены операции</param>
+	/// <returns>204 No Content при успешном обновлении</returns>
+	[HttpPost(Routes.Repost.RefreshDestination)]
+	[ProducesResponseType(StatusCodes.Status204NoContent)]
+	[ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
+	[ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
+	public async Task<IActionResult> RefreshDestination([FromRoute] [Required] Guid id, CancellationToken ct)
+	{
+		await sender.Send(new RefreshDestinationInfoCommand(id), ct);
 		return NoContent();
 	}
 }

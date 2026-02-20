@@ -1,5 +1,6 @@
 using System.Text.RegularExpressions;
 using Microsoft.Extensions.Logging;
+using Shared.Enums;
 using Shared.Exceptions;
 using TL;
 using WTelegram;
@@ -43,6 +44,107 @@ public sealed partial class TelegramChatService
     {
         if (!chatInfo.CanSendMessages)
             throw new TelegramChatNoWritePermissionException(chatInfo.Title);
+    }
+
+    /// <summary>
+    ///     Получает расширенную информацию о канале/чате: кол-во подписчиков, аватарку.
+    /// </summary>
+    public async Task<TelegramChannelInfoResult> GetFullChannelInfoAsync(Client client, TelegramChatInfo chatInfo)
+    {
+        int? memberCount = null;
+        byte[]? avatar = null;
+
+        var dialogs = await client.Messages_GetAllDialogs();
+        dialogs.chats.TryGetValue(chatInfo.Id, out var chatBase);
+
+        try
+        {
+            if (chatBase is Channel channel)
+            {
+                var fullChannel = await client.Channels_GetFullChannel(
+                    new InputChannel(channel.ID, channel.access_hash));
+
+                if (fullChannel.full_chat is ChannelFull channelFull)
+                    memberCount = channelFull.participants_count;
+            }
+            else if (chatBase is Chat chat)
+            {
+                memberCount = chat.participants_count;
+            }
+        }
+        catch
+        {
+            // Ошибка при получении кол-ва подписчиков не критична
+        }
+
+        try
+        {
+            if (chatBase != null)
+            {
+                using var ms = new MemoryStream();
+                await client.DownloadProfilePhotoAsync(chatBase, ms, big: false);
+                if (ms.Length > 0)
+                    avatar = ms.ToArray();
+            }
+        }
+        catch
+        {
+            // Ошибка при загрузке аватарки не критична
+        }
+
+        return new TelegramChannelInfoResult
+        {
+            Title = chatInfo.Title,
+            Username = chatInfo.Username,
+            MemberCount = memberCount,
+            IsChannel = chatInfo.IsChannel,
+            IsGroup = chatInfo.IsGroup,
+            AvatarThumbnail = avatar
+        };
+    }
+
+    /// <summary>
+    ///     Обновляет информацию о канале/чате. При бане или отсутствии возвращает соответствующий статус.
+    /// </summary>
+    public async Task<TelegramChannelRefreshResult> RefreshChannelInfoAsync(Client client, long chatId)
+    {
+        TelegramChatInfo info;
+        try
+        {
+            info = await GetChatInfoAsync(client, chatId.ToString(), autoJoin: false);
+        }
+        catch (TelegramChatForbidden)
+        {
+            return new TelegramChannelRefreshResult
+            {
+                ChatType = ChatType.Unknown,
+                ChatStatus = ChatStatus.Banned
+            };
+        }
+        catch (TelegramChatNotFoundException)
+        {
+            return new TelegramChannelRefreshResult
+            {
+                ChatType = ChatType.Unknown,
+                ChatStatus = ChatStatus.Left
+            };
+        }
+
+        var fullInfo = await GetFullChannelInfoAsync(client, info);
+
+        var chatType = info.IsChannel ? ChatType.Channel
+            : info.IsGroup ? ChatType.Group
+            : ChatType.Unknown;
+
+        return new TelegramChannelRefreshResult
+        {
+            Title = fullInfo.Title,
+            Username = fullInfo.Username,
+            MemberCount = fullInfo.MemberCount,
+            ChatType = chatType,
+            ChatStatus = ChatStatus.Active,
+            AvatarThumbnail = fullInfo.AvatarThumbnail
+        };
     }
 
     private async Task<TelegramChatInfo> GetChatByInviteLinkAsync(Client client, string hash, bool autoJoin)

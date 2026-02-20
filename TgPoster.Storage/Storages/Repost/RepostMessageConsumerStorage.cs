@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Shared.Enums;
 using TgPoster.Storage.Data;
 using TgPoster.Storage.Data.Entities;
 using TgPoster.Storage.Data.Enum;
@@ -50,6 +51,17 @@ internal sealed class RepostMessageConsumerStorage(PosterContext context) : IRep
 		};
 
 		context.Set<RepostLog>().Add(log);
+		await context.SaveChangesAsync(ct);
+	}
+
+	public async Task UpdateDestinationStatusAsync(Guid destinationId, ChatStatus chatStatus, CancellationToken ct)
+	{
+		var destination = await context.Set<RepostDestination>()
+			.FirstAsync(x => x.Id == destinationId, ct);
+
+		destination.ChatStatus = chatStatus;
+		destination.InfoUpdatedAt = DateTimeOffset.UtcNow;
+
 		await context.SaveChangesAsync(ct);
 	}
 }

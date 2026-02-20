@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Shared.Enums;
 using Shouldly;
 using TgPoster.Storage.Data;
 using TgPoster.Storage.Data.Entities;
@@ -70,6 +71,12 @@ public sealed class AddRepostDestinationStorageShould(StorageTestFixture fixture
 		var response = await sut.AddDestinationAsync(
 			settings.Id,
 			chatIdentifier,
+			"Test Channel",
+			"testchannel",
+			1000,
+			ChatType.Channel,
+			ChatStatus.Active,
+			null,
 			CancellationToken.None);
 		
 		var createdDestination = await context.RepostDestinations

@@ -538,4 +538,57 @@ export const usePutApiV1RepostDestinationsId = <TError = ProblemDetails,
 
       return useMutation(mutationOptions, queryClient);
     }
-    
+    /**
+ * @summary Обновление информации о целевом канале из Telegram.
+ */
+export const postApiV1RepostDestinationsIdRefresh = (
+    id: string,
+ ) => {
+      return customInstance<void>(
+      {url: `/api/v1/repost/destinations/${id}/refresh`, method: 'POST'
+    },
+      );
+    }
+
+
+export const getPostApiV1RepostDestinationsIdRefreshMutationOptions = <TError = ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postApiV1RepostDestinationsIdRefresh>>, TError,{id: string}, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof postApiV1RepostDestinationsIdRefresh>>, TError,{id: string}, TContext> => {
+
+const mutationKey = ['postApiV1RepostDestinationsIdRefresh'];
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof postApiV1RepostDestinationsIdRefresh>>, {id: string}> = (props) => {
+          const {id} = props ?? {};
+
+          return  postApiV1RepostDestinationsIdRefresh(id,)
+        }
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type PostApiV1RepostDestinationsIdRefreshMutationResult = NonNullable<Awaited<ReturnType<typeof postApiV1RepostDestinationsIdRefresh>>>
+
+    export type PostApiV1RepostDestinationsIdRefreshMutationError = ProblemDetails
+
+    /**
+ * @summary Обновление информации о целевом канале из Telegram.
+ */
+export const usePostApiV1RepostDestinationsIdRefresh = <TError = ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postApiV1RepostDestinationsIdRefresh>>, TError,{id: string}, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof postApiV1RepostDestinationsIdRefresh>>,
+        TError,
+        {id: string},
+        TContext
+      > => {
+
+      const mutationOptions = getPostApiV1RepostDestinationsIdRefreshMutationOptions(options);
+
+      return useMutation(mutationOptions, queryClient);
+    }

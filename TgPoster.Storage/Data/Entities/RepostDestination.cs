@@ -1,3 +1,5 @@
+using Shared.Enums;
+
 namespace TgPoster.Storage.Data.Entities;
 
 /// <summary>
@@ -19,6 +21,41 @@ public sealed class RepostDestination : BaseEntity
 	///     Активен ли целевой канал.
 	/// </summary>
 	public bool IsActive { get; set; } = true;
+
+	/// <summary>
+	///     Название канала/чата.
+	/// </summary>
+	public string? Title { get; set; }
+
+	/// <summary>
+	///     Username (без @).
+	/// </summary>
+	public string? Username { get; set; }
+
+	/// <summary>
+	///     Количество подписчиков/участников.
+	/// </summary>
+	public int? MemberCount { get; set; }
+
+	/// <summary>
+	///     Тип чата (канал/группа).
+	/// </summary>
+	public ChatType ChatType { get; set; } = ChatType.Unknown;
+
+	/// <summary>
+	///     Статус доступа к чату (активен/забанен/покинул).
+	/// </summary>
+	public ChatStatus ChatStatus { get; set; } = ChatStatus.Unknown;
+
+	/// <summary>
+	///     Аватарка в формате base64 data URI.
+	/// </summary>
+	public string? AvatarBase64 { get; set; }
+
+	/// <summary>
+	///     Дата последнего обновления информации.
+	/// </summary>
+	public DateTimeOffset? InfoUpdatedAt { get; set; }
 
 	#region Navigation Properties
 

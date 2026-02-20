@@ -533,7 +533,34 @@ export interface RepostDestinationDto {
   id: string;
   chatId: number;
   isActive: boolean;
+  /** @nullable */
+  title: string | null;
+  /** @nullable */
+  username: string | null;
+  /** @nullable */
+  memberCount: number | null;
+  chatType: ChatType;
+  chatStatus: ChatStatus;
+  /** @nullable */
+  avatarBase64: string | null;
+  /** @nullable */
+  infoUpdatedAt: string | null;
 }
+
+export type ChatType = typeof ChatType[keyof typeof ChatType];
+export const ChatType = {
+  Channel: 0,
+  Group: 1,
+  Unknown: 2,
+} as const;
+
+export type ChatStatus = typeof ChatStatus[keyof typeof ChatStatus];
+export const ChatStatus = {
+  Active: 0,
+  Banned: 1,
+  Left: 2,
+  Unknown: 3,
+} as const;
 
 export interface RepostSettingsItemDto {
   id: string;

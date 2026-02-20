@@ -1,3 +1,5 @@
+using Shared.Enums;
+
 namespace TgPoster.API.Domain.UseCases.Repost.AddRepostDestination;
 
 public interface IAddRepostDestinationStorage
@@ -13,10 +15,16 @@ public interface IAddRepostDestinationStorage
 	Task<bool> DestinationExistsAsync(Guid repostSettingsId, long chatIdentifier, CancellationToken ct);
 
 	/// <summary>
-	///     Добавляет новый destination. Возвращает ID созданного destination.
+	///     Добавляет новый destination с расширенной информацией о канале. Возвращает ID созданного destination.
 	/// </summary>
 	Task<Guid> AddDestinationAsync(
 		Guid repostSettingsId,
-		long chatIdentifier,
+		long chatId,
+		string? title,
+		string? username,
+		int? memberCount,
+		ChatType chatType,
+		ChatStatus chatStatus,
+		string? avatarBase64,
 		CancellationToken ct);
 }

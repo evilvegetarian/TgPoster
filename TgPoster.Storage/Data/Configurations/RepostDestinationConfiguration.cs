@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Shared.Enums;
 using TgPoster.Storage.Data.Entities;
 
 namespace TgPoster.Storage.Data.Configurations;
@@ -18,6 +19,21 @@ internal sealed class RepostDestinationConfiguration : BaseEntityConfiguration<R
 
 		builder.Property(x => x.IsActive)
 			.HasDefaultValue(true);
+
+		builder.Property(x => x.Title)
+			.HasMaxLength(256);
+
+		builder.Property(x => x.Username)
+			.HasMaxLength(64);
+
+		builder.Property(x => x.ChatType)
+			.HasDefaultValue(ChatType.Unknown);
+
+		builder.Property(x => x.ChatStatus)
+			.HasDefaultValue(ChatStatus.Unknown);
+
+		builder.Property(x => x.AvatarBase64)
+			.HasMaxLength(50000);
 
 		builder.HasIndex(x => x.RepostSettingsId);
 

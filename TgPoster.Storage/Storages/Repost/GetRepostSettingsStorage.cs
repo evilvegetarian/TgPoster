@@ -24,7 +24,14 @@ internal sealed class GetRepostSettingsStorage(PosterContext context) : IGetRepo
 				{
 					Id = d.Id,
 					ChatId = d.ChatId,
-					IsActive = d.IsActive
+					IsActive = d.IsActive,
+					Title = d.Title,
+					Username = d.Username,
+					MemberCount = d.MemberCount,
+					ChatType = d.ChatType,
+					ChatStatus = d.ChatStatus,
+					AvatarBase64 = d.AvatarBase64,
+					InfoUpdatedAt = d.InfoUpdatedAt
 				}).ToList()
 			})
 			.FirstOrDefaultAsync(ct);
