@@ -7,7 +7,7 @@ namespace TgPoster.Worker.Domain.UseCases.SendCommentConsumer;
 
 internal sealed class SendCommentConsumer(
 	ISendCommentConsumerStorage storage,
-	TelegramAuthService authService,
+	ITelegramAuthService authService,
 	ILogger<SendCommentConsumer> logger)
 	: IConsumer<SendCommentCommand>
 {

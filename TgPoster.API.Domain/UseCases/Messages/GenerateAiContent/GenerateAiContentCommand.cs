@@ -15,7 +15,7 @@ internal class GenerateAiContentHandler(
 	IGenerateAiContentStorage storage,
 	IOpenRouterClient client,
 	ICryptoAES crypto,
-	TelegramService service,
+	ITelegramService service,
 	TelegramTokenService tokenService,
 	OpenRouterOptions options)
 	: IRequestHandler<GenerateAiContentCommand, GenerateAiContentResponse>

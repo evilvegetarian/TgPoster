@@ -2,14 +2,13 @@ using MediatR;
 using Security.IdentityServices;
 using Shared.Telegram;
 using TgPoster.API.Domain.Exceptions;
-using TL;
 
 namespace TgPoster.API.Domain.UseCases.CommentRepost.CreateCommentRepost;
 
 internal sealed class CreateCommentRepostUseCase(
 	ICreateCommentRepostStorage storage,
-	TelegramAuthService authService,
-	TelegramChatService chatService,
+	ITelegramAuthService authService,
+	ITelegramChatService chatService,
 	IIdentityProvider identity)
 	: IRequestHandler<CreateCommentRepostCommand, CreateCommentRepostResponse>
 {
@@ -23,32 +22,25 @@ internal sealed class CreateCommentRepostUseCase(
 
 		var client = await authService.GetClientAsync(request.TelegramSessionId, ct);
 		var chatInfo = await chatService.GetChatInfoAsync(client, request.WatchedChannel);
-		var sourceChannel=await storage.GetSourceChannelAsync(request.ScheduleId, ct);
-		
-		//Проверка что вступил в канал откуда будет репост
-		var chatSource=await chatService.GetChatInfoAsync(client, sourceChannel);
+		var sourceChannel = await storage.GetSourceChannelAsync(request.ScheduleId, ct);
+
+		// Проверка что вступил в канал откуда будет репост
+		await chatService.GetChatInfoAsync(client, sourceChannel);
 
 		if (await storage.SettingsExistsAsync(chatInfo.Id, request.ScheduleId, ct))
 			throw new CommentRepostSettingsAlreadyExistsException(request.WatchedChannel);
 
-		var fullChannel = await client.Channels_GetFullChannel(
-			new InputChannel(chatInfo.Id, chatInfo.AccessHash));
+		var (linkedChatId, discussionAccessHash) =
+			await chatService.GetLinkedDiscussionGroupAsync(client, chatInfo, ct);
 
-		if (fullChannel.full_chat is not ChannelFull channelFull || channelFull.linked_chat_id == 0)
+		if (linkedChatId == 0)
 			throw new ChannelNoCommentsException(request.WatchedChannel);
-
-		long? discussionAccessHash = null;
-		if (fullChannel.chats.TryGetValue(channelFull.linked_chat_id, out var discussionChat))
-		{
-			if (discussionChat is Channel dc)
-				discussionAccessHash = dc.access_hash;
-		}
 
 		var settingsId = await storage.CreateAsync(
 			request.WatchedChannel,
 			chatInfo.Id,
 			chatInfo.AccessHash,
-			channelFull.linked_chat_id,
+			linkedChatId,
 			discussionAccessHash,
 			request.TelegramSessionId,
 			request.ScheduleId,

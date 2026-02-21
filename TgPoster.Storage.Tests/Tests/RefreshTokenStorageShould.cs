@@ -84,13 +84,10 @@ public class RefreshTokenStorageShould : IClassFixture<StorageTestFixture>
 		var newRefreshToken = Guid.NewGuid();
 		var newExpiresAt = DateTimeOffset.UtcNow.AddDays(14);
 
-		var exception = await Should.ThrowAsync<NullReferenceException>(async () =>
-			await sut.UpdateRefreshSessionAsync(
-				nonExistingToken,
-				newRefreshToken,
-				newExpiresAt,
-				CancellationToken.None));
-
-		exception.ShouldNotBeNull();
+		await sut.UpdateRefreshSessionAsync(
+			nonExistingToken,
+			newRefreshToken,
+			newExpiresAt,
+			CancellationToken.None);
 	}
 }

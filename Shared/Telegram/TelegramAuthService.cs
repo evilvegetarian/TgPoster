@@ -13,7 +13,7 @@ public sealed class TelegramAuthService(
 	ILogger<TelegramAuthService> logger,
 	ITelegramAuthRepository authRepository,
 	IServiceScopeFactory scopeFactory,
-	TelegramClientManager clientManager)
+	TelegramClientManager clientManager) : ITelegramAuthService
 {
 	public void Dispose()
 	{

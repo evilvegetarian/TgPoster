@@ -7,7 +7,7 @@ namespace TgPoster.API.Domain.UseCases.TelegramSessions.CreateTelegramSession;
 internal sealed class CreateTelegramSessionUseCase(
 	ICreateTelegramSessionStorage storage,
 	IIdentityProvider provider,
-	TelegramAuthService authService
+	ITelegramAuthService authService
 ) : IRequestHandler<CreateTelegramSessionCommand, CreateTelegramSessionResponse>
 {
 	public async Task<CreateTelegramSessionResponse> Handle(

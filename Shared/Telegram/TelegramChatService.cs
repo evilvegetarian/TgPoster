@@ -24,7 +24,7 @@ internal enum ChatInputType
 /// </summary>
 internal sealed record ChatInputParseResult(ChatInputType Type, string Value);
 
-public sealed partial class TelegramChatService
+public sealed partial class TelegramChatService : ITelegramChatService
 {
     public async Task<TelegramChatInfo> GetChatInfoAsync(Client client, string input, bool autoJoin = true)
     {
@@ -332,6 +332,28 @@ public sealed partial class TelegramChatService
             !bannedFlags.HasFlag(ChatBannedRights.Flags.send_messages),
             !bannedFlags.HasFlag(ChatBannedRights.Flags.send_media)
         );
+    }
+
+    /// <summary>
+    ///     Получает информацию о привязанной группе обсуждений канала.
+    /// </summary>
+    public async Task<(long LinkedChatId, long? DiscussionAccessHash)> GetLinkedDiscussionGroupAsync(
+        Client client, TelegramChatInfo chatInfo, CancellationToken ct = default)
+    {
+        var fullChannel = await client.Channels_GetFullChannel(
+            new InputChannel(chatInfo.Id, chatInfo.AccessHash));
+
+        if (fullChannel.full_chat is not ChannelFull channelFull || channelFull.linked_chat_id == 0)
+            return (0, null);
+
+        long? discussionAccessHash = null;
+        if (fullChannel.chats.TryGetValue(channelFull.linked_chat_id, out var discussionChat))
+        {
+            if (discussionChat is Channel dc)
+                discussionAccessHash = dc.access_hash;
+        }
+
+        return (channelFull.linked_chat_id, discussionAccessHash);
     }
 
     public static long ResolveRawId(long chatId)

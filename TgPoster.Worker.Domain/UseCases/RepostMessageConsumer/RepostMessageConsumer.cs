@@ -8,7 +8,7 @@ namespace TgPoster.Worker.Domain.UseCases.RepostMessageConsumer;
 
 internal sealed class RepostMessageConsumer(
 	IRepostMessageConsumerStorage storage,
-	TelegramAuthService authService,
+	ITelegramAuthService authService,
 	ILogger<RepostMessageConsumer> logger)
 	: IConsumer<RepostMessageCommand>
 {

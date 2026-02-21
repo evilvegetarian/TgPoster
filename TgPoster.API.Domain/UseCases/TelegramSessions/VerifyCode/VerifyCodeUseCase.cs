@@ -6,7 +6,7 @@ using TgPoster.API.Domain.Exceptions;
 namespace TgPoster.API.Domain.UseCases.TelegramSessions.VerifyCode;
 
 internal sealed class VerifyCodeUseCase(
-	TelegramAuthService authService,
+	ITelegramAuthService authService,
 	IVerifyCodeStorage storage,
 	IIdentityProvider identityProvider
 ) : IRequestHandler<VerifyCodeCommand, VerifyCodeResponse>

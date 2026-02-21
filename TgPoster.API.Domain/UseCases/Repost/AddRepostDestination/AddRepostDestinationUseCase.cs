@@ -7,8 +7,8 @@ namespace TgPoster.API.Domain.UseCases.Repost.AddRepostDestination;
 
 internal sealed class AddRepostDestinationUseCase(
 	IAddRepostDestinationStorage storage,
-	TelegramAuthService authService,
-	TelegramChatService chatService)
+	ITelegramAuthService authService,
+	ITelegramChatService chatService)
 	: IRequestHandler<AddRepostDestinationCommand, AddRepostDestinationResponse>
 {
 	public async Task<AddRepostDestinationResponse> Handle(AddRepostDestinationCommand request, CancellationToken ct)

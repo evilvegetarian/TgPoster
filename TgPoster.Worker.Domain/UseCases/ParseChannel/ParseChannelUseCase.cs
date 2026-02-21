@@ -9,7 +9,7 @@ namespace TgPoster.Worker.Domain.UseCases.ParseChannel;
 internal class ParseChannelUseCase(
 	IParseChannelUseCaseStorage storage,
 	IPublishEndpoint publishEndpoint,
-	TelegramAuthService authService,
+	ITelegramAuthService authService,
 	ILogger<ParseChannelUseCase> logger)
 {
 	public async Task Handle(Guid id, CancellationToken ct)

@@ -6,7 +6,7 @@ using Telegram.Bot.Types;
 
 namespace TgPoster.API.Domain.Services;
 
-internal sealed class TelegramService(VideoService videoService)
+internal sealed class TelegramService(VideoService videoService) : ITelegramService
 {
 	public async Task<List<MediaFileResult>> GetFileMessageInTelegramByFile(
 		TelegramBotClient botClient,

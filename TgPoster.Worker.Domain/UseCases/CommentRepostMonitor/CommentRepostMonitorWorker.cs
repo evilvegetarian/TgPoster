@@ -10,7 +10,7 @@ namespace TgPoster.Worker.Domain.UseCases.CommentRepostMonitor;
 
 public class CommentRepostMonitorWorker(
 	ICommentRepostMonitorStorage storage,
-	TelegramAuthService authService,
+	ITelegramAuthService authService,
 	IPublishEndpoint publishEndpoint,
 	ILogger<CommentRepostMonitorWorker> logger,
 	IHostApplicationLifetime lifetime)

@@ -7,8 +7,8 @@ namespace TgPoster.API.Domain.UseCases.Repost.CreateRepostSettings;
 
 internal sealed class CreateRepostSettingsUseCase(
 	ICreateRepostSettingsStorage storage,
-	TelegramAuthService authService,
-	TelegramChatService chatService)
+	ITelegramAuthService authService,
+	ITelegramChatService chatService)
 	: IRequestHandler<CreateRepostSettingsCommand, CreateRepostSettingsResponse>
 {
 	public async Task<CreateRepostSettingsResponse> Handle(CreateRepostSettingsCommand request, CancellationToken ct)

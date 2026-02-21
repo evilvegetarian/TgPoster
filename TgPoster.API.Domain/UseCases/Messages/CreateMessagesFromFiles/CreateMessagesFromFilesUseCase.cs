@@ -7,7 +7,7 @@ namespace TgPoster.API.Domain.UseCases.Messages.CreateMessagesFromFiles;
 
 internal sealed class CreateMessagesFromFilesUseCase(
 	ICreateMessagesFromFilesUseCaseStorage storage,
-	TelegramService telegramService,
+	ITelegramService telegramService,
 	TimePostingService timePostingService,
 	TelegramTokenService tokenService
 ) : IRequestHandler<CreateMessagesFromFilesCommand>

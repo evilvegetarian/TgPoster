@@ -36,7 +36,7 @@ public static class DependencyInjection
 
 		services.AddShared();
 		services
-			.AddScoped<TelegramService>()
+			.AddScoped<ITelegramService, TelegramService>()
 			.AddScoped<FileService>()
 			.AddScoped<TelegramTokenService>()
 			.AddSingleton<DomainMetrics>();

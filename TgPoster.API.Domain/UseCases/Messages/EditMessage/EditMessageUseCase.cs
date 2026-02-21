@@ -10,7 +10,7 @@ internal class EditMessageUseCase(
 	IEditMessageStorage storage,
 	IIdentityProvider provider,
 	TelegramTokenService tokenService,
-	TelegramService telegramService)
+	ITelegramService telegramService)
 	: IRequestHandler<EditMessageCommand>
 {
 	public async Task Handle(EditMessageCommand request, CancellationToken ct)

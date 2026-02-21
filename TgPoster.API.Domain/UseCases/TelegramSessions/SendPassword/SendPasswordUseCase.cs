@@ -6,7 +6,7 @@ using TgPoster.API.Domain.Exceptions;
 namespace TgPoster.API.Domain.UseCases.TelegramSessions.SendPassword;
 
 internal sealed class SendPasswordUseCase(
-	TelegramAuthService authService,
+	ITelegramAuthService authService,
 	ISendPasswordStorage storage,
 	IIdentityProvider identityProvider
 ) : IRequestHandler<SendPasswordCommand, SendPasswordResponse>

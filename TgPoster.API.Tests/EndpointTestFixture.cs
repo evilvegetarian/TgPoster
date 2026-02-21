@@ -1,6 +1,7 @@
 using System.Net.Http.Headers;
 using MassTransit;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
@@ -10,7 +11,11 @@ using Microsoft.Extensions.Logging;
 using NSubstitute;
 using Security.Authentication;
 using Security.IdentityServices;
+using Shared.Telegram;
+using Shared.Utilities;
+using Telegram.Bot;
 using Testcontainers.PostgreSql;
+using TgPoster.API.Domain.Services;
 using TgPoster.API.Tests.Helper;
 using TgPoster.API.Tests.Seeder;
 using TgPoster.Storage.Data;
@@ -82,15 +87,75 @@ public class EndpointTestFixture : WebApplicationFactory<Program>, IAsyncLifetim
 
 		builder.ConfigureServices(services =>
 		{
-			var busDescriptor = services.FirstOrDefault(d => d.ServiceType == typeof(IBus));
-			if (busDescriptor != null)
-			{
-				services.Remove(busDescriptor);
-			}
-
-			services.AddSingleton(Substitute.For<IBus>());
+			ReplaceService<IBus>(services, Substitute.For<IBus>());
+			ReplaceService<ITelegramAuthService>(services, Substitute.For<ITelegramAuthService>());
+			ReplaceService<ITelegramChatService>(services, CreateMockChatService());
+			ReplaceService<ITelegramService>(services, CreateMockTelegramService());
 		});
 		base.ConfigureWebHost(builder);
+	}
+
+	private static void ReplaceService<T>(IServiceCollection services, T mock) where T : class
+	{
+		var descriptor = services.FirstOrDefault(d => d.ServiceType == typeof(T));
+		if (descriptor != null)
+			services.Remove(descriptor);
+
+		services.AddSingleton(mock);
+	}
+
+	private static ITelegramChatService CreateMockChatService()
+	{
+		var mock = Substitute.For<ITelegramChatService>();
+		mock.GetChatInfoAsync(Arg.Any<WTelegram.Client>(), Arg.Any<string>(), Arg.Any<bool>())
+			.Returns(new TelegramChatInfo
+			{
+				Id = 123456789L,
+				AccessHash = 0L,
+				Title = "Test Channel",
+				Username = "testchannel",
+				IsChannel = true,
+				IsGroup = false,
+				CanSendMessages = true,
+				CanSendMedia = true,
+				InputPeer = new TL.InputPeerChannel(123456789L, 0L)
+			});
+		mock.GetFullChannelInfoAsync(Arg.Any<WTelegram.Client>(), Arg.Any<TelegramChatInfo>())
+			.Returns(new TelegramChannelInfoResult
+			{
+				Title = "Test Channel",
+				Username = "testchannel",
+				MemberCount = 100,
+				IsChannel = true,
+				IsGroup = false
+			});
+		mock.GetLinkedDiscussionGroupAsync(
+				Arg.Any<WTelegram.Client>(), Arg.Any<TelegramChatInfo>(), Arg.Any<CancellationToken>())
+			.Returns((123456789L, (long?)987654321L));
+		return mock;
+	}
+
+	private static ITelegramService CreateMockTelegramService()
+	{
+		var mock = Substitute.For<ITelegramService>();
+		mock.GetFileMessageInTelegramByFile(
+				Arg.Any<TelegramBotClient>(),
+				Arg.Any<List<IFormFile>>(),
+				Arg.Any<long>(),
+				Arg.Any<CancellationToken>())
+			.Returns(callInfo =>
+			{
+				var files = callInfo.ArgAt<List<IFormFile>>(1);
+				return files.Select(f => new MediaFileResult
+				{
+					MimeType = f.ContentType,
+					FileId = Guid.NewGuid().ToString(),
+					FileType = FileTypes.Image
+				}).ToList();
+			});
+		mock.GetByteFileAsync(Arg.Any<TelegramBotClient>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
+			.Returns([0x89, 0x50, 0x4E, 0x47]);
+		return mock;
 	}
 
 	private async Task InsertSeed(PosterContext context)

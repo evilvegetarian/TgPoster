@@ -23,7 +23,7 @@ internal sealed class ProcessMessageConsumer(
 	TelegramExecuteServices telegramExecuteServices,
 	TimePostingService timePostingService,
 	IProcessMessageConsumerStorage storage,
-	TelegramAuthService authService,
+	ITelegramAuthService authService,
 	TelegramBotManager botManager,
 	ILogger<ProcessMessageConsumer> logger
 ) : IConsumer<ProcessMessage>

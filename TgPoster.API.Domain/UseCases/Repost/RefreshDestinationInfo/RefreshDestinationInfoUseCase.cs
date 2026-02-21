@@ -6,8 +6,8 @@ namespace TgPoster.API.Domain.UseCases.Repost.RefreshDestinationInfo;
 
 internal sealed class RefreshDestinationInfoUseCase(
 	IRefreshDestinationInfoStorage storage,
-	TelegramAuthService authService,
-	TelegramChatService chatService)
+	ITelegramAuthService authService,
+	ITelegramChatService chatService)
 	: IRequestHandler<RefreshDestinationInfoCommand>
 {
 	public async Task Handle(RefreshDestinationInfoCommand request, CancellationToken ct)

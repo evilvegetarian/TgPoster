@@ -8,7 +8,7 @@ namespace TgPoster.API.Domain.UseCases.Files.GetFile;
 internal sealed class GetFileUseCase(
 	IFileStorage fileStorage,
 	TelegramTokenService telegramTokenService,
-	TelegramService telegramService) : IRequestHandler<GetFileCommand, GetFileResponse>
+	ITelegramService telegramService) : IRequestHandler<GetFileCommand, GetFileResponse>
 {
 	public async Task<GetFileResponse> Handle(GetFileCommand request, CancellationToken ct)
 	{

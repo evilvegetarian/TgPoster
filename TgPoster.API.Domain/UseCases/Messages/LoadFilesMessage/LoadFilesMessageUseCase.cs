@@ -6,7 +6,7 @@ namespace TgPoster.API.Domain.UseCases.Messages.LoadFilesMessage;
 
 internal class LoadFilesMessageUseCase(
 	ILoadFilesMessageStorage storage,
-	TelegramService telegramService,
+	ITelegramService telegramService,
 	TelegramTokenService tokenService
 )
 	: IRequestHandler<LoadFilesMessageCommand>

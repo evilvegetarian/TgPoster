@@ -6,7 +6,7 @@ using TgPoster.API.Domain.Exceptions;
 namespace TgPoster.API.Domain.UseCases.TelegramSessions.StartAuth;
 
 internal sealed class StartAuthUseCase(
-	TelegramAuthService authService,
+	ITelegramAuthService authService,
 	IStartAuthStorage storage,
 	IIdentityProvider identityProvider
 ) : IRequestHandler<StartAuthCommand, StartAuthResponse>

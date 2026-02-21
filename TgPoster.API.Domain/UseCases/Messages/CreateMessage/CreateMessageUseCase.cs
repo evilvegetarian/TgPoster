@@ -9,7 +9,7 @@ namespace TgPoster.API.Domain.UseCases.Messages.CreateMessage;
 internal sealed class CreateMessageUseCase(
 	ICreateMessageStorage storage,
 	IIdentityProvider identityProvider,
-	TelegramService telegramService,
+	ITelegramService telegramService,
 	TelegramTokenService tokenService
 ) : IRequestHandler<CreateMessageCommand, CreateMessageResponse>
 {
