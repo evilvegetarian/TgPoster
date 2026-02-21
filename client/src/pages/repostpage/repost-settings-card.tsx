@@ -3,9 +3,10 @@ import {Badge} from "@/components/ui/badge";
 import {Button} from "@/components/ui/button";
 import {Card, CardContent, CardHeader, CardTitle, CardDescription} from "@/components/ui/card";
 import {Switch} from "@/components/ui/switch";
-import {Loader2, Plus, RefreshCw, Trash2, X} from "lucide-react";
+import {Loader2, Plus, RefreshCw, Settings, Trash2, X} from "lucide-react";
 import {toast} from "sonner";
 import {AddDestinationDialog} from "@/pages/repostpage/add-destination-dialog.tsx";
+import {DestinationSettingsDialog} from "@/pages/repostpage/destination-settings-dialog.tsx";
 import {
     useGetApiV1RepostSettingsId,
     useDeleteApiV1RepostDestinationsId,
@@ -14,7 +15,7 @@ import {
     getGetApiV1RepostSettingsQueryKey,
     usePostApiV1RepostDestinationsIdRefresh,
 } from "@/api/endpoints/repost/repost.ts";
-import type {RepostSettingsItemDto} from "@/api/endpoints/tgPosterAPI.schemas.ts";
+import type {RepostDestinationDto, RepostSettingsItemDto} from "@/api/endpoints/tgPosterAPI.schemas.ts";
 import {ChatStatus, ChatType} from "@/api/endpoints/tgPosterAPI.schemas.ts";
 import {useQueryClient} from "@tanstack/react-query";
 
@@ -56,6 +57,7 @@ function formatMemberCount(count: number): string {
 
 export function RepostSettingsCard({settings}: RepostSettingsCardProps) {
     const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+    const [settingsDialogDestId, setSettingsDialogDestId] = useState<string | null>(null);
     const queryClient = useQueryClient();
     const {mutate: deleteSettings} = useDeleteApiV1RepostSettingsId({
         mutation: {
@@ -120,10 +122,17 @@ export function RepostSettingsCard({settings}: RepostSettingsCardProps) {
         },
     });
 
-    function handleToggleDestination(destinationId: string, currentStatus: boolean) {
+    function handleToggleDestination(dest: RepostDestinationDto) {
         toggleDestination({
-            id: destinationId,
-            data: {isActive: !currentStatus},
+            id: dest.id,
+            data: {
+                isActive: !dest.isActive,
+                delayMinSeconds: dest.delayMinSeconds ?? 0,
+                delayMaxSeconds: dest.delayMaxSeconds ?? 0,
+                repostEveryNth: dest.repostEveryNth ?? 1,
+                skipProbability: dest.skipProbability ?? 0,
+                maxRepostsPerDay: dest.maxRepostsPerDay,
+            },
         });
     }
 
@@ -276,6 +285,15 @@ export function RepostSettingsCard({settings}: RepostSettingsCardProps) {
                                             variant="ghost"
                                             size="icon"
                                             className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                                            onClick={() => setSettingsDialogDestId(dest.id)}
+                                            title="Настроить репост"
+                                        >
+                                            <Settings className="h-4 w-4"/>
+                                        </Button>
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            className="h-8 w-8 text-muted-foreground hover:text-foreground"
                                             onClick={() => handleRefreshDestination(dest.id)}
                                             disabled={isRefreshing}
                                             title="Обновить информацию"
@@ -284,9 +302,7 @@ export function RepostSettingsCard({settings}: RepostSettingsCardProps) {
                                         </Button>
                                         <Switch
                                             checked={dest.isActive}
-                                            onCheckedChange={() =>
-                                                handleToggleDestination(dest.id, dest.isActive)
-                                            }
+                                            onCheckedChange={() => handleToggleDestination(dest)}
                                             disabled={isToggling || isDeleting}
                                         />
                                         <Button
@@ -312,6 +328,24 @@ export function RepostSettingsCard({settings}: RepostSettingsCardProps) {
                 onOpenChange={setIsAddDialogOpen}
                 onSuccess={handleDestinationAdded}
             />
+
+            {settingsDialogDestId && (() => {
+                const dest = destinations.find(d => d.id === settingsDialogDestId);
+                if (!dest) return null;
+                return (
+                    <DestinationSettingsDialog
+                        destination={dest}
+                        open={true}
+                        onOpenChange={(open) => {
+                            if (!open) setSettingsDialogDestId(null);
+                        }}
+                        onSuccess={() => {
+                            void refetchDetails();
+                            onRefresh();
+                        }}
+                    />
+                );
+            })()}
         </Card>
     );
 }

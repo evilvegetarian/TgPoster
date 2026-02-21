@@ -612,6 +612,16 @@ namespace TgPoster.Storage.Data.Migrations
                     b.Property<Guid?>("CreatedById")
                         .HasColumnType("uuid");
 
+                    b.Property<int>("DelayMaxSeconds")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0);
+
+                    b.Property<int>("DelayMinSeconds")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0);
+
                     b.Property<DateTimeOffset?>("Deleted")
                         .HasColumnType("timestamp with time zone");
 
@@ -626,11 +636,29 @@ namespace TgPoster.Storage.Data.Migrations
                         .HasColumnType("boolean")
                         .HasDefaultValue(true);
 
+                    b.Property<int?>("MaxRepostsPerDay")
+                        .HasColumnType("integer");
+
                     b.Property<int?>("MemberCount")
                         .HasColumnType("integer");
 
+                    b.Property<int>("RepostCounter")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0);
+
+                    b.Property<int>("RepostEveryNth")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(1);
+
                     b.Property<Guid>("RepostSettingsId")
                         .HasColumnType("uuid");
+
+                    b.Property<int>("SkipProbability")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0);
 
                     b.Property<string>("Title")
                         .HasMaxLength(256)

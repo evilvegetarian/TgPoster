@@ -44,7 +44,7 @@ public sealed class UpdateRepostDestinationStorageShould : IClassFixture<Storage
 			.WithIsActive(true)
 			.CreateAsync();
 
-		await sut.UpdateDestinationAsync(destination.Id, false, CancellationToken.None);
+		await sut.UpdateDestinationAsync(destination.Id, false, 0, 0, 1, 0, null, CancellationToken.None);
 
 		var updatedDestination = await context.RepostDestinations
 			.FirstOrDefaultAsync(x => x.Id == destination.Id);
@@ -60,7 +60,7 @@ public sealed class UpdateRepostDestinationStorageShould : IClassFixture<Storage
 			.WithIsActive(false)
 			.CreateAsync();
 
-		await sut.UpdateDestinationAsync(destination.Id, true, CancellationToken.None);
+		await sut.UpdateDestinationAsync(destination.Id, true, 0, 0, 1, 0, null, CancellationToken.None);
 
 		var updatedDestination = await context.RepostDestinations
 			.FirstOrDefaultAsync(x => x.Id == destination.Id);

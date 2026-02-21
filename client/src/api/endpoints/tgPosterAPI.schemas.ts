@@ -545,6 +545,16 @@ export interface RepostDestinationDto {
   avatarBase64: string | null;
   /** @nullable */
   infoUpdatedAt: string | null;
+  /** Минимальная задержка перед репостом (секунды). */
+  delayMinSeconds?: number;
+  /** Максимальная задержка перед репостом (секунды). */
+  delayMaxSeconds?: number;
+  /** Репостить каждое N-е сообщение (1 = каждое). */
+  repostEveryNth?: number;
+  /** Вероятность пропуска репоста (0-100%). */
+  skipProbability?: number;
+  /** Максимальное количество репостов в день (null = без лимита). */
+  maxRepostsPerDay?: number | null;
 }
 
 export type ChatType = typeof ChatType[keyof typeof ChatType];
@@ -770,6 +780,16 @@ export interface UpdateParseChannelRequest {
 export interface UpdateRepostDestinationRequest {
   /** Активен ли целевой канал. */
   isActive: boolean;
+  /** Минимальная задержка перед репостом (секунды). */
+  delayMinSeconds?: number;
+  /** Максимальная задержка перед репостом (секунды). */
+  delayMaxSeconds?: number;
+  /** Репостить каждое N-е сообщение (1 = каждое). */
+  repostEveryNth?: number;
+  /** Вероятность пропуска репоста (0-100%). */
+  skipProbability?: number;
+  /** Максимальное количество репостов в день (null = без лимита). */
+  maxRepostsPerDay?: number | null;
 }
 
 /**

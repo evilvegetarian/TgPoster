@@ -26,7 +26,12 @@ internal sealed class RepostMessageConsumerStorage(PosterContext context) : IRep
 					.Select(d => new RepostDestinationDataDto
 					{
 						Id = d.Id,
-						ChatIdentifier = d.ChatId
+						ChatIdentifier = d.ChatId,
+						DelayMinSeconds = d.DelayMinSeconds,
+						DelayMaxSeconds = d.DelayMaxSeconds,
+						RepostEveryNth = d.RepostEveryNth,
+						SkipProbability = d.SkipProbability,
+						MaxRepostsPerDay = d.MaxRepostsPerDay
 					}).ToList()
 			})
 			.FirstOrDefaultAsync(ct);
@@ -63,5 +68,28 @@ internal sealed class RepostMessageConsumerStorage(PosterContext context) : IRep
 		destination.InfoUpdatedAt = DateTimeOffset.UtcNow;
 
 		await context.SaveChangesAsync(ct);
+	}
+
+	public async Task<int> IncrementRepostCounterAsync(Guid destinationId, CancellationToken ct)
+	{
+		var destination = await context.Set<RepostDestination>()
+			.FirstAsync(x => x.Id == destinationId, ct);
+
+		destination.RepostCounter++;
+		await context.SaveChangesAsync(ct);
+
+		return destination.RepostCounter;
+	}
+
+	public Task<int> GetTodayRepostCountAsync(Guid destinationId, CancellationToken ct)
+	{
+		var todayUtc = DateTime.UtcNow.Date;
+
+		return context.Set<RepostLog>()
+			.Where(l => l.RepostDestinationId == destinationId
+			            && l.Status == RepostStatus.Success
+			            && l.RepostedAt != null
+			            && l.RepostedAt.Value >= todayUtc)
+			.CountAsync(ct);
 	}
 }

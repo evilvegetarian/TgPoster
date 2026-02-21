@@ -8,7 +8,15 @@ public interface IUpdateRepostDestinationStorage
 	Task<bool> DestinationExistsAsync(Guid id, CancellationToken ct);
 
 	/// <summary>
-	///     Обновляет статус активности целевого канала.
+	///     Обновляет настройки целевого канала.
 	/// </summary>
-	Task UpdateDestinationAsync(Guid id, bool isActive, CancellationToken ct);
+	Task UpdateDestinationAsync(
+		Guid id,
+		bool isActive,
+		int delayMinSeconds,
+		int delayMaxSeconds,
+		int repostEveryNth,
+		int skipProbability,
+		int? maxRepostsPerDay,
+		CancellationToken ct);
 }

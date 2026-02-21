@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace TgPoster.Storage.Db.Migrations
+namespace TgPoster.Storage.Data.Db.Migrations
 {
     /// <inheritdoc />
     public partial class AddRepostDestinationChannelInfo : Migration
@@ -32,6 +32,20 @@ namespace TgPoster.Storage.Db.Migrations
                 nullable: false,
                 defaultValue: 2);
 
+            migrationBuilder.AddColumn<int>(
+                name: "DelayMaxSeconds",
+                table: "RepostDestinations",
+                type: "integer",
+                nullable: false,
+                defaultValue: 0);
+
+            migrationBuilder.AddColumn<int>(
+                name: "DelayMinSeconds",
+                table: "RepostDestinations",
+                type: "integer",
+                nullable: false,
+                defaultValue: 0);
+
             migrationBuilder.AddColumn<DateTimeOffset>(
                 name: "InfoUpdatedAt",
                 table: "RepostDestinations",
@@ -39,10 +53,37 @@ namespace TgPoster.Storage.Db.Migrations
                 nullable: true);
 
             migrationBuilder.AddColumn<int>(
+                name: "MaxRepostsPerDay",
+                table: "RepostDestinations",
+                type: "integer",
+                nullable: true);
+
+            migrationBuilder.AddColumn<int>(
                 name: "MemberCount",
                 table: "RepostDestinations",
                 type: "integer",
                 nullable: true);
+
+            migrationBuilder.AddColumn<int>(
+                name: "RepostCounter",
+                table: "RepostDestinations",
+                type: "integer",
+                nullable: false,
+                defaultValue: 0);
+
+            migrationBuilder.AddColumn<int>(
+                name: "RepostEveryNth",
+                table: "RepostDestinations",
+                type: "integer",
+                nullable: false,
+                defaultValue: 1);
+
+            migrationBuilder.AddColumn<int>(
+                name: "SkipProbability",
+                table: "RepostDestinations",
+                type: "integer",
+                nullable: false,
+                defaultValue: 0);
 
             migrationBuilder.AddColumn<string>(
                 name: "Title",
@@ -75,11 +116,35 @@ namespace TgPoster.Storage.Db.Migrations
                 table: "RepostDestinations");
 
             migrationBuilder.DropColumn(
+                name: "DelayMaxSeconds",
+                table: "RepostDestinations");
+
+            migrationBuilder.DropColumn(
+                name: "DelayMinSeconds",
+                table: "RepostDestinations");
+
+            migrationBuilder.DropColumn(
                 name: "InfoUpdatedAt",
                 table: "RepostDestinations");
 
             migrationBuilder.DropColumn(
+                name: "MaxRepostsPerDay",
+                table: "RepostDestinations");
+
+            migrationBuilder.DropColumn(
                 name: "MemberCount",
+                table: "RepostDestinations");
+
+            migrationBuilder.DropColumn(
+                name: "RepostCounter",
+                table: "RepostDestinations");
+
+            migrationBuilder.DropColumn(
+                name: "RepostEveryNth",
+                table: "RepostDestinations");
+
+            migrationBuilder.DropColumn(
+                name: "SkipProbability",
                 table: "RepostDestinations");
 
             migrationBuilder.DropColumn(

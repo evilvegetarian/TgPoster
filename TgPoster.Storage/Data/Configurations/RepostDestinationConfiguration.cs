@@ -35,6 +35,21 @@ internal sealed class RepostDestinationConfiguration : BaseEntityConfiguration<R
 		builder.Property(x => x.AvatarBase64)
 			.HasMaxLength(50000);
 
+		builder.Property(x => x.DelayMinSeconds)
+			.HasDefaultValue(0);
+
+		builder.Property(x => x.DelayMaxSeconds)
+			.HasDefaultValue(0);
+
+		builder.Property(x => x.RepostEveryNth)
+			.HasDefaultValue(1);
+
+		builder.Property(x => x.SkipProbability)
+			.HasDefaultValue(0);
+
+		builder.Property(x => x.RepostCounter)
+			.HasDefaultValue(0);
+
 		builder.HasIndex(x => x.RepostSettingsId);
 
 		builder.HasOne(x => x.RepostSettings)

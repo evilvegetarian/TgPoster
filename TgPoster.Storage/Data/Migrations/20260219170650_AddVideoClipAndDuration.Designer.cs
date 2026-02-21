@@ -9,7 +9,7 @@ using TgPoster.Storage.Data;
 
 #nullable disable
 
-namespace TgPoster.Storage.Db.Migrations
+namespace TgPoster.Storage.Data.Migrations
 {
     [DbContext(typeof(PosterContext))]
     [Migration("20260219170650_AddVideoClipAndDuration")]

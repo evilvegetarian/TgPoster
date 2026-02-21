@@ -11,6 +11,7 @@ using TgPoster.API.Domain.UseCases.Repost.GetRepostSettings;
 using TgPoster.API.Domain.UseCases.Repost.ListRepostSettings;
 using TgPoster.API.Domain.UseCases.Repost.RefreshDestinationInfo;
 using TgPoster.API.Domain.UseCases.Repost.UpdateRepostDestination;
+using TgPoster.API.Domain.UseCases.Repost.UpdateRepostSettings;
 using TgPoster.API.Models;
 
 namespace TgPoster.API.Controllers;
@@ -99,6 +100,30 @@ public sealed class RepostController(ISender sender) : ControllerBase
 	}
 
 	/// <summary>
+	///     Обновление настроек репоста (рандомность, активность).
+	/// </summary>
+	/// <param name="id">ID настроек репоста</param>
+	/// <param name="request">Данные для обновления</param>
+	/// <param name="ct">Токен отмены операции</param>
+	/// <returns>204 No Content при успешном обновлении</returns>
+	[HttpPut(Routes.Repost.UpdateSettings)]
+	[ProducesResponseType(StatusCodes.Status204NoContent)]
+	[ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
+	[ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
+	[ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
+	public async Task<IActionResult> UpdateSettings(
+		[FromRoute] [Required] Guid id,
+		[FromBody] [Required] UpdateRepostSettingsRequest request,
+		CancellationToken ct)
+	{
+		var command = new UpdateRepostSettingsCommand(id, request.IsActive);
+
+		await sender.Send(command, ct);
+
+		return NoContent();
+	}
+
+	/// <summary>
 	///     Добавление целевого канала для репоста.
 	/// </summary>
 	/// <param name="settingsId">ID настроек репоста</param>
@@ -159,7 +184,14 @@ public sealed class RepostController(ISender sender) : ControllerBase
 		[FromBody] [Required] UpdateRepostDestinationRequest request,
 		CancellationToken ct)
 	{
-		var command = new UpdateRepostDestinationCommand(id, request.IsActive);
+		var command = new UpdateRepostDestinationCommand(
+			id,
+			request.IsActive,
+			request.DelayMinSeconds,
+			request.DelayMaxSeconds,
+			request.RepostEveryNth,
+			request.SkipProbability,
+			request.MaxRepostsPerDay);
 		await sender.Send(command, ct);
 
 		return NoContent();

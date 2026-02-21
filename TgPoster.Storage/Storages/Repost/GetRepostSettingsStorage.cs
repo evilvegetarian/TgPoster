@@ -31,7 +31,12 @@ internal sealed class GetRepostSettingsStorage(PosterContext context) : IGetRepo
 					ChatType = d.ChatType,
 					ChatStatus = d.ChatStatus,
 					AvatarBase64 = d.AvatarBase64,
-					InfoUpdatedAt = d.InfoUpdatedAt
+					InfoUpdatedAt = d.InfoUpdatedAt,
+					DelayMinSeconds = d.DelayMinSeconds,
+					DelayMaxSeconds = d.DelayMaxSeconds,
+					RepostEveryNth = d.RepostEveryNth,
+					SkipProbability = d.SkipProbability,
+					MaxRepostsPerDay = d.MaxRepostsPerDay
 				}).ToList()
 			})
 			.FirstOrDefaultAsync(ct);

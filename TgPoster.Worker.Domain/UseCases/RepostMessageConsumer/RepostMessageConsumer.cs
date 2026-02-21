@@ -9,7 +9,7 @@ namespace TgPoster.Worker.Domain.UseCases.RepostMessageConsumer;
 internal sealed class RepostMessageConsumer(
 	IRepostMessageConsumerStorage storage,
 	TelegramAuthService authService,
-	ILogger<RepostMessageConsumer> logger) 
+	ILogger<RepostMessageConsumer> logger)
 	: IConsumer<RepostMessageCommand>
 {
 	public async Task Consume(ConsumeContext<RepostMessageCommand> context)
@@ -58,6 +58,21 @@ internal sealed class RepostMessageConsumer(
 			{
 				continue;
 			}
+
+			if (!await ShouldRepostToDestinationAsync(dest, command.MessageId, context.CancellationToken))
+			{
+				continue;
+			}
+
+			if (dest.DelayMaxSeconds > 0)
+			{
+				var delaySec = Random.Shared.Next(dest.DelayMinSeconds, dest.DelayMaxSeconds + 1);
+				logger.LogInformation(
+					"Задержка {Delay} сек. перед репостом в {ChatId}",
+					delaySec, destination.ID);
+				await Task.Delay(TimeSpan.FromSeconds(delaySec), context.CancellationToken);
+			}
+
 			try
 			{
 				var result = await client.Messages_ForwardMessages(
@@ -118,5 +133,41 @@ internal sealed class RepostMessageConsumer(
 		}
 
 		logger.LogInformation("Завершена обработка репоста для сообщения {MessageId}", command.MessageId);
+	}
+
+	private async Task<bool> ShouldRepostToDestinationAsync(
+		RepostDestinationDataDto dest, Guid messageId, CancellationToken ct)
+	{
+		var counter = await storage.IncrementRepostCounterAsync(dest.Id, ct);
+
+		if (dest.RepostEveryNth > 1 && counter % dest.RepostEveryNth != 0)
+		{
+			logger.LogInformation(
+				"Репост пропущен для канала {DestId}: счётчик {Counter}, каждое {N}-е",
+				dest.Id, counter, dest.RepostEveryNth);
+			return false;
+		}
+
+		if (dest.SkipProbability > 0 && Random.Shared.Next(100) < dest.SkipProbability)
+		{
+			logger.LogInformation(
+				"Репост случайно пропущен для канала {DestId}: вероятность {Probability}%",
+				dest.Id, dest.SkipProbability);
+			return false;
+		}
+
+		if (dest.MaxRepostsPerDay.HasValue)
+		{
+			var todayCount = await storage.GetTodayRepostCountAsync(dest.Id, ct);
+			if (todayCount >= dest.MaxRepostsPerDay.Value)
+			{
+				logger.LogInformation(
+					"Репост пропущен для канала {DestId}: дневной лимит {Limit} исчерпан ({Count})",
+					dest.Id, dest.MaxRepostsPerDay.Value, todayCount);
+				return false;
+			}
+		}
+
+		return true;
 	}
 }
