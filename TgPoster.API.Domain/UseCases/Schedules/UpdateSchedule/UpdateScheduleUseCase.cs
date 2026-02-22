@@ -8,6 +8,6 @@ internal sealed class UpdateScheduleUseCase(IUpdateScheduleStorage storage, IIde
 {
 	public async Task Handle(UpdateScheduleCommand request, CancellationToken ct)
 	{
-		await storage.UpdateScheduleAsync(request.Id, provider.Current.UserId, request.YouTubeAccountId, ct);
+		await storage.UpdateScheduleAsync(request.Id, provider.Current.UserId, request.Name, request.YouTubeAccountId, ct);
 	}
 }
