@@ -5,7 +5,8 @@ import {Input} from "@/components/ui/input.tsx"
 import {Label} from "@/components/ui/label.tsx"
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select.tsx"
 import {Badge} from "@/components/ui/badge.tsx"
-import {ArrowLeft, Calendar, Clock, Loader2, Plus, Power, PowerOff, Save, Settings, Trash2, X,} from "lucide-react"
+import {ArrowLeft, Calendar, Clock, Copy, Loader2, Plus, Power, PowerOff, Save, Settings, Trash2, X,} from "lucide-react"
+import {Checkbox} from "@/components/ui/checkbox.tsx"
 import {Separator} from "@/components/ui/separator.tsx"
 import {toast} from "sonner"
 import {
@@ -138,6 +139,8 @@ export function SchedulePage() {
     const [newTimeSlot, setNewTimeSlot] = useState<NewTimeSlot>({...DEFAULT_NEW_TIME_SLOT})
     const [intervalTimeSlot, setIntervalTimeSlot] = useState<IntervalTimeSlot>({...DEFAULT_INTERVAL_TIME_SLOT})
     const [popoverOpenForDay, setPopoverOpenForDay] = useState<DayOfWeek | null>(null)
+    const [copyFromDay, setCopyFromDay] = useState<DayOfWeek | null>(null)
+    const [copyTargetDays, setCopyTargetDays] = useState<DayOfWeek[]>([])
 
     const {
         data: scheduleDaysData,
@@ -306,6 +309,44 @@ export function SchedulePage() {
             }
         )
     }
+    const copyTimesToDays = () => {
+        if (!editingSchedule || !copyFromDay || copyTargetDays.length === 0) return
+
+        const sourceTimes = getTimesForDay(copyFromDay)
+        if (sourceTimes.length === 0) return
+
+        const utcTimes = sourceTimes.map(time => convertLocalToIsoTime(time))
+
+        let completed = 0
+        for (const targetDay of copyTargetDays) {
+            updateTimeMutate(
+                {
+                    data: {
+                        scheduleId: editingSchedule.id,
+                        dayOfWeek: targetDay,
+                        times: utcTimes,
+                    },
+                },
+                {
+                    onSuccess: () => {
+                        completed++
+                        if (completed === copyTargetDays.length) {
+                            toast.success(`Время скопировано на ${copyTargetDays.length} дн.`)
+                            setCopyFromDay(null)
+                            setCopyTargetDays([])
+                        }
+                    },
+                }
+            )
+        }
+    }
+
+    const toggleCopyTargetDay = (day: DayOfWeek) => {
+        setCopyTargetDays(prev =>
+            prev.includes(day) ? prev.filter(d => d !== day) : [...prev, day]
+        )
+    }
+
     const removeTimeFromDay = (dayOfWeek: DayOfWeek, timeToRemove: string) => {
         if (!editingSchedule) return
 
@@ -551,8 +592,70 @@ export function SchedulePage() {
                                                     <Label className="text-base font-medium">
                                                         {DAY_NAMES[dayOfWeek] ?? "Неизвестный день"}
                                                     </Label>
-                                                    <Button
+                                                    <div className="flex items-center gap-2">
+                                                    <Button variant="outline" size="sm"
                                                         onClick={() => removeAllTimeFromDay(dayOfWeek)}>Стереть</Button>
+                                                    {getTimesForDay(dayOfWeek).length > 0 && (
+                                                        <Popover
+                                                            open={copyFromDay === dayOfWeek}
+                                                            onOpenChange={(isOpen) => {
+                                                                setCopyFromDay(isOpen ? dayOfWeek : null)
+                                                                if (!isOpen) setCopyTargetDays([])
+                                                            }}
+                                                        >
+                                                            <PopoverTrigger asChild>
+                                                                <Button variant="outline" size="sm" className="flex items-center gap-2">
+                                                                    <Copy className="h-4 w-4"/>
+                                                                    Копировать
+                                                                </Button>
+                                                            </PopoverTrigger>
+                                                            <PopoverContent className="w-64">
+                                                                <div className="grid gap-4">
+                                                                    <div className="space-y-1.5">
+                                                                        <h4 className="font-medium leading-none">Копировать на дни</h4>
+                                                                        <p className="text-sm text-muted-foreground">
+                                                                            Выберите дни для копирования времени
+                                                                        </p>
+                                                                    </div>
+                                                                    <div className="space-y-2">
+                                                                        {DAYS_ORDER.filter(d => d !== dayOfWeek).map(d => (
+                                                                            <div key={d} className="flex items-center gap-2">
+                                                                                <Checkbox
+                                                                                    id={`copy-${d}`}
+                                                                                    checked={copyTargetDays.includes(d)}
+                                                                                    onCheckedChange={() => toggleCopyTargetDay(d)}
+                                                                                />
+                                                                                <label htmlFor={`copy-${d}`} className="text-sm cursor-pointer">
+                                                                                    {DAY_NAMES[d]}
+                                                                                </label>
+                                                                            </div>
+                                                                        ))}
+                                                                    </div>
+                                                                    <div className="flex gap-2">
+                                                                        <Button
+                                                                            size="sm"
+                                                                            onClick={copyTimesToDays}
+                                                                            disabled={copyTargetDays.length === 0 || updateTimePending}
+                                                                        >
+                                                                            {updateTimePending ? (
+                                                                                <Loader2 className="h-4 w-4 mr-2 animate-spin"/>
+                                                                            ) : (
+                                                                                <Copy className="h-4 w-4 mr-2"/>
+                                                                            )}
+                                                                            Применить
+                                                                        </Button>
+                                                                        <Button variant="outline" size="sm" onClick={() => {
+                                                                            setCopyFromDay(null)
+                                                                            setCopyTargetDays([])
+                                                                        }}>
+                                                                            Отмена
+                                                                        </Button>
+                                                                    </div>
+                                                                </div>
+                                                            </PopoverContent>
+                                                        </Popover>
+                                                    )}
+                                                    </div>
                                                     <Popover
                                                         open={popoverOpenForDay === dayOfWeek}
                                                         onOpenChange={(isOpen) => setPopoverOpenForDay(isOpen ? dayOfWeek : null)}
