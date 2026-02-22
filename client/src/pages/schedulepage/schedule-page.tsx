@@ -35,15 +35,12 @@ import {useGetApiV1Youtube} from "@/api/endpoints/you-tube-account/you-tube-acco
 
 
 interface NewTimeSlot {
-    hour: string
-    minute: string
+    time: string
 }
 
 interface IntervalTimeSlot {
-    startHour: string
-    startMinute: string
-    endHour: string
-    endMinute: string
+    startTime: string
+    endTime: string
     intervalMinutes: number
 }
 
@@ -52,8 +49,6 @@ interface ScheduleDay {
     timePostings?: string[] | null
 }
 
-const HOURS = Array.from({length: 24}, (_, i) => i.toString().padStart(2, "0"))
-const MINUTES = Array.from({length: 60}, (_, i) => i.toString().padStart(2, "0"))
 const DAYS_ORDER: DayOfWeek[] = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
 export const DAY_NAMES: Record<string, string> = {
     'Monday': "Понедельник",
@@ -66,15 +61,12 @@ export const DAY_NAMES: Record<string, string> = {
 };
 
 const DEFAULT_NEW_TIME_SLOT: NewTimeSlot = {
-    hour: "09",
-    minute: "00",
+    time: "09:00",
 }
 
 const DEFAULT_INTERVAL_TIME_SLOT: IntervalTimeSlot = {
-    startHour: "09",
-    startMinute: "00",
-    endHour: "22",
-    endMinute: "00",
+    startTime: "09:00",
+    endTime: "22:00",
     intervalMinutes: 120,
 }
 
@@ -230,7 +222,7 @@ export function SchedulePage() {
         const currentTimes = existingDay?.timePostings || []
 
         if (timeMode === "single") {
-            const time = `${newTimeSlot.hour}:${newTimeSlot.minute}`
+            const time = newTimeSlot.time
             const allTimes = [...currentTimes, time]?.map(time => convertLocalToIsoTime(time))
             updateTimeMutate(
                 {
@@ -248,8 +240,10 @@ export function SchedulePage() {
                 }
             )
         } else {
-            const startMinutes = Number.parseInt(intervalTimeSlot.startHour) * 60 + Number.parseInt(intervalTimeSlot.startMinute)
-            const endMinutes = Number.parseInt(intervalTimeSlot.endHour) * 60 + Number.parseInt(intervalTimeSlot.endMinute)
+            const [sh, sm] = intervalTimeSlot.startTime.split(":")
+            const [eh, em] = intervalTimeSlot.endTime.split(":")
+            const startMinutes = Number.parseInt(sh) * 60 + Number.parseInt(sm)
+            const endMinutes = Number.parseInt(eh) * 60 + Number.parseInt(em)
 
             if (intervalTimeSlot.intervalMinutes <= 0) {
                 toast.error("Интервал должен быть больше нуля")
@@ -593,295 +587,180 @@ export function SchedulePage() {
                                                         {DAY_NAMES[dayOfWeek] ?? "Неизвестный день"}
                                                     </Label>
                                                     <div className="flex items-center gap-2">
-                                                    <Button variant="outline" size="sm"
-                                                        onClick={() => removeAllTimeFromDay(dayOfWeek)}>Стереть</Button>
-                                                    {getTimesForDay(dayOfWeek).length > 0 && (
+                                                        <Button variant="outline" size="sm"
+                                                            onClick={() => removeAllTimeFromDay(dayOfWeek)}>
+                                                            Стереть
+                                                        </Button>
+                                                        {getTimesForDay(dayOfWeek).length > 0 && (
+                                                            <Popover
+                                                                open={copyFromDay === dayOfWeek}
+                                                                onOpenChange={(isOpen) => {
+                                                                    setCopyFromDay(isOpen ? dayOfWeek : null)
+                                                                    if (!isOpen) setCopyTargetDays([])
+                                                                }}
+                                                            >
+                                                                <PopoverTrigger asChild>
+                                                                    <Button variant="outline" size="sm" className="flex items-center gap-2">
+                                                                        <Copy className="h-4 w-4"/>
+                                                                        Копировать
+                                                                    </Button>
+                                                                </PopoverTrigger>
+                                                                <PopoverContent className="w-64">
+                                                                    <div className="grid gap-4">
+                                                                        <div className="space-y-1.5">
+                                                                            <h4 className="font-medium leading-none">Копировать на дни</h4>
+                                                                            <p className="text-sm text-muted-foreground">
+                                                                                Выберите дни для копирования времени
+                                                                            </p>
+                                                                        </div>
+                                                                        <div className="space-y-2">
+                                                                            {DAYS_ORDER.filter(d => d !== dayOfWeek).map(d => (
+                                                                                <div key={d} className="flex items-center gap-2">
+                                                                                    <Checkbox
+                                                                                        id={`copy-${d}`}
+                                                                                        checked={copyTargetDays.includes(d)}
+                                                                                        onCheckedChange={() => toggleCopyTargetDay(d)}
+                                                                                    />
+                                                                                    <label htmlFor={`copy-${d}`} className="text-sm cursor-pointer">
+                                                                                        {DAY_NAMES[d]}
+                                                                                    </label>
+                                                                                </div>
+                                                                            ))}
+                                                                        </div>
+                                                                        <div className="flex gap-2">
+                                                                            <Button
+                                                                                size="sm"
+                                                                                onClick={copyTimesToDays}
+                                                                                disabled={copyTargetDays.length === 0 || updateTimePending}
+                                                                            >
+                                                                                {updateTimePending ? (
+                                                                                    <Loader2 className="h-4 w-4 mr-2 animate-spin"/>
+                                                                                ) : (
+                                                                                    <Copy className="h-4 w-4 mr-2"/>
+                                                                                )}
+                                                                                Применить
+                                                                            </Button>
+                                                                            <Button variant="outline" size="sm" onClick={() => {
+                                                                                setCopyFromDay(null)
+                                                                                setCopyTargetDays([])
+                                                                            }}>
+                                                                                Отмена
+                                                                            </Button>
+                                                                        </div>
+                                                                    </div>
+                                                                </PopoverContent>
+                                                            </Popover>
+                                                        )}
                                                         <Popover
-                                                            open={copyFromDay === dayOfWeek}
-                                                            onOpenChange={(isOpen) => {
-                                                                setCopyFromDay(isOpen ? dayOfWeek : null)
-                                                                if (!isOpen) setCopyTargetDays([])
-                                                            }}
+                                                            open={popoverOpenForDay === dayOfWeek}
+                                                            onOpenChange={(isOpen) => setPopoverOpenForDay(isOpen ? dayOfWeek : null)}
                                                         >
                                                             <PopoverTrigger asChild>
-                                                                <Button variant="outline" size="sm" className="flex items-center gap-2">
-                                                                    <Copy className="h-4 w-4"/>
-                                                                    Копировать
+                                                                <Button variant="outline" size="sm"
+                                                                        className="flex items-center gap-2">
+                                                                    <Plus className="h-4 w-4"/>
+                                                                    Добавить время
                                                                 </Button>
                                                             </PopoverTrigger>
-                                                            <PopoverContent className="w-64">
+                                                            <PopoverContent className="w-80">
                                                                 <div className="grid gap-4">
                                                                     <div className="space-y-1.5">
-                                                                        <h4 className="font-medium leading-none">Копировать на дни</h4>
+                                                                        <h4 className="font-medium leading-none">Добавить время</h4>
                                                                         <p className="text-sm text-muted-foreground">
-                                                                            Выберите дни для копирования времени
+                                                                            Выберите способ добавления для
+                                                                            «{DAY_NAMES[dayOfWeek] ?? "Неизвестный день"}».
                                                                         </p>
                                                                     </div>
-                                                                    <div className="space-y-2">
-                                                                        {DAYS_ORDER.filter(d => d !== dayOfWeek).map(d => (
-                                                                            <div key={d} className="flex items-center gap-2">
-                                                                                <Checkbox
-                                                                                    id={`copy-${d}`}
-                                                                                    checked={copyTargetDays.includes(d)}
-                                                                                    onCheckedChange={() => toggleCopyTargetDay(d)}
+
+                                                                    <Tabs value={timeMode}
+                                                                          onValueChange={(value) => setTimeMode(value as "single" | "interval")}>
+                                                                        <TabsList className="grid w-full grid-cols-2">
+                                                                            <TabsTrigger value="single">Точное время</TabsTrigger>
+                                                                            <TabsTrigger value="interval">Интервал</TabsTrigger>
+                                                                        </TabsList>
+
+                                                                        <TabsContent value="single" className="pt-4 space-y-4">
+                                                                            <div className="flex items-center gap-2">
+                                                                                <Label className="text-sm font-medium">Время:</Label>
+                                                                                <Input
+                                                                                    type="time"
+                                                                                    value={newTimeSlot.time}
+                                                                                    onChange={(e) => setNewTimeSlot({time: e.target.value})}
+                                                                                    className="w-32"
                                                                                 />
-                                                                                <label htmlFor={`copy-${d}`} className="text-sm cursor-pointer">
-                                                                                    {DAY_NAMES[d]}
-                                                                                </label>
                                                                             </div>
-                                                                        ))}
-                                                                    </div>
+                                                                        </TabsContent>
+
+                                                                        <TabsContent value="interval" className="pt-4 space-y-4">
+                                                                            <div className="grid grid-cols-2 gap-4">
+                                                                                <div className="space-y-2">
+                                                                                    <Label className="text-sm font-medium">Начало</Label>
+                                                                                    <Input
+                                                                                        type="time"
+                                                                                        value={intervalTimeSlot.startTime}
+                                                                                        onChange={(e) => setIntervalTimeSlot((prev) => ({
+                                                                                            ...prev,
+                                                                                            startTime: e.target.value
+                                                                                        }))}
+                                                                                    />
+                                                                                </div>
+                                                                                <div className="space-y-2">
+                                                                                    <Label className="text-sm font-medium">Окончание</Label>
+                                                                                    <Input
+                                                                                        type="time"
+                                                                                        value={intervalTimeSlot.endTime}
+                                                                                        onChange={(e) => setIntervalTimeSlot((prev) => ({
+                                                                                            ...prev,
+                                                                                            endTime: e.target.value
+                                                                                        }))}
+                                                                                    />
+                                                                                </div>
+                                                                            </div>
+                                                                            <div className="space-y-2">
+                                                                                <Label className="text-sm font-medium">Интервал (минуты)</Label>
+                                                                                <Input
+                                                                                    type="number"
+                                                                                    value={intervalTimeSlot.intervalMinutes}
+                                                                                    onChange={(e) => setIntervalTimeSlot((prev) => ({
+                                                                                        ...prev,
+                                                                                        intervalMinutes: Number.parseInt(e.target.value) || 0,
+                                                                                    }))}
+                                                                                />
+                                                                            </div>
+                                                                        </TabsContent>
+                                                                    </Tabs>
+
                                                                     <div className="flex gap-2">
                                                                         <Button
                                                                             size="sm"
-                                                                            onClick={copyTimesToDays}
-                                                                            disabled={copyTargetDays.length === 0 || updateTimePending}
+                                                                            onClick={() => addTimeToDay(dayOfWeek)}
+                                                                            disabled={updateTimePending}
                                                                         >
                                                                             {updateTimePending ? (
-                                                                                <Loader2 className="h-4 w-4 mr-2 animate-spin"/>
+                                                                                <>
+                                                                                    <Loader2 className="h-4 w-4 mr-2 animate-spin"/>
+                                                                                    Добавление...
+                                                                                </>
                                                                             ) : (
-                                                                                <Copy className="h-4 w-4 mr-2"/>
+                                                                                <>
+                                                                                    <Save className="h-4 w-4 mr-2"/>
+                                                                                    Добавить
+                                                                                </>
                                                                             )}
-                                                                            Применить
                                                                         </Button>
-                                                                        <Button variant="outline" size="sm" onClick={() => {
-                                                                            setCopyFromDay(null)
-                                                                            setCopyTargetDays([])
-                                                                        }}>
+                                                                        <Button
+                                                                            variant="outline"
+                                                                            size="sm"
+                                                                            onClick={() => setPopoverOpenForDay(null)}
+                                                                        >
+                                                                            <X className="h-4 w-4 mr-2"/>
                                                                             Отмена
                                                                         </Button>
                                                                     </div>
                                                                 </div>
                                                             </PopoverContent>
                                                         </Popover>
-                                                    )}
                                                     </div>
-                                                    <Popover
-                                                        open={popoverOpenForDay === dayOfWeek}
-                                                        onOpenChange={(isOpen) => setPopoverOpenForDay(isOpen ? dayOfWeek : null)}
-                                                    >
-                                                        <PopoverTrigger asChild>
-                                                            <Button variant="outline" size="sm"
-                                                                    className="flex items-center gap-2">
-                                                                <Plus className="h-4 w-4"/>
-                                                                Добавить время
-                                                            </Button>
-                                                        </PopoverTrigger>
-                                                        <PopoverContent className="w-[26rem]">
-                                                            <div className="grid gap-4">
-                                                                <div className="space-y-1.5">
-                                                                    <h4 className="font-medium leading-none">Добавить
-                                                                        время</h4>
-                                                                    <p className="text-sm text-muted-foreground">
-                                                                        Выберите способ добавления для
-                                                                        «{DAY_NAMES[dayOfWeek] ?? "Неизвестный день"}».
-                                                                    </p>
-                                                                </div>
-
-                                                                <Tabs value={timeMode}
-                                                                      onValueChange={(value) => setTimeMode(value as "single" | "interval")}>
-                                                                    <TabsList className="grid w-full grid-cols-2">
-                                                                        <TabsTrigger value="single">Точное
-                                                                            время</TabsTrigger>
-                                                                        <TabsTrigger
-                                                                            value="interval">Интервал</TabsTrigger>
-                                                                    </TabsList>
-
-                                                                    <TabsContent value="single"
-                                                                                 className="pt-4 space-y-4">
-                                                                        <div className="flex items-center gap-2">
-                                                                            <Label
-                                                                                className="text-sm font-medium">Время:</Label>
-                                                                            <Select
-                                                                                value={newTimeSlot.hour}
-                                                                                onValueChange={(value) => setNewTimeSlot((prev) => ({
-                                                                                    ...prev,
-                                                                                    hour: value
-                                                                                }))}
-                                                                            >
-                                                                                <SelectTrigger className="w-24">
-                                                                                    <SelectValue/>
-                                                                                </SelectTrigger>
-                                                                                <SelectContent>
-                                                                                    {HOURS.map((hour) => (
-                                                                                        <SelectItem key={hour}
-                                                                                                    value={hour}>
-                                                                                            {hour}
-                                                                                        </SelectItem>
-                                                                                    ))}
-                                                                                </SelectContent>
-                                                                            </Select>
-                                                                            <span>:</span>
-                                                                            <Select
-                                                                                value={newTimeSlot.minute}
-                                                                                onValueChange={(value) => setNewTimeSlot((prev) => ({
-                                                                                    ...prev,
-                                                                                    minute: value
-                                                                                }))}
-                                                                            >
-                                                                                <SelectTrigger className="w-24">
-                                                                                    <SelectValue/>
-                                                                                </SelectTrigger>
-                                                                                <SelectContent>
-                                                                                    {MINUTES.map((minute) => (
-                                                                                        <SelectItem key={minute}
-                                                                                                    value={minute}>
-                                                                                            {minute}
-                                                                                        </SelectItem>
-                                                                                    ))}
-                                                                                </SelectContent>
-                                                                            </Select>
-                                                                        </div>
-                                                                    </TabsContent>
-
-                                                                    <TabsContent value="interval"
-                                                                                 className="pt-4 space-y-4">
-                                                                        <div className="grid grid-cols-2 gap-4">
-                                                                            <div className="space-y-2">
-                                                                                <Label
-                                                                                    className="text-sm font-medium">Начало</Label>
-                                                                                <div
-                                                                                    className="flex items-center gap-2">
-                                                                                    <Select
-                                                                                        value={intervalTimeSlot.startHour}
-                                                                                        onValueChange={(value) => setIntervalTimeSlot((prev) => ({
-                                                                                            ...prev,
-                                                                                            startHour: value
-                                                                                        }))}
-                                                                                    >
-                                                                                        <SelectTrigger
-                                                                                            className="flex-1">
-                                                                                            <SelectValue/>
-                                                                                        </SelectTrigger>
-                                                                                        <SelectContent>
-                                                                                            {HOURS.map((hour) => (
-                                                                                                <SelectItem key={hour}
-                                                                                                            value={hour}>
-                                                                                                    {hour}
-                                                                                                </SelectItem>
-                                                                                            ))}
-                                                                                        </SelectContent>
-                                                                                    </Select>
-                                                                                    :
-                                                                                    <Select
-                                                                                        value={intervalTimeSlot.startMinute}
-                                                                                        onValueChange={(value) => setIntervalTimeSlot((prev) => ({
-                                                                                            ...prev,
-                                                                                            startMinute: value
-                                                                                        }))}
-                                                                                    >
-                                                                                        <SelectTrigger
-                                                                                            className="flex-1">
-                                                                                            <SelectValue/>
-                                                                                        </SelectTrigger>
-                                                                                        <SelectContent>
-                                                                                            {MINUTES.map((minute) => (
-                                                                                                <SelectItem key={minute}
-                                                                                                            value={minute}>
-                                                                                                    {minute}
-                                                                                                </SelectItem>
-                                                                                            ))}
-                                                                                        </SelectContent>
-                                                                                    </Select>
-                                                                                </div>
-                                                                            </div>
-
-                                                                            <div className="space-y-2">
-                                                                                <Label
-                                                                                    className="text-sm font-medium">Окончание</Label>
-                                                                                <div
-                                                                                    className="flex items-center gap-2">
-                                                                                    <Select
-                                                                                        value={intervalTimeSlot.endHour}
-                                                                                        onValueChange={(value) => setIntervalTimeSlot((prev) => ({
-                                                                                            ...prev,
-                                                                                            endHour: value
-                                                                                        }))}
-                                                                                    >
-                                                                                        <SelectTrigger
-                                                                                            className="flex-1">
-                                                                                            <SelectValue/>
-                                                                                        </SelectTrigger>
-                                                                                        <SelectContent>
-                                                                                            {HOURS.map((hour) => (
-                                                                                                <SelectItem key={hour}
-                                                                                                            value={hour}>
-                                                                                                    {hour}
-                                                                                                </SelectItem>
-                                                                                            ))}
-                                                                                        </SelectContent>
-                                                                                    </Select>
-                                                                                    :
-                                                                                    <Select
-                                                                                        value={intervalTimeSlot.endMinute}
-                                                                                        onValueChange={(value) => setIntervalTimeSlot((prev) => ({
-                                                                                            ...prev,
-                                                                                            endMinute: value
-                                                                                        }))}
-                                                                                    >
-                                                                                        <SelectTrigger
-                                                                                            className="flex-1">
-                                                                                            <SelectValue/>
-                                                                                        </SelectTrigger>
-                                                                                        <SelectContent>
-                                                                                            {MINUTES.map((minute) => (
-                                                                                                <SelectItem key={minute}
-                                                                                                            value={minute}>
-                                                                                                    {minute}
-                                                                                                </SelectItem>
-                                                                                            ))}
-                                                                                        </SelectContent>
-                                                                                    </Select>
-                                                                                </div>
-                                                                            </div>
-                                                                        </div>
-
-                                                                        <div className="space-y-2">
-                                                                            <Label className="text-sm font-medium">Интервал
-                                                                                (минуты)</Label>
-                                                                            <Input
-                                                                                type="number"
-                                                                                value={intervalTimeSlot.intervalMinutes}
-                                                                                onChange={(e) => setIntervalTimeSlot((prev) => ({
-                                                                                    ...prev,
-                                                                                    intervalMinutes: Number.parseInt(e.target.value) || 0,
-                                                                                }))}
-                                                                            />
-                                                                        </div>
-                                                                    </TabsContent>
-                                                                </Tabs>
-
-                                                                <div className="flex gap-2">
-                                                                    <Button
-                                                                        size="sm"
-                                                                        onClick={() => addTimeToDay(dayOfWeek)}
-                                                                        disabled={updateTimePending}
-                                                                    >
-                                                                        {updateTimePending ? (
-                                                                            <>
-                                                                                <Loader2
-                                                                                    className="h-4 w-4 mr-2 animate-spin"/>
-                                                                                Добавление...
-                                                                            </>
-                                                                        ) : (
-                                                                            <>
-                                                                                <Save className="h-4 w-4 mr-2"/>
-                                                                                Добавить
-                                                                            </>
-                                                                        )}
-                                                                    </Button>
-                                                                    <Button
-                                                                        variant="outline"
-                                                                        size="sm"
-                                                                        onClick={() => setPopoverOpenForDay(null)}
-                                                                    >
-                                                                        <X className="h-4 w-4 mr-2"/>
-                                                                        Отмена
-                                                                    </Button>
-                                                                </div>
-                                                            </div>
-                                                        </PopoverContent>
-                                                    </Popover>
                                                 </div>
 
                                                 <div
