@@ -18,12 +18,12 @@ public class CommentRepostMonitorWorker(
 	[DisableConcurrentExecution(60)]
 	public async Task CheckForNewPostsAsync()
 	{
-		logger.LogInformation("Начали проверку новых постов для комментирующего репоста");
+		logger.LogDebug("Начали проверку новых постов для комментирующего репоста");
 
 		var settings = await storage.GetActiveSettingsAsync(lifetime.ApplicationStopping);
 		if (settings.Count == 0)
 		{
-			logger.LogInformation("Нет активных настроек комментирующего репоста");
+			logger.LogDebug("Нет активных настроек комментирующего репоста");
 			return;
 		}
 
