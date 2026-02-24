@@ -17,4 +17,9 @@ public sealed class UpdateScheduleRequest
 	///     Идентификатор YouTube аккаунта (опционально)
 	/// </summary>
 	public Guid? YouTubeAccountId { get; init; }
+
+	/// <summary>
+	///     Идентификатор Telegram бота (опционально)
+	/// </summary>
+	public Guid? TelegramBotId { get; init; }
 }

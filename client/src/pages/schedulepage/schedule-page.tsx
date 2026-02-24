@@ -32,6 +32,7 @@ import {usePutApiV1MessageScheduleIdTimes} from "@/api/endpoints/message/message
 import {convertLocalToIsoTime, convertUtcTimeToLocalTime} from "@/utils/convertLocalToIsoTime.tsx"
 import {CreateScheduleComponent} from "@/pages/schedulepage/create-schedule-component.tsx";
 import {useGetApiV1Youtube} from "@/api/endpoints/you-tube-account/you-tube-account.ts";
+import {useGetApiV1TelegramBot} from "@/api/endpoints/telegram-bot/telegram-bot.ts";
 
 
 interface NewTimeSlot {
@@ -111,6 +112,9 @@ export function SchedulePage() {
 
     const {data: youtubeAccountsData, isLoading: youtubeLoading} = useGetApiV1Youtube();
     const youtubeAccounts = youtubeAccountsData?.items ?? [];
+
+    const {data: botsData, isLoading: botsLoading} = useGetApiV1TelegramBot();
+    const telegramBots = botsData?.items ?? [];
 
     const {mutate: updateScheduleMutate, isPending: updateSchedulePending} = usePutApiV1ScheduleId({
         mutation: {
@@ -373,6 +377,26 @@ export function SchedulePage() {
         });
     }
 
+    function updateTelegramBot(id: string, botId: string) {
+        updateScheduleMutate(
+            {
+                id: id,
+                data: { telegramBotId: botId },
+            },
+            {
+                onSuccess: () => {
+                    refetchSchedules();
+                    const bot = telegramBots.find(b => b.id === botId);
+                    setEditingSchedule(prev => prev ? {
+                        ...prev,
+                        telegramBotId: botId,
+                        botName: bot?.name || prev.botName,
+                    } : null);
+                },
+            }
+        );
+    }
+
     return (
         <div className="max-w-6xl mx-auto p-6 space-y-8">
             <header className="flex items-center justify-between">
@@ -555,6 +579,31 @@ export function SchedulePage() {
                                             {youtubeAccounts.map((account) => (
                                                 <SelectItem key={account.id} value={account.id}>
                                                     {account.name}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                            </div>
+
+                            <div className="flex items-center justify-between rounded-lg border p-4">
+                                <div className="flex items-center gap-2 w-full">
+                                    <Label htmlFor="edit-schedule-bot" className="text-sm min-w-fit">Telegram
+                                        Бот</Label>
+                                    <Select
+                                        value={editingSchedule.telegramBotId}
+                                        onValueChange={(value) => {
+                                            updateTelegramBot(editingSchedule.id, value);
+                                        }}
+                                        disabled={botsLoading || updateSchedulePending}
+                                    >
+                                        <SelectTrigger className="w-full">
+                                            <SelectValue placeholder="Выберите бота"/>
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {telegramBots.map((bot) => (
+                                                <SelectItem key={bot.id} value={bot.id}>
+                                                    {bot.name || `Бот ${bot.id}`}
                                                 </SelectItem>
                                             ))}
                                         </SelectContent>

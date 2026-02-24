@@ -28,6 +28,11 @@ public sealed record ScheduleResponse
 	public required string BotName { get; init; }
 
 	/// <summary>
+	///     Идентификатор телеграмм бота
+	/// </summary>
+	public required Guid TelegramBotId { get; init; }
+
+	/// <summary>
 	///     Id настройки подключения к open router
 	/// </summary>
 	public Guid? OpenRouterId { get; init; }

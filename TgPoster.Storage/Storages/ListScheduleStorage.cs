@@ -16,6 +16,7 @@ internal sealed class ListScheduleStorage(PosterContext context) : IListSchedule
 				ChannelName = x.ChannelName,
 				IsActive = x.IsActive,
 				BotName = x.TelegramBot.Name,
+				TelegramBotId = x.TelegramBotId,
 				OpenRouterId = x.OpenRouterSetting != null ? x.OpenRouterSetting.Id : null,
 				PromptId = x.PromptSetting != null ? x.PromptSetting.Id : null,
 				YouTubeAccountId = x.YouTubeAccountId

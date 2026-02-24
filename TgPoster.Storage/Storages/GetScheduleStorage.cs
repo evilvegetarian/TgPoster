@@ -17,7 +17,8 @@ internal sealed class GetScheduleStorage(PosterContext context) : IGetScheduleSt
 				Name = x.Name,
 				ChannelName = x.ChannelName,
 				IsActive = x.IsActive,
-				BotName = x.TelegramBot.Name
+				BotName = x.TelegramBot.Name,
+				TelegramBotId = x.TelegramBotId
 			})
 			.FirstOrDefaultAsync(ct);
 	}

@@ -603,6 +603,7 @@ export interface ScheduleResponse {
   isActive: boolean;
   channelName: string;
   botName: string;
+  telegramBotId: string;
   /** @nullable */
   openRouterId?: string | null;
   /** @nullable */
@@ -801,6 +802,11 @@ export interface UpdateScheduleRequest {
    * @nullable
    */
   youTubeAccountId?: string | null;
+  /**
+   * Идентификатор Telegram бота (опционально)
+   * @nullable
+   */
+  telegramBotId?: string | null;
 }
 
 /**
