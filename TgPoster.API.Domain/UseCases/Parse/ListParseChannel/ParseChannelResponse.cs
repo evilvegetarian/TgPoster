@@ -25,6 +25,11 @@ public sealed record ParseChannelResponse
 	public DateTime? LastParseDate { get; init; }
 
 	/// <summary>
+	///     Наименование расписания к которому привязан парсинг.
+	/// </summary>
+	public required string ScheduleName { get; init; }
+
+	/// <summary>
 	///     Telegram сессия для парсинга канала.
 	/// </summary>
 	public required Guid TelegramSessionId { get; init; }

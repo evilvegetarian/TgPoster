@@ -1,12 +1,13 @@
-﻿import {useState} from "react"
+﻿import {useMemo, useState} from "react"
 import {Button} from "@/components/ui/button"
 import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card"
 import {Badge} from "@/components/ui/badge"
-import {Edit, Eye, EyeOff, Filter, Loader2, Plus, Settings, X} from "lucide-react"
+import {Input} from "@/components/ui/input"
+import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select"
+import {Calendar, Edit, Eye, EyeOff, Filter, Loader2, Plus, Search, Settings} from "lucide-react"
 import {toast} from "sonner"
 
 import {
-    useDeleteApiV1ParseChannelId,
     useGetApiV1ParseChannel,
     usePostApiV1ParseChannel,
     usePutApiV1ParseChannelId
@@ -18,14 +19,38 @@ import type {
 } from "@/api/endpoints/tgPosterAPI.schemas.ts";
 import {AddParsingSettingsDialog} from "@/components/parse-channel/add-parsing-settings-dialog.tsx";
 import {EditParsingSettingsDialog} from "@/components/parse-channel/edit-parsing-settings-dialog.tsx";
+import {DeleteParsingSettingDialog} from "@/components/parse-channel/delete-parsing-setting-dialog.tsx";
 
 export function ParseChannelPage() {
     const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
     const [editingSettings, setEditingSettings] = useState<ParseChannelResponse | null>(null)
+    const [scheduleFilter, setScheduleFilter] = useState<string>("all")
+    const [statusFilter, setStatusFilter] = useState<string>("all")
+    const [channelSearch, setChannelSearch] = useState("")
 
     const {data, isLoading, error, refetch} = useGetApiV1ParseChannel()
     const settings = data?.items ?? []
+
+    const uniqueSchedules = useMemo(() => {
+        const map = new Map<string, string>()
+        for (const s of settings) {
+            if (s.scheduleId && s.scheduleName) {
+                map.set(s.scheduleId, s.scheduleName)
+            }
+        }
+        return Array.from(map.entries()).map(([id, name]) => ({id, name}))
+    }, [settings])
+
+    const filteredSettings = useMemo(() => {
+        return settings.filter((s) => {
+            if (scheduleFilter !== "all" && s.scheduleId !== scheduleFilter) return false
+            if (statusFilter === "active" && !s.isActive) return false
+            if (statusFilter === "inactive" && s.isActive) return false
+            if (channelSearch && !s.channel?.toLowerCase().includes(channelSearch.toLowerCase())) return false
+            return true
+        })
+    }, [settings, scheduleFilter, statusFilter, channelSearch])
 
     const createMutation = usePostApiV1ParseChannel({
         mutation: {
@@ -58,20 +83,6 @@ export function ParseChannelPage() {
         },
     })
 
-    const deleteMutation = useDeleteApiV1ParseChannelId({
-        mutation: {
-            onSuccess: () => {
-                toast.success("Настройка удалена", {
-                    description: "Настройка парсинга успешно удалена",
-                })
-                refetch()
-            },
-            onError: (error) => {
-                toast.error("Ошибка обновления", error?.message || "Не удалось удалить настройку парсинга")
-            },
-        },
-    })
-
     const handleAddSettings = (newSettings: CreateParseChannelRequest) => {
         createMutation.mutate({data: newSettings})
     }
@@ -83,12 +94,6 @@ export function ParseChannelPage() {
                 data: updatedSettings,
             })
         }
-    }
-
-    const openDeleteDialog = (id: string) => {
-        deleteMutation.mutate({
-            id: id,
-        })
     }
 
     const openEditDialog = (settings: ParseChannelResponse) => {
@@ -155,8 +160,51 @@ export function ParseChannelPage() {
                 </Button>
             </div>
 
+            {settings.length > 0 && (
+                <Card className="mb-6">
+                    <CardContent className="pt-6">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <Select value={scheduleFilter} onValueChange={setScheduleFilter}>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Все расписания"/>
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="all">Все расписания</SelectItem>
+                                        {uniqueSchedules.map((s) => (
+                                            <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div>
+                                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Все статусы"/>
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="all">Все статусы</SelectItem>
+                                        <SelectItem value="active">Активные</SelectItem>
+                                        <SelectItem value="inactive">Неактивные</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div className="relative">
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground"/>
+                                <Input
+                                    placeholder="Поиск по каналу..."
+                                    value={channelSearch}
+                                    onChange={(e) => setChannelSearch(e.target.value)}
+                                    className="pl-9"
+                                />
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
+            )}
+
             <div className="grid gap-6">
-                {settings.length === 0 ? (
+                {filteredSettings.length === 0 && settings.length === 0 ? (
                     <Card className="text-center py-12">
                         <CardContent>
                             <Settings className="h-12 w-12 mx-auto text-muted-foreground mb-4"/>
@@ -169,17 +217,20 @@ export function ParseChannelPage() {
                             </Button>
                         </CardContent>
                     </Card>
+                ) : filteredSettings.length === 0 ? (
+                    <Card className="text-center py-12">
+                        <CardContent>
+                            <Filter className="h-12 w-12 mx-auto text-muted-foreground mb-4"/>
+                            <h3 className="text-lg font-semibold mb-2">Ничего не найдено</h3>
+                            <p className="text-muted-foreground mb-4">Попробуйте изменить параметры фильтрации</p>
+                        </CardContent>
+                    </Card>
                 ) : (
-                    settings.map((setting) => (
+                    filteredSettings.map((setting) => (
                         <Card key={setting.id} className="relative hover:shadow-md transition-shadow">
-                            <Button
-                                variant="ghost"
-                                size="icon"
-                                className="absolute top-2 right-2 h-7 w-7 text-muted-foreground hover:text-destructive"
-                                onClick={() => openDeleteDialog(setting.id)}
-                            >
-                                <X className="h-4 w-4"/>
-                            </Button>
+                            <div className="absolute top-2 right-2">
+                                <DeleteParsingSettingDialog setting={setting} refetch={refetch}/>
+                            </div>
 
                             <CardHeader>
                                 <div className="flex items-center justify-between">
@@ -196,7 +247,10 @@ export function ParseChannelPage() {
                                         </Button>
                                     </div>
                                 </div>
-
+                                <p className="text-sm text-muted-foreground mt-1">
+                                    <Calendar className="inline h-3.5 w-3.5 mr-1"/>
+                                    Расписание: {setting.scheduleName}
+                                </p>
                             </CardHeader>
 
                             <CardContent className="space-y-4">
@@ -256,6 +310,13 @@ export function ParseChannelPage() {
                                         {setting.dateFrom && setting.dateTo && <span> </span>}
                                         {setting.dateTo &&
                                             <span>до {new Date(setting.dateTo).toLocaleDateString("ru-RU")}</span>}
+                                    </div>
+                                )}
+
+                                {setting.lastParseDate && (
+                                    <div className="text-sm text-muted-foreground">
+                                        <span className="font-medium">Последний парсинг: </span>
+                                        <span>{new Date(setting.lastParseDate).toLocaleString("ru-RU")}</span>
                                     </div>
                                 )}
                             </CardContent>

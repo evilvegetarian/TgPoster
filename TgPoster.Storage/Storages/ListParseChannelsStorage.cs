@@ -10,6 +10,7 @@ internal class ListParseChannelsStorage(PosterContext context) : IListParseChann
 	public async Task<List<ParseChannelResponse>> GetChannelParsingParametersAsync(Guid userId, CancellationToken ct)
 	{
 		var parametersList = await context.ChannelParsingParameters
+			.Include(x => x.Schedule)
 			.Where(x => x.Schedule.UserId == userId)
 			.ToListAsync(ct);
 

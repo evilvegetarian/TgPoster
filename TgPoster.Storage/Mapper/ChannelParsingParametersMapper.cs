@@ -22,6 +22,7 @@ public static class ChannelParsingParametersMapper
 			IsActive = entity.Status.IsActive(),
 			Channel = entity.Channel,
 			LastParseDate = entity.LastParseDate,
+			ScheduleName = entity.Schedule.Name,
 			TelegramSessionId = entity.TelegramSessionId
 		};
 
