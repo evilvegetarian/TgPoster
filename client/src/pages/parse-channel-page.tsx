@@ -4,12 +4,13 @@ import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card"
 import {Badge} from "@/components/ui/badge"
 import {Input} from "@/components/ui/input"
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select"
-import {Calendar, Edit, Eye, EyeOff, Filter, Loader2, Plus, Search, Settings} from "lucide-react"
+import {Calendar, Edit, Eye, EyeOff, Filter, Hash, Loader2, Plus, RefreshCw, Search, Settings} from "lucide-react"
 import {toast} from "sonner"
 
 import {
     useGetApiV1ParseChannel,
     usePostApiV1ParseChannel,
+    usePostApiV1ParseChannelIdRefresh,
     usePutApiV1ParseChannelId
 } from "@/api/endpoints/parse-channel/parse-channel.ts";
 import type {
@@ -79,6 +80,18 @@ export function ParseChannelPage() {
             },
             onError: (error) => {
                 toast.error("Ошибка обновления", {description: error.title ||"Не удалось обновить настройку парсинга"})
+            },
+        },
+    })
+
+    const refreshMutation = usePostApiV1ParseChannelIdRefresh({
+        mutation: {
+            onSuccess: () => {
+                toast.success("Информация обновлена")
+                refetch()
+            },
+            onError: (error) => {
+                toast.error("Ошибка обновления", {description: error.title || "Не удалось обновить информацию о канале"})
             },
         },
     })
@@ -240,6 +253,16 @@ export function ParseChannelPage() {
                                         {getStatusBadge(setting.status, setting.isActive)}
                                     </div>
                                     <div className="flex items-center gap-2">
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() => refreshMutation.mutate({id: setting.id})}
+                                            disabled={refreshMutation.isPending}
+                                            className="gap-1"
+                                        >
+                                            <RefreshCw className={`h-3 w-3 ${refreshMutation.isPending ? "animate-spin" : ""}`}/>
+                                            Обновить
+                                        </Button>
                                         <Button variant="outline" size="sm" onClick={() => openEditDialog(setting)}
                                                 className="gap-1">
                                             <Edit className="h-3 w-3"/>
@@ -287,6 +310,18 @@ export function ParseChannelPage() {
                                             <span className="text-sm">Фильтры: {setting.avoidWords.length}</span>
                                         </div>
                                     )}
+                                </div>
+
+                                <div className="flex items-center gap-6">
+                                    <div className="flex items-center gap-2">
+                                        <Hash className="h-4 w-4 text-purple-500"/>
+                                        <span className="text-sm">
+                                            Спаршено: <span className="font-medium">{setting.parsedMessagesCount ?? 0}</span>
+                                            {setting.totalMessagesCount != null && (
+                                                <span className="text-muted-foreground"> / {setting.totalMessagesCount}</span>
+                                            )}
+                                        </span>
+                                    </div>
                                 </div>
 
                                 {setting.avoidWords && setting.avoidWords.length > 0 && (

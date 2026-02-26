@@ -317,4 +317,66 @@ export const useDeleteApiV1ParseChannelId = <TError = ProblemDetails,
 
       return useMutation(mutationOptions, queryClient);
     }
+    /**
+ * @summary Обновление информации о канале парсинга (количество сообщений)
+ */
+export const postApiV1ParseChannelIdRefresh = (
+    id: string,
+ signal?: AbortSignal
+) => {
+      
+      
+      return customInstance<void>(
+      {url: `/api/v1/parse-channel/${id}/refresh`, method: 'POST', signal
+    },
+      );
+    }
+  
+
+
+export const getPostApiV1ParseChannelIdRefreshMutationOptions = <TError = ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postApiV1ParseChannelIdRefresh>>, TError,{id: string}, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof postApiV1ParseChannelIdRefresh>>, TError,{id: string}, TContext> => {
+
+const mutationKey = ['postApiV1ParseChannelIdRefresh'];
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof postApiV1ParseChannelIdRefresh>>, {id: string}> = (props) => {
+          const {id} = props ?? {};
+
+          return  postApiV1ParseChannelIdRefresh(id,)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type PostApiV1ParseChannelIdRefreshMutationResult = NonNullable<Awaited<ReturnType<typeof postApiV1ParseChannelIdRefresh>>>
+    
+    export type PostApiV1ParseChannelIdRefreshMutationError = ProblemDetails
+
+    /**
+ * @summary Обновление информации о канале парсинга (количество сообщений)
+ */
+export const usePostApiV1ParseChannelIdRefresh = <TError = ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postApiV1ParseChannelIdRefresh>>, TError,{id: string}, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof postApiV1ParseChannelIdRefresh>>,
+        TError,
+        {id: string},
+        TContext
+      > => {
+
+      const mutationOptions = getPostApiV1ParseChannelIdRefreshMutationOptions(options);
+
+      return useMutation(mutationOptions, queryClient);
+    }
     

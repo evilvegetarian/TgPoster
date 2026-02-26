@@ -31,7 +31,8 @@ import type {
   ListRepostSettingsResponse,
   ProblemDetails,
   RepostSettingsResponse,
-  UpdateRepostDestinationRequest
+  UpdateRepostDestinationRequest,
+  UpdateRepostSettingsRequest
 } from '../tgPosterAPI.schemas';
 
 import { customInstance } from '../../axios-instance';
@@ -349,6 +350,70 @@ export const useDeleteApiV1RepostSettingsId = <TError = ProblemDetails,
       return useMutation(mutationOptions, queryClient);
     }
     /**
+ * @summary Обновление настроек репоста (рандомность, активность).
+ */
+export const putApiV1RepostSettingsId = (
+    id: string,
+    updateRepostSettingsRequest: UpdateRepostSettingsRequest,
+ ) => {
+      
+      
+      return customInstance<void>(
+      {url: `/api/v1/repost/settings/${id}`, method: 'PUT',
+      headers: {'Content-Type': 'application/json', },
+      data: updateRepostSettingsRequest
+    },
+      );
+    }
+  
+
+
+export const getPutApiV1RepostSettingsIdMutationOptions = <TError = ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof putApiV1RepostSettingsId>>, TError,{id: string;data: UpdateRepostSettingsRequest}, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof putApiV1RepostSettingsId>>, TError,{id: string;data: UpdateRepostSettingsRequest}, TContext> => {
+
+const mutationKey = ['putApiV1RepostSettingsId'];
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof putApiV1RepostSettingsId>>, {id: string;data: UpdateRepostSettingsRequest}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  putApiV1RepostSettingsId(id,data,)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type PutApiV1RepostSettingsIdMutationResult = NonNullable<Awaited<ReturnType<typeof putApiV1RepostSettingsId>>>
+    export type PutApiV1RepostSettingsIdMutationBody = UpdateRepostSettingsRequest
+    export type PutApiV1RepostSettingsIdMutationError = ProblemDetails
+
+    /**
+ * @summary Обновление настроек репоста (рандомность, активность).
+ */
+export const usePutApiV1RepostSettingsId = <TError = ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof putApiV1RepostSettingsId>>, TError,{id: string;data: UpdateRepostSettingsRequest}, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof putApiV1RepostSettingsId>>,
+        TError,
+        {id: string;data: UpdateRepostSettingsRequest},
+        TContext
+      > => {
+
+      const mutationOptions = getPutApiV1RepostSettingsIdMutationOptions(options);
+
+      return useMutation(mutationOptions, queryClient);
+    }
+    /**
  * @summary Добавление целевого канала для репоста.
  */
 export const postApiV1RepostSettingsSettingsIdDestinations = (
@@ -543,12 +608,16 @@ export const usePutApiV1RepostDestinationsId = <TError = ProblemDetails,
  */
 export const postApiV1RepostDestinationsIdRefresh = (
     id: string,
- ) => {
+ signal?: AbortSignal
+) => {
+      
+      
       return customInstance<void>(
-      {url: `/api/v1/repost/destinations/${id}/refresh`, method: 'POST'
+      {url: `/api/v1/repost/destinations/${id}/refresh`, method: 'POST', signal
     },
       );
     }
+  
 
 
 export const getPostApiV1RepostDestinationsIdRefreshMutationOptions = <TError = ProblemDetails,
@@ -562,6 +631,8 @@ const {mutation: mutationOptions} = options ?
       : {...options, mutation: {...options.mutation, mutationKey}}
       : {mutation: { mutationKey, }};
 
+      
+
 
       const mutationFn: MutationFunction<Awaited<ReturnType<typeof postApiV1RepostDestinationsIdRefresh>>, {id: string}> = (props) => {
           const {id} = props ?? {};
@@ -569,11 +640,13 @@ const {mutation: mutationOptions} = options ?
           return  postApiV1RepostDestinationsIdRefresh(id,)
         }
 
+        
+
 
   return  { mutationFn, ...mutationOptions }}
 
     export type PostApiV1RepostDestinationsIdRefreshMutationResult = NonNullable<Awaited<ReturnType<typeof postApiV1RepostDestinationsIdRefresh>>>
-
+    
     export type PostApiV1RepostDestinationsIdRefreshMutationError = ProblemDetails
 
     /**
@@ -592,3 +665,4 @@ export const usePostApiV1RepostDestinationsIdRefresh = <TError = ProblemDetails,
 
       return useMutation(mutationOptions, queryClient);
     }
+    

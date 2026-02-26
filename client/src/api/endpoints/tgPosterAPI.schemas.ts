@@ -28,6 +28,27 @@ export interface ApproveMessagesRequest {
   messagesIds?: string[];
 }
 
+export type ChatStatus = typeof ChatStatus[keyof typeof ChatStatus];
+
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const ChatStatus = {
+  Active: 'Active',
+  Banned: 'Banned',
+  Left: 'Left',
+  Unknown: 'Unknown',
+} as const;
+
+export type ChatType = typeof ChatType[keyof typeof ChatType];
+
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const ChatType = {
+  Channel: 'Channel',
+  Group: 'Group',
+  Unknown: 'Unknown',
+} as const;
+
 export interface CommentRepostItemDto {
   id: string;
   watchedChannel: string;
@@ -474,7 +495,11 @@ export interface ParseChannelResponse {
   channel: string;
   /** @nullable */
   lastParseDate?: string | null;
+  scheduleName: string;
   telegramSessionId: string;
+  /** @nullable */
+  totalMessagesCount?: number | null;
+  parsedMessagesCount?: number;
 }
 
 export interface PreviewFileResponse {
@@ -534,43 +559,24 @@ export interface RepostDestinationDto {
   chatId: number;
   isActive: boolean;
   /** @nullable */
-  title: string | null;
+  title?: string | null;
   /** @nullable */
-  username: string | null;
+  username?: string | null;
   /** @nullable */
-  memberCount: number | null;
-  chatType: ChatType;
-  chatStatus: ChatStatus;
+  memberCount?: number | null;
+  chatType?: ChatType;
+  chatStatus?: ChatStatus;
   /** @nullable */
-  avatarBase64: string | null;
+  avatarBase64?: string | null;
   /** @nullable */
-  infoUpdatedAt: string | null;
-  /** Минимальная задержка перед репостом (секунды). */
+  infoUpdatedAt?: string | null;
   delayMinSeconds?: number;
-  /** Максимальная задержка перед репостом (секунды). */
   delayMaxSeconds?: number;
-  /** Репостить каждое N-е сообщение (1 = каждое). */
   repostEveryNth?: number;
-  /** Вероятность пропуска репоста (0-100%). */
   skipProbability?: number;
-  /** Максимальное количество репостов в день (null = без лимита). */
+  /** @nullable */
   maxRepostsPerDay?: number | null;
 }
-
-export type ChatType = typeof ChatType[keyof typeof ChatType];
-export const ChatType = {
-  Channel: 0,
-  Group: 1,
-  Unknown: 2,
-} as const;
-
-export type ChatStatus = typeof ChatStatus[keyof typeof ChatStatus];
-export const ChatStatus = {
-  Active: 0,
-  Banned: 1,
-  Left: 2,
-  Unknown: 3,
-} as const;
 
 export interface RepostSettingsItemDto {
   id: string;
@@ -789,14 +795,31 @@ export interface UpdateRepostDestinationRequest {
   repostEveryNth?: number;
   /** Вероятность пропуска репоста (0-100%). */
   skipProbability?: number;
-  /** Максимальное количество репостов в день (null = без лимита). */
+  /**
+   * Максимальное количество репостов в день (null = без лимита).
+   * @nullable
+   */
   maxRepostsPerDay?: number | null;
+}
+
+/**
+ * Обновление настроек репоста.
+ */
+export interface UpdateRepostSettingsRequest {
+  /** Активность настроек репоста. */
+  isActive: boolean;
 }
 
 /**
  * Запрос на обновление расписания
  */
 export interface UpdateScheduleRequest {
+  /**
+   * Название расписания (опционально)
+   * @maxLength 100
+   * @nullable
+   */
+  name?: string | null;
   /**
    * Идентификатор YouTube аккаунта (опционально)
    * @nullable
