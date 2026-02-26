@@ -74,6 +74,11 @@ public sealed class ChannelParsingSetting : BaseEntity
 	/// </summary>
 	public required Guid TelegramSessionId { get; set; }
 
+	/// <summary>
+	///     Общее количество сообщений в канале-источнике
+	/// </summary>
+	public int? TotalMessagesCount { get; set; }
+
 	#region Navigation Properties
 
 	/// <summary>
@@ -84,6 +89,11 @@ public sealed class ChannelParsingSetting : BaseEntity
 	///     Telegram сессия для парсинга канала.
 	/// </summary>
 	public TelegramSession TelegramSession { get; set; } = null!;
+
+	/// <summary>
+	///     Сообщения созданные при парсинге этого канала
+	/// </summary>
+	public ICollection<Message> ParsedMessages { get; set; } = [];
 
 	#endregion
 }

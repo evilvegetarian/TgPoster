@@ -356,6 +356,22 @@ public sealed partial class TelegramChatService : ITelegramChatService
         return (channelFull.linked_chat_id, discussionAccessHash);
     }
 
+    /// <summary>
+    ///     Получает общее количество сообщений в канале.
+    /// </summary>
+    public async Task<int?> GetChannelMessagesCountAsync(Client client, string channelUsername)
+    {
+        var resolve = await client.Contacts_ResolveUsername(channelUsername);
+        if (resolve.Chat is not Channel channel)
+            return null;
+
+        var history = await client.Messages_GetHistory(
+            new InputPeerChannel(channel.ID, channel.access_hash),
+            limit: 1);
+
+        return history.Count;
+    }
+
     public static long ResolveRawId(long chatId)
     {
         var s = chatId.ToString();

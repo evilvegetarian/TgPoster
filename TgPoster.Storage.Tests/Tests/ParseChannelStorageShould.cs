@@ -38,6 +38,7 @@ public class ParseChannelStorageShould(StorageTestFixture fixture) : IClassFixtu
 			dateTo,
 			true,
 			telegramSession.Id,
+			null,
 			CancellationToken.None);
 
 		result.ShouldNotBe(Guid.Empty);
@@ -76,6 +77,7 @@ public class ParseChannelStorageShould(StorageTestFixture fixture) : IClassFixtu
 			null,
 			true,
 			telegramSession.Id,
+			null,
 			CancellationToken.None);
 
 		result.ShouldNotBe(Guid.Empty);
@@ -108,6 +110,7 @@ public class ParseChannelStorageShould(StorageTestFixture fixture) : IClassFixtu
 			null,
 			true,
 			telegramSession.Id,
+			null,
 			CancellationToken.None);
 
 		result.ShouldNotBe(Guid.Empty);

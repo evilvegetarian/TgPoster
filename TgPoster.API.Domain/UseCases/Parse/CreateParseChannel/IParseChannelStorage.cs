@@ -14,6 +14,7 @@ public interface IParseChannelStorage
 		DateTime? dateTo,
 		bool useAiForPosts,
 		Guid telegramSessionId,
+		int? totalMessagesCount,
 		CancellationToken ct
 	);
 

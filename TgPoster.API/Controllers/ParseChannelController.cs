@@ -6,6 +6,7 @@ using TgPoster.API.Common;
 using TgPoster.API.Domain.UseCases.Parse.CreateParseChannel;
 using TgPoster.API.Domain.UseCases.Parse.DeleteParseChannel;
 using TgPoster.API.Domain.UseCases.Parse.ListParseChannel;
+using TgPoster.API.Domain.UseCases.Parse.RefreshParseChannelInfo;
 using TgPoster.API.Mapper;
 using TgPoster.API.Models;
 
@@ -87,6 +88,22 @@ public class ParseChannelController(ISender sender) : ControllerBase
 	public async Task<IActionResult> Delete([FromRoute] [Required] Guid id, CancellationToken ct)
 	{
 		await sender.Send(new DeleteParseChannelCommand(id), ct);
+		return NoContent();
+	}
+
+	/// <summary>
+	///     Обновление информации о канале парсинга (количество сообщений)
+	/// </summary>
+	/// <param name="id">Идентификатор задачи парсинга</param>
+	/// <param name="ct">Токен отмены операции</param>
+	/// <returns>Результат выполнения операции</returns>
+	[HttpPost(Routes.ParseChannel.Refresh)]
+	[ProducesResponseType(StatusCodes.Status204NoContent)]
+	[ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
+	[ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
+	public async Task<IActionResult> Refresh([FromRoute] [Required] Guid id, CancellationToken ct)
+	{
+		await sender.Send(new RefreshParseChannelInfoCommand(id), ct);
 		return NoContent();
 	}
 }

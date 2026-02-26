@@ -80,6 +80,7 @@ internal sealed class ProcessMessageConsumerStorage(PosterContext context, GuidF
 			Id = id,
 			TextMessage = messageDto.Text,
 			ScheduleId = messageDto.ScheduleId,
+			ChannelParsingSettingId = messageDto.ChannelParsingSettingId,
 			IsVerified = !messageDto.IsNeedVerified,
 			Status = MessageStatus.Register,
 			TimePosting = messageDto.TimePosting,

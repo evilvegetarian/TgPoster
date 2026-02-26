@@ -62,7 +62,8 @@ internal sealed class ProcessMessageConsumer(
 		var messageDto = new MessageDto
 		{
 			IsNeedVerified = isNeedVerified,
-			ScheduleId = scheduleId
+			ScheduleId = scheduleId,
+			ChannelParsingSettingId = command.Id
 		};
 		var list = new List<MediaStreamDto>();
 		try

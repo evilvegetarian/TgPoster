@@ -26,6 +26,13 @@ internal class MessageConfiguration : BaseEntityConfiguration<Message>
 			.WithOne(x => x.Message)
 			.HasForeignKey(x => x.MessageId);
 
+		builder.HasIndex(x => x.ChannelParsingSettingId);
+
+		builder.HasOne(x => x.ChannelParsingSetting)
+			.WithMany(x => x.ParsedMessages)
+			.HasForeignKey(x => x.ChannelParsingSettingId)
+			.OnDelete(DeleteBehavior.SetNull);
+
 		builder.HasMany(x => x.RepostLogs)
 			.WithOne(x => x.Message)
 			.HasForeignKey(x => x.MessageId);

@@ -33,6 +33,16 @@ public sealed record ParseChannelResponse
 	///     Telegram сессия для парсинга канала.
 	/// </summary>
 	public required Guid TelegramSessionId { get; init; }
+
+	/// <summary>
+	///     Общее количество сообщений в канале-источнике
+	/// </summary>
+	public int? TotalMessagesCount { get; init; }
+
+	/// <summary>
+	///     Количество спаршенных сообщений
+	/// </summary>
+	public int ParsedMessagesCount { get; init; }
 }
 
 public sealed record ParseChannelListResponse

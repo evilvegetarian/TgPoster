@@ -41,6 +41,11 @@ public sealed class Message : BaseEntity
 	/// </summary>
 	public int? TelegramMessageId { get; set; }
 
+	/// <summary>
+	///     Id настройки парсинга канала (null если сообщение создано вручную)
+	/// </summary>
+	public Guid? ChannelParsingSettingId { get; set; }
+
 	#region Navigtion
 
 	/// <summary>
@@ -52,6 +57,11 @@ public sealed class Message : BaseEntity
 	///     Файлы сообщения
 	/// </summary>
 	public ICollection<MessageFile> MessageFiles { get; set; } = [];
+
+	/// <summary>
+	///     Настройка парсинга канала
+	/// </summary>
+	public ChannelParsingSetting? ChannelParsingSetting { get; set; }
 
 	/// <summary>
 	///     Журналы репостов этого сообщения

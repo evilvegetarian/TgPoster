@@ -13,4 +13,9 @@ public interface ITelegramChatService
 	Task<TelegramChannelRefreshResult> RefreshChannelInfoAsync(Client client, long chatId);
 	Task<(long LinkedChatId, long? DiscussionAccessHash)> GetLinkedDiscussionGroupAsync(
 		Client client, TelegramChatInfo chatInfo, CancellationToken ct = default);
+
+	/// <summary>
+	///     Получает общее количество сообщений в канале.
+	/// </summary>
+	Task<int?> GetChannelMessagesCountAsync(Client client, string channelUsername);
 }

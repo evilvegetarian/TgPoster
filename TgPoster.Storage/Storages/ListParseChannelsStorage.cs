@@ -12,8 +12,9 @@ internal class ListParseChannelsStorage(PosterContext context) : IListParseChann
 		var parametersList = await context.ChannelParsingParameters
 			.Include(x => x.Schedule)
 			.Where(x => x.Schedule.UserId == userId)
+			.Select(x => new { Entity = x, ParsedMessagesCount = x.ParsedMessages.Count() })
 			.ToListAsync(ct);
 
-		return parametersList.Select(x => x.ToDomain()).ToList();
+		return parametersList.Select(x => x.Entity.ToDomain(x.ParsedMessagesCount)).ToList();
 	}
 }

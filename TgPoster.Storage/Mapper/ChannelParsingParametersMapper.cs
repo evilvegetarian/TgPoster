@@ -7,7 +7,7 @@ namespace TgPoster.Storage.Mapper;
 
 public static class ChannelParsingParametersMapper
 {
-	public static ParseChannelResponse ToDomain(this ChannelParsingSetting entity) =>
+	public static ParseChannelResponse ToDomain(this ChannelParsingSetting entity, int parsedMessagesCount = 0) =>
 		new()
 		{
 			Id = entity.Id,
@@ -23,7 +23,9 @@ public static class ChannelParsingParametersMapper
 			Channel = entity.Channel,
 			LastParseDate = entity.LastParseDate,
 			ScheduleName = entity.Schedule.Name,
-			TelegramSessionId = entity.TelegramSessionId
+			TelegramSessionId = entity.TelegramSessionId,
+			TotalMessagesCount = entity.TotalMessagesCount,
+			ParsedMessagesCount = parsedMessagesCount
 		};
 
 	public static ChannelParsingSetting ToEntity(this UpdateParseChannelCommand request) =>
