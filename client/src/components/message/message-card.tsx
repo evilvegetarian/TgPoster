@@ -1,3 +1,4 @@
+import {useState, useRef, useEffect} from "react"
 import {Clock, Youtube} from "lucide-react"
 import {format} from "date-fns"
 import {ru} from "date-fns/locale"
@@ -20,6 +21,16 @@ interface MessageCardProps {
 }
 
 export function MessageCard({message, isSelected, onSelectionChange, availableTimes, onTimeSelect}: MessageCardProps) {
+    const [isExpanded, setIsExpanded] = useState(false)
+    const [isClamped, setIsClamped] = useState(false)
+    const textRef = useRef<HTMLParagraphElement>(null)
+
+    useEffect(() => {
+        const el = textRef.current
+        if (el) {
+            setIsClamped(el.scrollHeight > el.clientHeight)
+        }
+    }, [message.textMessage])
 
     const {mutate: publishVideo, isPending: isPublishing} = usePostApiV1YoutubeMessageId({
         mutation: {
@@ -84,7 +95,21 @@ export function MessageCard({message, isSelected, onSelectionChange, availableTi
 
                             {message.textMessage && (
                                 <div className="prose prose-sm max-w-none">
-                                    <p className="text-sm leading-relaxed">{message.textMessage}</p>
+                                    <p
+                                        ref={textRef}
+                                        className={`text-sm leading-relaxed ${!isExpanded ? "line-clamp-3" : ""}`}
+                                    >
+                                        {message.textMessage}
+                                    </p>
+                                    {isClamped && (
+                                        <button
+                                            type="button"
+                                            onClick={() => setIsExpanded(!isExpanded)}
+                                            className="text-xs text-primary hover:underline mt-1"
+                                        >
+                                            {isExpanded ? "Свернуть" : "Показать полностью"}
+                                        </button>
+                                    )}
                                 </div>
                             )}
 

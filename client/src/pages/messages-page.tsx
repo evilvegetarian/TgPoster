@@ -1,5 +1,5 @@
-﻿import {useCallback, useEffect, useState} from "react"
-import {AlertCircle, Check} from "lucide-react"
+import {useCallback, useEffect, useMemo, useState} from "react"
+import {AlertCircle, Check, MessageSquarePlus, Trash2} from "lucide-react"
 import type {DateRange} from "react-day-picker"
 import {toast} from "sonner"
 import {Button} from "@/components/ui/button"
@@ -8,6 +8,17 @@ import {Card, CardContent} from "@/components/ui/card"
 import {Skeleton} from "@/components/ui/skeleton"
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select"
 import {Alert, AlertDescription} from "@/components/ui/alert"
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger
+} from "@/components/ui/alert-dialog"
 import {MessageSortBy, MessageStatus, SortDirection} from "@/api/endpoints/tgPosterAPI.schemas"
 import {
     useDeleteApiV1Message,
@@ -21,6 +32,7 @@ import {MessageCard} from "@/components/message/message-card.tsx"
 import {CreateMessageDialog} from "@/components/message/create-message-dialog.tsx"
 import {MessagesPagination} from "@/pages/messages-pagination.tsx";
 import usePersistentState from "./use-persistent-state"
+import {useDebounce} from "@/hooks/use-debounce.ts"
 
 const STORAGE_KEYS = {
     SCHEDULE_ID: "tg_poster_scheduleId",
@@ -42,6 +54,7 @@ export function MessagesPage() {
 
     // Локальные состояния (не кэшируем)
     const [searchText, setSearchText] = useState("")
+    const debouncedSearchText = useDebounce(searchText, 400)
     const [dateRange, setDateRange] = useState<DateRange | undefined>()
     const [currentPage, setCurrentPage] = useState(1)
 
@@ -73,7 +86,7 @@ export function MessagesPage() {
         {
             ScheduleId: scheduleId,
             Status: status !== MessageStatus.All ? status : MessageStatus.All,
-            SearchText: searchText || undefined,
+            SearchText: debouncedSearchText || undefined,
             CreatedFrom: dateRange?.from?.toISOString(),
             CreatedTo: dateRange?.to?.toISOString(),
             SortBy: sortBy,
@@ -81,7 +94,7 @@ export function MessagesPage() {
             PageNumber: currentPage,
             PageSize: pageSize,
         },
-        { query: { enabled: !!scheduleId } } // keepPreviousData для плавности
+        { query: { enabled: !!scheduleId } }
     )
 
     // Мутации
@@ -109,12 +122,12 @@ export function MessagesPage() {
     useEffect(() => {
         setSelectedMessageIds([])
         if (scheduleId) refetchTimes();
-    }, [scheduleId, status, searchText, dateRange, sortBy, sortDirection, currentPage, pageSize, refetchTimes])
+    }, [scheduleId, status, debouncedSearchText, dateRange, sortBy, sortDirection, currentPage, pageSize, refetchTimes])
 
     // Сброс страницы на 1 при изменении фильтров
     useEffect(() => {
         setCurrentPage(1)
-    }, [scheduleId, status, searchText, dateRange, sortBy, sortDirection, pageSize])
+    }, [scheduleId, status, debouncedSearchText, dateRange, sortBy, sortDirection, pageSize])
 
     // Обработчики выделения
     const handleSelectAll = (checked: boolean) => {
@@ -135,6 +148,22 @@ export function MessagesPage() {
     const handleConfirmSelected = () => confirmMessages.mutate({ data: { messagesIds: selectedMessageIds } })
     const handleDeleteSelected = () => deleteMessages.mutate({ data: selectedMessageIds })
 
+    // Сброс фильтров
+    const handleResetFilters = useCallback(() => {
+        setStatus(MessageStatus.Planed)
+        setSortBy(MessageStatus.All as unknown as MessageSortBy)
+        setSortDirection(SortDirection.Asc)
+        setSearchText("")
+        setDateRange(undefined)
+        setPageSize(10)
+    }, [setStatus, setSortBy, setSortDirection, setPageSize])
+
+    const hasActiveFilters = useMemo(() => {
+        return status !== MessageStatus.Planed ||
+            debouncedSearchText !== "" ||
+            dateRange !== undefined ||
+            sortDirection !== SortDirection.Asc
+    }, [status, debouncedSearchText, dateRange, sortDirection])
 
     // -- RENDER --
     return (
@@ -162,6 +191,8 @@ export function MessagesPage() {
                 onSortByChange={setSortBy}
                 onSortDirectionChange={setSortDirection}
                 onDateRangeChange={setDateRange}
+                hasActiveFilters={hasActiveFilters}
+                onResetFilters={handleResetFilters}
             />
 
             {/* Панель массовых действий */}
@@ -180,10 +211,28 @@ export function MessagesPage() {
                                     <Check className="h-4 w-4 mr-2" />
                                     Подтвердить
                                 </Button>
-                                <Button onClick={handleDeleteSelected} disabled={deleteMessages.isPending} variant="destructive" size="sm">
-                                    <Check className="h-4 w-4 mr-2" />
-                                    Удалить
-                                </Button>
+                                <AlertDialog>
+                                    <AlertDialogTrigger asChild>
+                                        <Button disabled={deleteMessages.isPending} variant="destructive" size="sm">
+                                            <Trash2 className="h-4 w-4 mr-2" />
+                                            Удалить
+                                        </Button>
+                                    </AlertDialogTrigger>
+                                    <AlertDialogContent>
+                                        <AlertDialogHeader>
+                                            <AlertDialogTitle>Удалить сообщения?</AlertDialogTitle>
+                                            <AlertDialogDescription>
+                                                Вы собираетесь удалить {selectedMessageIds.length} {selectedMessageIds.length === 1 ? "сообщение" : "сообщений"}. Это действие нельзя отменить.
+                                            </AlertDialogDescription>
+                                        </AlertDialogHeader>
+                                        <AlertDialogFooter>
+                                            <AlertDialogCancel>Отмена</AlertDialogCancel>
+                                            <AlertDialogAction onClick={handleDeleteSelected} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                                                Удалить
+                                            </AlertDialogAction>
+                                        </AlertDialogFooter>
+                                    </AlertDialogContent>
+                                </AlertDialog>
                             </div>
                         </div>
                     </CardContent>
@@ -220,18 +269,39 @@ export function MessagesPage() {
                     ))}
                 </div>
             ) : !messagesData?.data?.length ? (
-                <Alert>
-                    <AlertCircle className="h-4 w-4" />
-                    <AlertDescription>Сообщений не найдено.</AlertDescription>
-                </Alert>
+                <div className="flex flex-col items-center justify-center py-16 text-center">
+                    <div className="rounded-full bg-muted p-6 mb-4">
+                        <MessageSquarePlus className="h-10 w-10 text-muted-foreground" />
+                    </div>
+                    <h3 className="text-lg font-semibold mb-1">Сообщений не найдено</h3>
+                    <p className="text-sm text-muted-foreground mb-4 max-w-sm">
+                        {debouncedSearchText || dateRange || status !== MessageStatus.Planed
+                            ? "Попробуйте изменить фильтры или параметры поиска"
+                            : "Создайте первое сообщение, чтобы начать"}
+                    </p>
+                    {!debouncedSearchText && !dateRange && status === MessageStatus.Planed && (
+                        <CreateMessageDialog
+                            scheduleId={scheduleId}
+                            availableTimes={availableTimes}
+                            onTimeSelect={handleTimeSelect}
+                        />
+                    )}
+                </div>
             ) : (
                 <div className="space-y-4">
-                    <div className="flex items-center gap-3">
-                        <Checkbox
-                            checked={messagesData.data.length > 0 && selectedMessageIds.length === messagesData.data.length}
-                            onCheckedChange={handleSelectAll}
-                        />
-                        <span className="text-sm font-medium">Выбрать все</span>
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                            <Checkbox
+                                checked={messagesData.data.length > 0 && selectedMessageIds.length === messagesData.data.length}
+                                onCheckedChange={handleSelectAll}
+                            />
+                            <span className="text-sm font-medium">Выбрать все</span>
+                        </div>
+                        {messagesData.totalCount != null && (
+                            <span className="text-sm text-muted-foreground">
+                                Всего: {messagesData.totalCount}
+                            </span>
+                        )}
                     </div>
 
                     {messagesData.data.map((message) => (
@@ -279,4 +349,3 @@ export function MessagesPage() {
         </div>
     )
 }
-
