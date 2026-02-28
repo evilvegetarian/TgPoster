@@ -27,10 +27,12 @@ internal sealed class RepostDestinationConfiguration : BaseEntityConfiguration<R
 			.HasMaxLength(64);
 
 		builder.Property(x => x.ChatType)
-			.HasDefaultValue(ChatType.Unknown);
+			.HasDefaultValue(ChatType.Unknown)
+			.HasSentinel(ChatType.Unknown);
 
 		builder.Property(x => x.ChatStatus)
-			.HasDefaultValue(ChatStatus.Unknown);
+			.HasDefaultValue(ChatStatus.Unknown)
+			.HasSentinel(ChatStatus.Unknown);
 
 		builder.Property(x => x.AvatarBase64)
 			.HasMaxLength(50000);
