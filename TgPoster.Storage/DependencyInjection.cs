@@ -14,7 +14,8 @@ public static class DependencyInjection
 	{
 		var dataBase = configuration.GetSection(nameof(DataBase)).Get<DataBase>()!;
 		services.AddDbContext<PosterContext>(db =>
-			db.UseNpgsql(dataBase.ConnectionString)
+			db.UseNpgsql(dataBase.ConnectionString, o =>
+					o.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery))
 				.EnableSensitiveDataLogging());
 
 		services.AddScoped<GuidFactory>();

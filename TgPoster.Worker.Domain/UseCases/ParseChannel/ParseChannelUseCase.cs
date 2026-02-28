@@ -108,7 +108,7 @@ internal class ParseChannelUseCase(
 				                                        msg.message.Contains(word, StringComparison.OrdinalIgnoreCase))
 			)).ToList();
 
-		logger.LogInformation("Найдено {Count} новых постов для обработки.", validGroups.Count);
+		logger.LogDebug("Найдено {Count} новых постов для обработки.", validGroups.Count);
 
 		foreach (var group in validGroups)
 		{

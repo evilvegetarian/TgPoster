@@ -60,7 +60,7 @@ public class CommentRepostMonitorWorker(
 		if (newPosts.Count == 0)
 			return;
 
-		logger.LogInformation("Найдено {Count} новых постов в канале {ChannelId}",
+		logger.LogDebug("Найдено {Count} новых постов в канале {ChannelId}",
 			newPosts.Count, setting.WatchedChannelId);
 
 		foreach (var post in newPosts)

@@ -36,7 +36,7 @@ public class SenderMessageWorker(
 		}
 
 		await storage.UpdateStatusInHandleMessageAsync(messages.Select(x => x.Id).ToList());
-		logger.LogInformation("Найдено {count} сообщений", messages.Count);
+		logger.LogDebug("Найдено {count} сообщений", messages.Count);
 		foreach (var detail in messageDetails)
 		{
 			var token = crypto.Decrypt(options.SecretKey, detail.Api);
@@ -48,7 +48,7 @@ public class SenderMessageWorker(
 					BackgroundJob.Schedule<SenderMessageWorker>(
 						x => x.SendMessageAsync(message.Id, token, detail.ChannelId, message, detail.YouTubeAccount),
 						message.TimePosting);
-					logger.LogInformation(
+					logger.LogDebug(
 						"Сообщение для чата {channelId} запланировано на {timePosting} сек.", detail.ChannelId,
 						message.TimePosting);
 				}
