@@ -29,6 +29,13 @@ internal class CreateParseChannelUseCase(
 			request.ScheduleId, request.DeleteText, request.DeleteMedia, request.AvoidWords, request.NeedVerifiedPosts,
 			request.DateFrom, request.DateTo, request.UseAiForPosts, request.TelegramSessionId, totalMessagesCount, ct);
 		await bus.Publish(new ParseChannelContract { Id = id }, ct);
+		await bus.Publish(new DiscoverChannelLinksContract
+		{
+			ChannelParsingSettingId = id,
+			ChannelUsername = chat.Username!,
+			TelegramSessionId = request.TelegramSessionId,
+			Depth = 0
+		}, ct);
 
 		return new CreateParseChannelResponse
 		{

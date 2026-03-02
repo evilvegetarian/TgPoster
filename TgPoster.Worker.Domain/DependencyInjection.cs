@@ -17,6 +17,8 @@ using TgPoster.Worker.Domain.UseCases.CommentRepostMonitor;
 using TgPoster.Worker.Domain.UseCases.RepostMessageConsumer;
 using TgPoster.Worker.Domain.UseCases.SendCommentConsumer;
 using TgPoster.Worker.Domain.UseCases.SenderMessageWorker;
+using TgPoster.Worker.Domain.UseCases.ScrapeChannel;
+using TgPoster.Worker.Domain.UseCases.DiscoverChannelLinks;
 
 namespace TgPoster.Worker.Domain;
 
@@ -26,8 +28,7 @@ public static class DependencyInjection
 	{
 		var telegramOptions = configuration.GetSection(nameof(TelegramOptions)).Get<TelegramOptions>()!;
 		services.AddSingleton(telegramOptions);
-
-
+		
 		services.AddMassTransient(configuration);
 
 		services.AddHangfire(cfg =>
@@ -69,6 +70,14 @@ public static class DependencyInjection
 			{
 				opt.ConcurrentMessageLimit = 3;
 			});
+			x.AddConsumer<ScrapeChannelConsumer>(opt =>
+			{
+				opt.ConcurrentMessageLimit = 1;
+			});
+			x.AddConsumer<DiscoverChannelLinksConsumer>(opt =>
+			{
+				opt.ConcurrentMessageLimit = 1;
+			});
 
 			x.UsingPostgres((context, cfg) =>
 			{
@@ -104,6 +113,7 @@ public static class DependencyInjection
 			"comment-repost-monitor-job",
 			worker => worker.CheckForNewPostsAsync(),
 			Cron.Minutely());
+
 	}
 
 	public class AllowAllAuthorizationFilter : IDashboardAuthorizationFilter

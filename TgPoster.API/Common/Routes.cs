@@ -134,6 +134,12 @@ internal static class Routes
 		internal const string Delete = Root + "/{id:guid}";
 	}
 
+	internal static class TgStat
+	{
+		internal const string Root = Base + "/tgstat";
+		internal const string ScrapeChannels = Root + "/scrape";
+	}
+
 	internal static class Repost
 	{
 		internal const string Root = Base + "/repost";
