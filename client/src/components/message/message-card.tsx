@@ -6,7 +6,7 @@ import {Card, CardContent} from "@/components/ui/card"
 import {Checkbox} from "@/components/ui/checkbox"
 import {Badge} from "@/components/ui/badge"
 import {Button} from "@/components/ui/button"
-import {FilePreview} from "./file-preview"
+import {MediaAlbum} from "./media-album"
 import {EditMessageDialog} from "./edit-message-dialog"
 import type {MessageResponse} from "@/api/endpoints/tgPosterAPI.schemas"
 import {usePostApiV1YoutubeMessageId} from "@/api/endpoints/you-tube-account/you-tube-account"
@@ -114,15 +114,7 @@ export function MessageCard({message, isSelected, onSelectionChange, availableTi
                             )}
 
                             {message.files && message.files.length > 0 && (
-                                <div className="space-y-2">
-                                    <p className="text-sm font-medium text-muted-foreground">Файлы
-                                        ({message.files.length}):</p>
-                                    <div className="flex flex-wrap gap-2">
-                                        {message.files.map((file) => (
-                                            <FilePreview key={file.id} file={file}/>
-                                        ))}
-                                    </div>
-                                </div>
+                                <MediaAlbum files={message.files}/>
                             )}
                         </div>
                     </div>
