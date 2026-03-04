@@ -30,10 +30,7 @@ internal sealed class ScrapeChannelConsumer(
 			return;
 		}
 
-		DiscoverChannelLinksContract ыв = new DiscoverChannelLinksContract()
-		{
 
-		};
 		await storage.UpsertChannelAsync(
 			detail.Username,
 			detail.Title,

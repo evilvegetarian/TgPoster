@@ -12,4 +12,5 @@ public interface ITelegramAuthService
 	Task<string> StartAuthAsync(Guid sessionId, CancellationToken ct);
 	Task<VerifyCodeResult> VerifyCodeAsync(Guid sessionId, string code, CancellationToken ct);
 	Task<bool> SendPasswordAsync(Guid sessionId, string password, CancellationToken ct);
+	Task<ImportSessionResult> ImportSessionAsync(string apiId, string apiHash, MemoryStream sessionBytes, CancellationToken ct);
 }

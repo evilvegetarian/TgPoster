@@ -252,6 +252,86 @@ public sealed class TelegramAuthService(
 		}
 	}
 
+	/// <summary>
+	///     Импортирует и валидирует сессию из бинарных данных файла.
+	/// </summary>
+	public async Task<ImportSessionResult> ImportSessionAsync(
+		string apiId,
+		string apiHash,
+		MemoryStream sessionBytes,
+		CancellationToken ct
+	)
+	{
+		string? Config(string key)
+		{
+			return key switch
+			{
+				"api_id" => apiId,
+				"api_hash" => apiHash,
+				_ => null
+			};
+		}
+
+		Client? client = null;
+		try
+		{
+			sessionBytes.Position = 0;
+			var rawBytes = sessionBytes.ToArray();
+
+			if (TelethonSessionConverter.IsTelethonSession(rawBytes))
+			{
+				logger.LogInformation("Обнаружен формат Telethon, конвертация в WTelegram...");
+				sessionBytes = TelethonSessionConverter.ConvertToWTelegramSession(rawBytes, apiId, apiHash);
+			}
+
+			sessionBytes.Position = 0;
+			client = new Client(Config, sessionBytes);
+			var user = await client.LoginUserIfNeeded();
+
+			logger.LogInformation(
+				"Импорт сессии успешен, пользователь: {Username}, телефон: {Phone}",
+				user.username ?? user.first_name, user.phone);
+
+			return new ImportSessionResult
+			{
+				Success = true,
+				PhoneNumber = user.phone
+			};
+		}
+		catch (RpcException ex) when (ex.Code == 401)
+		{
+			logger.LogWarning(ex, "Сессия из файла не авторизована или истекла");
+			return new ImportSessionResult
+			{
+				Success = false,
+				ErrorMessage = "Сессия не авторизована или истекла. Требуется повторная авторизация."
+			};
+		}
+		catch (WTException ex) when (ex.InnerException is System.Security.Cryptography.CryptographicException)
+		{
+			logger.LogWarning(ex, "Не удалось расшифровать файл сессии — неверные api_id/api_hash");
+			return new ImportSessionResult
+			{
+				Success = false,
+				ErrorMessage = "Неверные api_id или api_hash. Убедитесь, что они совпадают с теми, которые использовались при создании сессии."
+			};
+		}
+		catch (Exception ex)
+		{
+			logger.LogError(ex, "Ошибка при валидации импортируемой сессии");
+			return new ImportSessionResult
+			{
+				Success = false,
+				ErrorMessage = $"Не удалось подключиться с данной сессией: {ex.Message}"
+			};
+		}
+		finally
+		{
+			if (client != null)
+				await client.DisposeAsync();
+		}
+	}
+
 	private async Task UpdateSessionDataAsync(Guid sessionId, byte[] sessionData, CancellationToken ct)
 	{
 		var scope = scopeFactory.CreateAsyncScope();

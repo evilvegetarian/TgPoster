@@ -122,6 +122,7 @@ internal static class Routes
 		internal const string StartAuth = Root + "/{id:guid}/start-auth";
 		internal const string VerifyCode = Root + "/{id:guid}/verify-code";
 		internal const string SendPassword = Root + "/{id:guid}/send-password";
+		internal const string Import = Root + "/import";
 	}
 
 	internal static class CommentRepost

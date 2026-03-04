@@ -9,6 +9,7 @@ using TgPoster.API.Domain.UseCases.TelegramSessions.ListTelegramSessions;
 using TgPoster.API.Domain.UseCases.TelegramSessions.SendPassword;
 using TgPoster.API.Domain.UseCases.TelegramSessions.StartAuth;
 using TgPoster.API.Domain.UseCases.TelegramSessions.UpdateTelegramSession;
+using TgPoster.API.Domain.UseCases.TelegramSessions.ImportTelegramSession;
 using TgPoster.API.Domain.UseCases.TelegramSessions.VerifyCode;
 using TgPoster.API.Models;
 
@@ -39,6 +40,26 @@ public class TelegramSessionController(ISender sender) : ControllerBase
 		var response = await sender.Send(
 			new CreateTelegramSessionCommand(request.ApiId, request.ApiHash, request.PhoneNumber, request.Name), ct);
 		return Created(Routes.TelegramSession.Create, response);
+	}
+
+	/// <summary>
+	///     Импорт Telegram сессии из файла
+	/// </summary>
+	/// <param name="request">Данные для импорта (ApiId, ApiHash, файл сессии)</param>
+	/// <param name="ct">Токен отмены операции</param>
+	/// <returns>Ответ с данными импортированной Telegram сессии</returns>
+	[HttpPost(Routes.TelegramSession.Import)]
+	[ProducesResponseType(StatusCodes.Status201Created, Type = typeof(ImportTelegramSessionResponse))]
+	[ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
+	[ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
+	public async Task<IActionResult> Import(
+		[FromForm] [Required] ImportTelegramSessionRequest request,
+		CancellationToken ct
+	)
+	{
+		var response = await sender.Send(
+			new ImportTelegramSessionCommand(request.ApiId, request.ApiHash, request.SessionFile, request.Name), ct);
+		return Created(Routes.TelegramSession.Import, response);
 	}
 
 	/// <summary>

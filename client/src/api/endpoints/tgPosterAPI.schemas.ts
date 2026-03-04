@@ -389,6 +389,13 @@ export interface GetTimeResponse {
   postingTimes?: string[];
 }
 
+export interface ImportTelegramSessionResponse {
+  id?: string;
+  name?: string;
+  isActive?: boolean;
+  phoneNumber?: string;
+}
+
 export interface ListCommentRepostResponse {
   items: CommentRepostItemDto[];
 }
@@ -616,6 +623,10 @@ export interface ScheduleResponse {
   promptId?: string | null;
   /** @nullable */
   youTubeAccountId?: string | null;
+}
+
+export interface ScrapeChannelsCommand {
+  urls?: string[];
 }
 
 /**
@@ -990,6 +1001,17 @@ PageNumber?: number;
  * Размер страницы.
  */
 PageSize?: number;
+};
+
+export type PostApiV1TelegramSessionImportBody = {
+  /** API ID приложения Telegram */
+  ApiId: string;
+  /** API Hash приложения Telegram */
+  ApiHash: string;
+  /** Файл сессии WTelegram (.session) */
+  SessionFile: Blob;
+  /** Название сессии (опционально) */
+  Name?: string;
 };
 
 export type PostApiV1YoutubeBody = {

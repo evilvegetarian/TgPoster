@@ -26,6 +26,8 @@ import type {
 import type {
   CreateTelegramSessionRequest,
   CreateTelegramSessionResponse,
+  ImportTelegramSessionResponse,
+  PostApiV1TelegramSessionImportBody,
   ProblemDetails,
   SendPasswordRequest,
   SendPasswordResponse,
@@ -198,6 +200,77 @@ export function useGetApiV1TelegramSession<TData = Awaited<ReturnType<typeof get
 
 
 /**
+ * @summary Импорт Telegram сессии из файла
+ */
+export const postApiV1TelegramSessionImport = (
+    postApiV1TelegramSessionImportBody: PostApiV1TelegramSessionImportBody,
+ signal?: AbortSignal
+) => {
+      
+      const formData = new FormData();
+formData.append(`ApiId`, postApiV1TelegramSessionImportBody.ApiId)
+formData.append(`ApiHash`, postApiV1TelegramSessionImportBody.ApiHash)
+formData.append(`SessionFile`, postApiV1TelegramSessionImportBody.SessionFile)
+if(postApiV1TelegramSessionImportBody.Name !== undefined) {
+ formData.append(`Name`, postApiV1TelegramSessionImportBody.Name)
+ }
+
+      return customInstance<ImportTelegramSessionResponse>(
+      {url: `/api/v1/telegram-session/import`, method: 'POST',
+      headers: {'Content-Type': 'multipart/form-data', },
+       data: formData, signal
+    },
+      );
+    }
+  
+
+
+export const getPostApiV1TelegramSessionImportMutationOptions = <TError = ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postApiV1TelegramSessionImport>>, TError,{data: PostApiV1TelegramSessionImportBody}, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof postApiV1TelegramSessionImport>>, TError,{data: PostApiV1TelegramSessionImportBody}, TContext> => {
+
+const mutationKey = ['postApiV1TelegramSessionImport'];
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof postApiV1TelegramSessionImport>>, {data: PostApiV1TelegramSessionImportBody}> = (props) => {
+          const {data} = props ?? {};
+
+          return  postApiV1TelegramSessionImport(data,)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type PostApiV1TelegramSessionImportMutationResult = NonNullable<Awaited<ReturnType<typeof postApiV1TelegramSessionImport>>>
+    export type PostApiV1TelegramSessionImportMutationBody = PostApiV1TelegramSessionImportBody
+    export type PostApiV1TelegramSessionImportMutationError = ProblemDetails
+
+    /**
+ * @summary Импорт Telegram сессии из файла
+ */
+export const usePostApiV1TelegramSessionImport = <TError = ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postApiV1TelegramSessionImport>>, TError,{data: PostApiV1TelegramSessionImportBody}, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof postApiV1TelegramSessionImport>>,
+        TError,
+        {data: PostApiV1TelegramSessionImportBody},
+        TContext
+      > => {
+
+      const mutationOptions = getPostApiV1TelegramSessionImportMutationOptions(options);
+
+      return useMutation(mutationOptions, queryClient);
+    }
+    /**
  * @summary Обновление Telegram сессии
  */
 export const putApiV1TelegramSessionId = (

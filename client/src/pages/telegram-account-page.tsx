@@ -1,5 +1,6 @@
 import { TelegramAccountListComponent } from "@/components/telegram-account/telegram-account-list-component";
 import { TelegramAccountCreateDialog } from "@/components/telegram-account/telegram-account-create-dialog";
+import { TelegramAccountImportDialog } from "@/components/telegram-account/telegram-account-import-dialog";
 import { TelegramAccountInstructions } from "@/components/telegram-account/telegram-account-instructions";
 
 export default function TelegramAccountPage() {
@@ -12,7 +13,10 @@ export default function TelegramAccountPage() {
                         Управляйте Telegram аккаунтами для постинга сообщений
                     </p>
                 </div>
-                <TelegramAccountCreateDialog />
+                <div className="flex gap-2">
+                    <TelegramAccountImportDialog />
+                    <TelegramAccountCreateDialog />
+                </div>
             </div>
 
             <div className="grid gap-6 lg:grid-cols-[1fr,400px]">
