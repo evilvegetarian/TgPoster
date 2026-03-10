@@ -183,6 +183,7 @@ export function TelegramAccountListComponent() {
                                             <TelegramAccountAuthDialog
                                                 accountId={account.id!}
                                                 accountName={account.name || account.phoneNumber}
+                                                status={account.status}
                                             />
                                         )}
 

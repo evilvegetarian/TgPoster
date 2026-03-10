@@ -153,6 +153,13 @@ public sealed class TelegramAuthService(
 				return "code_sent";
 			}
 
+			if (loginState == "password")
+			{
+				await authRepository.UpdateStatusAsync(sessionId, TelegramSessionStatus.AwaitingPassword, ct);
+				logger.LogInformation("Требуется пароль 2FA для сессии {SessionId}", sessionId);
+				return "awaiting_password";
+			}
+
 			logger.LogWarning("Неожиданный статус авторизации для сессии {SessionId}: {LoginState}",
 				sessionId, loginState);
 			return loginState;
@@ -220,7 +227,7 @@ public sealed class TelegramAuthService(
 	{
 		if (!clientManager.TryGetPendingClient(sessionId, out var client))
 		{
-			throw new TelegramAuthSessionNotFoundException(sessionId);
+			client = await RestorePendingClientAsync(sessionId, ct);
 		}
 
 		try
@@ -330,6 +337,47 @@ public sealed class TelegramAuthService(
 			if (client != null)
 				await client.DisposeAsync();
 		}
+	}
+
+	/// <summary>
+	///     Восстанавливает pending client из session data (например, после перезапуска сервера).
+	/// </summary>
+	private async Task<Client> RestorePendingClientAsync(Guid sessionId, CancellationToken ct)
+	{
+		var session = await authRepository.GetByIdAsync(sessionId, ct);
+		if (session == null)
+			throw new TelegramSessionNotFoundException(sessionId);
+
+		if (session.SessionData == null)
+			throw new TelegramAuthSessionNotFoundException(sessionId);
+
+		string? Config(string key)
+		{
+			return key switch
+			{
+				"api_id" => session.ApiId,
+				"api_hash" => session.ApiHash,
+				"phone_number" => session.PhoneNumber,
+				_ => null
+			};
+		}
+
+		var sessionBytes = Convert.FromBase64String(session.SessionData);
+		var client = new Client(Config, sessionBytes, async data =>
+		{
+			await UpdateSessionDataAsync(sessionId, data, ct);
+		});
+
+		var loginState = await client.Login(session.PhoneNumber);
+		if (loginState != "password")
+		{
+			await client.DisposeAsync();
+			throw new TelegramAuthSessionNotFoundException(sessionId);
+		}
+
+		clientManager.AddPendingClient(sessionId, client);
+		logger.LogInformation("Pending client восстановлен из session data для сессии {SessionId}", sessionId);
+		return client;
 	}
 
 	private async Task UpdateSessionDataAsync(Guid sessionId, byte[] sessionData, CancellationToken ct)

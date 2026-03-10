@@ -29,6 +29,7 @@ import {
     usePostApiV1TelegramSessionIdSendPassword,
     getGetApiV1TelegramSessionQueryKey,
 } from "@/api/endpoints/telegram-session/telegram-session";
+import { TelegramSessionStatus } from "@/api/endpoints/tgPosterAPI.schemas";
 import { useQueryClient } from "@tanstack/react-query";
 
 type AuthStep = "code" | "password" | "success";
@@ -47,9 +48,10 @@ type PasswordForm = z.infer<typeof passwordFormSchema>;
 interface TelegramAccountAuthDialogProps {
     accountId: string;
     accountName?: string;
+    status?: string;
 }
 
-export function TelegramAccountAuthDialog({ accountId, accountName }: TelegramAccountAuthDialogProps) {
+export function TelegramAccountAuthDialog({ accountId, accountName, status }: TelegramAccountAuthDialogProps) {
     const [open, setOpen] = useState(false);
     const [authStep, setAuthStep] = useState<AuthStep>("code");
     const queryClient = useQueryClient();
@@ -149,7 +151,11 @@ export function TelegramAccountAuthDialog({ accountId, accountName }: TelegramAc
     function handleOpenChange(newOpen: boolean) {
         setOpen(newOpen);
         if (newOpen) {
-            handleStartAuth();
+            if (status === TelegramSessionStatus.AwaitingPassword) {
+                setAuthStep("password");
+            } else {
+                handleStartAuth();
+            }
         } else {
             setAuthStep("code");
             codeForm.reset();
