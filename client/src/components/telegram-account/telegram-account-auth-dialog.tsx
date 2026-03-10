@@ -34,7 +34,7 @@ import { useQueryClient } from "@tanstack/react-query";
 type AuthStep = "code" | "password" | "success";
 
 const codeFormSchema = z.object({
-    code: z.string().min(5, "Код должен содержать минимум 5 символов"),
+    code: z.string().min(3, "Код должен содержать минимум 5 символов"),
 });
 
 const passwordFormSchema = z.object({
