@@ -49,10 +49,22 @@ internal sealed partial class DiscoverChannelLinksConsumer(
 			if (history.Messages.Length == 0)
 				break;
 
+			var chats = new Dictionary<long, ChatBase>();
+			var users = new Dictionary<long, User>();
+			history.CollectUsersChats(users, chats);
+
 			foreach (var message in history.Messages.OfType<Message>())
 			{
 				if (lastParsedId < message.ID)
 					lastParsedId = message.ID;
+
+				if (message.fwd_from?.from_id is PeerChannel fwdPeer
+				    && chats.GetValueOrDefault(fwdPeer.channel_id) is Channel fwdChannel
+				    && !string.IsNullOrEmpty(fwdChannel.username)
+				    && fwdChannel.username.Length >= 5)
+				{
+					discoveredUsernames.Add(fwdChannel.username);
+				}
 
 				if (string.IsNullOrEmpty(message.message))
 					continue;
@@ -96,7 +108,6 @@ internal sealed partial class DiscoverChannelLinksConsumer(
 			{
 				await publishEndpoint.Publish(new DiscoverChannelLinksContract
 				{
-					ChannelParsingSettingId = msg.ChannelParsingSettingId,
 					ChannelUsername = username,
 					TelegramSessionId = msg.TelegramSessionId,
 					Depth = msg.Depth + 1

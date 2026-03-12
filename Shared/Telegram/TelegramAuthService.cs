@@ -25,7 +25,7 @@ public sealed class TelegramAuthService(
 	/// </summary>
 	/// <param name="sessionId">ID Telegram сессии.</param>
 	/// <param name="ct">Токен отмены.</param>
-	/// <returns>Готовый к работе WTelegram.Client.</returns>
+	/// <returns>Готовый к работе Client.</returns>
 	public async Task<Client> GetClientAsync(Guid sessionId, CancellationToken ct = default)
 	{
 		if (clientManager.TryGetActiveClient(sessionId, out var existingClient))

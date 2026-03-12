@@ -31,7 +31,6 @@ internal class CreateParseChannelUseCase(
 		await bus.Publish(new ParseChannelContract { Id = id }, ct);
 		await bus.Publish(new DiscoverChannelLinksContract
 		{
-			ChannelParsingSettingId = id,
 			ChannelUsername = chat.Username!,
 			TelegramSessionId = request.TelegramSessionId,
 			Depth = 0

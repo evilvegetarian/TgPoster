@@ -5,10 +5,6 @@ namespace Shared.Telegram;
 /// </summary>
 public sealed class DiscoverChannelLinksContract
 {
-	/// <summary>
-	///     ID исходной настройки парсинга канала.
-	/// </summary>
-	public required Guid ChannelParsingSettingId { get; init; }
 
 	/// <summary>
 	///     Username канала для парсинга.
