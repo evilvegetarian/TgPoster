@@ -31,11 +31,6 @@ internal sealed class ScrapeChannelConsumer(
 			return;
 		}
 
-		await bus.Publish(new DiscoverChannelLinksContract
-		{
-			ChannelUsername = detail.Username,
-			TelegramSessionId = Guid.Parse("019cde51-30b8-75f0-a3a4-42541926f033"),
-		}, ct);
 		await storage.UpsertChannelAsync(
 			detail.Username,
 			detail.Title,

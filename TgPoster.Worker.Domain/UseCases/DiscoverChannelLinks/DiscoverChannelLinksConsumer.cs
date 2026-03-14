@@ -12,7 +12,6 @@ internal sealed partial class DiscoverChannelLinksConsumer(
 	IPublishEndpoint publishEndpoint,
 	ILogger<DiscoverChannelLinksConsumer> logger) : IConsumer<DiscoverChannelLinksContract>
 {
-	private const int MaxDepth = 1;
 	private const int MessageBatchSize = 100;
 
 	public async Task Consume(ConsumeContext<DiscoverChannelLinksContract> context)
@@ -33,7 +32,8 @@ internal sealed partial class DiscoverChannelLinksConsumer(
 			return;
 		}
 
-		var discoveredUsernames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+		var forwardedUsernames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+		var textUsernames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 		var lastParsedId = 0;
 		var offset = 0;
 
@@ -63,13 +63,13 @@ internal sealed partial class DiscoverChannelLinksConsumer(
 				    && !string.IsNullOrEmpty(fwdChannel.username)
 				    && fwdChannel.username.Length >= 5)
 				{
-					discoveredUsernames.Add(fwdChannel.username);
+					forwardedUsernames.Add(fwdChannel.username);
 				}
 
 				if (string.IsNullOrEmpty(message.message))
 					continue;
 
-				ExtractUsernames(message.message, discoveredUsernames);
+				ExtractUsernames(message.message, textUsernames);
 			}
 
 			offset = history.Messages.Last().ID;
@@ -77,6 +77,15 @@ internal sealed partial class DiscoverChannelLinksConsumer(
 			if (history.Messages.Length < MessageBatchSize)
 				break;
 		}
+
+		// Не резолвим юзернеймы, уже найденные через пересылки
+		textUsernames.ExceptWith(forwardedUsernames);
+
+		// Проверяем текстовые юзернеймы — оставляем только каналы/группы/чаты
+		var verifiedTextUsernames = await FilterToChatsAsync(client, textUsernames, ct);
+
+		var discoveredUsernames = new HashSet<string>(forwardedUsernames, StringComparer.OrdinalIgnoreCase);
+		discoveredUsernames.UnionWith(verifiedTextUsernames);
 
 		// Убираем самого себя
 		discoveredUsernames.Remove(msg.ChannelUsername);
@@ -101,23 +110,50 @@ internal sealed partial class DiscoverChannelLinksConsumer(
 			newUsernames.Add(username);
 		}
 
-		// Рекурсивный запуск для найденных каналов (если не достигли максимальной глубины)
-		if (msg.Depth < MaxDepth)
+		foreach (var username in newUsernames)
 		{
-			foreach (var username in newUsernames)
+			await publishEndpoint.Publish(new DiscoverChannelLinksContract
 			{
-				await publishEndpoint.Publish(new DiscoverChannelLinksContract
+				ChannelUsername = username,
+				TelegramSessionId = msg.TelegramSessionId,
+				Depth = msg.Depth + 1
+			}, ct);
+		}
+
+	}
+
+	private async Task<HashSet<string>> FilterToChatsAsync(
+		WTelegram.Client client,
+		HashSet<string> usernames,
+		CancellationToken ct)
+	{
+		var chats = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+		foreach (var username in usernames)
+		{
+			ct.ThrowIfCancellationRequested();
+
+			try
+			{
+				var result = await client.Contacts_ResolveUsername(username);
+				if (result.Chat is not null)
 				{
-					ChannelUsername = username,
-					TelegramSessionId = msg.TelegramSessionId,
-					Depth = msg.Depth + 1
-				}, ct);
+					chats.Add(username);
+				}
+				else
+				{
+					logger.LogDebug("@{Username} — пользователь, пропускаем", username);
+				}
+			}
+			catch (Exception ex)
+			{
+				logger.LogDebug(ex, "Не удалось разрешить @{Username}, пропускаем", username);
 			}
 
-			logger.LogInformation(
-				"Запущен рекурсивный поиск для {Count} каналов (глубина {Depth} -> {NextDepth})",
-				newUsernames.Count, msg.Depth, msg.Depth + 1);
+			await Task.Delay(500, ct);
 		}
+
+		return chats;
 	}
 
 	private static void ExtractUsernames(string text, HashSet<string> usernames)
