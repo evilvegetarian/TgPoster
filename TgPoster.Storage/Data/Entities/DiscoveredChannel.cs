@@ -38,6 +38,11 @@ public sealed class DiscoveredChannel : BaseEntity
 	public string? PeerType { get; set; }
 
 	/// <summary>
+	///     Уникальный числовой ID канала/чата в Telegram.
+	/// </summary>
+	public long? TelegramId { get; set; }
+
+	/// <summary>
 	///     ID последнего спарсенного сообщения.
 	/// </summary>
 	public int? LastParsedId { get; set; }

@@ -1,40 +1,69 @@
 using System.Text.RegularExpressions;
-using MassTransit;
+using Hangfire;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Shared.Telegram;
+using TgPoster.Worker.Domain.ConfigModels;
 using TL;
 
 namespace TgPoster.Worker.Domain.UseCases.DiscoverChannelLinks;
 
-internal sealed partial class DiscoverChannelLinksConsumer(
+internal sealed partial class DiscoverChannelLinksWorker(
 	IDiscoverChannelLinksStorage storage,
 	ITelegramAuthService authService,
-	IPublishEndpoint publishEndpoint,
-	ILogger<DiscoverChannelLinksConsumer> logger) : IConsumer<DiscoverChannelLinksContract>
+	TelegramOptions telegramOptions,
+	ILogger<DiscoverChannelLinksWorker> logger,
+	IHostApplicationLifetime lifetime)
 {
 	private const int MessageBatchSize = 100;
 
-	public async Task Consume(ConsumeContext<DiscoverChannelLinksContract> context)
+	[DisableConcurrentExecution(120)]
+	public async Task ProcessChannelsAsync()
 	{
-		var msg = context.Message;
-		var ct = context.CancellationToken;
+		var ct = lifetime.ApplicationStopping;
 
-		logger.LogInformation(
-			"Поиск TG-ссылок в канале @{Channel}, глубина: {Depth}",
-			msg.ChannelUsername, msg.Depth);
-
-		var client = await authService.GetClientAsync(msg.TelegramSessionId, ct);
-
-		var resolveResult = await client.Contacts_ResolveUsername(msg.ChannelUsername);
-		if (resolveResult.Chat is not Channel channel)
+		var channels = await storage.GetChannelsToProcessAsync(ct);
+		if (channels.Count == 0)
 		{
-			logger.LogWarning("Не удалось найти канал: @{Channel}", msg.ChannelUsername);
+			logger.LogDebug("Нет каналов для обработки DiscoverChannelLinks");
 			return;
 		}
 
+		logger.LogInformation("Начинаем обработку {Count} каналов для поиска ссылок", channels.Count);
+
+		var client = await authService.GetClientAsync(telegramOptions.TelegramSessionId, ct);
+
+		foreach (var channelDto in channels)
+		{
+			try
+			{
+				await ProcessChannelAsync(client, channelDto, ct);
+			}
+			catch (Exception ex)
+			{
+				logger.LogError(ex, "Ошибка при обработке канала @{Channel}", channelDto.Username);
+			}
+		}
+	}
+
+	private async Task ProcessChannelAsync(
+		WTelegram.Client client,
+		DiscoverChannelDto channelDto,
+		CancellationToken ct)
+	{
+		logger.LogInformation("Поиск TG-ссылок в канале @{Channel}", channelDto.Username);
+
+		var resolveResult = await client.Contacts_ResolveUsername(channelDto.Username);
+		if (resolveResult.Chat is not Channel channel)
+		{
+			logger.LogWarning("Не удалось найти канал: @{Channel}", channelDto.Username);
+			return;
+		}
+
+		var telegramId = channel.ID;
 		var forwardedUsernames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 		var textUsernames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-		var lastParsedId = 0;
+		var lastParsedId = channelDto.LastParsedId ?? 0;
 		var offset = 0;
 
 		while (true)
@@ -44,7 +73,8 @@ internal sealed partial class DiscoverChannelLinksConsumer(
 			var history = await client.Messages_GetHistory(
 				new InputPeerChannel(channel.ID, channel.access_hash),
 				limit: MessageBatchSize,
-				offset_id: offset);
+				offset_id: offset,
+				min_id: channelDto.LastParsedId ?? 0);
 
 			if (history.Messages.Length == 0)
 				break;
@@ -88,7 +118,7 @@ internal sealed partial class DiscoverChannelLinksConsumer(
 		discoveredUsernames.UnionWith(verifiedTextUsernames);
 
 		// Убираем самого себя
-		discoveredUsernames.Remove(msg.ChannelUsername);
+		discoveredUsernames.Remove(channelDto.Username);
 
 		// Фильтруем ботов
 		discoveredUsernames.RemoveWhere(u => u.EndsWith("_bot", StringComparison.OrdinalIgnoreCase)
@@ -96,9 +126,7 @@ internal sealed partial class DiscoverChannelLinksConsumer(
 
 		logger.LogInformation(
 			"Найдено {Count} уникальных каналов в @{Channel}",
-			discoveredUsernames.Count, msg.ChannelUsername);
-
-		var newUsernames = new List<string>();
+			discoveredUsernames.Count, channelDto.Username);
 
 		foreach (var username in discoveredUsernames)
 		{
@@ -106,20 +134,14 @@ internal sealed partial class DiscoverChannelLinksConsumer(
 			if (exists)
 				continue;
 
-			await storage.UpsertAsync(username, $"@{msg.ChannelUsername}", lastParsedId: null, ct);
-			newUsernames.Add(username);
+			await storage.UpsertAsync(username, $"@{channelDto.Username}", lastParsedId: null, telegramId: null, ct);
 		}
 
-		foreach (var username in newUsernames)
+		// Сохраняем последнее спарсенное сообщение и TelegramId
+		if (lastParsedId > 0)
 		{
-			await publishEndpoint.Publish(new DiscoverChannelLinksContract
-			{
-				ChannelUsername = username,
-				TelegramSessionId = msg.TelegramSessionId,
-				Depth = msg.Depth + 1
-			}, ct);
+			await storage.UpdateLastParsedIdAsync(channelDto.Username, lastParsedId, telegramId, ct);
 		}
-
 	}
 
 	private async Task<HashSet<string>> FilterToChatsAsync(

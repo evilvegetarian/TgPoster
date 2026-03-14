@@ -45,6 +45,7 @@ public static class DependencyInjection
 		services.AddScoped<ParseChannelUseCase>();
 		services.AddScoped<CommentRepostMonitorWorker>();
 		services.AddScoped<TelegramExecuteServices>();
+		services.AddScoped<DiscoverChannelLinksWorker>();
 
 		return services;
 	}
@@ -74,11 +75,6 @@ public static class DependencyInjection
 			{
 				opt.ConcurrentMessageLimit = 1;
 			});
-			x.AddConsumer<DiscoverChannelLinksConsumer>(opt =>
-			{
-				opt.ConcurrentMessageLimit = 1;
-			});
-
 			x.UsingPostgres((context, cfg) =>
 			{
 				cfg.ConfigureEndpoints(context);
@@ -113,6 +109,11 @@ public static class DependencyInjection
 			"comment-repost-monitor-job",
 			worker => worker.CheckForNewPostsAsync(),
 			Cron.Minutely());
+
+		recurringJobManager.AddOrUpdate<DiscoverChannelLinksWorker>(
+			"discover-channel-links-job",
+			worker => worker.ProcessChannelsAsync(),
+			Cron.Daily());
 
 	}
 
