@@ -15,12 +15,14 @@ internal sealed class ScrapeChannelConsumer(
 	{
 		var url = context.Message.Url;
 		var ct = context.CancellationToken;
-
+		await Task.Delay(TimeSpan.FromMinutes(1), ct);
 		logger.LogInformation("Скрейпим канал с TGStat: {Url}", url);
 
 		var detail = await scrapingService.ScrapeChannelDetailAsync(url, ct);
 		if (detail is null)
 		{
+			await Task.Delay(TimeSpan.FromMinutes(10), ct);
+			await bus.Publish(context.Message, ct);
 			logger.LogWarning("Не удалось спарсить канал: {Url}", url);
 			return;
 		}

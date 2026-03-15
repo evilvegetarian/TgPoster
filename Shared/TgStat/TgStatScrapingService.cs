@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Text.RegularExpressions;
+using MassTransit;
 using Microsoft.Extensions.Logging;
 using Microsoft.Playwright;
 using Shared.TgStat.Models;
@@ -42,7 +43,7 @@ internal sealed partial class TgStatScrapingService(ILogger<TgStatScrapingServic
 
 			await page.GotoAsync(url, new PageGotoOptions
 			{
-				WaitUntil = WaitUntilState.NetworkIdle,
+				WaitUntil = WaitUntilState.DOMContentLoaded,
 				Timeout = PageLoadTimeoutMs
 			});
 
@@ -54,7 +55,6 @@ internal sealed partial class TgStatScrapingService(ILogger<TgStatScrapingServic
 
 			if (string.IsNullOrEmpty(title))
 				return null;
-
 			// Описание
 			var descriptionElement = await page.QuerySelectorAsync(
 				".channel-description, [class*='peer-description'], [class*='about']");

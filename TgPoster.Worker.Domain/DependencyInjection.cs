@@ -71,10 +71,10 @@ public static class DependencyInjection
 			{
 				opt.ConcurrentMessageLimit = 3;
 			});
-			x.AddConsumer<ScrapeChannelConsumer>(opt =>
-			{
-				opt.ConcurrentMessageLimit = 1;
-			});
+			//x.AddConsumer<ScrapeChannelConsumer>(opt =>
+			//{
+			//	opt.ConcurrentMessageLimit = 1;
+			//});
 			x.UsingPostgres((context, cfg) =>
 			{
 				cfg.ConfigureEndpoints(context);
@@ -99,12 +99,12 @@ public static class DependencyInjection
 			"process-sender-message-job",
 			worker => worker.ProcessMessagesAsync(),
 			Cron.Minutely());
-
+		
 		recurringJobManager.AddOrUpdate<ParseChannelWorker>(
 			"process-parse-channel-job",
 			worker => worker.ProcessMessagesAsync(),
 			Cron.Daily());
-
+		
 		recurringJobManager.AddOrUpdate<CommentRepostMonitorWorker>(
 			"comment-repost-monitor-job",
 			worker => worker.CheckForNewPostsAsync(),
@@ -117,7 +117,7 @@ public static class DependencyInjection
 
 	}
 
-	public class AllowAllAuthorizationFilter : IDashboardAuthorizationFilter
+	private class AllowAllAuthorizationFilter : IDashboardAuthorizationFilter
 	{
 		public bool Authorize(DashboardContext context) => true;
 	}
