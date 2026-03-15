@@ -71,10 +71,10 @@ public static class DependencyInjection
 			{
 				opt.ConcurrentMessageLimit = 3;
 			});
-			//x.AddConsumer<ScrapeChannelConsumer>(opt =>
-			//{
-			//	opt.ConcurrentMessageLimit = 1;
-			//});
+			x.AddConsumer<ScrapeChannelConsumer>(opt =>
+			{
+				opt.ConcurrentMessageLimit = 1;
+			});
 			x.UsingPostgres((context, cfg) =>
 			{
 				cfg.ConfigureEndpoints(context);
@@ -110,10 +110,10 @@ public static class DependencyInjection
 			worker => worker.CheckForNewPostsAsync(),
 			Cron.Minutely());
 
-		recurringJobManager.AddOrUpdate<DiscoverChannelLinksWorker>(
-			"discover-channel-links-job",
-			worker => worker.ProcessChannelsAsync(),
-			Cron.Daily());
+		//recurringJobManager.AddOrUpdate<DiscoverChannelLinksWorker>(
+		//	"discover-channel-links-job",
+		//	worker => worker.ProcessChannelsAsync(),
+		//	Cron.Daily());
 
 	}
 
