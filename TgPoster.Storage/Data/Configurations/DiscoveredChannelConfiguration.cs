@@ -16,8 +16,12 @@ internal sealed class DiscoveredChannelConfiguration : BaseEntityConfiguration<D
 		builder.Property(x => x.AvatarUrl).HasMaxLength(1024);
 		builder.Property(x => x.PeerType).HasMaxLength(32);
 		builder.Property(x => x.TgUrl).HasMaxLength(1024);
+		builder.Property(x => x.Category).HasMaxLength(128);
+		builder.Property(x => x.Subcategory).HasMaxLength(128);
+		builder.Property(x => x.Language).HasMaxLength(10);
 
 		builder.HasIndex(x => x.Username).IsUnique();
 		builder.HasIndex(x => x.Status);
+		builder.HasIndex(x => x.Category);
 	}
 }

@@ -2,7 +2,7 @@ namespace TgPoster.Worker.Domain.UseCases.ScrapeChannel;
 
 public interface IScrapeChannelStorage
 {
-	Task UpsertChannelAsync(
+	Task<Guid> UpsertChannelAsync(
 		string username,
 		string? title,
 		string? description,

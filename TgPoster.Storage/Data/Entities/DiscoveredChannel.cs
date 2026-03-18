@@ -56,4 +56,34 @@ public sealed class DiscoveredChannel : BaseEntity
 	///     Статус обработки.
 	/// </summary>
 	public DiscoveryStatus Status { get; set; }
+
+	/// <summary>
+	///     Основная категория канала (например: "Технологии", "Новости").
+	/// </summary>
+	public string? Category { get; set; }
+
+	/// <summary>
+	///     Подкатегория (например: "AI и ML", "Фондовый рынок").
+	/// </summary>
+	public string? Subcategory { get; set; }
+
+	/// <summary>
+	///     Теги канала.
+	/// </summary>
+	public string[]? Tags { get; set; }
+
+	/// <summary>
+	///     Язык канала (ru, en, uk и т.д.).
+	/// </summary>
+	public string? Language { get; set; }
+
+	/// <summary>
+	///     Уверенность модели в классификации (0.0–1.0).
+	/// </summary>
+	public double? ClassificationConfidence { get; set; }
+
+	/// <summary>
+	///     Дата последней классификации.
+	/// </summary>
+	public DateTime? ClassifiedAt { get; set; }
 }

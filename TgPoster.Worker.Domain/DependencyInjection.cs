@@ -18,6 +18,7 @@ using TgPoster.Worker.Domain.UseCases.RepostMessageConsumer;
 using TgPoster.Worker.Domain.UseCases.SendCommentConsumer;
 using TgPoster.Worker.Domain.UseCases.SenderMessageWorker;
 using TgPoster.Worker.Domain.UseCases.ScrapeChannel;
+using TgPoster.Worker.Domain.UseCases.ClassifyChannel;
 using TgPoster.Worker.Domain.UseCases.DiscoverChannelLinks;
 
 namespace TgPoster.Worker.Domain;
@@ -72,6 +73,10 @@ public static class DependencyInjection
 				opt.ConcurrentMessageLimit = 3;
 			});
 			x.AddConsumer<ScrapeChannelConsumer>(opt =>
+			{
+				opt.ConcurrentMessageLimit = 1;
+			});
+			x.AddConsumer<ClassifyChannelConsumer>(opt =>
 			{
 				opt.ConcurrentMessageLimit = 1;
 			});

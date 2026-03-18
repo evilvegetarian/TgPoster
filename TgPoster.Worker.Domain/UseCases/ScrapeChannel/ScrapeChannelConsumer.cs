@@ -1,6 +1,6 @@
 using MassTransit;
 using Microsoft.Extensions.Logging;
-using Shared.Telegram;
+using Shared.OpenRouter;
 using Shared.TgStat;
 
 namespace TgPoster.Worker.Domain.UseCases.ScrapeChannel;
@@ -15,7 +15,7 @@ internal sealed class ScrapeChannelConsumer(
 	{
 		var url = context.Message.Url;
 		var ct = context.CancellationToken;
-		await Task.Delay(TimeSpan.FromMinutes(1), ct);
+		await Task.Delay(TimeSpan.FromSeconds(10), ct);
 		logger.LogInformation("Скрейпим канал с TGStat: {Url}", url);
 
 		var detail = await scrapingService.ScrapeChannelDetailAsync(url, ct);
@@ -33,7 +33,7 @@ internal sealed class ScrapeChannelConsumer(
 			return;
 		}
 
-		await storage.UpsertChannelAsync(
+		var channelId = await storage.UpsertChannelAsync(
 			detail.Username,
 			detail.Title,
 			detail.Description,
@@ -42,6 +42,8 @@ internal sealed class ScrapeChannelConsumer(
 			detail.PeerType,
 			detail.TgUrl,
 			ct);
+
+		await bus.Publish(new ClassifyChannelContract { ChannelId = channelId }, ct);
 
 		logger.LogInformation("Канал сохранён: {Title} (@{Username})", detail.Title, detail.Username);
 	}

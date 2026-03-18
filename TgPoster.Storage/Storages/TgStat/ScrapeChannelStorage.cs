@@ -8,7 +8,7 @@ namespace TgPoster.Storage.Storages.TgStat;
 
 internal sealed class ScrapeChannelStorage(PosterContext context, GuidFactory guidFactory) : IScrapeChannelStorage
 {
-	public async Task UpsertChannelAsync(
+	public async Task<Guid> UpsertChannelAsync(
 		string username,
 		string? title,
 		string? description,
@@ -29,23 +29,26 @@ internal sealed class ScrapeChannelStorage(PosterContext context, GuidFactory gu
 			existing.ParticipantsCount = participantsCount;
 			existing.PeerType = peerType;
 			existing.TgUrl = tgUrl;
-		}
-		else
-		{
-			context.DiscoveredChannels.Add(new DiscoveredChannel
-			{
-				Id = guidFactory.New(),
-				Username = username,
-				Title = title,
-				Description = description,
-				AvatarUrl = avatarUrl,
-				ParticipantsCount = participantsCount,
-				PeerType = peerType,
-				TgUrl = tgUrl,
-				Status = DiscoveryStatus.Pending
-			});
+
+			await context.SaveChangesAsync(ct);
+			return existing.Id;
 		}
 
+		var id = guidFactory.New();
+		context.DiscoveredChannels.Add(new DiscoveredChannel
+		{
+			Id = id,
+			Username = username,
+			Title = title,
+			Description = description,
+			AvatarUrl = avatarUrl,
+			ParticipantsCount = participantsCount,
+			PeerType = peerType,
+			TgUrl = tgUrl,
+			Status = DiscoveryStatus.Pending
+		});
+
 		await context.SaveChangesAsync(ct);
+		return id;
 	}
 }
