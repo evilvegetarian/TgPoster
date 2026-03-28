@@ -24,7 +24,9 @@ public sealed class DiscoverChannelLinksStorageShould(StorageTestFixture fixture
 			lastParsedId: null,
 			telegramId: 987654321,
 			peerType: "channel",
-			CancellationToken.None);
+			title: "Test Channel",
+			participantsCount: 1500,
+			ct: CancellationToken.None);
 
 		var saved = await context.DiscoveredChannels
 			.FirstAsync(x => x.Username == username, CancellationToken.None);
@@ -32,6 +34,8 @@ public sealed class DiscoverChannelLinksStorageShould(StorageTestFixture fixture
 		saved.PeerType.ShouldBe("channel");
 		saved.TelegramId.ShouldBe(987654321);
 		saved.TgUrl.ShouldBe("https://t.me/newchannel");
+		saved.Title.ShouldBe("Test Channel");
+		saved.ParticipantsCount.ShouldBe(1500);
 	}
 
 	[Fact]
@@ -53,13 +57,17 @@ public sealed class DiscoverChannelLinksStorageShould(StorageTestFixture fixture
 			lastParsedId: null,
 			telegramId: 11223344,
 			peerType: "chat",
-			CancellationToken.None);
+			title: "Updated Chat",
+			participantsCount: 500,
+			ct: CancellationToken.None);
 
 		var saved = await context.DiscoveredChannels
 			.FirstAsync(x => x.Username == channel.Username, CancellationToken.None);
 
 		saved.PeerType.ShouldBe("chat");
 		saved.TelegramId.ShouldBe(11223344);
+		saved.Title.ShouldBe("Updated Chat");
+		saved.ParticipantsCount.ShouldBe(500);
 	}
 
 	[Fact]
@@ -90,7 +98,7 @@ public sealed class DiscoverChannelLinksStorageShould(StorageTestFixture fixture
 	}
 
 	[Fact]
-	public async Task UpdateLastParsedIdAsync_ShouldSavePeerTypeAndSetCompletedStatus()
+	public async Task UpsertAsync_WithMarkAsCompleted_ShouldSetCompletedStatusAndDiscoveredAt()
 	{
 		var channel = new DiscoveredChannel
 		{
@@ -102,11 +110,15 @@ public sealed class DiscoverChannelLinksStorageShould(StorageTestFixture fixture
 		await context.SaveChangesAsync(CancellationToken.None);
 		context.ChangeTracker.Clear();
 
-		await sut.UpdateLastParsedIdAsync(
+		await sut.UpsertAsync(
 			channel.Username,
+			tgUrl: null,
 			lastParsedId: 500,
 			telegramId: 44556677,
 			peerType: "channel",
+			title: "Source Channel",
+			participantsCount: 10000,
+			markAsCompleted: true,
 			CancellationToken.None);
 
 		var saved = await context.DiscoveredChannels
@@ -115,6 +127,9 @@ public sealed class DiscoverChannelLinksStorageShould(StorageTestFixture fixture
 		saved.LastParsedId.ShouldBe(500);
 		saved.TelegramId.ShouldBe(44556677);
 		saved.PeerType.ShouldBe("channel");
+		saved.Title.ShouldBe("Source Channel");
+		saved.ParticipantsCount.ShouldBe(10000);
 		saved.Status.ShouldBe(DiscoveryStatus.Completed);
+		saved.LastDiscoveredAt.ShouldNotBeNull();
 	}
 }

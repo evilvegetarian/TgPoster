@@ -34,7 +34,10 @@ internal sealed class DiscoverChannelLinksStorage(PosterContext context, GuidFac
 		int? lastParsedId,
 		long? telegramId,
 		string? peerType,
-		CancellationToken ct)
+		string? title,
+		int? participantsCount,
+		bool markAsCompleted = false,
+		CancellationToken ct = default)
 	{
 		var existing = await context.DiscoveredChannels
 			.FirstOrDefaultAsync(x => x.Username == username, ct);
@@ -49,6 +52,16 @@ internal sealed class DiscoverChannelLinksStorage(PosterContext context, GuidFac
 				existing.TelegramId = telegramId;
 			if (peerType is not null)
 				existing.PeerType = peerType;
+			if (title is not null)
+				existing.Title = title;
+			if (participantsCount is not null)
+				existing.ParticipantsCount = participantsCount;
+
+			if (markAsCompleted)
+			{
+				existing.Status = DiscoveryStatus.Completed;
+				existing.LastDiscoveredAt = DateTimeOffset.UtcNow;
+			}
 		}
 		else
 		{
@@ -60,29 +73,11 @@ internal sealed class DiscoverChannelLinksStorage(PosterContext context, GuidFac
 				LastParsedId = lastParsedId,
 				TelegramId = telegramId,
 				PeerType = peerType,
+				Title = title,
+				ParticipantsCount = participantsCount,
 				Status = DiscoveryStatus.Pending
 			});
 		}
-
-		await context.SaveChangesAsync(ct);
-	}
-
-	public async Task UpdateLastParsedIdAsync(
-		string username,
-		int lastParsedId,
-		long telegramId,
-		string? peerType,
-		CancellationToken ct)
-	{
-		var channel = await context.DiscoveredChannels
-			.FirstAsync(x => x.Username == username, ct);
-
-		channel.LastParsedId = lastParsedId;
-		channel.TelegramId = telegramId;
-		if (peerType is not null)
-			channel.PeerType = peerType;
-		channel.Status = DiscoveryStatus.Completed;
-		channel.LastDiscoveredAt = DateTimeOffset.UtcNow;
 
 		await context.SaveChangesAsync(ct);
 	}

@@ -88,11 +88,17 @@ internal sealed partial class DiscoverChannelLinksWorker(
 			history.CollectUsersChats(users, chats);
 			foreach (var keyValuePair in chats)
 			{
-				allUsernames.TryAdd(keyValuePair.Value.MainUsername, new DiscoveredPeerInfo()
+				var chat = keyValuePair.Value;
+				if (string.IsNullOrEmpty(chat.MainUsername))
+					continue;
+
+				allUsernames.TryAdd(chat.MainUsername, new DiscoveredPeerInfo
 				{
-					PeerType = ResolvePeerType(keyValuePair.Value),
-					Username = keyValuePair.Value.MainUsername,
-					TelegramId = keyValuePair.Key
+					PeerType = ResolvePeerType(chat),
+					Username = chat.MainUsername,
+					TelegramId = keyValuePair.Key,
+					Title = chat.Title,
+					ParticipantsCount = (chat as Channel)?.participants_count
 				});
 			}
 
@@ -130,9 +136,7 @@ internal sealed partial class DiscoverChannelLinksWorker(
 		}
 
 		allUsernames.Remove(channelDto.Username);
-		logger.LogInformation(
-			"Найдено {Count} уникальных каналов в @{Channel}",
-			allUsernames.Count, channelDto.Username);
+		logger.LogInformation("Найдено {Count} уникальных каналов в @{Channel}", allUsernames.Count, channelDto.Username);
 
 		foreach (var peer in allUsernames.Values)
 		{
@@ -142,13 +146,24 @@ internal sealed partial class DiscoverChannelLinksWorker(
 				lastParsedId: null,
 				telegramId: peer.TelegramId,
 				peerType: peer.PeerType,
-				ct);
+				title: peer.Title,
+				participantsCount: peer.ParticipantsCount,
+				ct: ct);
 		}
 
 		// Сохраняем последнее спарсенное сообщение, TelegramId и тип peer исходного канала
 		if (lastParsedId > 0)
 		{
-			await storage.UpdateLastParsedIdAsync(channelDto.Username, lastParsedId, telegramId, sourcePeerType, ct);
+			await storage.UpsertAsync(
+				channelDto.Username,
+				tgUrl: null,
+				lastParsedId: lastParsedId,
+				telegramId: telegramId,
+				peerType: sourcePeerType,
+				title: channel.title,
+				participantsCount: channel.participants_count,
+				markAsCompleted: true,
+				ct);
 		}
 	}
 
@@ -173,11 +188,13 @@ internal sealed partial class DiscoverChannelLinksWorker(
 				}
 				else
 				{
-					chats[username] = new DiscoveredPeerInfo()
+					chats[username] = new DiscoveredPeerInfo
 					{
 						PeerType = ResolvePeerType(result.Chat),
 						TelegramId = result.Chat.ID,
-						Username = username
+						Username = username,
+						Title = result.Chat.Title,
+						ParticipantsCount = (result.Chat as Channel)?.participants_count
 					};
 				}
 			}
@@ -242,5 +259,7 @@ internal sealed partial class DiscoverChannelLinksWorker(
 	private readonly record struct DiscoveredPeerInfo(
 		string Username,
 		long TelegramId,
-		string PeerType);
+		string PeerType,
+		string? Title = null,
+		int? ParticipantsCount = null);
 }
