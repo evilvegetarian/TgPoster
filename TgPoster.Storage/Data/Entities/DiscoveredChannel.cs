@@ -85,5 +85,10 @@ public sealed class DiscoveredChannel : BaseEntity
 	/// <summary>
 	///     Дата последней классификации.
 	/// </summary>
-	public DateTime? ClassifiedAt { get; set; }
+	public DateTimeOffset? LastClassifiedAt { get; set; }
+
+	/// <summary>
+	///     Дата последнего парсинга ссылок канала.
+	/// </summary>
+	public DateTimeOffset? LastDiscoveredAt { get; set; }
 }

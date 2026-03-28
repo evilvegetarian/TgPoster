@@ -13,6 +13,7 @@ internal sealed class DiscoverChannelLinksStorage(PosterContext context, GuidFac
 	{
 		return context.DiscoveredChannels
 			.Where(x => x.Status == DiscoveryStatus.Pending || x.Status == DiscoveryStatus.Completed)
+			.OrderBy(x => x.LastDiscoveredAt)
 			.Select(x => new DiscoverChannelDto
 			{
 				Username = x.Username,
@@ -81,6 +82,7 @@ internal sealed class DiscoverChannelLinksStorage(PosterContext context, GuidFac
 		if (peerType is not null)
 			channel.PeerType = peerType;
 		channel.Status = DiscoveryStatus.Completed;
+		channel.LastDiscoveredAt = DateTimeOffset.UtcNow;
 
 		await context.SaveChangesAsync(ct);
 	}

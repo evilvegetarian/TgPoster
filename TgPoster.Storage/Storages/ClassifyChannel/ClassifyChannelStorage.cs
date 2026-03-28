@@ -35,7 +35,7 @@ internal sealed class ClassifyChannelStorage(PosterContext context) : IClassifyC
 		channel.Tags = tags;
 		channel.Language = language;
 		channel.ClassificationConfidence = confidence;
-		channel.ClassifiedAt = DateTime.UtcNow;
+		channel.LastClassifiedAt = DateTimeOffset.UtcNow;
 
 		await context.SaveChangesAsync(ct);
 	}

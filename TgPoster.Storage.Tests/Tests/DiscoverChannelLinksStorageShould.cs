@@ -63,6 +63,33 @@ public sealed class DiscoverChannelLinksStorageShould(StorageTestFixture fixture
 	}
 
 	[Fact]
+	public async Task GetChannelsToProcessAsync_ShouldReturnPendingChannelsBeforeCompleted()
+	{
+		var completed = new DiscoveredChannel
+		{
+			Id = Guid.NewGuid(),
+			Username = "completedchannel",
+			Status = DiscoveryStatus.Completed,
+			LastDiscoveredAt = DateTimeOffset.UtcNow.AddHours(-1)
+		};
+		var pending = new DiscoveredChannel
+		{
+			Id = Guid.NewGuid(),
+			Username = "pendingchannel",
+			Status = DiscoveryStatus.Pending
+		};
+		context.DiscoveredChannels.AddRange(completed, pending);
+		await context.SaveChangesAsync(CancellationToken.None);
+		context.ChangeTracker.Clear();
+
+		var result = await sut.GetChannelsToProcessAsync(CancellationToken.None);
+
+		var pendingIndex = result.FindIndex(x => x.Username == pending.Username);
+		var completedIndex = result.FindIndex(x => x.Username == completed.Username);
+		pendingIndex.ShouldBeLessThan(completedIndex);
+	}
+
+	[Fact]
 	public async Task UpdateLastParsedIdAsync_ShouldSavePeerTypeAndSetCompletedStatus()
 	{
 		var channel = new DiscoveredChannel
