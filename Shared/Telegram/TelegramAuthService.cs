@@ -382,9 +382,9 @@ public sealed class TelegramAuthService(
 
 	private async Task UpdateSessionDataAsync(Guid sessionId, byte[] sessionData, CancellationToken ct)
 	{
-		var scope = scopeFactory.CreateAsyncScope();
+		await using var scope = scopeFactory.CreateAsyncScope();
 		var authRep = scope.ServiceProvider.GetRequiredService<ITelegramAuthRepository>();
 		var sessionString = Convert.ToBase64String(sessionData);
-		await authRep.UpdateSessionDataAsync(sessionId, sessionString, ct);
+		await authRep.UpdateSessionDataAsync(sessionId, sessionString, CancellationToken.None);
 	}
 }

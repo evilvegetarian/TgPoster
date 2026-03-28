@@ -8,14 +8,16 @@ public interface IDiscoverChannelLinksStorage
 
 	Task UpsertAsync(
 		string username,
-		string? sourceUrl,
+		string? tgUrl,
 		int? lastParsedId,
 		long? telegramId,
+		string? peerType,
 		CancellationToken ct);
 
 	Task UpdateLastParsedIdAsync(
 		string username,
 		int lastParsedId,
 		long telegramId,
+		string? peerType,
 		CancellationToken ct);
 }
