@@ -8,9 +8,9 @@ namespace TgPoster.Storage.Data.Entities;
 public sealed class DiscoveredChannel : BaseEntity
 {
 	/// <summary>
-	///     Username канала (без @).
+	///     Username канала (без @). Null для приватных каналов.
 	/// </summary>
-	public required string Username { get; set; }
+	public string? Username { get; set; }
 
 	/// <summary>
 	///     Название канала/группы.
@@ -86,6 +86,11 @@ public sealed class DiscoveredChannel : BaseEntity
 	///     Дата последней классификации.
 	/// </summary>
 	public DateTimeOffset? LastClassifiedAt { get; set; }
+
+	/// <summary>
+	///     Хеш инвайт-ссылки (для приватных каналов/чатов).
+	/// </summary>
+	public string? InviteHash { get; set; }
 
 	/// <summary>
 	///     Дата последнего парсинга ссылок канала.

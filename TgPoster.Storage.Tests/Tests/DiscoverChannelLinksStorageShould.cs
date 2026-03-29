@@ -119,7 +119,7 @@ public sealed class DiscoverChannelLinksStorageShould(StorageTestFixture fixture
 			title: "Source Channel",
 			participantsCount: 10000,
 			markAsCompleted: true,
-			CancellationToken.None);
+			ct: CancellationToken.None);
 
 		var saved = await context.DiscoveredChannels
 			.FirstAsync(x => x.Username == channel.Username, CancellationToken.None);

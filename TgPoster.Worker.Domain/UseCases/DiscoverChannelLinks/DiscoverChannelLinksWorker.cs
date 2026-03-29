@@ -43,7 +43,8 @@ internal sealed partial class DiscoverChannelLinksWorker(
 			}
 			catch (Exception ex)
 			{
-				logger.LogError(ex, "Ошибка при обработке канала @{Channel}", channelDto.Username);
+				logger.LogError(ex, "Ошибка при обработке канала {Channel}",
+					channelDto.Username ?? channelDto.TelegramId?.ToString());
 			}
 		}
 	}
@@ -54,21 +55,44 @@ internal sealed partial class DiscoverChannelLinksWorker(
 		CancellationToken ct
 	)
 	{
-		logger.LogInformation("Поиск TG-ссылок в канале @{Channel}", channelDto.Username);
+		Channel? channel;
 
-		var resolveResult = await client.Contacts_ResolveUsername(channelDto.Username);
-		if (resolveResult.Chat is not Channel channel)
+		if (!string.IsNullOrEmpty(channelDto.Username))
 		{
-			logger.LogWarning("Не удалось найти канал: @{Channel}", channelDto.Username);
+			logger.LogInformation("Поиск TG-ссылок в канале @{Channel}", channelDto.Username);
+			var resolveResult = await client.Contacts_ResolveUsername(channelDto.Username);
+			channel = resolveResult.Chat as Channel;
+		}
+		else if (channelDto.TelegramId.HasValue)
+		{
+			logger.LogInformation("Поиск TG-ссылок в приватном канале ID={TelegramId}", channelDto.TelegramId);
+			var dialogs = await client.Messages_GetAllDialogs();
+			channel = dialogs.chats.TryGetValue(channelDto.TelegramId.Value, out var chatBase)
+				? chatBase as Channel
+				: null;
+		}
+		else
+		{
+			logger.LogDebug("Пропускаем канал только с инвайт-хешем — нет доступа для сканирования");
+			return;
+		}
+
+		if (channel is null)
+		{
+			logger.LogWarning("Не удалось найти канал: {Channel}",
+				channelDto.Username ?? channelDto.TelegramId?.ToString());
 			return;
 		}
 
 		var telegramId = channel.ID;
 		var sourcePeerType = ResolvePeerType(channel);
 		var allUsernames = new Dictionary<string, DiscoveredPeerInfo>(StringComparer.OrdinalIgnoreCase);
+		var privateChats = new Dictionary<long, DiscoveredPeerInfo>();
 		var lastParsedId = channelDto.LastParsedId ?? 0;
 		var offset = 0;
 		var textUsernames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+		var inviteHashes = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+		var privateChannelIds = new HashSet<long>();
 
 		while (true)
 		{
@@ -86,20 +110,32 @@ internal sealed partial class DiscoverChannelLinksWorker(
 			var chats = new Dictionary<long, ChatBase>();
 			var users = new Dictionary<long, User>();
 			history.CollectUsersChats(users, chats);
+
 			foreach (var keyValuePair in chats)
 			{
 				var chat = keyValuePair.Value;
-				if (string.IsNullOrEmpty(chat.MainUsername))
-					continue;
-
-				allUsernames.TryAdd(chat.MainUsername, new DiscoveredPeerInfo
+				if (!string.IsNullOrEmpty(chat.MainUsername))
 				{
-					PeerType = ResolvePeerType(chat),
-					Username = chat.MainUsername,
-					TelegramId = keyValuePair.Key,
-					Title = chat.Title,
-					ParticipantsCount = (chat as Channel)?.participants_count
-				});
+					allUsernames.TryAdd(chat.MainUsername, new DiscoveredPeerInfo
+					{
+						PeerType = ResolvePeerType(chat),
+						Username = chat.MainUsername,
+						TelegramId = keyValuePair.Key,
+						Title = chat.Title,
+						ParticipantsCount = (chat as Channel)?.participants_count
+					});
+				}
+				else if (keyValuePair.Key != 0)
+				{
+					privateChats.TryAdd(keyValuePair.Key, new DiscoveredPeerInfo
+					{
+						PeerType = ResolvePeerType(chat),
+						Username = null,
+						TelegramId = keyValuePair.Key,
+						Title = chat.Title,
+						ParticipantsCount = (chat as Channel)?.participants_count
+					});
+				}
 			}
 
 			foreach (var message in history.Messages.OfType<Message>())
@@ -109,7 +145,7 @@ internal sealed partial class DiscoverChannelLinksWorker(
 
 				if (string.IsNullOrEmpty(message.message))
 					continue;
-				ExtractUsernames(message.message, textUsernames);
+				ExtractLinksFromText(message.message, textUsernames, inviteHashes, privateChannelIds);
 			}
 
 			offset = history.Messages.Last().ID;
@@ -118,26 +154,38 @@ internal sealed partial class DiscoverChannelLinksWorker(
 				break;
 		}
 
+		// Добавляем приватные каналы из t.me/c/ID ссылок
+		foreach (var privId in privateChannelIds)
+		{
+			privateChats.TryAdd(privId, new DiscoveredPeerInfo
+			{
+				PeerType = "channel",
+				Username = null,
+				TelegramId = privId,
+				Title = null,
+				ParticipantsCount = null
+			});
+		}
 
 		// Проверяем текстовые юзернеймы — оставляем только каналы/группы/чаты и сохраняем тип peer
 		var resolvedTextPeers = await ResolveChatPeersAsync(client, textUsernames, ct);
 		foreach (var resolvedPeer in resolvedTextPeers.Values)
 		{
-			allUsernames.TryAdd(resolvedPeer.Username, resolvedPeer);
+			allUsernames.TryAdd(resolvedPeer.Username!, resolvedPeer);
 		}
 
-		// Фильтруем ботов
-		foreach (var botUsername in allUsernames.Keys
-			         .Where(u => u.EndsWith("_bot", StringComparison.OrdinalIgnoreCase)
-			                     || u.EndsWith("bot", StringComparison.OrdinalIgnoreCase))
-			         .ToList())
-		{
-			allUsernames.Remove(botUsername);
-		}
+		// Резолвим инвайт-ссылки — получаем метаданные без вступления
+		var resolvedInvites = await ResolveInviteLinksAsync(client, inviteHashes, ct);
 
-		allUsernames.Remove(channelDto.Username);
-		logger.LogInformation("Найдено {Count} уникальных каналов в @{Channel}", allUsernames.Count, channelDto.Username);
+		if (channelDto.Username is not null)
+			allUsernames.Remove(channelDto.Username);
 
+		logger.LogInformation(
+			"Найдено {PublicCount} публичных, {PrivateCount} приватных, {InviteCount} по инвайтам в {Channel}",
+			allUsernames.Count, privateChats.Count, resolvedInvites.Count,
+			channelDto.Username ?? channelDto.TelegramId?.ToString());
+
+		// Сохраняем публичные каналы
 		foreach (var peer in allUsernames.Values)
 		{
 			await storage.UpsertAsync(
@@ -148,6 +196,35 @@ internal sealed partial class DiscoverChannelLinksWorker(
 				peerType: peer.PeerType,
 				title: peer.Title,
 				participantsCount: peer.ParticipantsCount,
+				ct: ct);
+		}
+
+		// Сохраняем приватные каналы из CollectUsersChats и t.me/c/ID
+		foreach (var peer in privateChats.Values)
+		{
+			await storage.UpsertAsync(
+				username: null,
+				tgUrl: null,
+				lastParsedId: null,
+				telegramId: peer.TelegramId,
+				peerType: peer.PeerType,
+				title: peer.Title,
+				participantsCount: peer.ParticipantsCount,
+				ct: ct);
+		}
+
+		// Сохраняем каналы из инвайт-ссылок
+		foreach (var (hash, peer) in resolvedInvites)
+		{
+			await storage.UpsertAsync(
+				username: peer.Username,
+				tgUrl: $"https://t.me/+{hash}",
+				lastParsedId: null,
+				telegramId: peer.TelegramId != 0 ? peer.TelegramId : null,
+				peerType: peer.PeerType,
+				title: peer.Title,
+				participantsCount: peer.ParticipantsCount,
+				inviteHash: hash,
 				ct: ct);
 		}
 
@@ -163,7 +240,7 @@ internal sealed partial class DiscoverChannelLinksWorker(
 				title: channel.title,
 				participantsCount: channel.participants_count,
 				markAsCompleted: true,
-				ct);
+				ct: ct);
 		}
 	}
 
@@ -209,6 +286,59 @@ internal sealed partial class DiscoverChannelLinksWorker(
 		return chats;
 	}
 
+	private async Task<Dictionary<string, DiscoveredPeerInfo>> ResolveInviteLinksAsync(
+		WTelegram.Client client,
+		HashSet<string> hashes,
+		CancellationToken ct
+	)
+	{
+		var results = new Dictionary<string, DiscoveredPeerInfo>(StringComparer.OrdinalIgnoreCase);
+
+		foreach (var hash in hashes)
+		{
+			ct.ThrowIfCancellationRequested();
+
+			try
+			{
+				var inviteInfo = await client.Messages_CheckChatInvite(hash);
+
+				switch (inviteInfo)
+				{
+					case ChatInviteAlready { chat: var chat }:
+						results[hash] = new DiscoveredPeerInfo
+						{
+							Username = chat.MainUsername,
+							TelegramId = chat.ID,
+							PeerType = ResolvePeerType(chat),
+							Title = chat.Title,
+							ParticipantsCount = (chat as Channel)?.participants_count,
+							InviteHash = hash
+						};
+						break;
+					case ChatInvite invite:
+						results[hash] = new DiscoveredPeerInfo
+						{
+							Username = null,
+							TelegramId = 0,
+							PeerType = invite.flags.HasFlag(ChatInvite.Flags.channel) ? "channel" : "chat",
+							Title = invite.title,
+							ParticipantsCount = invite.participants_count,
+							InviteHash = hash
+						};
+						break;
+				}
+			}
+			catch (Exception ex)
+			{
+				logger.LogDebug(ex, "Не удалось проверить инвайт-хеш {Hash}, пропускаем", hash);
+			}
+
+			await Task.Delay(1000, ct);
+		}
+
+		return results;
+	}
+
 	private static string ResolvePeerType(Channel channel)
 	{
 		if (channel.IsGroup)
@@ -231,9 +361,14 @@ internal sealed partial class DiscoverChannelLinksWorker(
 		return "chat";
 	}
 
-	private static void ExtractUsernames(string text, HashSet<string> usernames)
+	private static void ExtractLinksFromText(
+		string text,
+		HashSet<string> usernames,
+		HashSet<string> inviteHashes,
+		HashSet<long> privateChannelIds
+	)
 	{
-		// t.me/username ссылки
+		// t.me/username ссылки (исключая joinchat/, +, c/)
 		foreach (Match match in TmeLinkRegex().Matches(text))
 		{
 			var username = match.Groups[1].Value;
@@ -248,18 +383,38 @@ internal sealed partial class DiscoverChannelLinksWorker(
 			if (username.Length >= 5)
 				usernames.Add(username);
 		}
+
+		// t.me/+HASH или t.me/joinchat/HASH — инвайт-ссылки
+		foreach (Match match in InviteLinkRegex().Matches(text))
+		{
+			inviteHashes.Add(match.Groups[1].Value);
+		}
+
+		// t.me/c/ID — приватные каналы по ID
+		foreach (Match match in PrivateChannelLinkRegex().Matches(text))
+		{
+			if (long.TryParse(match.Groups[1].Value, out var id))
+				privateChannelIds.Add(id);
+		}
 	}
 
-	[GeneratedRegex(@"(?:https?://)?t\.me/([a-zA-Z0-9_]{5,})", RegexOptions.Compiled)]
+	[GeneratedRegex(@"(?:https?://)?t\.me/(?!(?:joinchat/|\+|c/))([a-zA-Z0-9_]{5,})", RegexOptions.Compiled)]
 	private static partial Regex TmeLinkRegex();
 
 	[GeneratedRegex(@"@([a-zA-Z0-9_]{5,})", RegexOptions.Compiled)]
 	private static partial Regex MentionRegex();
 
+	[GeneratedRegex(@"(?:https?://)?t\.me/(?:joinchat/|\+)([\w\-]+)", RegexOptions.Compiled)]
+	private static partial Regex InviteLinkRegex();
+
+	[GeneratedRegex(@"(?:https?://)?t\.me/c/(\d+)(?:/\d+)?", RegexOptions.Compiled)]
+	private static partial Regex PrivateChannelLinkRegex();
+
 	private readonly record struct DiscoveredPeerInfo(
-		string Username,
+		string? Username,
 		long TelegramId,
 		string PeerType,
 		string? Title = null,
-		int? ParticipantsCount = null);
+		int? ParticipantsCount = null,
+		string? InviteHash = null);
 }

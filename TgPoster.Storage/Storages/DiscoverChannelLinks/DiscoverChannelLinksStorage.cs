@@ -13,34 +13,40 @@ internal sealed class DiscoverChannelLinksStorage(PosterContext context, GuidFac
 	{
 		return context.DiscoveredChannels
 			.Where(x => x.Status == DiscoveryStatus.Pending || x.Status == DiscoveryStatus.Completed)
+			.Where(x => x.Username != null || x.TelegramId != null)
 			.OrderBy(x => x.LastDiscoveredAt)
 			.Select(x => new DiscoverChannelDto
 			{
 				Username = x.Username,
+				TelegramId = x.TelegramId,
+				InviteHash = x.InviteHash,
 				LastParsedId = x.LastParsedId
 			})
 			.ToListAsync(ct);
 	}
 
-	public Task<bool> ExistsAsync(string username, CancellationToken ct)
+	public Task<bool> ExistsAsync(string? username, long? telegramId, string? inviteHash, CancellationToken ct)
 	{
 		return context.DiscoveredChannels
-			.AnyAsync(x => x.Username == username, ct);
+			.AnyAsync(x =>
+				(telegramId != null && x.TelegramId == telegramId) ||
+				(username != null && x.Username == username) ||
+				(inviteHash != null && x.InviteHash == inviteHash), ct);
 	}
 
 	public async Task UpsertAsync(
-		string username,
+		string? username,
 		string? tgUrl,
 		int? lastParsedId,
 		long? telegramId,
 		string? peerType,
 		string? title,
 		int? participantsCount,
+		string? inviteHash = null,
 		bool markAsCompleted = false,
 		CancellationToken ct = default)
 	{
-		var existing = await context.DiscoveredChannels
-			.FirstOrDefaultAsync(x => x.Username == username, ct);
+		var existing = await FindExistingAsync(username, telegramId, inviteHash, ct);
 
 		if (existing is not null)
 		{
@@ -56,6 +62,10 @@ internal sealed class DiscoverChannelLinksStorage(PosterContext context, GuidFac
 				existing.Title = title;
 			if (participantsCount is not null)
 				existing.ParticipantsCount = participantsCount;
+			if (username is not null && existing.Username is null)
+				existing.Username = username;
+			if (inviteHash is not null && existing.InviteHash is null)
+				existing.InviteHash = inviteHash;
 
 			if (markAsCompleted)
 			{
@@ -75,10 +85,39 @@ internal sealed class DiscoverChannelLinksStorage(PosterContext context, GuidFac
 				PeerType = peerType,
 				Title = title,
 				ParticipantsCount = participantsCount,
+				InviteHash = inviteHash,
 				Status = DiscoveryStatus.Pending
 			});
 		}
 
 		await context.SaveChangesAsync(ct);
+	}
+
+	private async Task<DiscoveredChannel?> FindExistingAsync(
+		string? username, long? telegramId, string? inviteHash, CancellationToken ct)
+	{
+		if (telegramId is not null)
+		{
+			var byTelegramId = await context.DiscoveredChannels
+				.FirstOrDefaultAsync(x => x.TelegramId == telegramId, ct);
+			if (byTelegramId is not null)
+				return byTelegramId;
+		}
+
+		if (username is not null)
+		{
+			var byUsername = await context.DiscoveredChannels
+				.FirstOrDefaultAsync(x => x.Username == username, ct);
+			if (byUsername is not null)
+				return byUsername;
+		}
+
+		if (inviteHash is not null)
+		{
+			return await context.DiscoveredChannels
+				.FirstOrDefaultAsync(x => x.InviteHash == inviteHash, ct);
+		}
+
+		return null;
 	}
 }
