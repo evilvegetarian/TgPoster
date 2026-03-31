@@ -13,7 +13,7 @@ internal sealed class DiscoverChannelLinksStorage(PosterContext context, GuidFac
 	{
 		return context.DiscoveredChannels
 			.Where(x => x.Status == DiscoveryStatus.Pending || x.Status == DiscoveryStatus.Completed)
-			.Where(x => x.Username != null || x.TelegramId != null)
+			.Where(x => x.Username != null)
 			.OrderBy(x => x.LastDiscoveredAt)
 			.Select(x => new DiscoverChannelDto
 			{

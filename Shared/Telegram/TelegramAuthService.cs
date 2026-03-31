@@ -1,4 +1,3 @@
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Shared.Exceptions;
 using TL;
@@ -12,7 +11,7 @@ namespace Shared.Telegram;
 public sealed class TelegramAuthService(
 	ILogger<TelegramAuthService> logger,
 	ITelegramAuthRepository authRepository,
-	IServiceScopeFactory scopeFactory,
+	SessionDataDebouncer sessionDebouncer,
 	TelegramClientManager clientManager) : ITelegramAuthService
 {
 	public void Dispose()
@@ -61,9 +60,9 @@ public sealed class TelegramAuthService(
 		}
 
 		var sessionBytes = Convert.FromBase64String(session.SessionData);
-		var client = new Client(Config, sessionBytes, async data =>
+		var client = new Client(Config, sessionBytes, data =>
 		{
-			await UpdateSessionDataAsync(sessionId, data, ct);
+			sessionDebouncer.Update(sessionId, data);
 		});
 
 		try
@@ -120,16 +119,16 @@ public sealed class TelegramAuthService(
 		if (session.SessionData != null)
 		{
 			var sessionBytes = Convert.FromBase64String(session.SessionData);
-			client = new Client(Config, sessionBytes, async data =>
+			client = new Client(Config, sessionBytes, data =>
 			{
-				await UpdateSessionDataAsync(sessionId, data, ct);
+				sessionDebouncer.Update(sessionId, data);
 			});
 		}
 		else
 		{
-			client = new Client(Config, null, async data =>
+			client = new Client(Config, null, data =>
 			{
-				await UpdateSessionDataAsync(sessionId, data, ct);
+				sessionDebouncer.Update(sessionId, data);
 			});
 		}
 
@@ -363,9 +362,9 @@ public sealed class TelegramAuthService(
 		}
 
 		var sessionBytes = Convert.FromBase64String(session.SessionData);
-		var client = new Client(Config, sessionBytes, async data =>
+		var client = new Client(Config, sessionBytes, data =>
 		{
-			await UpdateSessionDataAsync(sessionId, data, ct);
+			sessionDebouncer.Update(sessionId, data);
 		});
 
 		var loginState = await client.Login(session.PhoneNumber);
@@ -380,11 +379,4 @@ public sealed class TelegramAuthService(
 		return client;
 	}
 
-	private async Task UpdateSessionDataAsync(Guid sessionId, byte[] sessionData, CancellationToken ct)
-	{
-		await using var scope = scopeFactory.CreateAsyncScope();
-		var authRep = scope.ServiceProvider.GetRequiredService<ITelegramAuthRepository>();
-		var sessionString = Convert.ToBase64String(sessionData);
-		await authRep.UpdateSessionDataAsync(sessionId, sessionString, CancellationToken.None);
-	}
 }

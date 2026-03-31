@@ -23,7 +23,7 @@ internal sealed partial class DiscoverChannelLinksWorker(
 		var ct = lifetime.ApplicationStopping;
 
 		var channels = await storage.GetChannelsToProcessAsync(ct);
-		channels = channels.Take(100).Skip(1).ToList();
+		channels = channels.Where(x => x.LastParsedId == null).ToList();
 		if (channels.Count == 0)
 		{
 			logger.LogDebug("Нет каналов для обработки DiscoverChannelLinks");
@@ -39,7 +39,7 @@ internal sealed partial class DiscoverChannelLinksWorker(
 			try
 			{
 				await ProcessChannelAsync(client, channelDto, ct);
-				await Task.Delay(TimeSpan.FromMinutes(10), ct);
+				await Task.Delay(TimeSpan.FromMinutes(1), ct);
 			}
 			catch (Exception ex)
 			{
@@ -114,6 +114,12 @@ internal sealed partial class DiscoverChannelLinksWorker(
 			foreach (var keyValuePair in chats)
 			{
 				var chat = keyValuePair.Value;
+				if (chat is ChatForbidden or ChannelForbidden)
+				{
+					logger.LogDebug("Чат {Id} \"{Title}\" заблокирован, пропускаем", chat.ID, chat.Title);
+					continue;
+				}
+
 				if (!string.IsNullOrEmpty(chat.MainUsername))
 				{
 					allUsernames.TryAdd(chat.MainUsername, new DiscoveredPeerInfo
