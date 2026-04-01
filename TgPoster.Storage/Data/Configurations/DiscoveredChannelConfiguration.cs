@@ -26,5 +26,12 @@ internal sealed class DiscoveredChannelConfiguration : BaseEntityConfiguration<D
 		builder.HasIndex(x => x.TelegramId);
 		builder.HasIndex(x => x.Status);
 		builder.HasIndex(x => x.Category);
+
+		builder.HasOne(x => x.DiscoveredFromChannel)
+			.WithMany()
+			.HasForeignKey(x => x.DiscoveredFromChannelId)
+			.OnDelete(DeleteBehavior.SetNull);
+
+		builder.HasIndex(x => x.DiscoveredFromChannelId);
 	}
 }

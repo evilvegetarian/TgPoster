@@ -66,16 +66,16 @@ public static class DependencyInjection
 			});
 			x.AddConsumer<RepostMessageConsumer>(opt =>
 			{
-				opt.ConcurrentMessageLimit = 5;
+				opt.ConcurrentMessageLimit = 1;
 			});
 			x.AddConsumer<SendCommentConsumer>(opt =>
 			{
-				opt.ConcurrentMessageLimit = 3;
-			});
-			x.AddConsumer<ScrapeChannelConsumer>(opt =>
-			{
 				opt.ConcurrentMessageLimit = 1;
 			});
+			//x.AddConsumer<ScrapeChannelConsumer>(opt =>
+			//{
+			//	opt.ConcurrentMessageLimit = 1;
+			//});
 			x.AddConsumer<ClassifyChannelConsumer>(opt =>
 			{
 				opt.ConcurrentMessageLimit = 1;
@@ -115,11 +115,10 @@ public static class DependencyInjection
 			worker => worker.CheckForNewPostsAsync(),
 			Cron.Minutely());
 
-		//recurringJobManager.AddOrUpdate<DiscoverChannelLinksWorker>(
-		//	"discover-channel-links-job",
-		//	worker => worker.ProcessChannelsAsync(),
-		//	Cron.Daily());
-
+		recurringJobManager.AddOrUpdate<DiscoverChannelLinksWorker>(
+			"discover-channel-links-job",
+			worker => worker.ProcessChannelsAsync(),
+			Cron.Daily());
 	}
 
 	private class AllowAllAuthorizationFilter : IDashboardAuthorizationFilter

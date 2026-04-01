@@ -96,4 +96,14 @@ public sealed class DiscoveredChannel : BaseEntity
 	///     Дата последнего парсинга ссылок канала.
 	/// </summary>
 	public DateTimeOffset? LastDiscoveredAt { get; set; }
+
+	/// <summary>
+	///     ID канала, из которого был обнаружен данный канал (самореферентный FK).
+	/// </summary>
+	public Guid? DiscoveredFromChannelId { get; set; }
+
+	/// <summary>
+	///     Канал-источник обнаружения.
+	/// </summary>
+	public DiscoveredChannel? DiscoveredFromChannel { get; set; }
 }

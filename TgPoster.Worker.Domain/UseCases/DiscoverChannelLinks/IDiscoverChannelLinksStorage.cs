@@ -15,6 +15,7 @@ public interface IDiscoverChannelLinksStorage
 		string? title,
 		int? participantsCount,
 		string? inviteHash = null,
+		Guid? discoveredFromChannelId = null,
 		bool markAsCompleted = false,
 		CancellationToken ct = default);
 }

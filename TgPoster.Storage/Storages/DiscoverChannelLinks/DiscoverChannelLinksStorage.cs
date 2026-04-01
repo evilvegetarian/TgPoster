@@ -17,6 +17,7 @@ internal sealed class DiscoverChannelLinksStorage(PosterContext context, GuidFac
 			.OrderBy(x => x.LastDiscoveredAt)
 			.Select(x => new DiscoverChannelDto
 			{
+				Id = x.Id,
 				Username = x.Username,
 				TelegramId = x.TelegramId,
 				InviteHash = x.InviteHash,
@@ -43,6 +44,7 @@ internal sealed class DiscoverChannelLinksStorage(PosterContext context, GuidFac
 		string? title,
 		int? participantsCount,
 		string? inviteHash = null,
+		Guid? discoveredFromChannelId = null,
 		bool markAsCompleted = false,
 		CancellationToken ct = default)
 	{
@@ -86,6 +88,7 @@ internal sealed class DiscoverChannelLinksStorage(PosterContext context, GuidFac
 				Title = title,
 				ParticipantsCount = participantsCount,
 				InviteHash = inviteHash,
+				DiscoveredFromChannelId = discoveredFromChannelId,
 				Status = DiscoveryStatus.Pending
 			});
 		}

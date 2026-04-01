@@ -23,7 +23,7 @@ internal sealed partial class DiscoverChannelLinksWorker(
 		var ct = lifetime.ApplicationStopping;
 
 		var channels = await storage.GetChannelsToProcessAsync(ct);
-		channels = channels.Where(x => x.LastParsedId == null).ToList();
+		channels = channels.Where(x => x.LastParsedId == null).Take(150).ToList();
 		if (channels.Count == 0)
 		{
 			logger.LogDebug("Нет каналов для обработки DiscoverChannelLinks");
@@ -39,7 +39,7 @@ internal sealed partial class DiscoverChannelLinksWorker(
 			try
 			{
 				await ProcessChannelAsync(client, channelDto, ct);
-				await Task.Delay(TimeSpan.FromMinutes(1), ct);
+				await Task.Delay(TimeSpan.FromMinutes(5), ct);
 			}
 			catch (Exception ex)
 			{
@@ -159,7 +159,7 @@ internal sealed partial class DiscoverChannelLinksWorker(
 			if (history.Messages.Length < MessageBatchSize)
 				break;
 
-			await Task.Delay(TimeSpan.FromSeconds(1), ct);
+			await Task.Delay(TimeSpan.FromSeconds(5), ct);
 		}
 
 		// Добавляем приватные каналы из t.me/c/ID ссылок
@@ -208,6 +208,7 @@ internal sealed partial class DiscoverChannelLinksWorker(
 				title: peer.Title,
 				participantsCount: peer.ParticipantsCount,
 				inviteHash: peer.InviteHash,
+				discoveredFromChannelId: channelDto.Id,
 				ct: ct);
 		}
 
@@ -223,6 +224,7 @@ internal sealed partial class DiscoverChannelLinksWorker(
 				title: peer.Title,
 				participantsCount: peer.ParticipantsCount,
 				inviteHash: peer.InviteHash,
+				discoveredFromChannelId: channelDto.Id,
 				ct: ct);
 		}
 
@@ -238,6 +240,7 @@ internal sealed partial class DiscoverChannelLinksWorker(
 				title: peer.Title,
 				participantsCount: peer.ParticipantsCount,
 				inviteHash: hash,
+				discoveredFromChannelId: channelDto.Id,
 				ct: ct);
 		}
 

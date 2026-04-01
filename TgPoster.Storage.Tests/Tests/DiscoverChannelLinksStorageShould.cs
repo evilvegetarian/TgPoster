@@ -98,6 +98,76 @@ public sealed class DiscoverChannelLinksStorageShould(StorageTestFixture fixture
 	}
 
 	[Fact]
+	public async Task UpsertAsync_WhenChannelIsNew_ShouldSetDiscoveredFromChannelId()
+	{
+		var sourceChannel = new DiscoveredChannel
+		{
+			Id = Guid.NewGuid(),
+			Username = $"source_{Guid.NewGuid():N}",
+			Status = DiscoveryStatus.Pending
+		};
+		context.DiscoveredChannels.Add(sourceChannel);
+		await context.SaveChangesAsync(CancellationToken.None);
+		context.ChangeTracker.Clear();
+
+		var discoveredUsername = $"discovered_{Guid.NewGuid():N}";
+		await sut.UpsertAsync(
+			discoveredUsername,
+			$"https://t.me/{discoveredUsername}",
+			lastParsedId: null,
+			telegramId: 111222333,
+			peerType: "channel",
+			title: "Discovered Channel",
+			participantsCount: 500,
+			discoveredFromChannelId: sourceChannel.Id,
+			ct: CancellationToken.None);
+
+		var saved = await context.DiscoveredChannels
+			.FirstAsync(x => x.Username == discoveredUsername, CancellationToken.None);
+
+		saved.DiscoveredFromChannelId.ShouldBe(sourceChannel.Id);
+	}
+
+	[Fact]
+	public async Task UpsertAsync_WhenChannelExists_ShouldNotOverwriteDiscoveredFromChannelId()
+	{
+		var sourceChannel = new DiscoveredChannel
+		{
+			Id = Guid.NewGuid(),
+			Username = $"originalsource_{Guid.NewGuid():N}",
+			Status = DiscoveryStatus.Pending
+		};
+		var discoveredChannel = new DiscoveredChannel
+		{
+			Id = Guid.NewGuid(),
+			Username = $"existingdiscovered_{Guid.NewGuid():N}",
+			Status = DiscoveryStatus.Pending,
+			DiscoveredFromChannelId = sourceChannel.Id
+		};
+		context.DiscoveredChannels.AddRange(sourceChannel, discoveredChannel);
+		await context.SaveChangesAsync(CancellationToken.None);
+		context.ChangeTracker.Clear();
+
+		var anotherSourceId = Guid.NewGuid();
+		await sut.UpsertAsync(
+			discoveredChannel.Username,
+			tgUrl: null,
+			lastParsedId: null,
+			telegramId: 999888777,
+			peerType: "channel",
+			title: "Updated Title",
+			participantsCount: 1000,
+			discoveredFromChannelId: anotherSourceId,
+			ct: CancellationToken.None);
+
+		var saved = await context.DiscoveredChannels
+			.FirstAsync(x => x.Username == discoveredChannel.Username, CancellationToken.None);
+
+		saved.DiscoveredFromChannelId.ShouldBe(sourceChannel.Id);
+		saved.Title.ShouldBe("Updated Title");
+	}
+
+	[Fact]
 	public async Task UpsertAsync_WithMarkAsCompleted_ShouldSetCompletedStatusAndDiscoveredAt()
 	{
 		var channel = new DiscoveredChannel
