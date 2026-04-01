@@ -183,6 +183,9 @@ internal sealed partial class DiscoverChannelLinksWorker(
 		// Резолвим инвайт-ссылки — получаем метаданные без вступления
 		var resolvedInvites = await ResolveInviteLinksAsync(client, inviteHashes, ct);
 
+		// Дедупликация: убираем из resolvedInvites каналы, уже найденные по username/telegramId
+		DeduplicateResolvedInvites(allUsernames, privateChats, resolvedInvites);
+
 		if (channelDto.Username is not null)
 			allUsernames.Remove(channelDto.Username);
 
@@ -202,6 +205,7 @@ internal sealed partial class DiscoverChannelLinksWorker(
 				peerType: peer.PeerType,
 				title: peer.Title,
 				participantsCount: peer.ParticipantsCount,
+				inviteHash: peer.InviteHash,
 				ct: ct);
 		}
 
@@ -216,6 +220,7 @@ internal sealed partial class DiscoverChannelLinksWorker(
 				peerType: peer.PeerType,
 				title: peer.Title,
 				participantsCount: peer.ParticipantsCount,
+				inviteHash: peer.InviteHash,
 				ct: ct);
 		}
 
@@ -343,6 +348,51 @@ internal sealed partial class DiscoverChannelLinksWorker(
 		}
 
 		return results;
+	}
+
+	private static void DeduplicateResolvedInvites(
+		Dictionary<string, DiscoveredPeerInfo> allUsernames,
+		Dictionary<long, DiscoveredPeerInfo> privateChats,
+		Dictionary<string, DiscoveredPeerInfo> resolvedInvites)
+	{
+		var hashesToRemove = new List<string>();
+		var seenTelegramIds = new HashSet<long>();
+
+		foreach (var (hash, peer) in resolvedInvites)
+		{
+			if (peer.Username is not null && allUsernames.TryGetValue(peer.Username, out var existingByUsername))
+			{
+				if (existingByUsername.InviteHash is null)
+					allUsernames[peer.Username] = existingByUsername with { InviteHash = hash };
+
+				hashesToRemove.Add(hash);
+				continue;
+			}
+
+			if (peer.TelegramId != 0 && privateChats.TryGetValue(peer.TelegramId, out var existingPrivate))
+			{
+				if (peer.Username is not null)
+				{
+					allUsernames.TryAdd(peer.Username, peer);
+					privateChats.Remove(peer.TelegramId);
+				}
+				else if (existingPrivate.InviteHash is null)
+				{
+					privateChats[peer.TelegramId] = existingPrivate with { InviteHash = hash };
+				}
+
+				hashesToRemove.Add(hash);
+				continue;
+			}
+
+			if (peer.TelegramId != 0 && !seenTelegramIds.Add(peer.TelegramId))
+			{
+				hashesToRemove.Add(hash);
+			}
+		}
+
+		foreach (var hash in hashesToRemove)
+			resolvedInvites.Remove(hash);
 	}
 
 	private static string ResolvePeerType(Channel channel)
