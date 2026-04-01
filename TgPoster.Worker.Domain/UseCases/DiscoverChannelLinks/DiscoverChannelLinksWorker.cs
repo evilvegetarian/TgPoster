@@ -56,7 +56,6 @@ internal sealed partial class DiscoverChannelLinksWorker(
 	)
 	{
 		Channel? channel;
-
 		if (!string.IsNullOrEmpty(channelDto.Username))
 		{
 			logger.LogInformation("Поиск TG-ссылок в канале @{Channel}", channelDto.Username);
@@ -149,9 +148,10 @@ internal sealed partial class DiscoverChannelLinksWorker(
 				if (lastParsedId < message.ID)
 					lastParsedId = message.ID;
 
-				if (string.IsNullOrEmpty(message.message))
-					continue;
-				ExtractLinksFromText(message.message, textUsernames, inviteHashes, privateChannelIds);
+				if (!string.IsNullOrEmpty(message.message))
+					ExtractLinksFromText(message.message, textUsernames, inviteHashes, privateChannelIds);
+
+				ExtractLinksFromEntities(message.entities, textUsernames, inviteHashes, privateChannelIds);
 			}
 
 			offset = history.Messages.Last().ID;
@@ -365,6 +365,24 @@ internal sealed partial class DiscoverChannelLinksWorker(
 			return "channel";
 
 		return "chat";
+	}
+
+	private static void ExtractLinksFromEntities(
+		MessageEntity[]? entities,
+		HashSet<string> usernames,
+		HashSet<string> inviteHashes,
+		HashSet<long> privateChannelIds)
+	{
+		if (entities is null)
+			return;
+
+		foreach (var entity in entities)
+		{
+			if (entity is not MessageEntityTextUrl textUrl)
+				continue;
+
+			ExtractLinksFromText(textUrl.url, usernames, inviteHashes, privateChannelIds);
+		}
 	}
 
 	private static void ExtractLinksFromText(
