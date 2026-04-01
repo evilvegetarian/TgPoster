@@ -158,6 +158,8 @@ internal sealed partial class DiscoverChannelLinksWorker(
 
 			if (history.Messages.Length < MessageBatchSize)
 				break;
+
+			await Task.Delay(TimeSpan.FromSeconds(1), ct);
 		}
 
 		// Добавляем приватные каналы из t.me/c/ID ссылок
@@ -291,7 +293,7 @@ internal sealed partial class DiscoverChannelLinksWorker(
 				logger.LogDebug(ex, "Не удалось разрешить @{Username}, пропускаем", username);
 			}
 
-			await Task.Delay(500, ct);
+			await Task.Delay(TimeSpan.FromSeconds(3), ct);
 		}
 
 		return chats;
@@ -344,7 +346,7 @@ internal sealed partial class DiscoverChannelLinksWorker(
 				logger.LogDebug(ex, "Не удалось проверить инвайт-хеш {Hash}, пропускаем", hash);
 			}
 
-			await Task.Delay(1000, ct);
+			await Task.Delay(TimeSpan.FromSeconds(3), ct);
 		}
 
 		return results;

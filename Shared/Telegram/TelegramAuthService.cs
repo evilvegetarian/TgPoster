@@ -64,6 +64,7 @@ public sealed class TelegramAuthService(
 		{
 			sessionDebouncer.Update(sessionId, data);
 		});
+		client.FloodRetryThreshold = 1800;
 
 		try
 		{
