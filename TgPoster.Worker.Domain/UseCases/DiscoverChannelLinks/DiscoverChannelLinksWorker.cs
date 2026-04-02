@@ -23,7 +23,6 @@ internal sealed partial class DiscoverChannelLinksWorker(
 		var ct = lifetime.ApplicationStopping;
 
 		var channels = await storage.GetChannelsToProcessAsync(ct);
-		channels = channels.Where(x => x.LastParsedId == null).Take(150).ToList();
 		if (channels.Count == 0)
 		{
 			logger.LogDebug("Нет каналов для обработки DiscoverChannelLinks");
@@ -52,30 +51,9 @@ internal sealed partial class DiscoverChannelLinksWorker(
 	private async Task ProcessChannelAsync(
 		WTelegram.Client client,
 		DiscoverChannelDto channelDto,
-		CancellationToken ct
-	)
+		CancellationToken ct)
 	{
-		Channel? channel;
-		if (!string.IsNullOrEmpty(channelDto.Username))
-		{
-			logger.LogInformation("Поиск TG-ссылок в канале @{Channel}", channelDto.Username);
-			var resolveResult = await client.Contacts_ResolveUsername(channelDto.Username);
-			channel = resolveResult.Chat as Channel;
-		}
-		else if (channelDto.TelegramId.HasValue)
-		{
-			logger.LogInformation("Поиск TG-ссылок в приватном канале ID={TelegramId}", channelDto.TelegramId);
-			var dialogs = await client.Messages_GetAllDialogs();
-			channel = dialogs.chats.TryGetValue(channelDto.TelegramId.Value, out var chatBase)
-				? chatBase as Channel
-				: null;
-		}
-		else
-		{
-			logger.LogDebug("Пропускаем канал только с инвайт-хешем — нет доступа для сканирования");
-			return;
-		}
-
+		var channel = await ResolveChannelAsync(client, channelDto);
 		if (channel is null)
 		{
 			logger.LogWarning("Не удалось найти канал: {Channel}",
@@ -83,15 +61,72 @@ internal sealed partial class DiscoverChannelLinksWorker(
 			return;
 		}
 
-		var telegramId = channel.ID;
-		var sourcePeerType = ResolvePeerType(channel);
-		var allUsernames = new Dictionary<string, DiscoveredPeerInfo>(StringComparer.OrdinalIgnoreCase);
-		var privateChats = new Dictionary<long, DiscoveredPeerInfo>();
-		var lastParsedId = channelDto.LastParsedId ?? 0;
-		var offset = 0;
+		var scan = await ScanChannelHistoryAsync(client, channel, channelDto, ct);
+
+		foreach (var privId in scan.PrivateChannelIds)
+		{
+			scan.PrivatePeers.TryAdd(privId, new DiscoveredPeerInfo
+			{
+				PeerType = "channel",
+				TelegramId = privId
+			});
+		}
+
+		var resolvedTextPeers = await ResolveChatPeersAsync(client, scan.TextUsernames, ct);
+		foreach (var resolvedPeer in resolvedTextPeers.Values)
+			scan.PublicPeers.TryAdd(resolvedPeer.Username!, resolvedPeer);
+
+		var resolvedInvites = await ResolveInviteLinksAsync(client, scan.InviteHashes, ct);
+
+		DeduplicateResolvedInvites(scan.PublicPeers, scan.PrivatePeers, resolvedInvites);
+		DeduplicateByTitle(scan.PublicPeers, scan.PrivatePeers, resolvedInvites);
+
+		if (channelDto.Username is not null)
+			scan.PublicPeers.Remove(channelDto.Username);
+
+		logger.LogInformation(
+			"Найдено {PublicCount} публичных, {PrivateCount} приватных, {InviteCount} по инвайтам в {Channel}",
+			scan.PublicPeers.Count, scan.PrivatePeers.Count, resolvedInvites.Count,
+			channelDto.Username ?? channelDto.TelegramId?.ToString());
+
+		await SaveDiscoveredPeersAsync(channelDto, channel, scan, resolvedInvites, ct);
+	}
+
+	private async Task<Channel?> ResolveChannelAsync(WTelegram.Client client, DiscoverChannelDto channelDto)
+	{
+		if (!string.IsNullOrEmpty(channelDto.Username))
+		{
+			logger.LogInformation("Поиск TG-ссылок в канале @{Channel}", channelDto.Username);
+			var resolveResult = await client.Contacts_ResolveUsername(channelDto.Username);
+			return resolveResult.Chat as Channel;
+		}
+
+		if (channelDto.TelegramId.HasValue)
+		{
+			logger.LogInformation("Поиск TG-ссылок в приватном канале ID={TelegramId}", channelDto.TelegramId);
+			var dialogs = await client.Messages_GetAllDialogs();
+			return dialogs.chats.TryGetValue(channelDto.TelegramId.Value, out var chatBase)
+				? chatBase as Channel
+				: null;
+		}
+
+		logger.LogDebug("Пропускаем канал только с инвайт-хешем — нет доступа для сканирования");
+		return null;
+	}
+
+	private async Task<HistoryScanResult> ScanChannelHistoryAsync(
+		WTelegram.Client client,
+		Channel channel,
+		DiscoverChannelDto channelDto,
+		CancellationToken ct)
+	{
+		var publicPeers = new Dictionary<string, DiscoveredPeerInfo>(StringComparer.OrdinalIgnoreCase);
+		var privatePeers = new Dictionary<long, DiscoveredPeerInfo>();
 		var textUsernames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 		var inviteHashes = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 		var privateChannelIds = new HashSet<long>();
+		var lastParsedId = channelDto.LastParsedId ?? 0;
+		var offset = 0;
 
 		while (true)
 		{
@@ -121,7 +156,7 @@ internal sealed partial class DiscoverChannelLinksWorker(
 
 				if (!string.IsNullOrEmpty(chat.MainUsername))
 				{
-					allUsernames.TryAdd(chat.MainUsername, new DiscoveredPeerInfo
+					publicPeers.TryAdd(chat.MainUsername, new DiscoveredPeerInfo
 					{
 						PeerType = ResolvePeerType(chat),
 						Username = chat.MainUsername,
@@ -132,10 +167,9 @@ internal sealed partial class DiscoverChannelLinksWorker(
 				}
 				else if (keyValuePair.Key != 0)
 				{
-					privateChats.TryAdd(keyValuePair.Key, new DiscoveredPeerInfo
+					privatePeers.TryAdd(keyValuePair.Key, new DiscoveredPeerInfo
 					{
 						PeerType = ResolvePeerType(chat),
-						Username = null,
 						TelegramId = keyValuePair.Key,
 						Title = chat.Title,
 						ParticipantsCount = (chat as Channel)?.participants_count
@@ -162,45 +196,18 @@ internal sealed partial class DiscoverChannelLinksWorker(
 			await Task.Delay(TimeSpan.FromSeconds(5), ct);
 		}
 
-		// Добавляем приватные каналы из t.me/c/ID ссылок
-		foreach (var privId in privateChannelIds)
-		{
-			privateChats.TryAdd(privId, new DiscoveredPeerInfo
-			{
-				PeerType = "channel",
-				Username = null,
-				TelegramId = privId,
-				Title = null,
-				ParticipantsCount = null
-			});
-		}
+		return new HistoryScanResult(publicPeers, privatePeers, textUsernames, inviteHashes, privateChannelIds,
+			lastParsedId);
+	}
 
-		// Проверяем текстовые юзернеймы — оставляем только каналы/группы/чаты и сохраняем тип peer
-		var resolvedTextPeers = await ResolveChatPeersAsync(client, textUsernames, ct);
-		foreach (var resolvedPeer in resolvedTextPeers.Values)
-		{
-			allUsernames.TryAdd(resolvedPeer.Username!, resolvedPeer);
-		}
-
-		// Резолвим инвайт-ссылки — получаем метаданные без вступления
-		var resolvedInvites = await ResolveInviteLinksAsync(client, inviteHashes, ct);
-
-		// Дедупликация: убираем из resolvedInvites каналы, уже найденные по username/telegramId
-		DeduplicateResolvedInvites(allUsernames, privateChats, resolvedInvites);
-
-		// Дедупликация по Title: убираем каналы без username с одинаковыми названиями
-		DeduplicateByTitle(allUsernames, privateChats, resolvedInvites);
-
-		if (channelDto.Username is not null)
-			allUsernames.Remove(channelDto.Username);
-
-		logger.LogInformation(
-			"Найдено {PublicCount} публичных, {PrivateCount} приватных, {InviteCount} по инвайтам в {Channel}",
-			allUsernames.Count, privateChats.Count, resolvedInvites.Count,
-			channelDto.Username ?? channelDto.TelegramId?.ToString());
-
-		// Сохраняем публичные каналы
-		foreach (var peer in allUsernames.Values)
+	private async Task SaveDiscoveredPeersAsync(
+		DiscoverChannelDto channelDto,
+		Channel channel,
+		HistoryScanResult scan,
+		Dictionary<string, DiscoveredPeerInfo> resolvedInvites,
+		CancellationToken ct)
+	{
+		foreach (var peer in scan.PublicPeers.Values)
 		{
 			await storage.UpsertAsync(
 				peer.Username,
@@ -215,8 +222,7 @@ internal sealed partial class DiscoverChannelLinksWorker(
 				ct: ct);
 		}
 
-		// Сохраняем приватные каналы из CollectUsersChats и t.me/c/ID
-		foreach (var peer in privateChats.Values)
+		foreach (var peer in scan.PrivatePeers.Values)
 		{
 			await storage.UpsertAsync(
 				username: null,
@@ -231,7 +237,6 @@ internal sealed partial class DiscoverChannelLinksWorker(
 				ct: ct);
 		}
 
-		// Сохраняем каналы из инвайт-ссылок
 		foreach (var (hash, peer) in resolvedInvites)
 		{
 			await storage.UpsertAsync(
@@ -247,15 +252,14 @@ internal sealed partial class DiscoverChannelLinksWorker(
 				ct: ct);
 		}
 
-		// Сохраняем последнее спарсенное сообщение, TelegramId и тип peer исходного канала
-		if (lastParsedId > 0)
+		if (scan.LastParsedId > 0)
 		{
 			await storage.UpsertAsync(
 				channelDto.Username,
 				tgUrl: null,
-				lastParsedId: lastParsedId,
-				telegramId: telegramId,
-				peerType: sourcePeerType,
+				lastParsedId: scan.LastParsedId,
+				telegramId: channel.ID,
+				peerType: ResolvePeerType(channel),
 				title: channel.title,
 				participantsCount: channel.participants_count,
 				markAsCompleted: true,
@@ -266,8 +270,7 @@ internal sealed partial class DiscoverChannelLinksWorker(
 	private async Task<Dictionary<string, DiscoveredPeerInfo>> ResolveChatPeersAsync(
 		WTelegram.Client client,
 		HashSet<string> usernames,
-		CancellationToken ct
-	)
+		CancellationToken ct)
 	{
 		var chats = new Dictionary<string, DiscoveredPeerInfo>(StringComparer.OrdinalIgnoreCase);
 
@@ -308,8 +311,7 @@ internal sealed partial class DiscoverChannelLinksWorker(
 	private async Task<Dictionary<string, DiscoveredPeerInfo>> ResolveInviteLinksAsync(
 		WTelegram.Client client,
 		HashSet<string> hashes,
-		CancellationToken ct
-	)
+		CancellationToken ct)
 	{
 		var results = new Dictionary<string, DiscoveredPeerInfo>(StringComparer.OrdinalIgnoreCase);
 
@@ -337,7 +339,6 @@ internal sealed partial class DiscoverChannelLinksWorker(
 					case ChatInvite invite:
 						results[hash] = new DiscoveredPeerInfo
 						{
-							Username = null,
 							TelegramId = 0,
 							PeerType = invite.flags.HasFlag(ChatInvite.Flags.channel) ? "channel" : "chat",
 							Title = invite.title,
@@ -437,27 +438,8 @@ internal sealed partial class DiscoverChannelLinksWorker(
 			resolvedInvites.Remove(hash);
 	}
 
-	private static string ResolvePeerType(Channel channel)
-	{
-		if (channel.IsGroup)
-			return "chat";
-
-		if (channel.IsChannel)
-			return "channel";
-
-		return "chat";
-	}
-
-	private static string ResolvePeerType(ChatBase channel)
-	{
-		if (channel.IsGroup)
-			return "chat";
-
-		if (channel.IsChannel)
-			return "channel";
-
-		return "chat";
-	}
+	private static string ResolvePeerType(ChatBase chat) =>
+		chat.IsChannel ? "channel" : "chat";
 
 	private static void ExtractLinksFromEntities(
 		MessageEntity[]? entities,
@@ -481,10 +463,8 @@ internal sealed partial class DiscoverChannelLinksWorker(
 		string text,
 		HashSet<string> usernames,
 		HashSet<string> inviteHashes,
-		HashSet<long> privateChannelIds
-	)
+		HashSet<long> privateChannelIds)
 	{
-		// t.me/username ссылки (исключая joinchat/, +, c/)
 		foreach (Match match in TmeLinkRegex().Matches(text))
 		{
 			var username = match.Groups[1].Value;
@@ -492,7 +472,6 @@ internal sealed partial class DiscoverChannelLinksWorker(
 				usernames.Add(username);
 		}
 
-		// @username упоминания
 		foreach (Match match in MentionRegex().Matches(text))
 		{
 			var username = match.Groups[1].Value;
@@ -500,13 +479,9 @@ internal sealed partial class DiscoverChannelLinksWorker(
 				usernames.Add(username);
 		}
 
-		// t.me/+HASH или t.me/joinchat/HASH — инвайт-ссылки
 		foreach (Match match in InviteLinkRegex().Matches(text))
-		{
 			inviteHashes.Add(match.Groups[1].Value);
-		}
 
-		// t.me/c/ID — приватные каналы по ID
 		foreach (Match match in PrivateChannelLinkRegex().Matches(text))
 		{
 			if (long.TryParse(match.Groups[1].Value, out var id))
@@ -526,10 +501,18 @@ internal sealed partial class DiscoverChannelLinksWorker(
 	[GeneratedRegex(@"(?:https?://)?t\.me/c/(\d+)(?:/\d+)?", RegexOptions.Compiled)]
 	private static partial Regex PrivateChannelLinkRegex();
 
+	private sealed record HistoryScanResult(
+		Dictionary<string, DiscoveredPeerInfo> PublicPeers,
+		Dictionary<long, DiscoveredPeerInfo> PrivatePeers,
+		HashSet<string> TextUsernames,
+		HashSet<string> InviteHashes,
+		HashSet<long> PrivateChannelIds,
+		int LastParsedId);
+
 	private readonly record struct DiscoveredPeerInfo(
-		string? Username,
-		long TelegramId,
-		string PeerType,
+		string? Username = null,
+		long TelegramId = 0,
+		string PeerType = "channel",
 		string? Title = null,
 		int? ParticipantsCount = null,
 		string? InviteHash = null);
