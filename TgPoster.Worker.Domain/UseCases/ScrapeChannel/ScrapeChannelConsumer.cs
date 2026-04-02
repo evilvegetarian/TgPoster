@@ -43,8 +43,6 @@ internal sealed class ScrapeChannelConsumer(
 			detail.TgUrl,
 			ct);
 
-		//await bus.Publish(new ClassifyChannelContract { ChannelId = channelId }, ct);
-
 		logger.LogInformation("Канал сохранён: {Title} (@{Username})", detail.Title, detail.Username);
 	}
 }

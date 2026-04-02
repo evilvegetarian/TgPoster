@@ -1,17 +1,21 @@
 using System.Text.Json;
-using MassTransit;
+using Hangfire;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Shared.OpenRouter;
 using TgPoster.Worker.Domain.ConfigModels;
 
 namespace TgPoster.Worker.Domain.UseCases.ClassifyChannel;
 
-internal sealed class ClassifyChannelConsumer(
+internal sealed class ClassifyChannelWorker(
 	IOpenRouterClient openRouterClient,
 	IClassifyChannelStorage storage,
 	ClassificationOptions options,
-	ILogger<ClassifyChannelConsumer> logger) : IConsumer<ClassifyChannelContract>
+	ILogger<ClassifyChannelWorker> logger,
+	IHostApplicationLifetime lifetime)
 {
+	private const int BatchSize = 10;
+
 	private const string ClassificationPrompt = """
 		Ты — классификатор Telegram-каналов. Определи основную тематику канала по его названию и описанию.
 
@@ -28,35 +32,53 @@ internal sealed class ClassifyChannelConsumer(
 		}}
 		""";
 
-	public async Task Consume(ConsumeContext<ClassifyChannelContract> context)
+	[DisableConcurrentExecution(100000)]
+	public async Task ClassifyChannelsAsync()
 	{
-		var channelId = context.Message.ChannelId;
-		var ct = context.CancellationToken;
+		var ct = lifetime.ApplicationStopping;
 
 		if (string.IsNullOrWhiteSpace(options.ApiKey))
 		{
-			logger.LogWarning("ClassificationApiKey не задан, пропускаем классификацию канала {ChannelId}", channelId);
+			logger.LogWarning("ClassificationApiKey не задан, пропускаем классификацию каналов");
 			return;
 		}
 
-		var channel = await storage.GetChannelForClassificationAsync(channelId, ct);
-		if (channel is null)
+		var channels = await storage.GetUnclassifiedChannelsAsync(BatchSize, ct);
+		if (channels.Count == 0)
 		{
-			logger.LogWarning("Канал {ChannelId} не найден для классификации", channelId);
+			logger.LogDebug("Нет каналов для классификации");
 			return;
 		}
 
+		logger.LogInformation("Начинаем классификацию {Count} каналов", channels.Count);
+
+		foreach (var channel in channels)
+		{
+			try
+			{
+				await ClassifyChannelAsync(channel, ct);
+				await Task.Delay(TimeSpan.FromSeconds(5), ct);
+			}
+			catch (Exception ex)
+			{
+				logger.LogError(ex, "Ошибка при классификации канала {ChannelId}", channel.Id);
+			}
+		}
+	}
+
+	private async Task ClassifyChannelAsync(ChannelForClassificationDto channel, CancellationToken ct)
+	{
 		if (string.IsNullOrWhiteSpace(channel.Title) && string.IsNullOrWhiteSpace(channel.Description))
 		{
-			logger.LogWarning("Канал {ChannelId} не имеет названия и описания, пропускаем", channelId);
+			logger.LogWarning("Канал {ChannelId} не имеет названия и описания, пропускаем", channel.Id);
 			return;
 		}
 
-		logger.LogInformation("Классифицируем канал: {Title} ({ChannelId})", channel.Title, channelId);
+		logger.LogInformation("Классифицируем канал: {Title} ({ChannelId})", channel.Title, channel.Id);
 
 		var prompt = string.Format(ClassificationPrompt, channel.Title ?? "", channel.Description ?? "");
 		var response = await openRouterClient.SendMessageAsync(
-			options.ApiKey,
+			options.ApiKey!,
 			options.Model,
 			prompt,
 			ct);
@@ -64,19 +86,19 @@ internal sealed class ClassifyChannelConsumer(
 		var content = response.Choices.FirstOrDefault()?.Message.Content?.ToString();
 		if (string.IsNullOrWhiteSpace(content))
 		{
-			logger.LogWarning("Пустой ответ от LLM для канала {ChannelId}", channelId);
+			logger.LogWarning("Пустой ответ от LLM для канала {ChannelId}", channel.Id);
 			return;
 		}
 
 		var classification = ParseClassification(content);
 		if (classification is null)
 		{
-			logger.LogWarning("Не удалось распарсить ответ LLM для канала {ChannelId}: {Content}", channelId, content);
+			logger.LogWarning("Не удалось распарсить ответ LLM для канала {ChannelId}: {Content}", channel.Id, content);
 			return;
 		}
 
 		await storage.UpdateClassificationAsync(
-			channelId,
+			channel.Id,
 			classification.Category,
 			classification.Subcategory,
 			classification.Tags,
@@ -86,7 +108,7 @@ internal sealed class ClassifyChannelConsumer(
 
 		logger.LogInformation(
 			"Канал {ChannelId} классифицирован: {Category}/{Subcategory} (confidence: {Confidence})",
-			channelId, classification.Category, classification.Subcategory, classification.Confidence);
+			channel.Id, classification.Category, classification.Subcategory, classification.Confidence);
 	}
 
 	private static ChannelClassificationResult? ParseClassification(string content)

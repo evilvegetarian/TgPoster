@@ -2,7 +2,7 @@ namespace TgPoster.Worker.Domain.UseCases.ClassifyChannel;
 
 public interface IClassifyChannelStorage
 {
-	Task<ChannelForClassificationDto?> GetChannelForClassificationAsync(Guid id, CancellationToken ct);
+	Task<List<ChannelForClassificationDto>> GetUnclassifiedChannelsAsync(int batchSize, CancellationToken ct);
 
 	Task UpdateClassificationAsync(
 		Guid id,

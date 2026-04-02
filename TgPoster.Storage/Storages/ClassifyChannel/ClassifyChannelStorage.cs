@@ -6,17 +6,19 @@ namespace TgPoster.Storage.Storages.ClassifyChannel;
 
 internal sealed class ClassifyChannelStorage(PosterContext context) : IClassifyChannelStorage
 {
-	public Task<ChannelForClassificationDto?> GetChannelForClassificationAsync(Guid id, CancellationToken ct)
+	public Task<List<ChannelForClassificationDto>> GetUnclassifiedChannelsAsync(int batchSize, CancellationToken ct)
 	{
 		return context.DiscoveredChannels
-			.Where(x => x.Id == id)
+			.Where(x => x.LastClassifiedAt == null && (x.Title != null || x.Description != null))
+			.OrderBy(x => x.Id)
+			.Take(batchSize)
 			.Select(x => new ChannelForClassificationDto
 			{
 				Id = x.Id,
 				Title = x.Title,
 				Description = x.Description
 			})
-			.FirstOrDefaultAsync(ct);
+			.ToListAsync(ct);
 	}
 
 	public async Task UpdateClassificationAsync(
