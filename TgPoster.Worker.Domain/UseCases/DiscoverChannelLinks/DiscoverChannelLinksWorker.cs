@@ -188,6 +188,9 @@ internal sealed partial class DiscoverChannelLinksWorker(
 		// Дедупликация: убираем из resolvedInvites каналы, уже найденные по username/telegramId
 		DeduplicateResolvedInvites(allUsernames, privateChats, resolvedInvites);
 
+		// Дедупликация по Title: убираем каналы без username с одинаковыми названиями
+		DeduplicateByTitle(allUsernames, privateChats, resolvedInvites);
+
 		if (channelDto.Username is not null)
 			allUsernames.Remove(channelDto.Username);
 
@@ -394,6 +397,40 @@ internal sealed partial class DiscoverChannelLinksWorker(
 			{
 				hashesToRemove.Add(hash);
 			}
+		}
+
+		foreach (var hash in hashesToRemove)
+			resolvedInvites.Remove(hash);
+	}
+
+	private static void DeduplicateByTitle(
+		Dictionary<string, DiscoveredPeerInfo> allUsernames,
+		Dictionary<long, DiscoveredPeerInfo> privateChats,
+		Dictionary<string, DiscoveredPeerInfo> resolvedInvites)
+	{
+		var seenTitles = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+		foreach (var peer in allUsernames.Values)
+		{
+			if (peer.Title is not null)
+				seenTitles.Add(peer.Title);
+		}
+
+		var idsToRemove = new List<long>();
+		foreach (var (id, peer) in privateChats)
+		{
+			if (peer.Title is not null && !seenTitles.Add(peer.Title))
+				idsToRemove.Add(id);
+		}
+
+		foreach (var id in idsToRemove)
+			privateChats.Remove(id);
+
+		var hashesToRemove = new List<string>();
+		foreach (var (hash, peer) in resolvedInvites)
+		{
+			if (peer.Username is null && peer.Title is not null && !seenTitles.Add(peer.Title))
+				hashesToRemove.Add(hash);
 		}
 
 		foreach (var hash in hashesToRemove)
