@@ -21,6 +21,7 @@ services:
       TelegramSettings__api_hash: ${TELEGRAM_API_HASH}
       TelegramSettings__phone_number: ${TELEGRAM_PHONE_NUMBER}
       TelegramOptions__SecretKey: ${TELEGRAMOPTIONS_SECRETKEY}
+      TelegramOptions__TelegramSessionId: ${TELEGRAMOPTIONS_TELEGRAMSESSIONID}
       OpenRouterOptions__SecretKey: ${OPENROUTEROPTIONS_SECRETKEY}
       S3Options__AccessKey: ${S3OPTIONS_ACESSKEY}
       S3Options__SecretKey: ${S3OPTIONS_SECRETKEY}

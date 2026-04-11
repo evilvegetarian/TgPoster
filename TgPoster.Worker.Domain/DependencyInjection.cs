@@ -47,6 +47,7 @@ public static class DependencyInjection
 		services.AddScoped<CommentRepostMonitorWorker>();
 		services.AddScoped<TelegramExecuteServices>();
 		services.AddScoped<DiscoverChannelLinksWorker>();
+		services.AddScoped<ClassifyChannelWorker>();
 
 		return services;
 	}
@@ -76,10 +77,6 @@ public static class DependencyInjection
 			//{
 			//	opt.ConcurrentMessageLimit = 1;
 			//});
-			x.AddConsumer<ClassifyChannelConsumer>(opt =>
-			{
-				opt.ConcurrentMessageLimit = 1;
-			});
 			x.UsingPostgres((context, cfg) =>
 			{
 				cfg.ConfigureEndpoints(context);
@@ -119,6 +116,11 @@ public static class DependencyInjection
 			"discover-channel-links-job",
 			worker => worker.ProcessChannelsAsync(),
 			Cron.Daily());
+
+		//recurringJobManager.AddOrUpdate<ClassifyChannelWorker>(
+		//	"classify-channels-job",
+		//	worker => worker.ClassifyChannelsAsync(),
+		//	Cron.Daily());
 	}
 
 	private class AllowAllAuthorizationFilter : IDashboardAuthorizationFilter
