@@ -41,7 +41,10 @@ builder.Services.AddHealthChecks()
 var openRouterOptions = builder.Configuration.GetSection(nameof(OpenRouterOptions)).Get<OpenRouterOptions>()!;
 builder.Services.AddSingleton(openRouterOptions);
 
-var classificationOptions = builder.Configuration.GetSection(nameof(ClassificationOptions)).Get<ClassificationOptions>()!;
+var classificationOptions = builder.Configuration
+	                            .GetSection(nameof(ClassificationOptions))
+	                            .Get<ClassificationOptions>()!
+                            ?? new ClassificationOptions();
 builder.Services.AddSingleton(classificationOptions);
 var app = builder.Build();
 app.UseOpenTelemetryPrometheusScrapingEndpoint();
@@ -54,5 +57,8 @@ app.Run();
 file sealed class DesignTimeIdentityProvider : IIdentityProvider
 {
 	public Identity Current => Identity.Anonymous;
-	public void Set(Identity identity) { }
+
+	public void Set(Identity identity)
+	{
+	}
 }

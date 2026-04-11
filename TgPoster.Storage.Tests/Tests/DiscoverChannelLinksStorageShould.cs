@@ -4,6 +4,7 @@ using TgPoster.Storage.Data;
 using TgPoster.Storage.Data.Entities;
 using TgPoster.Storage.Data.Enum;
 using TgPoster.Storage.Storages.DiscoverChannelLinks;
+using TgPoster.Worker.Domain.UseCases.DiscoverChannelLinks;
 
 namespace TgPoster.Storage.Tests.Tests;
 
@@ -18,15 +19,15 @@ public sealed class DiscoverChannelLinksStorageShould(StorageTestFixture fixture
 	{
 		var username = "newchannel";
 
-		await sut.UpsertAsync(
-			username,
-			"https://t.me/newchannel",
-			lastParsedId: null,
-			telegramId: 987654321,
-			peerType: "channel",
-			title: "Test Channel",
-			participantsCount: 1500,
-			ct: CancellationToken.None);
+		await sut.UpsertAsync(new DiscoveredPeerUpsert
+		{
+			Username = username,
+			TgUrl = "https://t.me/newchannel",
+			TelegramId = 987654321,
+			PeerType = "channel",
+			Title = "Test Channel",
+			ParticipantsCount = 1500
+		}, CancellationToken.None);
 
 		var saved = await context.DiscoveredChannels
 			.FirstAsync(x => x.Username == username, CancellationToken.None);
@@ -51,15 +52,14 @@ public sealed class DiscoverChannelLinksStorageShould(StorageTestFixture fixture
 		await context.SaveChangesAsync(CancellationToken.None);
 		context.ChangeTracker.Clear();
 
-		await sut.UpsertAsync(
-			channel.Username,
-			tgUrl: null,
-			lastParsedId: null,
-			telegramId: 11223344,
-			peerType: "chat",
-			title: "Updated Chat",
-			participantsCount: 500,
-			ct: CancellationToken.None);
+		await sut.UpsertAsync(new DiscoveredPeerUpsert
+		{
+			Username = channel.Username,
+			TelegramId = 11223344,
+			PeerType = "chat",
+			Title = "Updated Chat",
+			ParticipantsCount = 500
+		}, CancellationToken.None);
 
 		var saved = await context.DiscoveredChannels
 			.FirstAsync(x => x.Username == channel.Username, CancellationToken.None);
@@ -111,16 +111,16 @@ public sealed class DiscoverChannelLinksStorageShould(StorageTestFixture fixture
 		context.ChangeTracker.Clear();
 
 		var discoveredUsername = $"discovered_{Guid.NewGuid():N}";
-		await sut.UpsertAsync(
-			discoveredUsername,
-			$"https://t.me/{discoveredUsername}",
-			lastParsedId: null,
-			telegramId: 111222333,
-			peerType: "channel",
-			title: "Discovered Channel",
-			participantsCount: 500,
-			discoveredFromChannelId: sourceChannel.Id,
-			ct: CancellationToken.None);
+		await sut.UpsertAsync(new DiscoveredPeerUpsert
+		{
+			Username = discoveredUsername,
+			TgUrl = $"https://t.me/{discoveredUsername}",
+			TelegramId = 111222333,
+			PeerType = "channel",
+			Title = "Discovered Channel",
+			ParticipantsCount = 500,
+			DiscoveredFromChannelId = sourceChannel.Id
+		}, CancellationToken.None);
 
 		var saved = await context.DiscoveredChannels
 			.FirstAsync(x => x.Username == discoveredUsername, CancellationToken.None);
@@ -149,16 +149,15 @@ public sealed class DiscoverChannelLinksStorageShould(StorageTestFixture fixture
 		context.ChangeTracker.Clear();
 
 		var anotherSourceId = Guid.NewGuid();
-		await sut.UpsertAsync(
-			discoveredChannel.Username,
-			tgUrl: null,
-			lastParsedId: null,
-			telegramId: 999888777,
-			peerType: "channel",
-			title: "Updated Title",
-			participantsCount: 1000,
-			discoveredFromChannelId: anotherSourceId,
-			ct: CancellationToken.None);
+		await sut.UpsertAsync(new DiscoveredPeerUpsert
+		{
+			Username = discoveredChannel.Username,
+			TelegramId = 999888777,
+			PeerType = "channel",
+			Title = "Updated Title",
+			ParticipantsCount = 1000,
+			DiscoveredFromChannelId = anotherSourceId
+		}, CancellationToken.None);
 
 		var saved = await context.DiscoveredChannels
 			.FirstAsync(x => x.Username == discoveredChannel.Username, CancellationToken.None);
@@ -180,16 +179,16 @@ public sealed class DiscoverChannelLinksStorageShould(StorageTestFixture fixture
 		await context.SaveChangesAsync(CancellationToken.None);
 		context.ChangeTracker.Clear();
 
-		await sut.UpsertAsync(
-			channel.Username,
-			tgUrl: null,
-			lastParsedId: 500,
-			telegramId: 44556677,
-			peerType: "channel",
-			title: "Source Channel",
-			participantsCount: 10000,
-			markAsCompleted: true,
-			ct: CancellationToken.None);
+		await sut.UpsertAsync(new DiscoveredPeerUpsert
+		{
+			Username = channel.Username,
+			LastParsedId = 500,
+			TelegramId = 44556677,
+			PeerType = "channel",
+			Title = "Source Channel",
+			ParticipantsCount = 10000,
+			MarkAsCompleted = true
+		}, CancellationToken.None);
 
 		var saved = await context.DiscoveredChannels
 			.FirstAsync(x => x.Username == channel.Username, CancellationToken.None);

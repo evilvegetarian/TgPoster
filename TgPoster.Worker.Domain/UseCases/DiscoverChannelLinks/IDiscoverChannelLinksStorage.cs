@@ -6,16 +6,5 @@ public interface IDiscoverChannelLinksStorage
 
 	Task<bool> ExistsAsync(string? username, long? telegramId, string? inviteHash, CancellationToken ct);
 
-	Task UpsertAsync(
-		string? username,
-		string? tgUrl,
-		int? lastParsedId,
-		long? telegramId,
-		string? peerType,
-		string? title,
-		int? participantsCount,
-		string? inviteHash = null,
-		Guid? discoveredFromChannelId = null,
-		bool markAsCompleted = false,
-		CancellationToken ct = default);
+	Task UpsertAsync(DiscoveredPeerUpsert upsert, CancellationToken ct);
 }
