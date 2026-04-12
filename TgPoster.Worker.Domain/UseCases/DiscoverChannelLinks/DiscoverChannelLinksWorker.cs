@@ -17,7 +17,7 @@ internal sealed partial class DiscoverChannelLinksWorker(
 {
 	private const int MessageBatchSize = 100;
 
-	[DisableConcurrentExecution(10000000)]
+	[DisableConcurrentExecution(96 * 60 * 60)]
 	public async Task ProcessChannelsAsync()
 	{
 		var ct = lifetime.ApplicationStopping;
@@ -57,7 +57,8 @@ internal sealed partial class DiscoverChannelLinksWorker(
 		var channel = await ResolveChannelAsync(client, channelDto);
 		if (channel is null)
 		{
-			logger.LogWarning("Не удалось найти канал: {Channel}", channelDto.Username ?? channelDto.TelegramId?.ToString());
+			logger.LogWarning("Не удалось найти канал: {Channel}",
+				channelDto.Username ?? channelDto.TelegramId?.ToString());
 			return;
 		}
 
@@ -249,19 +250,16 @@ internal sealed partial class DiscoverChannelLinksWorker(
 			}, ct);
 		}
 
-		if (scan.LastParsedId > 0)
+		await storage.UpsertAsync(new DiscoveredPeerUpsert
 		{
-			await storage.UpsertAsync(new DiscoveredPeerUpsert
-			{
-				Username = channelDto.Username,
-				LastParsedId = scan.LastParsedId,
-				TelegramId = channel.ID,
-				PeerType = ResolvePeerType(channel),
-				Title = channel.title,
-				ParticipantsCount = channel.participants_count,
-				MarkAsCompleted = true
-			}, ct);
-		}
+			Username = channelDto.Username,
+			LastParsedId = scan.LastParsedId,
+			TelegramId = channel.ID,
+			PeerType = ResolvePeerType(channel),
+			Title = channel.title,
+			ParticipantsCount = channel.participants_count,
+			MarkAsCompleted = true
+		}, ct);
 	}
 
 	private async Task<Dictionary<string, DiscoveredPeerInfo>> ResolveChatPeersAsync(
