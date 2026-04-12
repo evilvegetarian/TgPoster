@@ -32,9 +32,9 @@ internal sealed class DiscoverChannelLinksStorage(PosterContext context, GuidFac
 	{
 		return context.DiscoveredChannels
 			.AnyAsync(x =>
-				(telegramId != null && x.TelegramId == telegramId) ||
-				(username != null && x.Username == username) ||
-				(inviteHash != null && x.InviteHash == inviteHash), ct);
+				(telegramId != null && x.TelegramId == telegramId)
+				|| (username != null && x.Username == username)
+				|| (inviteHash != null && x.InviteHash == inviteHash), ct);
 	}
 
 	public async Task UpsertAsync(DiscoveredPeerUpsert upsert, CancellationToken ct)
@@ -43,75 +43,67 @@ internal sealed class DiscoverChannelLinksStorage(PosterContext context, GuidFac
 
 		if (existing is not null)
 		{
-			if (upsert.TgUrl is not null)
-				existing.TgUrl = upsert.TgUrl;
-			if (upsert.LastParsedId is not null)
-				existing.LastParsedId = upsert.LastParsedId;
-			if (upsert.TelegramId is not null)
-				existing.TelegramId = upsert.TelegramId;
-			if (upsert.PeerType is not null)
-				existing.PeerType = upsert.PeerType;
-			if (upsert.Title is not null)
-				existing.Title = upsert.Title;
-			if (upsert.ParticipantsCount is not null)
-				existing.ParticipantsCount = upsert.ParticipantsCount;
-			if (upsert.Username is not null && existing.Username is null)
-				existing.Username = upsert.Username;
-			if (upsert.InviteHash is not null && existing.InviteHash is null)
-				existing.InviteHash = upsert.InviteHash;
-
-			if (upsert.MarkAsCompleted)
-			{
-				existing.Status = DiscoveryStatus.Completed;
-				existing.LastDiscoveredAt = DateTimeOffset.UtcNow;
-			}
+			ApplyUpsertFields(existing, upsert);
+			await context.SaveChangesAsync(ct);
+			return;
 		}
-		else
+
+		var entity = new DiscoveredChannel
 		{
-			context.DiscoveredChannels.Add(new DiscoveredChannel
-			{
-				Id = guidFactory.New(),
-				Username = upsert.Username,
-				TgUrl = upsert.TgUrl,
-				LastParsedId = upsert.LastParsedId,
-				TelegramId = upsert.TelegramId,
-				PeerType = upsert.PeerType,
-				Title = upsert.Title,
-				ParticipantsCount = upsert.ParticipantsCount,
-				InviteHash = upsert.InviteHash,
-				DiscoveredFromChannelId = upsert.DiscoveredFromChannelId,
-				Status = DiscoveryStatus.Pending
-			});
-		}
+			Id = guidFactory.New(),
+			Username = upsert.Username,
+			TgUrl = upsert.TgUrl,
+			LastParsedId = upsert.LastParsedId,
+			TelegramId = upsert.TelegramId,
+			PeerType = upsert.PeerType,
+			Title = upsert.Title,
+			ParticipantsCount = upsert.ParticipantsCount,
+			InviteHash = upsert.InviteHash,
+			DiscoveredFromChannelId = upsert.DiscoveredFromChannelId,
+			Status = DiscoveryStatus.Pending
+		};
 
+		context.DiscoveredChannels.Add(entity);
 		await context.SaveChangesAsync(ct);
 	}
 
-	private async Task<DiscoveredChannel?> FindExistingAsync(
-		string? username, long? telegramId, string? inviteHash, CancellationToken ct)
+	private Task<DiscoveredChannel?> FindExistingAsync(
+		string? username,
+		long? telegramId,
+		string? inviteHash,
+		CancellationToken ct
+	)
 	{
-		if (telegramId is not null)
-		{
-			var byTelegramId = await context.DiscoveredChannels
-				.FirstOrDefaultAsync(x => x.TelegramId == telegramId, ct);
-			if (byTelegramId is not null)
-				return byTelegramId;
-		}
+		return context.DiscoveredChannels
+			.FirstOrDefaultAsync(x =>
+				(telegramId != null && x.TelegramId == telegramId)
+				|| (username != null && x.Username == username)
+				|| (inviteHash != null && x.InviteHash == inviteHash), ct);
+	}
 
-		if (username is not null)
-		{
-			var byUsername = await context.DiscoveredChannels
-				.FirstOrDefaultAsync(x => x.Username == username, ct);
-			if (byUsername is not null)
-				return byUsername;
-		}
+	private static void ApplyUpsertFields(DiscoveredChannel existing, DiscoveredPeerUpsert upsert)
+	{
+		if (upsert.TgUrl is not null)
+			existing.TgUrl = upsert.TgUrl;
+		if (upsert.LastParsedId is not null)
+			existing.LastParsedId = upsert.LastParsedId;
+		if (upsert.TelegramId is not null)
+			existing.TelegramId = upsert.TelegramId;
+		if (upsert.PeerType is not null)
+			existing.PeerType = upsert.PeerType;
+		if (upsert.Title is not null)
+			existing.Title = upsert.Title;
+		if (upsert.ParticipantsCount is not null)
+			existing.ParticipantsCount = upsert.ParticipantsCount;
+		if (upsert.Username is not null && existing.Username is null)
+			existing.Username = upsert.Username;
+		if (upsert.InviteHash is not null && existing.InviteHash is null)
+			existing.InviteHash = upsert.InviteHash;
 
-		if (inviteHash is not null)
+		if (upsert.MarkAsCompleted)
 		{
-			return await context.DiscoveredChannels
-				.FirstOrDefaultAsync(x => x.InviteHash == inviteHash, ct);
+			existing.Status = DiscoveryStatus.Completed;
+			existing.LastDiscoveredAt = DateTimeOffset.UtcNow;
 		}
-
-		return null;
 	}
 }
