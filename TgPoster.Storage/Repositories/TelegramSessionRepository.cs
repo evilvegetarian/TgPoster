@@ -24,7 +24,6 @@ internal sealed class TelegramSessionRepository(PosterContext context)
 	public async Task DeactivateSessionAsync(Guid sessionId, CancellationToken ct)
 	{
 		var session = await context.TelegramSessions.FirstAsync(s => s.Id == sessionId, ct);
-		session.IsActive = false;
 		session.Status = Data.Enum.TelegramSessionStatus.Failed;
 		session.SessionData = null;
 		await context.SaveChangesAsync(ct);
