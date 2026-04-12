@@ -8,4 +8,5 @@ public interface ITelegramAuthRepository
 	Task<TelegramSessionDto?> GetByIdAsync(Guid sessionId, CancellationToken ct);
 	Task UpdateSessionDataAsync(Guid sessionId, string sessionData, CancellationToken ct);
 	Task UpdateStatusAsync(Guid sessionId, TelegramSessionStatus status, CancellationToken ct);
+	Task DeactivateSessionAsync(Guid sessionId, CancellationToken ct);
 }

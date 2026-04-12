@@ -13,20 +13,25 @@ internal sealed class TelegramSessionConfiguration : BaseEntityConfiguration<Tel
 		builder.HasKey(x => x.Id);
 
 		builder.Property(x => x.ApiId)
+			.HasMaxLength(250)
 			.IsRequired();
 
 		builder.Property(x => x.ApiHash)
+			.HasMaxLength(250)
 			.IsRequired();
 
 		builder.Property(x => x.PhoneNumber)
+			.HasMaxLength(20)
 			.IsRequired();
 
-		builder.Property(x => x.Name);
+		builder.Property(x => x.Name)
+			.HasMaxLength(100);
 
 		builder.Property(x => x.IsActive)
 			.IsRequired();
 
 		builder.Property(x => x.Status)
+			.HasConversion<string>()
 			.IsRequired();
 
 		builder.Property(x => x.UserId)

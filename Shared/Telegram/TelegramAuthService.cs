@@ -80,6 +80,16 @@ public sealed class TelegramAuthService(
 			await client.DisposeAsync();
 			throw new TelegramReauthorizationRequiredException(sessionId, ex);
 		}
+		catch (RpcException ex) when (ex.Message == "AUTH_KEY_DUPLICATED")
+		{
+			logger.LogWarning(
+				ex,
+				"Ключ авторизации дублирован (AUTH_KEY_DUPLICATED) для сессии {SessionId}. Сессия будет деактивирована",
+				sessionId);
+			await client.DisposeAsync();
+			await authRepository.DeactivateSessionAsync(sessionId, ct);
+			throw new TelegramAuthKeyDuplicatedException(sessionId, ex);
+		}
 		catch (Exception ex)
 		{
 			logger.LogError(ex, "Не удалось войти в Telegram для сессии {SessionId}", sessionId);
