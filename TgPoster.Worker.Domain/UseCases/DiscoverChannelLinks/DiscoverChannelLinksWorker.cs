@@ -25,7 +25,7 @@ internal sealed partial class DiscoverChannelLinksWorker(
 		var channels = await storage.GetChannelsToProcessAsync(ct);
 		if (channels.Count == 0)
 		{
-			logger.LogDebug("Нет каналов для обработки DiscoverChannelLinks");
+			logger.LogInformation("Нет каналов для обработки DiscoverChannelLinks");
 			return;
 		}
 
@@ -57,8 +57,7 @@ internal sealed partial class DiscoverChannelLinksWorker(
 		var channel = await ResolveChannelAsync(client, channelDto);
 		if (channel is null)
 		{
-			logger.LogWarning("Не удалось найти канал: {Channel}",
-				channelDto.Username ?? channelDto.TelegramId?.ToString());
+			logger.LogWarning("Не удалось найти канал: {Channel}", channelDto.Username ?? channelDto.TelegramId?.ToString());
 			return;
 		}
 
