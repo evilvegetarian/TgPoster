@@ -38,7 +38,6 @@ internal sealed partial class DiscoverChannelLinksWorker(
 			try
 			{
 				await ProcessChannelAsync(client, channelDto, ct);
-				await Task.Delay(TimeSpan.FromMinutes(5), ct);
 			}
 			catch (Exception ex)
 			{

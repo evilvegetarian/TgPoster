@@ -16,7 +16,7 @@ internal sealed class DiscoverChannelLinksStorage(PosterContext context, GuidFac
 			.Where(x => x.Username != null)
 			.Where(x => x.LastParsedId == null)
 			.OrderBy(x => x.LastDiscoveredAt)
-			.Take(150)
+			.Take(2)
 			.Select(x => new DiscoverChannelDto
 			{
 				Id = x.Id,
