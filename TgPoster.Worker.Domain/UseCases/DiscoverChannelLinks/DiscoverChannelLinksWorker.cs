@@ -17,7 +17,7 @@ internal sealed partial class DiscoverChannelLinksWorker(
 {
 	private const int MessageBatchSize = 100;
 
-	[DisableConcurrentExecution(100000)]
+	[DisableConcurrentExecution(10000000)]
 	public async Task ProcessChannelsAsync()
 	{
 		var ct = lifetime.ApplicationStopping;
