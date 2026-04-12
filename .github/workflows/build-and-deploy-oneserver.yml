@@ -5,144 +5,29 @@ on:
     branches: [ master ]
   workflow_dispatch:
 
-permissions:
-  contents: read
-  packages: write
-
 jobs:
-  build-api:
-    runs-on: ubuntu-latest
-
-    permissions:
-      contents: read
-      packages: write
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Log in to GitHub Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Build and push tgposter-api
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          file: TgPoster.API/Dockerfile
-          push: true
-          tags: ghcr.io/evilvegetarian/tgposter-api:latest
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-
-      - name: Upload docker-compose.api.yml
-        uses: actions/upload-artifact@v4
-        with:
-          name: docker-compose-api
-          path: docker/docker-compose.api.yml
-
-  build-worker:
-    runs-on: ubuntu-latest
-
-    permissions:
-      contents: read
-      packages: write
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Log in to GitHub Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Build and push tgposter-worker
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          file: TgPoster.Worker/Dockerfile
-          push: true
-          tags: ghcr.io/evilvegetarian/tgposter-worker:latest
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-
-      - name: Upload docker-compose.worker.yml
-        uses: actions/upload-artifact@v4
-        with:
-          name: docker-compose-worker
-          path: docker/docker-compose.worker.yml
-
-  build-frontend:
-    runs-on: ubuntu-latest
-
-    permissions:
-      contents: read
-      packages: write
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Log in to GitHub Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Build and push tgposter-frontend
-        uses: docker/build-push-action@v5
-        with:
-          context: ./client
-          file: client/Dockerfile
-          push: true
-          tags: ghcr.io/evilvegetarian/frontend:latest
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-
-      - name: Upload docker-compose artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: docker-compose-frontend
-          path: docker/docker-compose.frontend.yml
-
-  deploy:
-    needs: [ build-api, build-worker, build-frontend ]
+  build-and-deploy:
     runs-on: [ self-hosted, runner ]
 
     steps:
-      - name: Download all docker-compose artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: .
-          pattern: docker-compose-*
-          merge-multiple: true
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-      - name: Login to GitHub Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build tgposter-api
+        run: docker build -t tgposter-api:latest -f TgPoster.API/Dockerfile .
+
+      - name: Build tgposter-worker
+        run: docker build -t tgposter-worker:latest -f TgPoster.Worker/Dockerfile .
+
+      - name: Build frontend
+        run: docker build -t frontend:latest -f client/Dockerfile ./client
 
       - name: Create .env file
         run: |
           touch .env
+          echo "TGPOSTER_API_IMAGE=tgposter-api:latest" >> .env
+          echo "TGPOSTER_WORKER_IMAGE=tgposter-worker:latest" >> .env
+          echo "TGPOSTER_FRONTEND_IMAGE=frontend:latest" >> .env
           echo "CONNECTIONSTRING=${{ secrets.CONNECTIONSTRING }}" >> .env
           echo "TGPOSTER_API_JWTOPTIONS_SECRETKEY=${{ secrets.JWTOPTIONS_SECRETKEY }}" >> .env
           echo "TELEGRAM_API_ID=${{ secrets.API_ID }}" >> .env
@@ -156,17 +41,16 @@ jobs:
           echo "S3OPTIONS_SERVICEURL=${{ secrets.S3OPTIONS_SERVICEURL }}" >> .env
           echo "S3OPTIONS_BUCKETNAME=${{ secrets.S3OPTIONS_BUCKETNAME }}" >> .env
 
-      - name: Pull latest images and restart containers
+      - name: Restart containers
         run: |
-          docker-compose -f docker-compose.worker.yml -f docker-compose.api.yml -f docker-compose.frontend.yml pull
-          docker-compose -f docker-compose.worker.yml -f docker-compose.api.yml -f docker-compose.frontend.yml up -d
+          docker-compose -f docker/docker-compose.worker.yml -f docker/docker-compose.api.yml -f docker/docker-compose.frontend.yml up -d
 
       - name: Clean up old docker images and containers
         if: always()
         run: |
           docker container prune -f
-          docker image prune -a -f
+          docker image prune -f
 
       - name: Remove .env file
         if: always()
-        run: rm .env
+        run: rm -f .env
