@@ -116,11 +116,18 @@ internal sealed partial class DiscoverChannelLinksWorker(
 		}
 		catch (RpcException exception) when (exception.Message == "USERNAME_NOT_OCCUPIED")
 		{
+			logger.LogError("Канал {channel} забанен", channelDto.Username);
 			await storage.ChannelBanned(channelDto.Id);
+		}
+		catch (RpcException exception) when (exception.Message == "FLOOD_WAIT_X")
+		{
+			logger.LogError("Канал {channel} FLOOD_WAIT_X ждем {time}", channelDto.Username, exception.X);
+			await Task.Delay(TimeSpan.FromSeconds(exception.X));
+			return null;
 		}
 		catch (Exception e)
 		{
-			logger.LogError(e, "Пропускаем канал только с инвайт-хешем — нет доступа для сканирования");
+			logger.LogError(e, "Ошибка");
 			return null;
 		}
 
