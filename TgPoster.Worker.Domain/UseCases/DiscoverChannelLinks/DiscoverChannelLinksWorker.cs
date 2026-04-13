@@ -16,35 +16,49 @@ internal sealed partial class DiscoverChannelLinksWorker(
 	IHostApplicationLifetime lifetime)
 {
 	private const int MessageBatchSize = 100;
+	private static readonly SemaphoreSlim ParseLock = new(1, 1);
 
 	[DisableConcurrentExecution(96 * 60 * 60)]
 	public async Task ProcessChannelsAsync()
 	{
-		var ct = lifetime.ApplicationStopping;
-
-		var channels = await storage.GetChannelsToProcessAsync(ct);
-		if (channels.Count == 0)
+		if (!await ParseLock.WaitAsync(0, ct))
 		{
-			logger.LogInformation("Нет каналов для обработки DiscoverChannelLinks");
-			return;
+			logger.LogWarning("Парсинг уже выполняется, повторный запуск пропущен");
+			return [];
 		}
 
-		logger.LogInformation("Начинаем обработку {Count} каналов для поиска ссылок", channels.Count);
-
-		var client = await authService.GetClientAsync(telegramOptions.TelegramSessionId, ct);
-
-		foreach (var channelDto in channels)
+		try
 		{
-			try
+			var ct = lifetime.ApplicationStopping;
+
+			var channels = await storage.GetChannelsToProcessAsync(ct);
+			if (channels.Count == 0)
 			{
-				await ProcessChannelAsync(client, channelDto, ct);
+				logger.LogInformation("Нет каналов для обработки DiscoverChannelLinks");
+				return;
 			}
 
-			catch (Exception ex)
+			logger.LogInformation("Начинаем обработку {Count} каналов для поиска ссылок", channels.Count);
+
+			var client = await authService.GetClientAsync(telegramOptions.TelegramSessionId, ct);
+
+			foreach (var channelDto in channels)
 			{
-				logger.LogError(ex, "Ошибка при обработке канала {Channel}",
-					channelDto.Username ?? channelDto.TelegramId?.ToString());
+				try
+				{
+					await ProcessChannelAsync(client, channelDto, ct);
+				}
+
+				catch (Exception ex)
+				{
+					logger.LogError(ex, "Ошибка при обработке канала {Channel}",
+						channelDto.Username ?? channelDto.TelegramId?.ToString());
+				}
 			}
+		}
+		finally
+		{
+			ParseLock.Release();
 		}
 	}
 
