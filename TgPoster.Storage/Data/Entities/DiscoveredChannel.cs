@@ -48,7 +48,7 @@ public sealed class DiscoveredChannel : BaseEntity
 	public int? LastParsedId { get; set; }
 
 	/// <summary>
-	///     Источник обнаружения (tgstat URL или @username исходного канала).
+	///     Url канала.
 	/// </summary>
 	public string? TgUrl { get; set; }
 
@@ -106,4 +106,6 @@ public sealed class DiscoveredChannel : BaseEntity
 	///     Канал-источник обнаружения.
 	/// </summary>
 	public DiscoveredChannel? DiscoveredFromChannel { get; set; }
+
+	public bool IsBanned { get; set; }
 }

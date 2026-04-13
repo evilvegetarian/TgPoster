@@ -15,6 +15,7 @@ internal sealed class DiscoverChannelLinksStorage(PosterContext context, GuidFac
 			.Where(x => x.Status == DiscoveryStatus.Pending || x.Status == DiscoveryStatus.Completed)
 			.Where(x => x.Username != null)
 			.Where(x => x.LastParsedId == null)
+			.Where(x => x.IsBanned == false)
 			.OrderBy(x => x.LastDiscoveredAt)
 			.Take(2)
 			.Select(x => new DiscoverChannelDto
@@ -64,6 +65,13 @@ internal sealed class DiscoverChannelLinksStorage(PosterContext context, GuidFac
 		};
 
 		context.DiscoveredChannels.Add(entity);
+		await context.SaveChangesAsync(ct);
+	}
+
+	public async Task ChannelBanned(Guid id, CancellationToken ct)
+	{
+		var entity = await context.DiscoveredChannels.Where(x => x.Id == id).FirstOrDefaultAsync(ct);
+		entity!.IsBanned = true;
 		await context.SaveChangesAsync(ct);
 	}
 

@@ -39,6 +39,7 @@ internal sealed partial class DiscoverChannelLinksWorker(
 			{
 				await ProcessChannelAsync(client, channelDto, ct);
 			}
+
 			catch (Exception ex)
 			{
 				logger.LogError(ex, "Ошибка при обработке канала {Channel}",
@@ -54,6 +55,7 @@ internal sealed partial class DiscoverChannelLinksWorker(
 	)
 	{
 		var channel = await ResolveChannelAsync(client, channelDto);
+
 		if (channel is null)
 		{
 			logger.LogWarning("Не удалось найти канал: {Channel}",
@@ -94,20 +96,32 @@ internal sealed partial class DiscoverChannelLinksWorker(
 
 	private async Task<Channel?> ResolveChannelAsync(WTelegram.Client client, DiscoverChannelDto channelDto)
 	{
-		if (!string.IsNullOrEmpty(channelDto.Username))
+		try
 		{
-			logger.LogInformation("Поиск TG-ссылок в канале @{Channel}", channelDto.Username);
-			var resolveResult = await client.Contacts_ResolveUsername(channelDto.Username);
-			return resolveResult.Chat as Channel;
-		}
+			if (!string.IsNullOrEmpty(channelDto.Username))
+			{
+				logger.LogInformation("Поиск TG-ссылок в канале @{Channel}", channelDto.Username);
+				var resolveResult = await client.Contacts_ResolveUsername(channelDto.Username);
+				return resolveResult.Chat as Channel;
+			}
 
-		if (channelDto.TelegramId.HasValue)
+			if (channelDto.TelegramId.HasValue)
+			{
+				logger.LogInformation("Поиск TG-ссылок в приватном канале ID={TelegramId}", channelDto.TelegramId);
+				var dialogs = await client.Messages_GetAllDialogs();
+				return dialogs.chats.TryGetValue(channelDto.TelegramId.Value, out var chatBase)
+					? chatBase as Channel
+					: null;
+			}
+		}
+		catch (RpcException exception) when (exception.Message == "USERNAME_NOT_OCCUPIED")
 		{
-			logger.LogInformation("Поиск TG-ссылок в приватном канале ID={TelegramId}", channelDto.TelegramId);
-			var dialogs = await client.Messages_GetAllDialogs();
-			return dialogs.chats.TryGetValue(channelDto.TelegramId.Value, out var chatBase)
-				? chatBase as Channel
-				: null;
+			await storage.ChannelBanned(channelDto.Id);
+		}
+		catch (Exception e)
+		{
+			logger.LogError(e, "Пропускаем канал только с инвайт-хешем — нет доступа для сканирования");
+			return null;
 		}
 
 		logger.LogDebug("Пропускаем канал только с инвайт-хешем — нет доступа для сканирования");

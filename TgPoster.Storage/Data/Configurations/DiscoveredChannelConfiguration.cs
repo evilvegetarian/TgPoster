@@ -26,6 +26,7 @@ internal sealed class DiscoveredChannelConfiguration : BaseEntityConfiguration<D
 		builder.HasIndex(x => x.TelegramId);
 		builder.HasIndex(x => x.Status);
 		builder.HasIndex(x => x.Category);
+		builder.Property(x => x.IsBanned).HasDefaultValue(false);
 
 		builder.HasOne(x => x.DiscoveredFromChannel)
 			.WithMany()

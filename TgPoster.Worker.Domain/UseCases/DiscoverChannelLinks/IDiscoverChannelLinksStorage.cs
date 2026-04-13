@@ -7,4 +7,5 @@ public interface IDiscoverChannelLinksStorage
 	Task<bool> ExistsAsync(string? username, long? telegramId, string? inviteHash, CancellationToken ct);
 
 	Task UpsertAsync(DiscoveredPeerUpsert upsert, CancellationToken ct);
+	Task ChannelBanned(Guid id, CancellationToken ct = default);
 }
