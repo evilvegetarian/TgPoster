@@ -21,16 +21,16 @@ internal sealed partial class DiscoverChannelLinksWorker(
 	[DisableConcurrentExecution(96 * 60 * 60)]
 	public async Task ProcessChannelsAsync()
 	{
+		var ct = lifetime.ApplicationStopping;
+
 		if (!await ParseLock.WaitAsync(0, ct))
 		{
 			logger.LogWarning("Парсинг уже выполняется, повторный запуск пропущен");
-			return [];
+			return;
 		}
 
 		try
 		{
-			var ct = lifetime.ApplicationStopping;
-
 			var channels = await storage.GetChannelsToProcessAsync(ct);
 			if (channels.Count == 0)
 			{
