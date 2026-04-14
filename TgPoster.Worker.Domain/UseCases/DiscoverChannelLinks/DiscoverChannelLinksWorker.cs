@@ -18,7 +18,6 @@ internal sealed partial class DiscoverChannelLinksWorker(
 	private const int MessageBatchSize = 100;
 	private static readonly SemaphoreSlim ParseLock = new(1, 1);
 
-	[DisableConcurrentExecution(96 * 60 * 60)]
 	public async Task ProcessChannelsAsync()
 	{
 		var ct = lifetime.ApplicationStopping;
