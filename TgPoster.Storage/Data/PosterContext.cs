@@ -1,4 +1,4 @@
-﻿using System.Reflection;
+using System.Reflection;
 using Microsoft.EntityFrameworkCore;
 using Security.IdentityServices;
 using TgPoster.Storage.Data.Entities;

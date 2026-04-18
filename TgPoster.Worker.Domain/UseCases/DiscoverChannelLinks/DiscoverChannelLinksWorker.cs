@@ -2,6 +2,7 @@ using System.Text.RegularExpressions;
 using Hangfire;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Shared.Enums;
 using Shared.Telegram;
 using TgPoster.Worker.Domain.ConfigModels;
 using TL;
@@ -11,7 +12,6 @@ namespace TgPoster.Worker.Domain.UseCases.DiscoverChannelLinks;
 internal sealed partial class DiscoverChannelLinksWorker(
 	IDiscoverChannelLinksStorage storage,
 	ITelegramAuthService authService,
-	TelegramOptions telegramOptions,
 	ILogger<DiscoverChannelLinksWorker> logger,
 	IHostApplicationLifetime lifetime)
 {
@@ -30,6 +30,13 @@ internal sealed partial class DiscoverChannelLinksWorker(
 
 		try
 		{
+			var sessionId = await storage.GetSessionIdByPurposeAsync(TelegramSessionPurpose.Discover, ct);
+			if (sessionId is null)
+			{
+				logger.LogWarning("Нет активной авторизованной сессии с назначением Discover");
+				return;
+			}
+
 			var channels = await storage.GetChannelsToProcessAsync(ct);
 			if (channels.Count == 0)
 			{
@@ -39,7 +46,7 @@ internal sealed partial class DiscoverChannelLinksWorker(
 
 			logger.LogInformation("Начинаем обработку {Count} каналов для поиска ссылок", channels.Count);
 
-			var client = await authService.GetClientAsync(telegramOptions.TelegramSessionId, ct);
+			var client = await authService.GetClientAsync(sessionId.Value, ct);
 
 			foreach (var channelDto in channels)
 			{

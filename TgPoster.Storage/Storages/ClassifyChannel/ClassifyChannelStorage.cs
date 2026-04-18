@@ -1,11 +1,21 @@
 using Microsoft.EntityFrameworkCore;
+using Shared.Enums;
 using TgPoster.Storage.Data;
+using TgPoster.Storage.Data.Enum;
 using TgPoster.Worker.Domain.UseCases.ClassifyChannel;
 
 namespace TgPoster.Storage.Storages.ClassifyChannel;
 
 internal sealed class ClassifyChannelStorage(PosterContext context) : IClassifyChannelStorage
 {
+	public Task<Guid?> GetSessionIdByPurposeAsync(TelegramSessionPurpose purpose, CancellationToken ct)
+		=> context.TelegramSessions
+			.Where(s => s.IsActive
+			            && s.Status == TelegramSessionStatus.Authorized
+			            && s.Purposes.Contains(purpose))
+			.Select(s => (Guid?)s.Id)
+			.FirstOrDefaultAsync(ct);
+
 	public Task<List<ChannelForClassificationDto>> GetUnclassifiedChannelsAsync(int batchSize, CancellationToken ct)
 	{
 		return context.DiscoveredChannels

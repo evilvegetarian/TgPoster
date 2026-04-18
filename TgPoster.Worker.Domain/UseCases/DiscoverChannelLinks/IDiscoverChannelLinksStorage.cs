@@ -1,7 +1,11 @@
+using Shared.Enums;
+
 namespace TgPoster.Worker.Domain.UseCases.DiscoverChannelLinks;
 
 public interface IDiscoverChannelLinksStorage
 {
+	Task<Guid?> GetSessionIdByPurposeAsync(TelegramSessionPurpose purpose, CancellationToken ct);
+
 	Task<List<DiscoverChannelDto>> GetChannelsToProcessAsync(CancellationToken ct);
 
 	Task<bool> ExistsAsync(string? username, long? telegramId, string? inviteHash, CancellationToken ct);

@@ -1,3 +1,4 @@
+using Shared.Enums;
 using TgPoster.Storage.Data.Enum;
 
 namespace TgPoster.Storage.Data.Entities;
@@ -41,6 +42,11 @@ public sealed class TelegramSession : BaseEntity
 	///     Данные сессии WTelegram (сериализованные в строку).
 	/// </summary>
 	public string? SessionData { get; set; }
+
+	/// <summary>
+	///     Назначения сессии.
+	/// </summary>
+	public TelegramSessionPurpose[] Purposes { get; set; } = [];
 
 	/// <summary>
 	///     Id владельца сессии.

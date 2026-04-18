@@ -34,6 +34,9 @@ internal sealed class TelegramSessionConfiguration : BaseEntityConfiguration<Tel
 			.HasConversion<string>()
 			.IsRequired();
 
+		builder.Property(x => x.Purposes)
+			.IsRequired();
+
 		builder.Property(x => x.UserId)
 			.IsRequired();
 

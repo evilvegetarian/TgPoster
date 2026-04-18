@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Shared.Enums;
 using TgPoster.Storage.Data;
 using TgPoster.Storage.Data.Entities;
 using TgPoster.Storage.Data.Enum;
@@ -9,6 +10,13 @@ namespace TgPoster.Storage.Storages.DiscoverChannelLinks;
 internal sealed class DiscoverChannelLinksStorage(PosterContext context, GuidFactory guidFactory)
 	: IDiscoverChannelLinksStorage
 {
+	public Task<Guid?> GetSessionIdByPurposeAsync(TelegramSessionPurpose purpose, CancellationToken ct)
+		=> context.TelegramSessions
+			.Where(s => s.IsActive
+			            && s.Purposes.Contains(purpose))
+			.Select(s => (Guid?)s.Id)
+			.FirstOrDefaultAsync(ct);
+
 	public Task<List<DiscoverChannelDto>> GetChannelsToProcessAsync(CancellationToken ct)
 	{
 		return context.DiscoveredChannels
