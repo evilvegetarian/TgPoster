@@ -11,6 +11,7 @@ namespace TgPoster.Worker.Domain.UseCases.CommentRepostMonitor;
 public class CommentRepostMonitorWorker(
 	ICommentRepostMonitorStorage storage,
 	ITelegramAuthService authService,
+	ITelegramMessageService tgMessages,
 	IPublishEndpoint publishEndpoint,
 	ILogger<CommentRepostMonitorWorker> logger,
 	IHostApplicationLifetime lifetime)
@@ -46,12 +47,22 @@ public class CommentRepostMonitorWorker(
 		var client = await authService.GetClientAsync(setting.TelegramSessionId, lifetime.ApplicationStopping);
 
 		var peer = new InputPeerChannel(setting.WatchedChannelId, setting.WatchedChannelAccessHash ?? 0);
-		var history = await client.Messages_GetHistory(
+		var historyResult = await tgMessages.GetHistoryAsync(
+			client,
 			peer,
 			limit: 20,
-			min_id: setting.LastProcessedPostId ?? 0);
+			minId: setting.LastProcessedPostId ?? 0,
+			ct: lifetime.ApplicationStopping);
 
-		var newPosts = history.Messages
+		if (!historyResult.IsSuccess)
+		{
+			logger.LogWarning(
+				"Не удалось получить историю канала {ChannelId} (статус {Status}): {Error}",
+				setting.WatchedChannelId, historyResult.Status, historyResult.ErrorMessage);
+			return;
+		}
+
+		var newPosts = historyResult.Value!.Messages
 			.OfType<TL.Message>()
 			.Where(m => m.ID > (setting.LastProcessedPostId ?? 0))
 			.OrderBy(m => m.ID)

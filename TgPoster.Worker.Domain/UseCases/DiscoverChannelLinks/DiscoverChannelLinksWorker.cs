@@ -12,6 +12,7 @@ namespace TgPoster.Worker.Domain.UseCases.DiscoverChannelLinks;
 internal sealed partial class DiscoverChannelLinksWorker(
 	IDiscoverChannelLinksStorage storage,
 	ITelegramAuthService authService,
+	ITelegramMessageService tgMessages,
 	ILogger<DiscoverChannelLinksWorker> logger,
 	IHostApplicationLifetime lifetime)
 {
@@ -74,7 +75,7 @@ internal sealed partial class DiscoverChannelLinksWorker(
 		CancellationToken ct
 	)
 	{
-		var channel = await ResolveChannelAsync(client, channelDto);
+		var channel = await ResolveChannelAsync(client, channelDto, ct);
 
 		if (channel is null)
 		{
@@ -114,41 +115,47 @@ internal sealed partial class DiscoverChannelLinksWorker(
 		await SaveDiscoveredPeersAsync(channelDto, channel, scan, resolvedInvites, ct);
 	}
 
-	private async Task<Channel?> ResolveChannelAsync(WTelegram.Client client, DiscoverChannelDto channelDto)
+	private async Task<Channel?> ResolveChannelAsync(
+		WTelegram.Client client,
+		DiscoverChannelDto channelDto,
+		CancellationToken ct)
 	{
-		try
+		if (!string.IsNullOrEmpty(channelDto.Username))
 		{
-			if (!string.IsNullOrEmpty(channelDto.Username))
+			logger.LogInformation("Поиск TG-ссылок в канале @{Channel}", channelDto.Username);
+			var resolved = await tgMessages.ResolveChannelAsync(client, channelDto.Username, ct);
+
+			if (resolved.IsSuccess)
+				return resolved.Value;
+
+			if (resolved.Status == TelegramOperationStatus.UsernameNotFound)
 			{
-				logger.LogInformation("Поиск TG-ссылок в канале @{Channel}", channelDto.Username);
-				var resolveResult = await client.Contacts_ResolveUsername(channelDto.Username);
-				return resolveResult.Chat as Channel;
+				logger.LogError("Канал {channel} забанен", channelDto.Username);
+				await storage.ChannelBanned(channelDto.Id, ct);
+			}
+			else
+			{
+				logger.LogError("Не удалось разрешить канал {Channel}: {Status} {Error}",
+					channelDto.Username, resolved.Status, resolved.ErrorMessage);
 			}
 
-			if (channelDto.TelegramId.HasValue)
+			return null;
+		}
+
+		if (channelDto.TelegramId.HasValue)
+		{
+			logger.LogInformation("Поиск TG-ссылок в приватном канале ID={TelegramId}", channelDto.TelegramId);
+			var dialogsResult = await tgMessages.GetAllDialogsAsync(client, ct);
+			if (!dialogsResult.IsSuccess)
 			{
-				logger.LogInformation("Поиск TG-ссылок в приватном канале ID={TelegramId}", channelDto.TelegramId);
-				var dialogs = await client.Messages_GetAllDialogs();
-				return dialogs.chats.TryGetValue(channelDto.TelegramId.Value, out var chatBase)
-					? chatBase as Channel
-					: null;
+				logger.LogError("Не удалось получить диалоги: {Status} {Error}",
+					dialogsResult.Status, dialogsResult.ErrorMessage);
+				return null;
 			}
-		}
-		catch (RpcException exception) when (exception.Message == "USERNAME_NOT_OCCUPIED")
-		{
-			logger.LogError("Канал {channel} забанен", channelDto.Username);
-			await storage.ChannelBanned(channelDto.Id);
-		}
-		catch (RpcException exception) when (exception.Message == "FLOOD_WAIT_X")
-		{
-			logger.LogError("Канал {channel} FLOOD_WAIT_X ждем {time}", channelDto.Username, exception.X);
-			await Task.Delay(TimeSpan.FromSeconds(exception.X));
-			return null;
-		}
-		catch (Exception e)
-		{
-			logger.LogError(e, "Ошибка");
-			return null;
+
+			return dialogsResult.Value!.chats.TryGetValue(channelDto.TelegramId.Value, out var chatBase)
+				? chatBase as Channel
+				: null;
 		}
 
 		logger.LogDebug("Пропускаем канал только с инвайт-хешем — нет доступа для сканирования");
@@ -174,11 +181,23 @@ internal sealed partial class DiscoverChannelLinksWorker(
 		{
 			ct.ThrowIfCancellationRequested();
 
-			var history = await client.Messages_GetHistory(
+			var historyResult = await tgMessages.GetHistoryAsync(
+				client,
 				new InputPeerChannel(channel.ID, channel.access_hash),
 				limit: MessageBatchSize,
-				offset_id: offset,
-				min_id: channelDto.LastParsedId ?? 0);
+				offsetId: offset,
+				minId: channelDto.LastParsedId ?? 0,
+				ct: ct);
+
+			if (!historyResult.IsSuccess)
+			{
+				logger.LogWarning("Ошибка получения истории канала {Channel}: {Status} {Error}",
+					channelDto.Username ?? channelDto.TelegramId?.ToString(),
+					historyResult.Status, historyResult.ErrorMessage);
+				break;
+			}
+
+			var history = historyResult.Value!;
 
 			if (history.Messages.Length == 0)
 				break;
@@ -314,28 +333,21 @@ internal sealed partial class DiscoverChannelLinksWorker(
 		{
 			ct.ThrowIfCancellationRequested();
 
-			try
+			var result = await tgMessages.ResolveChannelAsync(client, username, ct);
+			if (result.IsSuccess && result.Value is not null)
 			{
-				var result = await client.Contacts_ResolveUsername(username);
-				if (result.Chat is null)
+				chats[username] = new DiscoveredPeerInfo
 				{
-					logger.LogDebug("@{Username} — пользователь, пропускаем", username);
-				}
-				else
-				{
-					chats[username] = new DiscoveredPeerInfo
-					{
-						PeerType = ResolvePeerType(result.Chat),
-						TelegramId = result.Chat.ID,
-						Username = username,
-						Title = result.Chat.Title,
-						ParticipantsCount = (result.Chat as Channel)?.participants_count
-					};
-				}
+					PeerType = ResolvePeerType(result.Value),
+					TelegramId = result.Value.ID,
+					Username = username,
+					Title = result.Value.Title,
+					ParticipantsCount = result.Value.participants_count
+				};
 			}
-			catch (Exception ex)
+			else
 			{
-				logger.LogDebug(ex, "Не удалось разрешить @{Username}, пропускаем", username);
+				logger.LogDebug("Не удалось разрешить @{Username} ({Status}), пропускаем", username, result.Status);
 			}
 
 			await Task.Delay(TimeSpan.FromSeconds(3), ct);
@@ -356,49 +368,49 @@ internal sealed partial class DiscoverChannelLinksWorker(
 		{
 			ct.ThrowIfCancellationRequested();
 
-			try
+			var inviteResult = await tgMessages.CheckChatInviteAsync(client, hash, ct);
+			if (!inviteResult.IsSuccess)
 			{
-				var inviteInfo = await client.Messages_CheckChatInvite(hash);
-
-				switch (inviteInfo)
-				{
-					case ChatInviteAlready { chat: var chat }:
-						results[hash] = new DiscoveredPeerInfo
-						{
-							Username = chat.MainUsername,
-							TelegramId = chat.ID,
-							PeerType = ResolvePeerType(chat),
-							Title = chat.Title,
-							ParticipantsCount = (chat as Channel)?.participants_count,
-							InviteHash = hash
-						};
-						break;
-					case ChatInvitePeek { chat: var chat }:
-						results[hash] = new DiscoveredPeerInfo
-						{
-							Username = chat.MainUsername,
-							TelegramId = chat.ID,
-							PeerType = ResolvePeerType(chat),
-							Title = chat.Title,
-							ParticipantsCount = (chat as Channel)?.participants_count,
-							InviteHash = hash
-						};
-						break;
-					case ChatInvite invite:
-						results[hash] = new DiscoveredPeerInfo
-						{
-							TelegramId = 0,
-							PeerType = ResolvePeerType(invite),
-							Title = invite.title,
-							ParticipantsCount = invite.participants_count,
-							InviteHash = hash
-						};
-						break;
-				}
+				logger.LogDebug("Не удалось проверить инвайт-хеш {Hash} ({Status}), пропускаем",
+					hash, inviteResult.Status);
+				await Task.Delay(TimeSpan.FromSeconds(3), ct);
+				continue;
 			}
-			catch (Exception ex)
+
+			switch (inviteResult.Value)
 			{
-				logger.LogDebug(ex, "Не удалось проверить инвайт-хеш {Hash}, пропускаем", hash);
+				case ChatInviteAlready { chat: var chat }:
+					results[hash] = new DiscoveredPeerInfo
+					{
+						Username = chat.MainUsername,
+						TelegramId = chat.ID,
+						PeerType = ResolvePeerType(chat),
+						Title = chat.Title,
+						ParticipantsCount = (chat as Channel)?.participants_count,
+						InviteHash = hash
+					};
+					break;
+				case ChatInvitePeek { chat: var chat }:
+					results[hash] = new DiscoveredPeerInfo
+					{
+						Username = chat.MainUsername,
+						TelegramId = chat.ID,
+						PeerType = ResolvePeerType(chat),
+						Title = chat.Title,
+						ParticipantsCount = (chat as Channel)?.participants_count,
+						InviteHash = hash
+					};
+					break;
+				case ChatInvite invite:
+					results[hash] = new DiscoveredPeerInfo
+					{
+						TelegramId = 0,
+						PeerType = ResolvePeerType(invite),
+						Title = invite.title,
+						ParticipantsCount = invite.participants_count,
+						InviteHash = hash
+					};
+					break;
 			}
 
 			await Task.Delay(TimeSpan.FromSeconds(3), ct);

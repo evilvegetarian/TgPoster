@@ -24,6 +24,7 @@ internal sealed class ProcessMessageConsumer(
 	TimePostingService timePostingService,
 	IProcessMessageConsumerStorage storage,
 	ITelegramAuthService authService,
+	ITelegramMessageService tgMessages,
 	TelegramBotManager botManager,
 	ILogger<ProcessMessageConsumer> logger
 ) : IConsumer<ProcessMessage>
@@ -52,12 +53,16 @@ internal sealed class ProcessMessageConsumer(
 
 		var client = await authService.GetClientAsync(parameters.TelegramSessionId, ct);
 
-		var resolveResult = await client.Contacts_ResolveUsername(channelName);
-		if (resolveResult.Chat is not Channel channel)
+		var resolveResult = await tgMessages.ResolveChannelAsync(client, channelName, ct);
+		if (!resolveResult.IsSuccess)
 		{
-			logger.LogError("Не удалось найти канал по имени: {ChannelName}", channelName);
+			logger.LogError("Не удалось найти канал по имени: {ChannelName} ({Status})",
+				channelName, resolveResult.Status);
 			return;
 		}
+
+		var channel = resolveResult.Value!;
+		var channelInput = new InputChannel(channel.ID, channel.access_hash);
 
 		var messageDto = new MessageDto
 		{
@@ -72,9 +77,8 @@ internal sealed class ProcessMessageConsumer(
 			foreach (var part in command.Messages)
 			{
 				await Task.Delay(2000, ct);
-				var refreshedMessages =
-					await client.Channels_GetMessages(new InputChannel(channel.ID, channel.access_hash), part.Id);
-				if (refreshedMessages.Messages.FirstOrDefault() is not Message message)
+				var messageResult = await tgMessages.GetChannelMessageAsync(client, channelInput, part.Id, ct);
+				if (!messageResult.IsSuccess || messageResult.Value is not { } message)
 				{
 					continue;
 				}
@@ -84,7 +88,15 @@ internal sealed class ProcessMessageConsumer(
 					if (part.IsPhoto && message is { media: MessageMediaPhoto { photo: Photo photo } })
 					{
 						var stream = new MemoryStream();
-						await client.DownloadFileAsync(photo, stream);
+						var downloadResult = await tgMessages.DownloadPhotoAsync(
+							client, channelInput, part.Id, photo, stream, ct);
+						if (!downloadResult.IsSuccess)
+						{
+							logger.LogWarning("Не удалось скачать фото для сообщения {MessageId}: {Status} {Error}",
+								part.Id, downloadResult.Status, downloadResult.ErrorMessage);
+							await stream.DisposeAsync();
+							continue;
+						}
 						stream.Position = 0;
 						downloadedMedia.Add(new DownloadedMedia
 						{
@@ -94,7 +106,15 @@ internal sealed class ProcessMessageConsumer(
 					else if (part.IsVideo && message is { media: MessageMediaDocument { document: Document doc } })
 					{
 						var stream = new MemoryStream();
-						await client.DownloadFileAsync(doc, stream);
+						var downloadResult = await tgMessages.DownloadDocumentAsync(
+							client, channelInput, part.Id, doc, stream, ct);
+						if (!downloadResult.IsSuccess)
+						{
+							logger.LogWarning("Не удалось скачать видео для сообщения {MessageId}: {Status} {Error}",
+								part.Id, downloadResult.Status, downloadResult.ErrorMessage);
+							await stream.DisposeAsync();
+							continue;
+						}
 						stream.Position = 0;
 						downloadedMedia.Add(new DownloadedMedia
 						{

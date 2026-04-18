@@ -10,6 +10,7 @@ internal class ParseChannelUseCase(
 	IParseChannelUseCaseStorage storage,
 	IPublishEndpoint publishEndpoint,
 	ITelegramAuthService authService,
+	ITelegramMessageService tgMessages,
 	ILogger<ParseChannelUseCase> logger)
 {
 	public async Task Handle(Guid id, CancellationToken ct)
@@ -34,27 +35,39 @@ internal class ParseChannelUseCase(
 
 		var client = await authService.GetClientAsync(parameters.TelegramSessionId, ct);
 
-		var resolveResult = await client.Contacts_ResolveUsername(channelName);
-		if (resolveResult.Chat is not Channel channel)
+		var resolveResult = await tgMessages.ResolveChannelAsync(client, channelName, ct);
+		if (!resolveResult.IsSuccess)
 		{
-			logger.LogError("Не удалось найти канал по имени: {ChannelName}", channelName);
-			await storage.UpdateChannelParsingParametersAsync(id, lastParseId ?? 0, checkNewPosts,
-				ct);
+			logger.LogError("Не удалось найти канал по имени: {ChannelName} ({Status})", channelName,
+				resolveResult.Status);
+			await storage.UpdateChannelParsingParametersAsync(id, lastParseId ?? 0, checkNewPosts, ct);
 			return;
 		}
 
+		var channel = resolveResult.Value!;
 		List<Message> allMessages = [];
 		var tempLastParseId = 0;
 		const int limit = 100;
 		var offset = lastParseId ?? 0;
 		while (true)
 		{
-			var history = await client.Messages_GetHistory(
+			var historyResult = await tgMessages.GetHistoryAsync(
+				client,
 				new InputPeerChannel(channel.ID, channel.access_hash),
 				limit: limit,
-				offset_date: toDate ?? DateTime.Now,
-				offset_id: offset
-			);
+				offsetDate: toDate ?? DateTime.Now,
+				offsetId: offset,
+				ct: ct);
+
+			if (!historyResult.IsSuccess)
+			{
+				logger.LogError("Ошибка при получении истории канала {ChannelName}: {Status} {Error}",
+					channelName, historyResult.Status, historyResult.ErrorMessage);
+				await storage.UpdateChannelParsingParametersAsync(id, tempLastParseId, checkNewPosts, ct);
+				return;
+			}
+
+			var history = historyResult.Value!;
 
 			var messageFiltered = history.Messages
 				.Where(x => fromDate is null || x.Date >= fromDate)

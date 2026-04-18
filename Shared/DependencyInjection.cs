@@ -21,6 +21,7 @@ public static class DependencyInjection
 		services.AddSingleton<SessionDataDebouncer>();
 		services.AddScoped<ITelegramAuthService, TelegramAuthService>();
 		services.AddScoped<ITelegramChatService, TelegramChatService>();
+		services.AddScoped<ITelegramMessageService, TelegramMessageService>();
 
 		services.AddScoped<IOpenRouterClient, OpenRouterClient>();
 		services.AddScoped<ITgStatScrapingService, TgStatScrapingService>();

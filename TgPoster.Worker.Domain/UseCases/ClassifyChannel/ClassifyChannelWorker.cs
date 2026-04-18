@@ -15,6 +15,7 @@ internal sealed class ClassifyChannelWorker(
 	IOpenRouterClient openRouterClient,
 	IClassifyChannelStorage storage,
 	ITelegramAuthService authService,
+	ITelegramMessageService tgMessages,
 	ClassificationOptions options,
 	ILogger<ClassifyChannelWorker> logger,
 	IHostApplicationLifetime lifetime)
@@ -144,64 +145,62 @@ internal sealed class ClassifyChannelWorker(
 		CancellationToken ct
 	)
 	{
-		try
+		var peer = await ResolvePeerAsync(client, channel, ct);
+		if (peer is null)
 		{
-			InputPeer? peer = null;
-
-			if (!string.IsNullOrEmpty(channel.Username))
-			{
-				var resolved = await client.Contacts_ResolveUsername(channel.Username);
-				if (resolved.Chat is Channel tgChannel)
-					peer = new InputPeerChannel(tgChannel.ID, tgChannel.access_hash);
-				else if (resolved.Chat is not null)
-					peer = new InputPeerChat(resolved.Chat.ID);
-			}
-			else if (channel.TelegramId.HasValue)
-			{
-				var dialogs = await client.Messages_GetAllDialogs();
-				if (dialogs.chats.TryGetValue(channel.TelegramId.Value, out var chat))
-				{
-					if (chat is Channel tgChannel)
-						peer = new InputPeerChannel(tgChannel.ID, tgChannel.access_hash);
-					else
-						peer = new InputPeerChat(chat.ID);
-				}
-			}
-
-			if (peer is null)
-			{
-				logger.LogDebug("Не удалось найти канал {ChannelId} в Telegram для загрузки сообщений", channel.Id);
-				return [];
-			}
-
-			var history = await client.Messages_GetHistory(peer, limit: options.MessageSampleCount);
-			var messages = history.Messages
-				.OfType<Message>()
-				.Where(m => !string.IsNullOrWhiteSpace(m.message))
-				.Select(m => TruncateMessage(m.message, 500))
-				.ToList();
-
-			logger.LogDebug("Загружено {Count} сообщений для канала {ChannelId}", messages.Count, channel.Id);
-			return messages;
-		}
-		catch (RpcException ex) when (ex.Message.StartsWith("FLOOD_WAIT"))
-		{
-			logger.LogWarning("FLOOD_WAIT при загрузке сообщений канала {ChannelId}, ждём {Seconds}s", channel.Id,
-				ex.X);
-			await Task.Delay(TimeSpan.FromSeconds(ex.X), ct);
+			logger.LogDebug("Не удалось найти канал {ChannelId} в Telegram для загрузки сообщений", channel.Id);
 			return [];
 		}
-		catch (RpcException ex) when (ex.Message.StartsWith("USERNAME_NOT_OCCUPIED"))
+
+		var historyResult = await tgMessages.GetHistoryAsync(
+			client, peer, limit: options.MessageSampleCount, ct: ct);
+
+		if (!historyResult.IsSuccess)
 		{
-			logger.LogWarning("USERNAME_NOT_OCCUPIED при загрузке сообщений канала {ChannelId}, ждём {Seconds}s", channel.Id,
-				ex.X);
+			logger.LogDebug("Не удалось получить сообщения канала {ChannelId}: {Status} {Error}",
+				channel.Id, historyResult.Status, historyResult.ErrorMessage);
 			return [];
 		}
-		catch (Exception ex)
+
+		var messages = historyResult.Value!.Messages
+			.OfType<Message>()
+			.Where(m => !string.IsNullOrWhiteSpace(m.message))
+			.Select(m => TruncateMessage(m.message, 500))
+			.ToList();
+
+		logger.LogDebug("Загружено {Count} сообщений для канала {ChannelId}", messages.Count, channel.Id);
+		return messages;
+	}
+
+	private async Task<InputPeer?> ResolvePeerAsync(
+		WTelegram.Client client,
+		ChannelForClassificationDto channel,
+		CancellationToken ct
+	)
+	{
+		if (!string.IsNullOrEmpty(channel.Username))
 		{
-			logger.LogDebug(ex, "Не удалось загрузить сообщения для канала {ChannelId}", channel.Id);
-			return [];
+			var resolved = await tgMessages.ResolveChannelAsync(client, channel.Username, ct);
+			return resolved.IsSuccess
+				? new InputPeerChannel(resolved.Value!.ID, resolved.Value.access_hash)
+				: null;
 		}
+
+		if (channel.TelegramId.HasValue)
+		{
+			var dialogsResult = await tgMessages.GetAllDialogsAsync(client, ct);
+			if (!dialogsResult.IsSuccess)
+				return null;
+
+			if (dialogsResult.Value!.chats.TryGetValue(channel.TelegramId.Value, out var chat))
+			{
+				return chat is Channel tgChannel
+					? new InputPeerChannel(tgChannel.ID, tgChannel.access_hash)
+					: new InputPeerChat(chat.ID);
+			}
+		}
+
+		return null;
 	}
 
 	private static string TruncateMessage(string text, int maxLength)

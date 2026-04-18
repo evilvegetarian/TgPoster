@@ -9,15 +9,17 @@ namespace TgPoster.Worker.Domain.UseCases.RepostMessageConsumer;
 internal sealed class RepostMessageConsumer(
 	IRepostMessageConsumerStorage storage,
 	ITelegramAuthService authService,
+	ITelegramMessageService tgMessages,
 	ILogger<RepostMessageConsumer> logger)
 	: IConsumer<RepostMessageCommand>
 {
 	public async Task Consume(ConsumeContext<RepostMessageCommand> context)
 	{
 		var command = context.Message;
+		var ct = context.CancellationToken;
 		logger.LogInformation("Начал обработку репоста для сообщения {MessageId}", command.MessageId);
 
-		var repostData = await storage.GetRepostDataAsync(command.MessageId, command.RepostSettingsId, context.CancellationToken);
+		var repostData = await storage.GetRepostDataAsync(command.MessageId, command.RepostSettingsId, ct);
 		if (repostData is null)
 		{
 			logger.LogWarning("Данные для репоста не найдены для сообщения {MessageId}", command.MessageId);
@@ -36,20 +38,32 @@ internal sealed class RepostMessageConsumer(
 			return;
 		}
 
-		var client = await authService.GetClientAsync(repostData.TelegramSessionId, context.CancellationToken);
-		var dialogs = await client.Messages_GetAllDialogs();
-		var resolveResult = await client.Contacts_ResolveUsername(repostData.SourceChannelIdentifier.Replace("@",""));
-		if (resolveResult.Chat is not Channel sourceChannel)
+		var client = await authService.GetClientAsync(repostData.TelegramSessionId, ct);
+
+		var dialogsResult = await tgMessages.GetAllDialogsAsync(client, ct);
+		if (!dialogsResult.IsSuccess)
 		{
-			logger.LogError("Не удалось найти исходный канал: {ChannelName}", repostData.SourceChannelIdentifier);
+			logger.LogError("Не удалось получить диалоги: {Status} {Error}",
+				dialogsResult.Status, dialogsResult.ErrorMessage);
 			return;
 		}
 
-		var destinations = dialogs.chats
+		var resolveResult = await tgMessages.ResolveChannelAsync(
+			client, repostData.SourceChannelIdentifier.Replace("@", ""), ct);
+		if (!resolveResult.IsSuccess)
+		{
+			logger.LogError("Не удалось найти исходный канал: {ChannelName} ({Status})",
+				repostData.SourceChannelIdentifier, resolveResult.Status);
+			return;
+		}
+
+		var sourceChannel = resolveResult.Value!;
+
+		var destinations = dialogsResult.Value!.chats
 			.Where(x => repostData.Destinations
 				.Select(dto => dto.ChatIdentifier)
 				.Contains(x.Key))
-			.Select(x=>x.Value)
+			.Select(x => x.Value)
 			.ToList();
 		foreach (var destination in destinations)
 		{
@@ -70,66 +84,50 @@ internal sealed class RepostMessageConsumer(
 				logger.LogInformation(
 					"Задержка {Delay} сек. перед репостом в {ChatId}",
 					delaySec, destination.ID);
-				await Task.Delay(TimeSpan.FromSeconds(delaySec), context.CancellationToken);
+				await Task.Delay(TimeSpan.FromSeconds(delaySec), ct);
 			}
 
-			try
+			var forwardResult = await tgMessages.ForwardMessageAsync(
+				client,
+				from: new InputPeerChannel(sourceChannel.ID, sourceChannel.access_hash),
+				to: destination.ToInputPeer(),
+				messageId: repostData.TelegramMessageId.Value,
+				ct: ct);
+
+			if (forwardResult.IsSuccess)
 			{
-				var result = await client.Messages_ForwardMessages(
-					from_peer: new InputPeerChannel(sourceChannel.ID, sourceChannel.access_hash),
-					id: [repostData.TelegramMessageId.Value],
-					to_peer: destination.ToInputPeer(),
-					random_id: [Random.Shared.NextInt64()]
-				);
-
-				int? repostedMessageId = null;
-				if (result is Updates updates && updates.updates.Length > 0)
-				{
-					var messageUpdate = updates.updates
-						.OfType<UpdateMessageID>()
-						.FirstOrDefault();
-
-					if (messageUpdate != null)
-					{
-						repostedMessageId = messageUpdate.id;
-					}
-				}
-
 				await storage.CreateRepostLogAsync(
 					command.MessageId,
 					dest.Id,
-					repostedMessageId,
+					forwardResult.Value,
 					null,
-					context.CancellationToken);
+					ct);
 
 				logger.LogInformation(
 					"Сообщение {MessageId} успешно репостнуто в {ChatIdentifier}",
 					command.MessageId,
 					destination.ID);
+				continue;
 			}
-			catch (RpcException rpcEx) when (
-				rpcEx.Message is "CHANNEL_PRIVATE" or "USER_BANNED_IN_CHANNEL"
-					or "CHAT_WRITE_FORBIDDEN" or "CHAT_RESTRICTED" or "CHAT_SEND_PLAIN_FORBIDDEN")
+
+			if (forwardResult.Status == TelegramOperationStatus.ChannelBanned)
 			{
-				logger.LogWarning("Аккаунт заблокирован в канале {ChatId}: {Error}", destination.ID, rpcEx.Message);
-				await storage.UpdateDestinationStatusAsync(dest.Id, ChatStatus.Banned, context.CancellationToken);
-				await storage.CreateRepostLogAsync(
-					command.MessageId,
-					dest.Id,
-					null,
-					rpcEx.Message,
-					context.CancellationToken);
+				logger.LogWarning("Аккаунт заблокирован в канале {ChatId}: {Error}",
+					destination.ID, forwardResult.ErrorMessage);
+				await storage.UpdateDestinationStatusAsync(dest.Id, ChatStatus.Banned, ct);
 			}
-			catch (Exception e)
+			else
 			{
-				logger.LogError(e, "Ошибка при репосте в {ChatIdentifier}", destination.ID);
-				await storage.CreateRepostLogAsync(
-					command.MessageId,
-					dest.Id,
-					null,
-					e.Message,
-					context.CancellationToken);
+				logger.LogError("Ошибка при репосте в {ChatIdentifier}: {Status} {Error}",
+					destination.ID, forwardResult.Status, forwardResult.ErrorMessage);
 			}
+
+			await storage.CreateRepostLogAsync(
+				command.MessageId,
+				dest.Id,
+				null,
+				forwardResult.ErrorMessage,
+				ct);
 		}
 
 		logger.LogInformation("Завершена обработка репоста для сообщения {MessageId}", command.MessageId);
