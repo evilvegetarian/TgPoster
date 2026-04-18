@@ -23,4 +23,6 @@ public sealed class ChannelForClassificationDto
 	public required Guid Id { get; init; }
 	public required string? Title { get; init; }
 	public required string? Description { get; init; }
+	public required string? Username { get; init; }
+	public required long? TelegramId { get; init; }
 }

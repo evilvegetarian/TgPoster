@@ -11,7 +11,6 @@ internal sealed class ClassifyChannelStorage(PosterContext context) : IClassifyC
 	public Task<Guid?> GetSessionIdByPurposeAsync(TelegramSessionPurpose purpose, CancellationToken ct)
 		=> context.TelegramSessions
 			.Where(s => s.IsActive
-			            && s.Status == TelegramSessionStatus.Authorized
 			            && s.Purposes.Contains(purpose))
 			.Select(s => (Guid?)s.Id)
 			.FirstOrDefaultAsync(ct);
@@ -26,7 +25,9 @@ internal sealed class ClassifyChannelStorage(PosterContext context) : IClassifyC
 			{
 				Id = x.Id,
 				Title = x.Title,
-				Description = x.Description
+				Description = x.Description,
+				Username = x.Username,
+				TelegramId = x.TelegramId
 			})
 			.ToListAsync(ct);
 	}

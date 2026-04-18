@@ -38,13 +38,9 @@ var connectionString = builder.Configuration.GetSection("DataBase")["ConnectionS
 builder.Services.AddHealthChecks()
 	.AddNpgSql(connectionString, name: "postgresql");
 
-var openRouterOptions = builder.Configuration.GetSection(nameof(OpenRouterOptions)).Get<OpenRouterOptions>()!;
-builder.Services.AddSingleton(openRouterOptions);
-
 var classificationOptions = builder.Configuration
 	                            .GetSection(nameof(ClassificationOptions))
-	                            .Get<ClassificationOptions>()!
-                            ?? new ClassificationOptions();
+	                            .Get<ClassificationOptions>()!;
 builder.Services.AddSingleton(classificationOptions);
 var app = builder.Build();
 app.UseOpenTelemetryPrometheusScrapingEndpoint();
