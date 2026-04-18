@@ -118,26 +118,25 @@ internal sealed partial class DiscoverChannelLinksWorker(
 	private async Task<Channel?> ResolveChannelAsync(
 		WTelegram.Client client,
 		DiscoverChannelDto channelDto,
-		CancellationToken ct)
+		CancellationToken ct
+	)
 	{
 		if (!string.IsNullOrEmpty(channelDto.Username))
 		{
 			logger.LogInformation("Поиск TG-ссылок в канале @{Channel}", channelDto.Username);
 			var resolved = await tgMessages.ResolveChannelAsync(client, channelDto.Username, ct);
 
+			if (await resolved.HandleChannelUnavailableAsync(() => storage.ChannelBanned(channelDto.Id, ct)))
+			{
+				logger.LogError("Канал {channel} забанен", channelDto.Username);
+				return null;
+			}
+
 			if (resolved.IsSuccess)
 				return resolved.Value;
 
-			if (resolved.Status == TelegramOperationStatus.UsernameNotFound)
-			{
-				logger.LogError("Канал {channel} забанен", channelDto.Username);
-				await storage.ChannelBanned(channelDto.Id, ct);
-			}
-			else
-			{
-				logger.LogError("Не удалось разрешить канал {Channel}: {Status} {Error}",
-					channelDto.Username, resolved.Status, resolved.ErrorMessage);
-			}
+			logger.LogError("Не удалось разрешить канал {Channel}: {Status} {Error}",
+				channelDto.Username, resolved.Status, resolved.ErrorMessage);
 
 			return null;
 		}

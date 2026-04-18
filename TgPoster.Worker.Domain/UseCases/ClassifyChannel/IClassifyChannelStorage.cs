@@ -16,6 +16,8 @@ public interface IClassifyChannelStorage
 		string? language,
 		double? confidence,
 		CancellationToken ct);
+
+	Task MarkChannelBannedAsync(Guid channelId, CancellationToken ct);
 }
 
 public sealed class ChannelForClassificationDto

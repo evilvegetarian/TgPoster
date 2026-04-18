@@ -9,7 +9,6 @@ using TgPoster.Storage;
 using TgPoster.Worker.Configuration;
 using TgPoster.Worker.Domain;
 using TgPoster.Worker.Domain.ConfigModels;
-using ClassificationOptions = TgPoster.Worker.Domain.ConfigModels.ClassificationOptions;
 using TgPoster.Worker.Telemetry;
 using TelegramOptions = TgPoster.Worker.Domain.ConfigModels.TelegramOptions;
 
@@ -39,8 +38,8 @@ builder.Services.AddHealthChecks()
 	.AddNpgSql(connectionString, name: "postgresql");
 
 var classificationOptions = builder.Configuration
-	                            .GetSection(nameof(ClassificationOptions))
-	                            .Get<ClassificationOptions>()!;
+	                            .GetSection(nameof(OpenRouterOptions))
+	                            .Get<OpenRouterOptions>()!;
 builder.Services.AddSingleton(classificationOptions);
 var app = builder.Build();
 app.UseOpenTelemetryPrometheusScrapingEndpoint();

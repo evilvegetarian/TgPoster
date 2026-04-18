@@ -1,7 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Shared.Enums;
 using TgPoster.Storage.Data;
-using TgPoster.Storage.Data.Enum;
 using TgPoster.Worker.Domain.UseCases.ClassifyChannel;
 
 namespace TgPoster.Storage.Storages.ClassifyChannel;
@@ -18,8 +17,8 @@ internal sealed class ClassifyChannelStorage(PosterContext context) : IClassifyC
 	public Task<List<ChannelForClassificationDto>> GetUnclassifiedChannelsAsync(int batchSize, CancellationToken ct)
 	{
 		return context.DiscoveredChannels
-			.Where(x => x.LastClassifiedAt == null && (x.Title != null || x.Description != null))
-			.OrderBy(x => x.Id)
+			.Where(x => x.Username != null)
+			.OrderBy(x => x.LastClassifiedAt != null)
 			.Take(batchSize)
 			.Select(x => new ChannelForClassificationDto
 			{
@@ -39,7 +38,8 @@ internal sealed class ClassifyChannelStorage(PosterContext context) : IClassifyC
 		string[]? tags,
 		string? language,
 		double? confidence,
-		CancellationToken ct)
+		CancellationToken ct
+	)
 	{
 		var channel = await context.DiscoveredChannels.FirstAsync(x => x.Id == id, ct);
 
@@ -49,6 +49,17 @@ internal sealed class ClassifyChannelStorage(PosterContext context) : IClassifyC
 		channel.Language = language;
 		channel.ClassificationConfidence = confidence;
 		channel.LastClassifiedAt = DateTimeOffset.UtcNow;
+
+		await context.SaveChangesAsync(ct);
+	}
+
+	public async Task MarkChannelBannedAsync(Guid channelId, CancellationToken ct)
+	{
+		var entity = await context.DiscoveredChannels.Where(x => x.Id == channelId).FirstOrDefaultAsync(ct);
+		if (entity is not null)
+		{
+			entity.IsBanned = true;
+		}
 
 		await context.SaveChangesAsync(ct);
 	}

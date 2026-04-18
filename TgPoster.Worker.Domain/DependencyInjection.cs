@@ -120,7 +120,7 @@ public static class DependencyInjection
 		recurringJobManager.AddOrUpdate<ClassifyChannelWorker>(
 			"classify-channels-job",
 			worker => worker.ClassifyChannelsAsync(),
-			Cron.Minutely());
+			Cron.Hourly());
 	}
 
 	private class AllowAllAuthorizationFilter : IDashboardAuthorizationFilter

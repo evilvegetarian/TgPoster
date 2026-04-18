@@ -11,6 +11,9 @@ public readonly struct TelegramOperationResult
 
     public bool IsSuccess => Status == TelegramOperationStatus.Success;
 
+    public bool IsChannelUnavailable => Status is TelegramOperationStatus.UsernameNotFound
+        or TelegramOperationStatus.ChannelBanned;
+
     public static TelegramOperationResult Success() => new() { Status = TelegramOperationStatus.Success };
 
     public static TelegramOperationResult Failed(TelegramOperationStatus status, string? error = null,
@@ -29,6 +32,9 @@ public readonly struct TelegramOperationResult<T>
     public int? FloodWaitSeconds { get; init; }
 
     public bool IsSuccess => Status == TelegramOperationStatus.Success;
+
+    public bool IsChannelUnavailable => Status is TelegramOperationStatus.UsernameNotFound
+        or TelegramOperationStatus.ChannelBanned;
 
     public static TelegramOperationResult<T> Success(T value) =>
         new() { Status = TelegramOperationStatus.Success, Value = value };

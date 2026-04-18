@@ -22,9 +22,7 @@ internal sealed class DiscoverChannelLinksStorage(PosterContext context, GuidFac
 		return context.DiscoveredChannels
 			.Where(x => x.Status == DiscoveryStatus.Pending || x.Status == DiscoveryStatus.Completed)
 			.Where(x => x.Username != null)
-			.Where(x => x.LastParsedId == null)
-			.Where(x => x.IsBanned == false)
-			.OrderBy(x => x.LastDiscoveredAt)
+			.OrderBy(x => x.LastDiscoveredAt != null)
 			.Take(2)
 			.Select(x => new DiscoverChannelDto
 			{

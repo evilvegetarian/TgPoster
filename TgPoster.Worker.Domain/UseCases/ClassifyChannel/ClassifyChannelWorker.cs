@@ -16,11 +16,11 @@ internal sealed class ClassifyChannelWorker(
 	IClassifyChannelStorage storage,
 	ITelegramAuthService authService,
 	ITelegramMessageService tgMessages,
-	ClassificationOptions options,
+	OpenRouterOptions options,
 	ILogger<ClassifyChannelWorker> logger,
 	IHostApplicationLifetime lifetime)
 {
-	private const int BatchSize = 10;
+	private const int BatchSize = 2;
 
 	private const string ClassificationPrompt = """
 	                                            Ты — классификатор Telegram-каналов. Определи основную тематику канала по его названию, описанию и последним постам.
@@ -45,7 +45,7 @@ internal sealed class ClassifyChannelWorker(
 	{
 		var ct = lifetime.ApplicationStopping;
 
-		if (string.IsNullOrWhiteSpace(options.ApiKey))
+		if (string.IsNullOrWhiteSpace(options.SecretKey))
 		{
 			logger.LogWarning("ClassificationApiKey не задан, пропускаем классификацию каналов");
 			return;
@@ -72,7 +72,6 @@ internal sealed class ClassifyChannelWorker(
 			try
 			{
 				await ClassifyChannelAsync(channel, telegramClient, ct);
-				await Task.Delay(TimeSpan.FromSeconds(5), ct);
 			}
 			catch (Exception ex)
 			{
@@ -83,21 +82,20 @@ internal sealed class ClassifyChannelWorker(
 
 	private async Task ClassifyChannelAsync(
 		ChannelForClassificationDto channel,
-		WTelegram.Client? telegramClient,
+		WTelegram.Client telegramClient,
 		CancellationToken ct
 	)
 	{
-		if (string.IsNullOrWhiteSpace(channel.Title) && string.IsNullOrWhiteSpace(channel.Description))
+		logger.LogInformation("Классифицируем канал: {Title} ({ChannelId})", channel.Title, channel.Id);
+
+		var peer = await ResolvePeerAsync(telegramClient, channel, ct);
+		if (peer is null)
 		{
-			logger.LogWarning("Канал {ChannelId} не имеет названия и описания, пропускаем", channel.Id);
+			logger.LogDebug("Не удалось найти канал {ChannelId} в Telegram для загрузки сообщений", channel.Id);
 			return;
 		}
 
-		logger.LogInformation("Классифицируем канал: {Title} ({ChannelId})", channel.Title, channel.Id);
-
-		var recentMessages = telegramClient is not null
-			? await FetchRecentMessagesAsync(telegramClient, channel, ct)
-			: [];
+		var recentMessages = await FetchRecentMessagesAsync(telegramClient, peer, ct);
 
 		var messagesSection = recentMessages.Count > 0
 			? string.Join("\n---\n", recentMessages)
@@ -106,12 +104,12 @@ internal sealed class ClassifyChannelWorker(
 		var prompt = string.Format(ClassificationPrompt, channel.Title ?? "", channel.Description ?? "",
 			messagesSection);
 		var response = await openRouterClient.SendMessageAsync(
-			options.ApiKey!,
+			options.SecretKey!,
 			options.Model,
 			prompt,
 			ct);
 
-		var content = response.Choices.FirstOrDefault()?.Message.Content?.ToString();
+		var content = response.Choices.FirstOrDefault()?.Message.Content.ToString();
 		if (string.IsNullOrWhiteSpace(content))
 		{
 			logger.LogWarning("Пустой ответ от LLM для канала {ChannelId}", channel.Id);
@@ -141,24 +139,17 @@ internal sealed class ClassifyChannelWorker(
 
 	private async Task<List<string>> FetchRecentMessagesAsync(
 		WTelegram.Client client,
-		ChannelForClassificationDto channel,
+		InputPeer peer,
 		CancellationToken ct
 	)
 	{
-		var peer = await ResolvePeerAsync(client, channel, ct);
-		if (peer is null)
-		{
-			logger.LogDebug("Не удалось найти канал {ChannelId} в Telegram для загрузки сообщений", channel.Id);
-			return [];
-		}
-
 		var historyResult = await tgMessages.GetHistoryAsync(
 			client, peer, limit: options.MessageSampleCount, ct: ct);
 
 		if (!historyResult.IsSuccess)
 		{
 			logger.LogDebug("Не удалось получить сообщения канала {ChannelId}: {Status} {Error}",
-				channel.Id, historyResult.Status, historyResult.ErrorMessage);
+				peer.ID, historyResult.Status, historyResult.ErrorMessage);
 			return [];
 		}
 
@@ -168,7 +159,7 @@ internal sealed class ClassifyChannelWorker(
 			.Select(m => TruncateMessage(m.message, 500))
 			.ToList();
 
-		logger.LogDebug("Загружено {Count} сообщений для канала {ChannelId}", messages.Count, channel.Id);
+		logger.LogDebug("Загружено {Count} сообщений для канала {ChannelId}", messages.Count, peer.ID);
 		return messages;
 	}
 
@@ -181,6 +172,10 @@ internal sealed class ClassifyChannelWorker(
 		if (!string.IsNullOrEmpty(channel.Username))
 		{
 			var resolved = await tgMessages.ResolveChannelAsync(client, channel.Username, ct);
+			if (await resolved.HandleChannelUnavailableAsync(async () =>
+				    await storage.MarkChannelBannedAsync(channel.Id, ct)))
+				return null;
+
 			return resolved.IsSuccess
 				? new InputPeerChannel(resolved.Value!.ID, resolved.Value.access_hash)
 				: null;
