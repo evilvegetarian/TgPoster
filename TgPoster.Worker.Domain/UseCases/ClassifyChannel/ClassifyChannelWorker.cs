@@ -86,7 +86,7 @@ internal sealed class ClassifyChannelWorker(
 		CancellationToken ct
 	)
 	{
-		logger.LogInformation("Классифицируем канал: {Title} ({ChannelId})", channel.Title, channel.Id);
+		logger.LogDebug("Классифицируем канал: {Title} ({ChannelId})", channel.Title, channel.Id);
 
 		var peer = await ResolvePeerAsync(telegramClient, channel, ct);
 		if (peer is null)
@@ -133,8 +133,8 @@ internal sealed class ClassifyChannelWorker(
 			ct);
 
 		logger.LogInformation(
-			"Канал {ChannelId} классифицирован: {Category}/{Subcategory} (confidence: {Confidence})",
-			channel.Id, classification.Category, classification.Subcategory, classification.Confidence);
+			"Канал {Channel} классифицирован: {Category}/{Subcategory} (confidence: {Confidence})",
+			channel.Title, classification.Category, classification.Subcategory, classification.Confidence);
 	}
 
 	private async Task<List<string>> FetchRecentMessagesAsync(
