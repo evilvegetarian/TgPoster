@@ -145,7 +145,7 @@ public class SenderMessageWorker(
 
 		if (youTubeAccount?.AutoPostingVideo == true)
 		{
-			logger.LogInformation("Начал отправку видео в ютуб");
+			logger.LogDebug("Начал отправку видео в ютуб");
 			await UploadVideosToYouTubeAsync(bot, message, youTubeAccount);
 		}
 	}
