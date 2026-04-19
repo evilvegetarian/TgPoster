@@ -68,7 +68,7 @@ builder.Services.AddMemoryCache();
 builder.Services.AddSingleton<FileExtensionContentTypeProvider>();
 builder.Services
 	.AddShared()
-	.AddStorage(builder.Configuration)
+	.AddStorage(builder.Configuration, builder.Environment)
 	.AddDomain(builder.Configuration)
 	.AddSecurity(builder.Configuration);
 var openRouterOptions = builder.Configuration.GetSection(nameof(OpenRouterOptions)).Get<OpenRouterOptions>()!;
