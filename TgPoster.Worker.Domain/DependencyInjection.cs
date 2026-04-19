@@ -29,7 +29,7 @@ public static class DependencyInjection
 	{
 		var telegramOptions = configuration.GetSection(nameof(TelegramOptions)).Get<TelegramOptions>()!;
 		services.AddSingleton(telegramOptions);
-		
+
 		services.AddMassTransient(configuration);
 
 		services.AddHangfire(cfg =>
@@ -101,21 +101,22 @@ public static class DependencyInjection
 			"process-sender-message-job",
 			worker => worker.ProcessMessagesAsync(),
 			Cron.Minutely());
-		
+
 		recurringJobManager.AddOrUpdate<ParseChannelWorker>(
 			"process-parse-channel-job",
 			worker => worker.ProcessMessagesAsync(),
 			Cron.Daily());
-		
+
 		recurringJobManager.AddOrUpdate<CommentRepostMonitorWorker>(
 			"comment-repost-monitor-job",
 			worker => worker.CheckForNewPostsAsync(),
 			Cron.Minutely());
 
+		//Каждые 6 часов
 		recurringJobManager.AddOrUpdate<DiscoverChannelLinksWorker>(
 			"discover-channel-links-job",
 			worker => worker.ProcessChannelsAsync(),
-			Cron.Daily());
+			"0 */6 * * *");
 
 		recurringJobManager.AddOrUpdate<ClassifyChannelWorker>(
 			"classify-channels-job",

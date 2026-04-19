@@ -17,6 +17,7 @@ internal sealed partial class DiscoverChannelLinksWorker(
 	IHostApplicationLifetime lifetime)
 {
 	private const int MessageBatchSize = 100;
+	private const int ChannelBatchSize = 1;
 	private static readonly SemaphoreSlim ParseLock = new(1, 1);
 
 	public async Task ProcessChannelsAsync()
@@ -38,7 +39,7 @@ internal sealed partial class DiscoverChannelLinksWorker(
 				return;
 			}
 
-			var channels = await storage.GetChannelsToProcessAsync(ct);
+			var channels = await storage.GetChannelsToProcessAsync(ChannelBatchSize,ct);
 			if (channels.Count == 0)
 			{
 				logger.LogInformation("Нет каналов для обработки DiscoverChannelLinks");

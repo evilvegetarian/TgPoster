@@ -20,7 +20,7 @@ internal sealed class ClassifyChannelWorker(
 	ILogger<ClassifyChannelWorker> logger,
 	IHostApplicationLifetime lifetime)
 {
-	private const int BatchSize = 2;
+	private const int BatchSize = 1;
 
 	private const string ClassificationPrompt = """
 	                                            Ты — классификатор Telegram-каналов. Определи основную тематику канала по его названию, описанию и последним постам.

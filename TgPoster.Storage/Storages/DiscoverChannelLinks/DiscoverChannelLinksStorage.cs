@@ -17,13 +17,13 @@ internal sealed class DiscoverChannelLinksStorage(PosterContext context, GuidFac
 			.Select(s => (Guid?)s.Id)
 			.FirstOrDefaultAsync(ct);
 
-	public Task<List<DiscoverChannelDto>> GetChannelsToProcessAsync(CancellationToken ct)
+	public Task<List<DiscoverChannelDto>> GetChannelsToProcessAsync(int channelBatchSize, CancellationToken ct)
 	{
 		return context.DiscoveredChannels
 			.Where(x => x.Status == DiscoveryStatus.Pending || x.Status == DiscoveryStatus.Completed)
 			.Where(x => x.Username != null)
 			.OrderBy(x => x.LastDiscoveredAt != null)
-			.Take(2)
+			.Take(channelBatchSize)
 			.Select(x => new DiscoverChannelDto
 			{
 				Id = x.Id,
