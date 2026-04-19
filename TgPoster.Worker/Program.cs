@@ -31,7 +31,7 @@ builder.Services.AddScoped<IIdentityProvider, DesignTimeIdentityProvider>();
 builder.Services
 	.AddShared()
 	.AddDomain(builder.Configuration)
-	.AddStorage(builder.Configuration);
+	.AddStorage(builder.Configuration, builder.Environment);
 
 var connectionString = builder.Configuration.GetSection("DataBase")["ConnectionString"]!;
 builder.Services.AddHealthChecks()

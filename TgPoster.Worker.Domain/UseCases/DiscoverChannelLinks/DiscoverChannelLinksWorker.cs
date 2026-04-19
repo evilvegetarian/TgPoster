@@ -79,8 +79,7 @@ internal sealed partial class DiscoverChannelLinksWorker(
 
 		if (channel is null)
 		{
-			logger.LogWarning("Не удалось найти канал: {Channel}",
-				channelDto.Username ?? channelDto.TelegramId?.ToString());
+			logger.LogWarning("Не удалось найти канал: {Channel}", channelDto.Username ?? channelDto.TelegramId?.ToString());
 			return;
 		}
 

@@ -118,12 +118,12 @@ public class SenderMessageWorker(
 		}
 
 		await storage.UpdateSendStatusMessageAsync(messageId);
-		logger.LogInformation("Отправлено сообщение в чат {chatId}", chatId);
+		logger.LogDebug("Отправлено сообщение в чат {chatId}", chatId);
 
 		if (telegramMessageId.HasValue)
 		{
 			await storage.SaveTelegramMessageIdAsync(messageId, telegramMessageId.Value, lifetime.ApplicationStopping);
-			logger.LogInformation("Сохранен TelegramMessageId: {TelegramMessageId} для сообщения {MessageId}",
+			logger.LogDebug("Сохранен TelegramMessageId: {TelegramMessageId} для сообщения {MessageId}",
 				telegramMessageId.Value, messageId);
 
 			var repostSettingsList = await storage.GetRepostSettingsForMessageAsync(messageId, lifetime.ApplicationStopping);
@@ -137,7 +137,7 @@ public class SenderMessageWorker(
 				};
 
 				await publishEndpoint.Publish(command, lifetime.ApplicationStopping);
-				logger.LogInformation(
+				logger.LogDebug(
 					"Опубликовано событие репоста для сообщения {MessageId} в {Count} направлений",
 					messageId, repostSettings.Destinations.Count);
 			}
@@ -162,7 +162,7 @@ public class SenderMessageWorker(
 
 		if (videoFiles.Count == 0)
 		{
-			logger.LogInformation("Нет видео файлов для загрузки на YouTube");
+			logger.LogDebug("Нет видео файлов для загрузки на YouTube");
 			return;
 		}
 
@@ -178,7 +178,7 @@ public class SenderMessageWorker(
 				await storage.UpdateYouTubeTokensAsync(youTubeAccount.Id, result.AccessToken, result.RefreshToken,
 					lifetime.ApplicationStopping);
 
-				logger.LogInformation("Видео успешно загружено на YouTube с названием: {title}",
+				logger.LogDebug("Видео успешно загружено на YouTube с названием: {title}",
 					youTubeAccount.DefaultTitle);
 			}
 			catch (Exception e)

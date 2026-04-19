@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Shared.Telegram;
 using TgPoster.Storage.ConfigModels;
 using TgPoster.Storage.Data;
@@ -10,14 +11,18 @@ namespace TgPoster.Storage;
 
 public static class DependencyInjection
 {
-	public static IServiceCollection AddStorage(this IServiceCollection services, IConfiguration configuration)
+	public static IServiceCollection AddStorage(this IServiceCollection services, IConfiguration configuration, IHostEnvironment environment)
 	{
 		var dataBase = configuration.GetSection(nameof(DataBase)).Get<DataBase>()!;
 
 		services.AddDbContext<PosterContext>(db =>
+		{
 			db.UseNpgsql(dataBase.ConnectionString, o =>
-					o.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery))
-				.EnableSensitiveDataLogging());
+				o.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery));
+
+			if (environment.IsDevelopment())
+				db.EnableSensitiveDataLogging();
+		});
 
 		services.AddScoped<GuidFactory>();
 		services.AddScoped<ITelegramSessionRepository, TelegramSessionRepository>();
