@@ -90,7 +90,7 @@ public sealed class DiscoverChannelLinksStorageShould(StorageTestFixture fixture
 		await context.SaveChangesAsync(CancellationToken.None);
 		context.ChangeTracker.Clear();
 
-		var result = await sut.GetChannelsToProcessAsync(CancellationToken.None);
+		var result = await sut.GetChannelsToProcessAsync(1,CancellationToken.None);
 
 		var pendingIndex = result.FindIndex(x => x.Username == pending.Username);
 		var completedIndex = result.FindIndex(x => x.Username == completed.Username);
