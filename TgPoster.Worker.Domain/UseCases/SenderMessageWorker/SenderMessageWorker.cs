@@ -71,19 +71,10 @@ public class SenderMessageWorker(
 	)
 	{
 		var bot = botManager.GetClient(token);
-		var medias = new List<InputMedia>();
-
-		foreach (var file in message.File)
-		{
-			if (file.ContentType.GetFileType() == FileTypes.Image)
-			{
-				medias.Add(new InputMediaPhoto(file.TgFileId));
-			}
-			else if (file.ContentType.GetFileType() == FileTypes.Video)
-			{
-				medias.Add(new InputMediaVideo(file.TgFileId));
-			}
-		}
+		var medias = message.File.Select(file => (InputMedia)(file.ContentType.GetFileType() == FileTypes.Image
+				? new InputMediaPhoto(file.TgFileId)
+				: new InputMediaVideo(file.TgFileId)))
+			.ToList();
 
 		int? telegramMessageId;
 
@@ -97,19 +88,12 @@ public class SenderMessageWorker(
 			{
 				medias[0].Caption = captionText;
 				medias[0].ParseMode = ParseMode.Html;
-				var messages = await bot.SendMediaGroup(chatId, medias.Select(x => (IAlbumInputMedia)x));
-				telegramMessageId = messages.FirstOrDefault()?.MessageId;
 			}
-			else
-			{
-				var messages = await bot.SendMediaGroup(chatId, medias.Select(x => (IAlbumInputMedia)x));
-				telegramMessageId = messages.FirstOrDefault()?.MessageId;
 
-				if (!string.IsNullOrWhiteSpace(captionText))
-				{
-					await bot.SendMessage(chatId, captionText);
-				}
-			}
+			var messages = await bot.SendMediaGroup(chatId, medias.Select(x => (IAlbumInputMedia)x));
+			telegramMessageId = messages.FirstOrDefault()?.MessageId;
+			if (!string.IsNullOrWhiteSpace(captionText) && isCaptionTooLong)
+				await bot.SendMessage(chatId, captionText);
 		}
 		else
 		{
@@ -126,7 +110,8 @@ public class SenderMessageWorker(
 			logger.LogDebug("Сохранен TelegramMessageId: {TelegramMessageId} для сообщения {MessageId}",
 				telegramMessageId.Value, messageId);
 
-			var repostSettingsList = await storage.GetRepostSettingsForMessageAsync(messageId, lifetime.ApplicationStopping);
+			var repostSettingsList =
+				await storage.GetRepostSettingsForMessageAsync(messageId, lifetime.ApplicationStopping);
 			foreach (var repostSettings in repostSettingsList.Where(rs => rs.Destinations.Count > 0))
 			{
 				var command = new RepostMessageCommand
