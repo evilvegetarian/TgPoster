@@ -23,7 +23,8 @@ public class SenderMessageWorker(
 	YouTubeService youTubeService,
 	IPublishEndpoint publishEndpoint,
 	TelegramBotManager botManager,
-	IHostApplicationLifetime lifetime
+	IHostApplicationLifetime lifetime,
+	TelegramExecuteServices telegramExecuteServices
 )
 {
 	public async Task ProcessMessagesAsync()
@@ -70,6 +71,7 @@ public class SenderMessageWorker(
 		YouTubeAccountDto? youTubeAccount
 	)
 	{
+		var ct = lifetime.ApplicationStopping;
 		var bot = botManager.GetClient(token);
 		var medias = message.File.Select(file => (InputMedia)(file.ContentType.GetFileType() == FileTypes.Image
 				? new InputMediaPhoto(file.TgFileId)
@@ -81,7 +83,6 @@ public class SenderMessageWorker(
 		if (medias.Any())
 		{
 			var captionText = message.Message ?? string.Empty;
-
 			var isCaptionTooLong = captionText.Length > 1024;
 
 			if (!string.IsNullOrWhiteSpace(captionText) && !isCaptionTooLong)
@@ -90,15 +91,32 @@ public class SenderMessageWorker(
 				medias[0].ParseMode = ParseMode.Html;
 			}
 
-			var messages = await bot.SendMediaGroup(chatId, medias.Select(x => (IAlbumInputMedia)x));
-			telegramMessageId = messages.FirstOrDefault()?.MessageId;
+			var result = await telegramExecuteServices.SendMediaGroupAsync(bot, chatId, medias.Select(x => (IAlbumInputMedia)x), ct);
+			if (!result.IsSuccess)
+			{
+				await storage.UpdateErrorStatusMessageAsync(messageId, ct);
+				return;
+			}
+
+			telegramMessageId = result.MessageId;
+
 			if (!string.IsNullOrWhiteSpace(captionText) && isCaptionTooLong)
-				await bot.SendMessage(chatId, captionText);
+			{
+				var captionResult = await telegramExecuteServices.SendTextAsync(bot, chatId, captionText, ct);
+				if (!captionResult.IsSuccess)
+					logger.LogWarning("Не удалось отправить подпись к медиа-группе для сообщения {MessageId}", messageId);
+			}
 		}
 		else
 		{
-			var sentMessage = await bot.SendMessage(chatId, message.Message!);
-			telegramMessageId = sentMessage.MessageId;
+			var result = await telegramExecuteServices.SendTextAsync(bot, chatId, message.Message!, ct);
+			if (!result.IsSuccess)
+			{
+				await storage.UpdateErrorStatusMessageAsync(messageId, ct);
+				return;
+			}
+
+			telegramMessageId = result.MessageId;
 		}
 
 		await storage.UpdateSendStatusMessageAsync(messageId);
@@ -106,12 +124,11 @@ public class SenderMessageWorker(
 
 		if (telegramMessageId.HasValue)
 		{
-			await storage.SaveTelegramMessageIdAsync(messageId, telegramMessageId.Value, lifetime.ApplicationStopping);
+			await storage.SaveTelegramMessageIdAsync(messageId, telegramMessageId.Value, ct);
 			logger.LogDebug("Сохранен TelegramMessageId: {TelegramMessageId} для сообщения {MessageId}",
 				telegramMessageId.Value, messageId);
 
-			var repostSettingsList =
-				await storage.GetRepostSettingsForMessageAsync(messageId, lifetime.ApplicationStopping);
+			var repostSettingsList = await storage.GetRepostSettingsForMessageAsync(messageId, ct);
 			foreach (var repostSettings in repostSettingsList.Where(rs => rs.Destinations.Count > 0))
 			{
 				var command = new RepostMessageCommand
@@ -121,7 +138,7 @@ public class SenderMessageWorker(
 					RepostSettingsId = repostSettings.Id
 				};
 
-				await publishEndpoint.Publish(command, lifetime.ApplicationStopping);
+				await publishEndpoint.Publish(command, ct);
 				logger.LogDebug(
 					"Опубликовано событие репоста для сообщения {MessageId} в {Count} направлений",
 					messageId, repostSettings.Destinations.Count);

@@ -156,6 +156,35 @@ public class SenderMessageStorageShould(StorageTestFixture fixture) : IClassFixt
 	}
 
 	[Fact]
+	public async Task UpdateErrorStatusMessageAsync_ShouldUpdateStatusToError()
+	{
+		var schedule = await new ScheduleBuilder(context).CreateAsync();
+		var msg = new Message
+		{
+			Id = Guid.NewGuid(),
+			ScheduleId = schedule.Id,
+			TimePosting = DateTimeOffset.UtcNow.AddMinutes(1),
+			Status = MessageStatus.InHandle,
+			TextMessage = "to-error",
+			IsTextMessage = false
+		};
+		await context.Messages.AddAsync(msg);
+		await context.SaveChangesAsync();
+
+		await sut.UpdateErrorStatusMessageAsync(msg.Id, CancellationToken.None);
+		await context.Entry(msg).ReloadAsync();
+
+		msg.Status.ShouldBe(MessageStatus.Error);
+	}
+
+	[Fact]
+	public async Task UpdateErrorStatusMessageAsync_WithNonExistentId_ShouldNotThrow()
+	{
+		var nonExistentId = Guid.NewGuid();
+		await Should.NotThrowAsync(() => sut.UpdateErrorStatusMessageAsync(nonExistentId, CancellationToken.None));
+	}
+
+	[Fact]
 	public async Task GetRepostSettingsForMessageAsync_WithActiveSettings_ShouldReturnSettings()
 	{
 		var session = await new TelegramSessionBuilder(context).CreateAsync();

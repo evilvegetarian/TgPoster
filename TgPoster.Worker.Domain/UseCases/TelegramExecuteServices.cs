@@ -5,6 +5,12 @@ using Telegram.Bot.Types;
 
 namespace TgPoster.Worker.Domain.UseCases;
 
+public sealed record TelegramSendResult(bool IsSuccess, int? MessageId = null)
+{
+	public static TelegramSendResult Success(int? messageId = null) => new(true, messageId);
+	public static TelegramSendResult Failure() => new(false);
+}
+
 public class TelegramExecuteServices(ILogger<TelegramExecuteServices> logger)
 {
 	public Task<Telegram.Bot.Types.Message[]> SendMedia(
@@ -30,6 +36,54 @@ public class TelegramExecuteServices(ILogger<TelegramExecuteServices> logger)
 		return ExecuteWithRetryAsync(
 			() => telegramBot.SendPhoto(chatId, photoStream, cancellationToken: ct),
 			maxRetries, ct);
+	}
+
+	public async Task<TelegramSendResult> SendMediaGroupAsync(
+		ITelegramBotClient bot,
+		long chatId,
+		IEnumerable<IAlbumInputMedia> medias,
+		CancellationToken ct)
+	{
+		try
+		{
+			var msgs = await ExecuteWithRetryAsync(
+				() => bot.SendMediaGroup(chatId, medias, cancellationToken: ct), ct: ct);
+			return TelegramSendResult.Success(msgs.FirstOrDefault()?.MessageId);
+		}
+		catch (RequestException ex) when (ex.InnerException is TaskCanceledException)
+		{
+			logger.LogWarning(ex, "Таймаут при отправке медиа-группы в чат {ChatId}", chatId);
+			return TelegramSendResult.Failure();
+		}
+		catch (RequestException ex)
+		{
+			logger.LogError(ex, "Ошибка при отправке медиа-группы в чат {ChatId}", chatId);
+			return TelegramSendResult.Failure();
+		}
+	}
+
+	public async Task<TelegramSendResult> SendTextAsync(
+		ITelegramBotClient bot,
+		long chatId,
+		string text,
+		CancellationToken ct)
+	{
+		try
+		{
+			var msg = await ExecuteWithRetryAsync(
+				() => bot.SendMessage(chatId, text, cancellationToken: ct), ct: ct);
+			return TelegramSendResult.Success(msg.MessageId);
+		}
+		catch (RequestException ex) when (ex.InnerException is TaskCanceledException)
+		{
+			logger.LogWarning(ex, "Таймаут при отправке сообщения в чат {ChatId}", chatId);
+			return TelegramSendResult.Failure();
+		}
+		catch (RequestException ex)
+		{
+			logger.LogError(ex, "Ошибка при отправке сообщения в чат {ChatId}", chatId);
+			return TelegramSendResult.Failure();
+		}
 	}
 
 	/// <summary>

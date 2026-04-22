@@ -105,6 +105,16 @@ internal class SenderMessageStorage(PosterContext context) : ISenderMessageStora
 		}
 	}
 
+	public async Task UpdateErrorStatusMessageAsync(Guid id, CancellationToken ct)
+	{
+		var message = await context.Messages.FirstOrDefaultAsync(m => m.Id == id, ct);
+		if (message != null)
+		{
+			message.Status = MessageStatus.Error;
+			await context.SaveChangesAsync(ct);
+		}
+	}
+
 	public async Task SaveTelegramMessageIdAsync(Guid messageId, int telegramMessageId, CancellationToken ct)
 	{
 		var message = await context.Messages

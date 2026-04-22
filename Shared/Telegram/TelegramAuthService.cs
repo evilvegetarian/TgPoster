@@ -89,6 +89,16 @@ public sealed class TelegramAuthService(
 			await authRepository.DeactivateSessionAsync(sessionId, ct);
 			throw new TelegramAuthKeyDuplicatedException(sessionId, ex);
 		}
+		catch (NullReferenceException ex)
+		{
+			logger.LogWarning(
+				ex,
+				"Обнаружены повреждённые данные сессии {SessionId} — WTelegram упал при подключении. Сессия будет деактивирована",
+				sessionId);
+			await client.DisposeAsync();
+			await authRepository.DeactivateSessionAsync(sessionId, ct);
+			throw new TelegramSessionCorruptedException(sessionId, ex);
+		}
 		catch (Exception ex)
 		{
 			logger.LogError(ex, "Не удалось войти в Telegram для сессии {SessionId}", sessionId);
