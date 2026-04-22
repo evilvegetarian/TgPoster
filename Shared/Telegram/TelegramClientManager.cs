@@ -78,7 +78,6 @@ public sealed class TelegramClientManager(ILogger<TelegramClientManager> logger)
 	/// </summary>
 	public void AddPendingClient(Guid sessionId, Client client)
 	{
-		_ = RemovePendingClientWithDisposeAsync(sessionId);
 		pendingClients.TryAdd(sessionId, client);
 		logger.LogDebug("Клиент добавлен в ожидающие для сессии {SessionId}", sessionId);
 	}

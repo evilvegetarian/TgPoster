@@ -135,22 +135,10 @@ public sealed class TelegramAuthService(
 			};
 		}
 
-		Client client;
-		if (session.SessionData != null)
+		Client client = new Client(Config, null, data =>
 		{
-			var sessionBytes = Convert.FromBase64String(session.SessionData);
-			client = new Client(Config, sessionBytes, data =>
-			{
-				sessionDebouncer.Update(sessionId, data);
-			});
-		}
-		else
-		{
-			client = new Client(Config, null, data =>
-			{
-				sessionDebouncer.Update(sessionId, data);
-			});
-		}
+			sessionDebouncer.Update(sessionId, data);
+		});
 
 		clientManager.AddPendingClient(sessionId, client);
 
@@ -339,7 +327,8 @@ public sealed class TelegramAuthService(
 			return new ImportSessionResult
 			{
 				Success = false,
-				ErrorMessage = "Неверные api_id или api_hash. Убедитесь, что они совпадают с теми, которые использовались при создании сессии."
+				ErrorMessage =
+					"Неверные api_id или api_hash. Убедитесь, что они совпадают с теми, которые использовались при создании сессии."
 			};
 		}
 		catch (Exception ex)
@@ -398,5 +387,4 @@ public sealed class TelegramAuthService(
 		logger.LogInformation("Pending client восстановлен из session data для сессии {SessionId}", sessionId);
 		return client;
 	}
-
 }
