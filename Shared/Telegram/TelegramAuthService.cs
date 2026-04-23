@@ -135,6 +135,12 @@ public sealed class TelegramAuthService(
 			};
 		}
 
+		if (string.IsNullOrEmpty(session.ApiId) || string.IsNullOrEmpty(session.ApiHash))
+		{
+			logger.LogError("Сессия {SessionId} не имеет api_id или api_hash", sessionId);
+			throw new TelegramSessionCorruptedException(sessionId);
+		}
+
 		Client client = new Client(Config, null, data =>
 		{
 			sessionDebouncer.Update(sessionId, data);
@@ -174,7 +180,7 @@ public sealed class TelegramAuthService(
 		catch (Exception ex)
 		{
 			logger.LogError(ex, "Ошибка при начале авторизации сессии {SessionId}", sessionId);
-			await authRepository.UpdateStatusAsync(sessionId, TelegramSessionStatus.Failed, ct);
+			await authRepository.UpdateStatusAsync(sessionId, TelegramSessionStatus.Failed, CancellationToken.None);
 			await clientManager.RemovePendingClientWithDisposeAsync(sessionId);
 			throw;
 		}
