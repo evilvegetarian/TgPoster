@@ -193,6 +193,7 @@ internal sealed partial class DiscoverChannelLinksWorker(
 				logger.LogWarning("Ошибка получения истории канала {Channel}: {Status} {Error}",
 					channelDto.Username ?? channelDto.TelegramId?.ToString(),
 					historyResult.Status, historyResult.ErrorMessage);
+				continue;
 			}
 
 			var history = historyResult.Value!;
