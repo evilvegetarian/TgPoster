@@ -65,6 +65,7 @@ public sealed class TelegramAuthService(
 		{
 			sessionDebouncer.Update(sessionId, data);
 		});
+		client.MaxAutoReconnects = 10;
 		SetupProxy(client, session.Proxy);
 		try
 		{
