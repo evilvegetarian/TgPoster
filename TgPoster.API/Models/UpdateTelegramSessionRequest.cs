@@ -5,4 +5,5 @@ namespace TgPoster.API.Models;
 /// </summary>
 /// <param name="Name">Новое название сессии (опционально)</param>
 /// <param name="IsActive">Активна ли сессия</param>
-public sealed record UpdateTelegramSessionRequest(string? Name, bool IsActive);
+/// <param name="ProxyId">ID прокси (null = без прокси)</param>
+public sealed record UpdateTelegramSessionRequest(string? Name, bool IsActive, Guid? ProxyId);

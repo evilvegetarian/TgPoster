@@ -67,7 +67,7 @@ public sealed class UpdateTelegramSessionStorageShould : IClassFixture<StorageTe
 		var newName = "Updated Name";
 		var newIsActive = false;
 
-		await sut.UpdateAsync(session.Id, newName, newIsActive, CancellationToken.None);
+		await sut.UpdateAsync(session.Id, newName, newIsActive, null, CancellationToken.None);
 		var updated = await context.TelegramSessions
 			.FirstAsync(s => s.Id == session.Id, CancellationToken.None);
 
@@ -83,7 +83,7 @@ public sealed class UpdateTelegramSessionStorageShould : IClassFixture<StorageTe
 			.WithUserId(user.Id)
 			.CreateAsync();
 
-		await sut.UpdateAsync(session.Id, null, true, CancellationToken.None);
+		await sut.UpdateAsync(session.Id, null, true, null, CancellationToken.None);
 		var updated = await context.TelegramSessions
 			.FirstAsync(s => s.Id == session.Id, CancellationToken.None);
 
@@ -96,7 +96,7 @@ public sealed class UpdateTelegramSessionStorageShould : IClassFixture<StorageTe
 	{
 		await Should.ThrowAsync<InvalidOperationException>(async () =>
 		{
-			await sut.UpdateAsync(Guid.NewGuid(), "Test", true, CancellationToken.None);
+			await sut.UpdateAsync(Guid.NewGuid(), "Test", true, null, CancellationToken.None);
 		});
 	}
 }

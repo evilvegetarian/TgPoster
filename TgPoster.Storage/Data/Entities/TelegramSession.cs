@@ -57,4 +57,14 @@ public sealed class TelegramSession : BaseEntity
 	///     Владелец сессии.
 	/// </summary>
 	public User User { get; set; } = null!;
+
+	/// <summary>
+	///     Id прокси, через который маршрутизируется трафик сессии (опционально).
+	/// </summary>
+	public Guid? ProxyId { get; set; }
+
+	/// <summary>
+	///     Прокси для маршрутизации трафика.
+	/// </summary>
+	public Proxy? Proxy { get; set; }
 }

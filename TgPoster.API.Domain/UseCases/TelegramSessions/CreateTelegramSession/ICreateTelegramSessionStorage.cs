@@ -8,6 +8,7 @@ public interface ICreateTelegramSessionStorage
 		string apiHash,
 		string phoneNumber,
 		string? name,
+		Guid? proxyId,
 		CancellationToken ct
 	);
 }

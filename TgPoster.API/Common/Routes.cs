@@ -125,6 +125,15 @@ internal static class Routes
 		internal const string Import = Root + "/import";
 	}
 
+	internal static class Proxy
+	{
+		internal const string Root = Base + "/proxy";
+		internal const string Create = Root;
+		internal const string List = Root;
+		internal const string Update = Root + "/{id:guid}";
+		internal const string Delete = Root + "/{id:guid}";
+	}
+
 	internal static class CommentRepost
 	{
 		internal const string Root = Base + "/comment-repost";

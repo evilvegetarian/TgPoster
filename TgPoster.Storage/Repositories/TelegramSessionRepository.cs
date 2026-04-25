@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Shared.Enums;
 using Shared.Telegram;
 using TgPoster.Storage.Data;
 
@@ -41,7 +42,16 @@ internal sealed class TelegramSessionRepository(PosterContext context)
 				PhoneNumber = s.PhoneNumber,
 				IsActive = s.IsActive,
 				UserId = s.UserId,
-				SessionData = s.SessionData
+				SessionData = s.SessionData,
+				Proxy = s.Proxy == null
+					? null
+					: new ProxyDto(
+						(ProxyType)s.Proxy.Type,
+						s.Proxy.Host,
+						s.Proxy.Port,
+						s.Proxy.Username,
+						s.Proxy.Password,
+						s.Proxy.Secret)
 			})
 			.FirstOrDefaultAsync(ct);
 	}

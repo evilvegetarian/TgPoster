@@ -1,3 +1,5 @@
+using Shared.Enums;
+
 namespace Shared.Telegram;
 
 /// <summary>
@@ -12,4 +14,16 @@ public sealed class TelegramSessionDto
 	public required bool IsActive { get; init; }
 	public required Guid UserId { get; init; }
 	public string? SessionData { get; init; }
+	public ProxyDto? Proxy { get; init; }
 }
+
+/// <summary>
+///     DTO прокси для подключения сессии.
+/// </summary>
+public sealed record ProxyDto(
+	ProxyType Type,
+	string Host,
+	int Port,
+	string? Username,
+	string? Password,
+	string? Secret);

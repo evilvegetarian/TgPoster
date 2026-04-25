@@ -26,6 +26,7 @@ public sealed class CreateTelegramSessionStorageShould(StorageTestFixture fixtur
 			apiHash,
 			phoneNumber,
 			name,
+			null,
 			CancellationToken.None);
 
 		result.Id.ShouldNotBe(Guid.Empty);
@@ -54,6 +55,7 @@ public sealed class CreateTelegramSessionStorageShould(StorageTestFixture fixtur
 			"test_hash",
 			phoneNumber,
 			null,
+			null,
 			CancellationToken.None);
 
 		result.Name.ShouldBe(phoneNumber);
@@ -70,6 +72,7 @@ public sealed class CreateTelegramSessionStorageShould(StorageTestFixture fixtur
 			"test_hash",
 			"+79991234567",
 			"Test",
+			null,
 			CancellationToken.None);
 
 		result.IsActive.ShouldBeTrue();

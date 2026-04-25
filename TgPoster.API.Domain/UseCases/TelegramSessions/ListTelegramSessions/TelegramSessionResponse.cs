@@ -8,7 +8,9 @@ public sealed record TelegramSessionResponse(
 	string? Name,
 	bool IsActive,
 	TelegramSessionStatus Status,
-	DateTimeOffset? Created
+	DateTimeOffset? Created,
+	Guid? ProxyId,
+	string? ProxyName
 );
 
 public sealed record TelegramSessionListResponse

@@ -52,5 +52,10 @@ public sealed class User : BaseEntity
 	/// </summary>
 	public ICollection<TelegramSession> TelegramSessions { get; set; } = [];
 
+	/// <summary>
+	///     Прокси пользователя.
+	/// </summary>
+	public ICollection<Proxy> Proxies { get; set; } = [];
+
 	#endregion
 }

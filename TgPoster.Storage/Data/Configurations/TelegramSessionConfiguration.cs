@@ -44,5 +44,10 @@ internal sealed class TelegramSessionConfiguration : BaseEntityConfiguration<Tel
 			.WithMany(u => u.TelegramSessions)
 			.HasForeignKey(x => x.UserId)
 			.OnDelete(DeleteBehavior.Cascade);
+
+		builder.HasOne(x => x.Proxy)
+			.WithMany(p => p.Sessions)
+			.HasForeignKey(x => x.ProxyId)
+			.OnDelete(DeleteBehavior.SetNull);
 	}
 }

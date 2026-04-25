@@ -7,9 +7,11 @@ namespace TgPoster.API.Models;
 /// <param name="ApiHash">API Hash приложения Telegram</param>
 /// <param name="PhoneNumber">Номер телефона</param>
 /// <param name="Name">Название сессии (опционально)</param>
+/// <param name="ProxyId">ID прокси для маршрутизации трафика сессии (опционально)</param>
 public sealed record CreateTelegramSessionRequest(
 	string ApiId,
 	string ApiHash,
 	string PhoneNumber,
-	string? Name
+	string? Name,
+	Guid? ProxyId
 );
