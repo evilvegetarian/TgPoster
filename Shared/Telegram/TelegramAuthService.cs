@@ -66,7 +66,7 @@ public sealed class TelegramAuthService(
 			sessionDebouncer.Update(sessionId, data);
 		});
 		client.MaxAutoReconnects = 10;
-		await client.Account_SetContentSettings(true);
+
 		SetupProxy(client, session.Proxy);
 		try
 		{
@@ -74,6 +74,7 @@ public sealed class TelegramAuthService(
 			clientManager.AddActiveClient(sessionId, client);
 			logger.LogInformation("Успешный вход в Telegram для сессии {SessionId}, пользователь: {Username}",
 				sessionId, user.username ?? user.first_name);
+			await client.Account_SetContentSettings(true);
 			return client;
 		}
 		catch (RpcException ex) when (ex.Code == 401)
