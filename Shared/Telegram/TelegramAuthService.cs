@@ -56,8 +56,6 @@ public sealed class TelegramAuthService(
 				"api_id" => session.ApiId,
 				"api_hash" => session.ApiHash,
 				"phone_number" => session.PhoneNumber,
-				"proxy" => BuildProxyUrl(session.Proxy),
-				"mtproxy" => BuildMtproxyUrl(session.Proxy),
 				_ => null
 			};
 		}
@@ -67,6 +65,8 @@ public sealed class TelegramAuthService(
 		{
 			sessionDebouncer.Update(sessionId, data);
 		});
+		if (session.Proxy?.Type == ProxyType.MTProxy)
+			client.MTProxyUrl = BuildMtproxyUrl(session.Proxy);
 
 		try
 		{
