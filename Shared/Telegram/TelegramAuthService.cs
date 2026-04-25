@@ -65,8 +65,7 @@ public sealed class TelegramAuthService(
 		{
 			sessionDebouncer.Update(sessionId, data);
 		});
-		if (session.Proxy?.Type == ProxyType.MTProxy)
-			client.MTProxyUrl = BuildMtproxyUrl(session.Proxy);
+		SetupProxy(client, session.Proxy);
 
 		try
 		{
@@ -134,8 +133,6 @@ public sealed class TelegramAuthService(
 				"api_id" => session.ApiId,
 				"api_hash" => session.ApiHash,
 				"phone_number" => session.PhoneNumber,
-				"proxy" => BuildProxyUrl(session.Proxy),
-				"mtproxy" => BuildMtproxyUrl(session.Proxy),
 				_ => null
 			};
 		}
@@ -150,6 +147,7 @@ public sealed class TelegramAuthService(
 		{
 			sessionDebouncer.Update(sessionId, data);
 		});
+		SetupProxy(client, session.Proxy);
 
 		clientManager.AddPendingClient(sessionId, client);
 
@@ -377,8 +375,6 @@ public sealed class TelegramAuthService(
 				"api_id" => session.ApiId,
 				"api_hash" => session.ApiHash,
 				"phone_number" => session.PhoneNumber,
-				"proxy" => BuildProxyUrl(session.Proxy),
-				"mtproxy" => BuildMtproxyUrl(session.Proxy),
 				_ => null
 			};
 		}
@@ -388,6 +384,7 @@ public sealed class TelegramAuthService(
 		{
 			sessionDebouncer.Update(sessionId, data);
 		});
+		SetupProxy(client, session.Proxy);
 
 		var loginState = await client.Login(session.PhoneNumber);
 		if (loginState != "password")
@@ -401,23 +398,16 @@ public sealed class TelegramAuthService(
 		return client;
 	}
 
-	private static string? BuildProxyUrl(ProxyDto? proxy)
+	private static void SetupProxy(Client client, ProxyDto? proxy)
 	{
-		if (proxy is null || proxy.Type is not (ProxyType.Socks5 or ProxyType.Http))
-			return null;
+		if (proxy is null) return;
 
-		var scheme = proxy.Type == ProxyType.Socks5 ? "socks5" : "http";
-		var auth = !string.IsNullOrEmpty(proxy.Username)
-			? $"{Uri.EscapeDataString(proxy.Username)}:{Uri.EscapeDataString(proxy.Password ?? string.Empty)}@"
-			: string.Empty;
-		return $"{scheme}://{auth}{proxy.Host}:{proxy.Port}";
-	}
-
-	private static string? BuildMtproxyUrl(ProxyDto? proxy)
-	{
-		if (proxy is null || proxy.Type != ProxyType.MTProxy)
-			return null;
-
-		return $"https://t.me/proxy?server={proxy.Host}&port={proxy.Port}&secret={proxy.Secret}";
+		switch (proxy.Type)
+		{
+			case ProxyType.MTProxy:
+				client.MTProxyUrl =
+					$"https://t.me/proxy?server={proxy.Host}&port={proxy.Port}&secret={proxy.Secret}";
+				break;
+		}
 	}
 }
