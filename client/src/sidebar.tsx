@@ -7,6 +7,7 @@ import {
     LogIn, LogOut,
     MessageCircleMore,
     MessageSquareShare,
+    Network,
     Repeat2,
     Settings,
     SignatureIcon,
@@ -79,6 +80,11 @@ export function SideBar() {
                 title: "Telegram Аккаунты",
                 path: "/telegram-accounts",
                 icon: Smartphone
+            },
+            {
+                title: "Прокси",
+                path: "/proxies",
+                icon: Network
             },
             {
                 title: "Настройки репоста",

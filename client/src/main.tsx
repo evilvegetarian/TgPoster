@@ -22,6 +22,7 @@ import {YouTubeAccountPage} from "@/pages/youtube-account-page.tsx";
 import TelegramAccountPage from "@/pages/telegram-account-page.tsx";
 import {RepostSettingsPage} from "@/pages/repostpage/repost-settings-page.tsx";
 import {CommentRepostPage} from "@/pages/commentrepostpage/comment-repost-page.tsx";
+import ProxyPage from "@/pages/proxy-page.tsx";
 
 const router = createBrowserRouter([
     {
@@ -99,6 +100,10 @@ const router = createBrowserRouter([
                             {
                                 path: "/comment-repost",
                                 element: <CommentRepostPage/>,
+                            },
+                            {
+                                path: "/proxies",
+                                element: <ProxyPage/>,
                             }
                         ]
                     }

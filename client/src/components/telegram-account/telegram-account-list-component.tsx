@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { AlertCircle, Smartphone, Trash2, MoreVertical } from "lucide-react";
+import { AlertCircle, Network, Pencil, Smartphone, Trash2, MoreVertical } from "lucide-react";
 import { toast } from "sonner";
 import {
     Card,
@@ -36,6 +36,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import type { TelegramSessionResponse } from "@/api/endpoints/tgPosterAPI.schemas";
 import { TelegramSessionStatus } from "@/api/endpoints/tgPosterAPI.schemas";
 import { TelegramAccountAuthDialog } from "./telegram-account-auth-dialog";
+import { TelegramAccountEditDialog } from "./telegram-account-edit-dialog";
 
 function getStatusConfig(status?: string) {
     switch (status) {
@@ -58,6 +59,7 @@ export function TelegramAccountListComponent() {
     const { data: sessionsData, error, isLoading } = useGetApiV1TelegramSession();
     const queryClient = useQueryClient();
     const [accountToDelete, setAccountToDelete] = useState<TelegramSessionResponse | null>(null);
+    const [accountToEdit, setAccountToEdit] = useState<TelegramSessionResponse | null>(null);
 
     const { mutate: deleteAccount, isPending: isDeleting } = useDeleteApiV1TelegramSessionId({
         mutation: {
@@ -167,6 +169,12 @@ export function TelegramAccountListComponent() {
                                             <Badge variant={getStatusConfig(account.status).variant}>
                                                 {getStatusConfig(account.status).label}
                                             </Badge>
+                                            {account.proxyName && (
+                                                <Badge variant="outline" className="gap-1">
+                                                    <Network className="h-3 w-3" />
+                                                    {account.proxyName}
+                                                </Badge>
+                                            )}
                                         </div>
                                         <p className="text-sm text-muted-foreground truncate">
                                             {account.phoneNumber}
@@ -194,6 +202,12 @@ export function TelegramAccountListComponent() {
                                                 </Button>
                                             </DropdownMenuTrigger>
                                             <DropdownMenuContent align="end">
+                                                <DropdownMenuItem
+                                                    onClick={() => setAccountToEdit(account)}
+                                                >
+                                                    <Pencil className="h-4 w-4 mr-2" />
+                                                    Изменить
+                                                </DropdownMenuItem>
                                                 <DropdownMenuItem
                                                     onClick={() => setAccountToDelete(account)}
                                                     className="text-red-600 focus:text-red-600"
@@ -236,6 +250,11 @@ export function TelegramAccountListComponent() {
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
+
+            <TelegramAccountEditDialog
+                account={accountToEdit}
+                onOpenChange={(open) => !open && setAccountToEdit(null)}
+            />
         </>
     );
 }
