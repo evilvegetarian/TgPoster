@@ -23,7 +23,7 @@ interface RepostSettingsCardProps {
     settings: RepostSettingsItemDto;
 }
 
-function getChatStatusLabel(status: number): string {
+function getChatStatusLabel(status: string|undefined): string {
     switch (status) {
         case ChatStatus.Active: return "Активен";
         case ChatStatus.Banned: return "Забанен";
@@ -32,7 +32,7 @@ function getChatStatusLabel(status: number): string {
     }
 }
 
-function getChatStatusVariant(status: number): "default" | "destructive" | "secondary" | "outline" {
+function getChatStatusVariant(status: string|undefined): "default" | "destructive" | "secondary" | "outline" {
     switch (status) {
         case ChatStatus.Active: return "default";
         case ChatStatus.Banned: return "destructive";
@@ -41,7 +41,7 @@ function getChatStatusVariant(status: number): "default" | "destructive" | "seco
     }
 }
 
-function getChatTypeLabel(type: number): string | null {
+function getChatTypeLabel(type: string|undefined): string | null {
     switch (type) {
         case ChatType.Channel: return "Канал";
         case ChatType.Group: return "Группа";

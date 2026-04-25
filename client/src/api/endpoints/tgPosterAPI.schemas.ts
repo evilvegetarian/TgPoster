@@ -181,6 +181,38 @@ export interface CreatePromptSettingResponse {
 }
 
 /**
+ * Запрос на создание прокси
+ */
+export interface CreateProxyRequest {
+  /** Имя прокси для отображения */
+  name?: string;
+  type?: ProxyType;
+  /** IP или доменное имя прокси */
+  host?: string;
+  /** Порт прокси */
+  port?: number;
+  /**
+   * Имя пользователя (для SOCKS5/HTTP, опционально)
+   * @nullable
+   */
+  username?: string | null;
+  /**
+   * Пароль (для SOCKS5/HTTP, опционально)
+   * @nullable
+   */
+  password?: string | null;
+  /**
+   * Секрет для MTProxy (hex/base64)
+   * @nullable
+   */
+  secret?: string | null;
+}
+
+export interface CreateProxyResponse {
+  id?: string;
+}
+
+/**
  * Создание настроек репоста для расписания.
  */
 export interface CreateRepostSettingsRequest {
@@ -252,6 +284,11 @@ export interface CreateTelegramSessionRequest {
    * @nullable
    */
   name?: string | null;
+  /**
+   * ID прокси для маршрутизации трафика сессии (опционально)
+   * @nullable
+   */
+  proxyId?: string | null;
 }
 
 export interface CreateTelegramSessionResponse {
@@ -547,6 +584,37 @@ export interface PromptSettingResponsePagedResponse {
   data?: PromptSettingResponse[];
 }
 
+export interface ProxyListResponse {
+  items: ProxyResponse[];
+}
+
+export interface ProxyResponse {
+  id?: string;
+  name?: string;
+  type?: ProxyType;
+  host?: string;
+  port?: number;
+  /** @nullable */
+  username?: string | null;
+  /** @nullable */
+  password?: string | null;
+  /** @nullable */
+  secret?: string | null;
+  sessionsCount?: number;
+  /** @nullable */
+  created?: string | null;
+}
+
+export type ProxyType = typeof ProxyType[keyof typeof ProxyType];
+
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const ProxyType = {
+  Socks5: 'Socks5',
+  Http: 'Http',
+  MTProxy: 'MTProxy',
+} as const;
+
 /**
  * Запрос на обновление токена доступа
  */
@@ -734,6 +802,10 @@ export interface TelegramSessionResponse {
   status?: TelegramSessionStatus;
   /** @nullable */
   created?: string | null;
+  /** @nullable */
+  proxyId?: string | null;
+  /** @nullable */
+  proxyName?: string | null;
 }
 
 export type TelegramSessionStatus = typeof TelegramSessionStatus[keyof typeof TelegramSessionStatus];
@@ -790,6 +862,22 @@ export interface UpdateParseChannelRequest {
   useAiForPosts?: boolean;
   /** Telegram сессия для парсинга канала (для доступа к приватным каналам). */
   telegramSessionId: string;
+}
+
+/**
+ * Запрос на обновление прокси
+ */
+export interface UpdateProxyRequest {
+  name?: string;
+  type?: ProxyType;
+  host?: string;
+  port?: number;
+  /** @nullable */
+  username?: string | null;
+  /** @nullable */
+  password?: string | null;
+  /** @nullable */
+  secret?: string | null;
 }
 
 /**
@@ -867,6 +955,11 @@ export interface UpdateTelegramSessionRequest {
   name?: string | null;
   /** Активна ли сессия */
   isActive?: boolean;
+  /**
+   * ID прокси (null = без прокси)
+   * @nullable
+   */
+  proxyId?: string | null;
 }
 
 /**
