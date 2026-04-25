@@ -46,9 +46,6 @@ app.UseOpenTelemetryPrometheusScrapingEndpoint();
 app.MapHealthChecks("/health");
 app.AddHangfire();
 
-var wtLogger = app.Services.GetRequiredService<ILoggerFactory>().CreateLogger("WTelegram");
-WTelegram.Helpers.Log = (lvl, msg) => wtLogger.Log((LogLevel)lvl, "{Message}", msg);
-
 app.Run();
 
 
