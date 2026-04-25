@@ -10,5 +10,6 @@ public enum TelegramOperationStatus
     ChannelBanned,
     FloodWait,
     AccessDenied,
+    Timeout,
     UnknownError
 }

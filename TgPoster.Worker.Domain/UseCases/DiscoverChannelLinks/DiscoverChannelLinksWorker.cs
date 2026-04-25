@@ -175,6 +175,8 @@ internal sealed partial class DiscoverChannelLinksWorker(
 		var privateChannelIds = new HashSet<long>();
 		var lastParsedId = channelDto.LastParsedId ?? 0;
 		var offset = 0;
+		var transientAttempts = 0;
+		const int maxTransientAttempts = 3;
 
 		while (true)
 		{
@@ -193,8 +195,25 @@ internal sealed partial class DiscoverChannelLinksWorker(
 				logger.LogWarning("Ошибка получения истории канала {Channel}: {Status} {Error}",
 					channelDto.Username ?? channelDto.TelegramId?.ToString(),
 					historyResult.Status, historyResult.ErrorMessage);
-				continue;
+
+				if (historyResult.Status is TelegramOperationStatus.Timeout
+					or TelegramOperationStatus.UnknownError)
+				{
+					if (++transientAttempts >= maxTransientAttempts)
+					{
+						logger.LogWarning("Прерываем сканирование {Channel}: исчерпан лимит ретраев ({Attempts})",
+							channelDto.Username ?? channelDto.TelegramId?.ToString(), transientAttempts);
+						break;
+					}
+
+					await Task.Delay(TimeSpan.FromSeconds(5), ct);
+					continue;
+				}
+
+				break;
 			}
+
+			transientAttempts = 0;
 
 			var history = historyResult.Value!;
 

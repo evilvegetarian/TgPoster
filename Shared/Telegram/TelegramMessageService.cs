@@ -226,9 +226,14 @@ internal sealed class TelegramMessageService(ILogger<TelegramMessageService> log
                 var value = await action();
                 return TelegramOperationResult<T>.Success(value);
             }
-            catch (OperationCanceledException)
+            catch (OperationCanceledException) when (ct.IsCancellationRequested)
             {
                 throw;
+            }
+            catch (OperationCanceledException ex)
+            {
+                logger.LogWarning("Telegram {Operation}: внутренний таймаут WTelegram ({Error})", operation, ex.Message);
+                return TelegramOperationResult<T>.Failed(TelegramOperationStatus.Timeout, ex.Message);
             }
             catch (RpcException ex) when (ex.Message is "USERNAME_NOT_OCCUPIED" or "USERNAME_INVALID")
             {
