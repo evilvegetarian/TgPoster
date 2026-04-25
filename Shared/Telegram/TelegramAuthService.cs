@@ -66,7 +66,6 @@ public sealed class TelegramAuthService(
 			sessionDebouncer.Update(sessionId, data);
 		});
 		SetupProxy(client, session.Proxy);
-
 		try
 		{
 			var user = await client.LoginUserIfNeeded();

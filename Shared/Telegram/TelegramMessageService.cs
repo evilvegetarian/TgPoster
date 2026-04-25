@@ -43,7 +43,7 @@ internal sealed class TelegramMessageService(ILogger<TelegramMessageService> log
         return ExecuteAsync(
             () => client.Messages_GetHistory(peer, limit: limit, offset_id: offsetId,
                 offset_date: offsetDate ?? default, min_id: minId),
-            "GetHistory", waitOnFloodWait);
+            "GetHistory", waitOnFloodWait, ct);
     }
 
     public Task<TelegramOperationResult<Message?>> GetChannelMessageAsync(
@@ -217,7 +217,7 @@ internal sealed class TelegramMessageService(ILogger<TelegramMessageService> log
     }
 
     private async Task<TelegramOperationResult<T>> ExecuteAsync<T>(Func<Task<T>> action, string operation,
-        bool waitOnFloodWait = true)
+        bool waitOnFloodWait = true, CancellationToken ct = default)
     {
         while (true)
         {
@@ -225,6 +225,10 @@ internal sealed class TelegramMessageService(ILogger<TelegramMessageService> log
             {
                 var value = await action();
                 return TelegramOperationResult<T>.Success(value);
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
             }
             catch (RpcException ex) when (ex.Message is "USERNAME_NOT_OCCUPIED" or "USERNAME_INVALID")
             {
@@ -243,7 +247,7 @@ internal sealed class TelegramMessageService(ILogger<TelegramMessageService> log
                 if (waitOnFloodWait  && ex.X <= MaxFloodWaitSeconds)
                 {
                     logger.LogWarning("Telegram {Operation}: FLOOD_WAIT {Seconds}s, ждём и повторим", operation, ex.X);
-                    await Task.Delay(TimeSpan.FromSeconds(ex.X + 1));
+                    await Task.Delay(TimeSpan.FromSeconds(ex.X + 1), ct);
                     continue;
                 }
 
