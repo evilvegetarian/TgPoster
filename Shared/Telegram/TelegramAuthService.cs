@@ -1,3 +1,5 @@
+using System.Net.Sockets;
+using System.Text;
 using Microsoft.Extensions.Logging;
 using Shared.Enums;
 using Shared.Exceptions;
@@ -410,6 +412,118 @@ public sealed class TelegramAuthService(
 				client.MTProxyUrl =
 					$"https://t.me/proxy?server={proxy.Host}&port={proxy.Port}&secret={proxy.Secret}";
 				break;
+			case ProxyType.Socks5:
+				client.TcpHandler = (host, port) => ConnectViaSocks5Async(proxy, host, port);
+				break;
+			case ProxyType.Http:
+				client.TcpHandler = (host, port) => ConnectViaHttpConnectAsync(proxy, host, port);
+				break;
 		}
+	}
+
+	private static async Task<TcpClient> ConnectViaSocks5Async(ProxyDto proxy, string host, int port)
+	{
+		var tcpClient = new TcpClient();
+		await tcpClient.ConnectAsync(proxy.Host, proxy.Port);
+		var stream = tcpClient.GetStream();
+
+		bool hasAuth = proxy.Username != null && proxy.Password != null;
+		byte[] greeting = hasAuth ? [0x05, 0x02, 0x00, 0x02] : [0x05, 0x01, 0x00];
+		await stream.WriteAsync(greeting);
+
+		var methodResponse = new byte[2];
+		await stream.ReadExactlyAsync(methodResponse);
+		if (methodResponse[0] != 0x05)
+			throw new InvalidOperationException("Некорректный ответ SOCKS5 прокси");
+
+		if (methodResponse[1] == 0x02)
+		{
+			var usernameBytes = Encoding.UTF8.GetBytes(proxy.Username!);
+			var passwordBytes = Encoding.UTF8.GetBytes(proxy.Password!);
+			byte[] authRequest = [0x01, (byte)usernameBytes.Length, ..usernameBytes, (byte)passwordBytes.Length, ..passwordBytes];
+			await stream.WriteAsync(authRequest);
+
+			var authResponse = new byte[2];
+			await stream.ReadExactlyAsync(authResponse);
+			if (authResponse[1] != 0x00)
+				throw new InvalidOperationException("Ошибка аутентификации SOCKS5 прокси");
+		}
+		else if (methodResponse[1] != 0x00)
+		{
+			throw new InvalidOperationException("Метод аутентификации не поддерживается SOCKS5 прокси");
+		}
+
+		var hostBytes = Encoding.ASCII.GetBytes(host);
+		byte[] connectRequest = [
+			0x05, 0x01, 0x00, 0x03,
+			(byte)hostBytes.Length, ..hostBytes,
+			(byte)(port >> 8), (byte)(port & 0xFF)
+		];
+		await stream.WriteAsync(connectRequest);
+
+		var connectHeader = new byte[4];
+		await stream.ReadExactlyAsync(connectHeader);
+		if (connectHeader[1] != 0x00)
+			throw new InvalidOperationException($"SOCKS5 прокси отклонил соединение, код: {connectHeader[1]}");
+
+		// Пропускаем адрес привязки в ответе
+		switch (connectHeader[3])
+		{
+			case 0x01: await stream.ReadExactlyAsync(new byte[6]); break;   // IPv4 + port
+			case 0x03:
+				var domainLenBuf = new byte[1];
+				await stream.ReadExactlyAsync(domainLenBuf);
+				await stream.ReadExactlyAsync(new byte[domainLenBuf[0] + 2]);
+				break;
+			case 0x04: await stream.ReadExactlyAsync(new byte[18]); break;  // IPv6 + port
+		}
+
+		return tcpClient;
+	}
+
+	private static async Task<TcpClient> ConnectViaHttpConnectAsync(ProxyDto proxy, string host, int port)
+	{
+		var tcpClient = new TcpClient();
+		await tcpClient.ConnectAsync(proxy.Host, proxy.Port);
+		var stream = tcpClient.GetStream();
+
+		var sb = new StringBuilder();
+		sb.Append($"CONNECT {host}:{port} HTTP/1.1\r\n");
+		sb.Append($"Host: {host}:{port}\r\n");
+
+		if (proxy.Username != null && proxy.Password != null)
+		{
+			var credentials = Convert.ToBase64String(Encoding.ASCII.GetBytes($"{proxy.Username}:{proxy.Password}"));
+			sb.Append($"Proxy-Authorization: Basic {credentials}\r\n");
+		}
+
+		sb.Append("\r\n");
+		await stream.WriteAsync(Encoding.ASCII.GetBytes(sb.ToString()));
+
+		// Читаем ответ побайтово до \r\n\r\n чтобы не захватить лишних байт потока
+		var headerBytes = new List<byte>(256);
+		byte[] singleByte = new byte[1];
+		while (true)
+		{
+			await stream.ReadExactlyAsync(singleByte);
+			headerBytes.Add(singleByte[0]);
+
+			if (headerBytes.Count >= 4)
+			{
+				var tail = headerBytes[^4..];
+				if (tail[0] == 0x0D && tail[1] == 0x0A && tail[2] == 0x0D && tail[3] == 0x0A)
+					break;
+			}
+
+			if (headerBytes.Count > 8192)
+				throw new InvalidOperationException("HTTP прокси вернул слишком большой заголовок ответа");
+		}
+
+		var response = Encoding.ASCII.GetString(headerBytes.ToArray());
+		var statusLine = response.Split("\r\n")[0];
+		if (!statusLine.Contains(" 200 "))
+			throw new InvalidOperationException($"HTTP прокси отклонил соединение: {statusLine}");
+
+		return tcpClient;
 	}
 }
