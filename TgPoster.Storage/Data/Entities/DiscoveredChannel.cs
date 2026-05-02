@@ -98,6 +98,11 @@ public sealed class DiscoveredChannel : BaseEntity
 	public DateTimeOffset? LastDiscoveredAt { get; set; }
 
 	/// <summary>
+	///     Дата последнего обновления статистики подписчиков.
+	/// </summary>
+	public DateTimeOffset? ParticipantsUpdatedAt { get; set; }
+
+	/// <summary>
 	///     ID канала, из которого был обнаружен данный канал (самореферентный FK).
 	/// </summary>
 	public Guid? DiscoveredFromChannelId { get; set; }

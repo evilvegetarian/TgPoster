@@ -20,6 +20,7 @@ using TgPoster.Worker.Domain.UseCases.SenderMessageWorker;
 using TgPoster.Worker.Domain.UseCases.ScrapeChannel;
 using TgPoster.Worker.Domain.UseCases.ClassifyChannel;
 using TgPoster.Worker.Domain.UseCases.DiscoverChannelLinks;
+using TgPoster.Worker.Domain.UseCases.UpdateChannelStats;
 
 namespace TgPoster.Worker.Domain;
 
@@ -48,6 +49,7 @@ public static class DependencyInjection
 		services.AddScoped<TelegramExecuteServices>();
 		services.AddScoped<DiscoverChannelLinksWorker>();
 		services.AddScoped<ClassifyChannelWorker>();
+		services.AddScoped<UpdateChannelStatsWorker>();
 
 		return services;
 	}
@@ -121,6 +123,11 @@ public static class DependencyInjection
 		recurringJobManager.AddOrUpdate<ClassifyChannelWorker>(
 			"classify-channels-job",
 			worker => worker.ClassifyChannelsAsync(),
+			Cron.Hourly());
+
+		recurringJobManager.AddOrUpdate<UpdateChannelStatsWorker>(
+			"update-channel-stats-job",
+			worker => worker.UpdateStatsAsync(),
 			Cron.Hourly());
 	}
 

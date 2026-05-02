@@ -177,6 +177,19 @@ internal sealed class TelegramMessageService(ILogger<TelegramMessageService> log
             : TelegramOperationResult.Failed(result.Status, result.ErrorMessage, result.FloodWaitSeconds);
     }
 
+    public Task<TelegramOperationResult<int?>> GetFullChannelAsync(
+        Client client,
+        InputChannel channel,
+        CancellationToken ct = default,
+        bool waitOnFloodWait = false)
+    {
+        return ExecuteAsync(async () =>
+        {
+            var full = await client.Channels_GetFullChannel(channel);
+            return full.full_chat is ChannelFull cf ? (int?)cf.participants_count : null;
+        }, $"GetFullChannel({channel.channel_id})", waitOnFloodWait);
+    }
+
     public async Task<TelegramOperationResult> DownloadDocumentAsync(
         Client client,
         InputChannel channel,

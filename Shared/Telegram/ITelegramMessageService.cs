@@ -124,6 +124,16 @@ public interface ITelegramMessageService
 	);
 
 	/// <summary>
+	///     Получает точное количество участников канала (Channels_GetFullChannel).
+	/// </summary>
+	Task<TelegramOperationResult<int?>> GetFullChannelAsync(
+		Client client,
+		InputChannel channel,
+		CancellationToken ct = default,
+		bool waitOnFloodWait = false
+	);
+
+	/// <summary>
 	///     Скачивает документ/видео с автоматической обработкой FILE_REFERENCE_EXPIRED (refresh из сообщения).
 	/// </summary>
 	Task<TelegramOperationResult> DownloadDocumentAsync(
