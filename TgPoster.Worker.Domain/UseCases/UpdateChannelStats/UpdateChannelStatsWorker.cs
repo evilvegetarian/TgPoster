@@ -14,7 +14,7 @@ internal sealed class UpdateChannelStatsWorker(
 	ILogger<UpdateChannelStatsWorker> logger,
 	IHostApplicationLifetime lifetime)
 {
-	private const int BatchSize = 50;
+	private const int BatchSize = 2;
 
 	[DisableConcurrentExecution(3600)]
 	public async Task UpdateStatsAsync()
