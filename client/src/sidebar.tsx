@@ -12,6 +12,7 @@ import {
     Settings,
     SignatureIcon,
     Smartphone,
+    Telescope,
     UserPlus,
     Youtube
 } from "lucide-react"
@@ -95,6 +96,11 @@ export function SideBar() {
                 title: "Комментирующий репост",
                 path: "/comment-repost",
                 icon: MessageSquareShare
+            },
+            {
+                title: "Discover",
+                path: "/discover",
+                icon: Telescope
             }
         ]
         : [

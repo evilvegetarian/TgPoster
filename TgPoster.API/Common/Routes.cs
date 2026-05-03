@@ -150,6 +150,13 @@ internal static class Routes
 		internal const string ScrapeChannels = Root + "/scrape";
 	}
 
+	internal static class Discover
+	{
+		internal const string Root = Base + "/discover";
+		internal const string List = Root;
+		internal const string Categories = Root + "/categories";
+	}
+
 	internal static class Repost
 	{
 		internal const string Root = Base + "/repost";

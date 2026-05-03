@@ -349,6 +349,42 @@ export interface DayResponse {
   timePostings?: string[];
 }
 
+export interface DiscoverChannelResponse {
+  id?: string;
+  /** @nullable */
+  username?: string | null;
+  /** @nullable */
+  title?: string | null;
+  /** @nullable */
+  description?: string | null;
+  /** @nullable */
+  avatarUrl?: string | null;
+  /** @nullable */
+  participantsCount?: number | null;
+  /** @nullable */
+  peerType?: string | null;
+  /** @nullable */
+  tgUrl?: string | null;
+  /** @nullable */
+  category?: string | null;
+  /** @nullable */
+  subcategory?: string | null;
+  /** @nullable */
+  language?: string | null;
+  /** @nullable */
+  lastDiscoveredAt?: string | null;
+}
+
+export interface DiscoverChannelResponsePagedResponse {
+  currentPage?: number;
+  readonly totalPages?: number;
+  pageSize?: number;
+  totalCount?: number;
+  readonly hasPreviousPage?: boolean;
+  readonly hasNextPage?: boolean;
+  data?: DiscoverChannelResponse[];
+}
+
 /**
  * Request создания промптов
  */
@@ -1013,6 +1049,29 @@ export type GetApiV1DayParams = {
  * Идентификатор расписания
  */
 scheduleId: string;
+};
+
+export type GetApiV1DiscoverParams = {
+/**
+ * Фильтр по тематике (Category)
+ */
+Category?: string;
+/**
+ * Поиск по названию или username
+ */
+Search?: string;
+/**
+ * Тип: "channel" (канал) или "chat" (чат). null — без фильтра.
+ */
+PeerType?: string;
+/**
+ * Номер страницы.
+ */
+PageNumber?: number;
+/**
+ * Размер страницы.
+ */
+PageSize?: number;
 };
 
 export type PostApiV1MessageBatchFromFilesBody = {
