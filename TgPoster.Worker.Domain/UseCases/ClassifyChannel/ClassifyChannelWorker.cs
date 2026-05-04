@@ -64,7 +64,7 @@ internal sealed class ClassifyChannelWorker(
 
 		if (sessionId is null)
 		{
-			logger.LogWarning("Нет активной сессии Classification");
+			logger.LogWarning("Нет активной сессии Classification ");
 			return;
 		}
 
