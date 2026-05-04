@@ -63,7 +63,10 @@ internal sealed class ClassifyChannelWorker(
 		var sessionId = await storage.GetSessionIdByPurposeAsync(TelegramSessionPurpose.Classification, ct);
 
 		if (sessionId is null)
-			logger.LogWarning("Нет активной сессии Classification, классификация будет только по заголовку и описанию");
+		{
+			logger.LogWarning("Нет активной сессии Classification");
+			return;
+		}
 
 		var telegramClient = await authService.GetClientAsync(sessionId!.Value, ct);
 
