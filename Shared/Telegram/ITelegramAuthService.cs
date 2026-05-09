@@ -7,7 +7,7 @@ namespace Shared.Telegram;
 /// </summary>
 public interface ITelegramAuthService
 {
-	Task<Client> GetClientAsync(Guid sessionId, CancellationToken ct = default);
+	Task<Client?> GetClientAsync(Guid sessionId, CancellationToken ct = default);
 	Task RemoveClientAsync(Guid sessionId);
 	Task<string> StartAuthAsync(Guid sessionId, CancellationToken ct);
 	Task<VerifyCodeResult> VerifyCodeAsync(Guid sessionId, string code, CancellationToken ct);

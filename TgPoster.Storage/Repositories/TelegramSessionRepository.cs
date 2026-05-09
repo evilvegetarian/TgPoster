@@ -26,6 +26,7 @@ internal sealed class TelegramSessionRepository(PosterContext context)
 	{
 		var session = await context.TelegramSessions.FirstAsync(s => s.Id == sessionId, ct);
 		session.Status = Data.Enum.TelegramSessionStatus.Failed;
+		session.IsActive = false;
 		session.SessionData = null;
 		await context.SaveChangesAsync(ct);
 	}

@@ -28,28 +28,22 @@ public sealed class TelegramAuthService(
 	/// <param name="sessionId">ID Telegram сессии.</param>
 	/// <param name="ct">Токен отмены.</param>
 	/// <returns>Готовый к работе Client.</returns>
-	public async Task<Client> GetClientAsync(Guid sessionId, CancellationToken ct = default)
+	public async Task<Client?> GetClientAsync(Guid sessionId, CancellationToken ct = default)
 	{
 		if (clientManager.TryGetActiveClient(sessionId, out var existingClient))
 		{
-			return existingClient!;
+			return existingClient;
 		}
 
 		var session = await authRepository.GetByIdAsync(sessionId, ct);
 		if (session == null)
-		{
 			throw new TelegramSessionNotFoundException(sessionId);
-		}
 
 		if (!session.IsActive)
-		{
 			throw new TelegramSessionInactiveException(sessionId);
-		}
 
 		if (session.SessionData == null)
-		{
 			throw new TelegramSessionNotAuthorizedException(sessionId);
-		}
 
 		string? Config(string key)
 		{
@@ -109,6 +103,7 @@ public sealed class TelegramAuthService(
 		{
 			logger.LogError(ex, "Не удалось войти в Telegram для сессии {SessionId}", sessionId);
 			await client.DisposeAsync();
+			await authRepository.DeactivateSessionAsync(sessionId, ct);
 			throw;
 		}
 	}

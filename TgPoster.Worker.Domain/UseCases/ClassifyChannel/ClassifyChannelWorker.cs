@@ -51,6 +51,7 @@ internal sealed class ClassifyChannelWorker(
 			logger.LogWarning("Классификация уже выполняется, повторный запуск пропущен");
 			return;
 		}
+
 		if (string.IsNullOrWhiteSpace(options.SecretKey))
 		{
 			logger.LogWarning("ClassificationApiKey не задан, пропускаем классификацию каналов");
@@ -75,6 +76,8 @@ internal sealed class ClassifyChannelWorker(
 		}
 
 		var telegramClient = await authService.GetClientAsync(sessionId!.Value, ct);
+		if (telegramClient is null)
+			return;
 
 		foreach (var channel in channels)
 		{
