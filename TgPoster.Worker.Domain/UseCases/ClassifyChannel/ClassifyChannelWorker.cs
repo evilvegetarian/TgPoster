@@ -21,6 +21,7 @@ internal sealed class ClassifyChannelWorker(
 	IHostApplicationLifetime lifetime)
 {
 	private const int BatchSize = 1;
+	private static readonly SemaphoreSlim ParseLock = new(1, 1);
 
 	private const string ClassificationPrompt = """
 	                                            Ты — классификатор Telegram-каналов. Определи основную тематику канала по его названию, описанию и последним постам.
@@ -45,6 +46,11 @@ internal sealed class ClassifyChannelWorker(
 	{
 		var ct = lifetime.ApplicationStopping;
 
+		if (!await ParseLock.WaitAsync(0, ct))
+		{
+			logger.LogWarning("Классификация уже выполняется, повторный запуск пропущен");
+			return;
+		}
 		if (string.IsNullOrWhiteSpace(options.SecretKey))
 		{
 			logger.LogWarning("ClassificationApiKey не задан, пропускаем классификацию каналов");
