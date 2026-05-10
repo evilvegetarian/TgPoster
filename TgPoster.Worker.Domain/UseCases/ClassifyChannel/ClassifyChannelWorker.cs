@@ -52,43 +52,50 @@ internal sealed class ClassifyChannelWorker(
 			return;
 		}
 
-		if (string.IsNullOrWhiteSpace(options.SecretKey))
+		try
 		{
-			logger.LogWarning("ClassificationApiKey не задан, пропускаем классификацию каналов");
-			return;
-		}
-
-		var channels = await storage.GetUnclassifiedChannelsAsync(BatchSize, ct);
-		if (channels.Count == 0)
-		{
-			logger.LogDebug("Нет каналов для классификации");
-			return;
-		}
-
-		logger.LogInformation("Начинаем классификацию {Count} каналов", channels.Count);
-
-		var sessionId = await storage.GetSessionIdByPurposeAsync(TelegramSessionPurpose.Classification, ct);
-
-		if (sessionId is null)
-		{
-			logger.LogWarning("Нет активной сессии Classification ");
-			return;
-		}
-
-		var telegramClient = await authService.GetClientAsync(sessionId!.Value, ct);
-		if (telegramClient is null)
-			return;
-
-		foreach (var channel in channels)
-		{
-			try
+			if (string.IsNullOrWhiteSpace(options.SecretKey))
 			{
-				await ClassifyChannelAsync(channel, telegramClient, ct);
+				logger.LogWarning("ClassificationApiKey не задан, пропускаем классификацию каналов");
+				return;
 			}
-			catch (Exception ex)
+
+			var channels = await storage.GetUnclassifiedChannelsAsync(BatchSize, ct);
+			if (channels.Count == 0)
 			{
-				logger.LogError(ex, "Ошибка при классификации канала {ChannelId}", channel.Id);
+				logger.LogDebug("Нет каналов для классификации");
+				return;
 			}
+
+			logger.LogInformation("Начинаем классификацию {Count} каналов", channels.Count);
+
+			var sessionId = await storage.GetSessionIdByPurposeAsync(TelegramSessionPurpose.Classification, ct);
+
+			if (sessionId is null)
+			{
+				logger.LogWarning("Нет активной сессии Classification ");
+				return;
+			}
+
+			var telegramClient = await authService.GetClientAsync(sessionId!.Value, ct);
+			if (telegramClient is null)
+				return;
+
+			foreach (var channel in channels)
+			{
+				try
+				{
+					await ClassifyChannelAsync(channel, telegramClient, ct);
+				}
+				catch (Exception ex)
+				{
+					logger.LogError(ex, "Ошибка при классификации канала {ChannelId}", channel.Id);
+				}
+			}
+		}
+		finally
+		{
+			ParseLock.Release();
 		}
 	}
 
