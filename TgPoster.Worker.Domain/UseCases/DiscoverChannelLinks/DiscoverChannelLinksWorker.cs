@@ -1,10 +1,8 @@
 using System.Text.RegularExpressions;
-using Hangfire;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Shared.Enums;
 using Shared.Telegram;
-using TgPoster.Worker.Domain.ConfigModels;
 using TL;
 
 namespace TgPoster.Worker.Domain.UseCases.DiscoverChannelLinks;
@@ -18,6 +16,7 @@ internal sealed partial class DiscoverChannelLinksWorker(
 {
 	private const int MessageBatchSize = 100;
 	private const int ChannelBatchSize = 1;
+	private static readonly TimeSpan InterBatchDelay = TimeSpan.FromMilliseconds(1500);
 	private static readonly SemaphoreSlim ParseLock = new(1, 1);
 
 	public async Task ProcessChannelsAsync()
@@ -39,7 +38,7 @@ internal sealed partial class DiscoverChannelLinksWorker(
 				return;
 			}
 
-			var channels = await storage.GetChannelsToProcessAsync(ChannelBatchSize,ct);
+			var channels = await storage.GetChannelsToProcessAsync(ChannelBatchSize, ct);
 			if (channels.Count == 0)
 			{
 				logger.LogInformation("Нет каналов для обработки DiscoverChannelLinks");
@@ -49,6 +48,11 @@ internal sealed partial class DiscoverChannelLinksWorker(
 			logger.LogInformation("Начинаем обработку {Count} каналов для поиска ссылок", channels.Count);
 
 			var client = await authService.GetClientAsync(sessionId.Value, ct);
+			if (client is null)
+			{
+				logger.LogInformation("Нет клиента для получения ссылок");
+				return;
+			}
 
 			foreach (var channelDto in channels)
 			{
@@ -80,9 +84,19 @@ internal sealed partial class DiscoverChannelLinksWorker(
 
 		if (channel is null)
 		{
-			logger.LogWarning("Не удалось найти канал: {Channel}", channelDto.Username ?? channelDto.TelegramId?.ToString());
+			logger.LogWarning("Не удалось найти канал: {Channel}",
+				channelDto.Username ?? channelDto.TelegramId?.ToString());
 			return;
 		}
+
+		// if (channel.flags.HasFlag(Channel.Flags.megagroup))
+		// {
+		// 	logger.LogInformation(
+		// 		"Пропускаем megagroup-чат {Channel} — Discover работает только с broadcast-каналами",
+		// 		channelDto.Username ?? channelDto.TelegramId?.ToString());
+		// 	await storage.MarkAsSkippedAsync(channelDto.Id, ct);
+		// 	return;
+		// }
 
 		var scan = await ScanChannelHistoryAsync(client, channel, channelDto, ct);
 
@@ -182,9 +196,10 @@ internal sealed partial class DiscoverChannelLinksWorker(
 		{
 			ct.ThrowIfCancellationRequested();
 
-			var historyResult = await tgMessages.GetHistoryAsync(
+			var historyResult = await tgMessages.SearchMessagesAsync(
 				client,
 				new InputPeerChannel(channel.ID, channel.access_hash),
+				filter: new InputMessagesFilterUrl(),
 				limit: MessageBatchSize,
 				offsetId: offset,
 				minId: channelDto.LastParsedId ?? 0,
@@ -197,7 +212,7 @@ internal sealed partial class DiscoverChannelLinksWorker(
 					historyResult.Status, historyResult.ErrorMessage);
 
 				if (historyResult.Status is TelegramOperationStatus.Timeout
-					or TelegramOperationStatus.UnknownError)
+				    or TelegramOperationStatus.UnknownError)
 				{
 					if (++transientAttempts >= maxTransientAttempts)
 					{
@@ -269,7 +284,7 @@ internal sealed partial class DiscoverChannelLinksWorker(
 			if (history.Messages.Length < MessageBatchSize)
 				break;
 
-			await Task.Delay(TimeSpan.FromSeconds(10), ct);
+			await Task.Delay(InterBatchDelay, ct);
 		}
 
 		return new HistoryScanResult(publicPeers, privatePeers, textUsernames, inviteHashes, privateChannelIds,
@@ -284,9 +299,12 @@ internal sealed partial class DiscoverChannelLinksWorker(
 		CancellationToken ct
 	)
 	{
+		var batch = new List<DiscoveredPeerUpsert>(
+			scan.PublicPeers.Count + scan.PrivatePeers.Count + resolvedInvites.Count);
+
 		foreach (var peer in scan.PublicPeers.Values)
 		{
-			await storage.UpsertAsync(new DiscoveredPeerUpsert
+			batch.Add(new DiscoveredPeerUpsert
 			{
 				Username = peer.Username,
 				TgUrl = $"https://t.me/{peer.Username}",
@@ -296,12 +314,12 @@ internal sealed partial class DiscoverChannelLinksWorker(
 				ParticipantsCount = peer.ParticipantsCount,
 				InviteHash = peer.InviteHash,
 				DiscoveredFromChannelId = channelDto.Id
-			}, ct);
+			});
 		}
 
 		foreach (var peer in scan.PrivatePeers.Values)
 		{
-			await storage.UpsertAsync(new DiscoveredPeerUpsert
+			batch.Add(new DiscoveredPeerUpsert
 			{
 				TelegramId = peer.TelegramId,
 				PeerType = peer.PeerType,
@@ -309,12 +327,12 @@ internal sealed partial class DiscoverChannelLinksWorker(
 				ParticipantsCount = peer.ParticipantsCount,
 				InviteHash = peer.InviteHash,
 				DiscoveredFromChannelId = channelDto.Id
-			}, ct);
+			});
 		}
 
 		foreach (var (hash, peer) in resolvedInvites)
 		{
-			await storage.UpsertAsync(new DiscoveredPeerUpsert
+			batch.Add(new DiscoveredPeerUpsert
 			{
 				Username = peer.Username,
 				TgUrl = $"https://t.me/+{hash}",
@@ -324,8 +342,10 @@ internal sealed partial class DiscoverChannelLinksWorker(
 				ParticipantsCount = peer.ParticipantsCount,
 				InviteHash = hash,
 				DiscoveredFromChannelId = channelDto.Id
-			}, ct);
+			});
 		}
+
+		await storage.BulkUpsertAsync(batch, ct);
 
 		await storage.UpsertAsync(new DiscoveredPeerUpsert
 		{

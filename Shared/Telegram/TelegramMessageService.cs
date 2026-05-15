@@ -46,6 +46,34 @@ internal sealed class TelegramMessageService(ILogger<TelegramMessageService> log
             "GetHistory", waitOnFloodWait, ct);
     }
 
+    public Task<TelegramOperationResult<Messages_MessagesBase>> SearchMessagesAsync(
+        Client client,
+        InputPeer peer,
+        MessagesFilter filter,
+        int limit,
+        int offsetId = 0,
+        int minId = 0,
+        int maxId = 0,
+        string query = "",
+        CancellationToken ct = default,
+        bool waitOnFloodWait = true)
+    {
+        return ExecuteAsync(
+            () => client.Messages_Search(
+                peer: peer,
+                q: query,
+                filter: filter,
+                min_date: default,
+                max_date: default,
+                offset_id: offsetId,
+                add_offset: 0,
+                limit: limit,
+                max_id: maxId,
+                min_id: minId,
+                hash: 0),
+            $"SearchMessages({filter.GetType().Name})", waitOnFloodWait, ct);
+    }
+
     public Task<TelegramOperationResult<Message?>> GetChannelMessageAsync(
         Client client,
         InputChannel channel,

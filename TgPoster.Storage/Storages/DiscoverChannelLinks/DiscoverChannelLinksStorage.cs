@@ -81,6 +81,104 @@ internal sealed class DiscoverChannelLinksStorage(PosterContext context, GuidFac
 		await context.SaveChangesAsync(ct);
 	}
 
+	public async Task MarkAsSkippedAsync(Guid id, CancellationToken ct)
+	{
+		var entity = await context.DiscoveredChannels.FirstAsync(x => x.Id == id, ct);
+		entity.Status = DiscoveryStatus.Skipped;
+		entity.LastDiscoveredAt = DateTimeOffset.UtcNow;
+		await context.SaveChangesAsync(ct);
+	}
+
+	public async Task BulkUpsertAsync(IReadOnlyCollection<DiscoveredPeerUpsert> upserts, CancellationToken ct)
+	{
+		if (upserts.Count == 0)
+			return;
+
+		var usernames = upserts
+			.Where(x => x.Username is not null)
+			.Select(x => x.Username!)
+			.Distinct()
+			.ToArray();
+
+		var telegramIds = upserts
+			.Where(x => x.TelegramId is not null)
+			.Select(x => x.TelegramId!.Value)
+			.Distinct()
+			.ToArray();
+
+		var inviteHashes = upserts
+			.Where(x => x.InviteHash is not null)
+			.Select(x => x.InviteHash!)
+			.Distinct()
+			.ToArray();
+
+		var existing = await context.DiscoveredChannels
+			.Where(x =>
+				(x.Username != null && usernames.Contains(x.Username))
+				|| (x.TelegramId != null && telegramIds.Contains(x.TelegramId.Value))
+				|| (x.InviteHash != null && inviteHashes.Contains(x.InviteHash)))
+			.ToListAsync(ct);
+
+		var byUsername = existing
+			.Where(x => x.Username is not null)
+			.ToDictionary(x => x.Username!, StringComparer.OrdinalIgnoreCase);
+		var byTelegramId = existing
+			.Where(x => x.TelegramId is not null)
+			.ToDictionary(x => x.TelegramId!.Value);
+		var byInviteHash = existing
+			.Where(x => x.InviteHash is not null)
+			.ToDictionary(x => x.InviteHash!, StringComparer.OrdinalIgnoreCase);
+
+		foreach (var upsert in upserts)
+		{
+			DiscoveredChannel? match = null;
+			if (upsert.TelegramId is not null && byTelegramId.TryGetValue(upsert.TelegramId.Value, out var byTid))
+				match = byTid;
+			else if (upsert.Username is not null && byUsername.TryGetValue(upsert.Username, out var byUn))
+				match = byUn;
+			else if (upsert.InviteHash is not null && byInviteHash.TryGetValue(upsert.InviteHash, out var byIh))
+				match = byIh;
+
+			if (match is not null)
+			{
+				ApplyUpsertFields(match, upsert);
+				if (match.Username is not null)
+					byUsername[match.Username] = match;
+				if (match.TelegramId is not null)
+					byTelegramId[match.TelegramId.Value] = match;
+				if (match.InviteHash is not null)
+					byInviteHash[match.InviteHash] = match;
+			}
+			else
+			{
+				var entity = new DiscoveredChannel
+				{
+					Id = guidFactory.New(),
+					Username = upsert.Username,
+					TgUrl = upsert.TgUrl,
+					LastParsedId = upsert.LastParsedId,
+					TelegramId = upsert.TelegramId,
+					PeerType = upsert.PeerType,
+					Title = upsert.Title,
+					ParticipantsCount = upsert.ParticipantsCount,
+					InviteHash = upsert.InviteHash,
+					DiscoveredFromChannelId = upsert.DiscoveredFromChannelId,
+					Status = DiscoveryStatus.Pending
+				};
+				context.DiscoveredChannels.Add(entity);
+
+				if (entity.Username is not null)
+					byUsername[entity.Username] = entity;
+				if (entity.TelegramId is not null)
+					byTelegramId[entity.TelegramId.Value] = entity;
+				if (entity.InviteHash is not null)
+					byInviteHash[entity.InviteHash] = entity;
+			}
+		}
+
+		await context.SaveChangesAsync(ct);
+	}
+
 	private Task<DiscoveredChannel?> FindExistingAsync(
 		string? username,
 		long? telegramId,

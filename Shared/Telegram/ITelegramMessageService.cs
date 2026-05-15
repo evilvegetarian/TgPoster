@@ -44,6 +44,24 @@ public interface ITelegramMessageService
 	);
 
 	/// <summary>
+	///     Ищет сообщения в peer'е с серверным фильтром (Messages_Search).
+	///     Используется в Discover для выборки только сообщений со ссылками — даёт
+	///     в 5-10 раз меньше API-вызовов, чем полный Messages_GetHistory.
+	/// </summary>
+	Task<TelegramOperationResult<Messages_MessagesBase>> SearchMessagesAsync(
+		Client client,
+		InputPeer peer,
+		MessagesFilter filter,
+		int limit,
+		int offsetId = 0,
+		int minId = 0,
+		int maxId = 0,
+		string query = "",
+		CancellationToken ct = default,
+		bool waitOnFloodWait = true
+	);
+
+	/// <summary>
 	///     Получает одно сообщение из канала по ID (Channels_GetMessages).
 	/// </summary>
 	Task<TelegramOperationResult<Message?>> GetChannelMessageAsync(
