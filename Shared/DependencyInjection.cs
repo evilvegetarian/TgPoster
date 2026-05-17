@@ -22,6 +22,7 @@ public static class DependencyInjection
 		services.AddScoped<ITelegramAuthService, TelegramAuthService>();
 		services.AddScoped<ITelegramChatService, TelegramChatService>();
 		services.AddScoped<ITelegramMessageService, TelegramMessageService>();
+		services.AddScoped<ITelegramPublicLookupService, TelegramPublicLookupService>();
 
 		services.AddScoped<IOpenRouterClient, OpenRouterClient>();
 		services.AddScoped<ITgStatScrapingService, TgStatScrapingService>();
