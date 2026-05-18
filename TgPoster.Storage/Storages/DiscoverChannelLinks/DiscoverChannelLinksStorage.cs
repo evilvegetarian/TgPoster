@@ -64,6 +64,8 @@ internal sealed class DiscoverChannelLinksStorage(PosterContext context, GuidFac
 			TelegramId = upsert.TelegramId,
 			PeerType = upsert.PeerType,
 			Title = upsert.Title,
+			Description = upsert.Description,
+			AvatarUrl = upsert.AvatarUrl,
 			ParticipantsCount = upsert.ParticipantsCount,
 			InviteHash = upsert.InviteHash,
 			DiscoveredFromChannelId = upsert.DiscoveredFromChannelId,
@@ -160,6 +162,8 @@ internal sealed class DiscoverChannelLinksStorage(PosterContext context, GuidFac
 					TelegramId = upsert.TelegramId,
 					PeerType = upsert.PeerType,
 					Title = upsert.Title,
+					Description = upsert.Description,
+					AvatarUrl = upsert.AvatarUrl,
 					ParticipantsCount = upsert.ParticipantsCount,
 					InviteHash = upsert.InviteHash,
 					DiscoveredFromChannelId = upsert.DiscoveredFromChannelId,
@@ -205,6 +209,10 @@ internal sealed class DiscoverChannelLinksStorage(PosterContext context, GuidFac
 			existing.PeerType = upsert.PeerType;
 		if (upsert.Title is not null)
 			existing.Title = upsert.Title;
+		if (upsert.Description is not null)
+			existing.Description = upsert.Description;
+		if (upsert.AvatarUrl is not null)
+			existing.AvatarUrl = upsert.AvatarUrl;
 		if (upsert.ParticipantsCount is not null)
 			existing.ParticipantsCount = upsert.ParticipantsCount;
 		if (upsert.Username is not null && existing.Username is null)

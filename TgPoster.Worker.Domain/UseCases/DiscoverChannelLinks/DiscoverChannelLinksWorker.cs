@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using Shared.Enums;
 using Shared.Telegram;
 using TL;
+using WTelegram;
 
 namespace TgPoster.Worker.Domain.UseCases.DiscoverChannelLinks;
 
@@ -11,6 +12,7 @@ internal sealed partial class DiscoverChannelLinksWorker(
 	IDiscoverChannelLinksStorage storage,
 	ITelegramAuthService authService,
 	ITelegramMessageService tgMessages,
+	ITelegramPublicLookupService publicLookup,
 	ILogger<DiscoverChannelLinksWorker> logger,
 	IHostApplicationLifetime lifetime)
 {
@@ -60,11 +62,11 @@ internal sealed partial class DiscoverChannelLinksWorker(
 				{
 					await ProcessChannelAsync(client, channelDto, ct);
 				}
-
 				catch (Exception ex)
 				{
 					logger.LogError(ex, "Ошибка при обработке канала {Channel}",
 						channelDto.Username ?? channelDto.TelegramId?.ToString());
+					throw;
 				}
 			}
 		}
@@ -75,7 +77,7 @@ internal sealed partial class DiscoverChannelLinksWorker(
 	}
 
 	private async Task ProcessChannelAsync(
-		WTelegram.Client client,
+		Client client,
 		DiscoverChannelDto channelDto,
 		CancellationToken ct
 	)
@@ -89,16 +91,8 @@ internal sealed partial class DiscoverChannelLinksWorker(
 			return;
 		}
 
-		// if (channel.flags.HasFlag(Channel.Flags.megagroup))
-		// {
-		// 	logger.LogInformation(
-		// 		"Пропускаем megagroup-чат {Channel} — Discover работает только с broadcast-каналами",
-		// 		channelDto.Username ?? channelDto.TelegramId?.ToString());
-		// 	await storage.MarkAsSkippedAsync(channelDto.Id, ct);
-		// 	return;
-		// }
-
-		var scan = await ScanChannelHistoryAsync(client, channel, channelDto, ct);
+		var allHistory = await GetAllHistoryAsync(client, channel, channelDto.LastParsedId, ct);
+		var scan = ScanChannelHistoryAsync(allHistory);
 
 		foreach (var privId in scan.PrivateChannelIds)
 		{
@@ -109,7 +103,7 @@ internal sealed partial class DiscoverChannelLinksWorker(
 			});
 		}
 
-		var resolvedTextPeers = await ResolveChatPeersAsync(client, scan.TextUsernames, ct);
+		var resolvedTextPeers = await ResolveAllChatPeersAsync(scan.TextUsernames, ct);
 		foreach (var resolvedPeer in resolvedTextPeers.Values)
 			scan.PublicPeers.TryAdd(resolvedPeer.Username!, resolvedPeer);
 
@@ -130,7 +124,7 @@ internal sealed partial class DiscoverChannelLinksWorker(
 	}
 
 	private async Task<Channel?> ResolveChannelAsync(
-		WTelegram.Client client,
+		Client client,
 		DiscoverChannelDto channelDto,
 		CancellationToken ct
 	)
@@ -175,23 +169,17 @@ internal sealed partial class DiscoverChannelLinksWorker(
 		return null;
 	}
 
-	private async Task<HistoryScanResult> ScanChannelHistoryAsync(
-		WTelegram.Client client,
+	private async Task<List<Messages_MessagesBase>> GetAllHistoryAsync(
+		Client client,
 		Channel channel,
-		DiscoverChannelDto channelDto,
+		int? lastParsedId,
 		CancellationToken ct
 	)
 	{
-		var publicPeers = new Dictionary<string, DiscoveredPeerInfo>(StringComparer.OrdinalIgnoreCase);
-		var privatePeers = new Dictionary<long, DiscoveredPeerInfo>();
-		var textUsernames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-		var inviteHashes = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-		var privateChannelIds = new HashSet<long>();
-		var lastParsedId = channelDto.LastParsedId ?? 0;
 		var offset = 0;
 		var transientAttempts = 0;
 		const int maxTransientAttempts = 3;
-
+		var allHistory = new List<Messages_MessagesBase>();
 		while (true)
 		{
 			ct.ThrowIfCancellationRequested();
@@ -202,22 +190,20 @@ internal sealed partial class DiscoverChannelLinksWorker(
 				filter: new InputMessagesFilterUrl(),
 				limit: MessageBatchSize,
 				offsetId: offset,
-				minId: channelDto.LastParsedId ?? 0,
+				minId: lastParsedId ?? 0,
 				ct: ct);
 
 			if (!historyResult.IsSuccess)
 			{
-				logger.LogWarning("Ошибка получения истории канала {Channel}: {Status} {Error}",
-					channelDto.Username ?? channelDto.TelegramId?.ToString(),
+				logger.LogWarning("Ошибка получения истории канала {Channel}: {Status} {Error}", channel.MainUsername,
 					historyResult.Status, historyResult.ErrorMessage);
 
-				if (historyResult.Status is TelegramOperationStatus.Timeout
-				    or TelegramOperationStatus.UnknownError)
+				if (historyResult.Status is TelegramOperationStatus.Timeout or TelegramOperationStatus.UnknownError)
 				{
 					if (++transientAttempts >= maxTransientAttempts)
 					{
 						logger.LogWarning("Прерываем сканирование {Channel}: исчерпан лимит ретраев ({Attempts})",
-							channelDto.Username ?? channelDto.TelegramId?.ToString(), transientAttempts);
+							channel.MainUsername, transientAttempts);
 						break;
 					}
 
@@ -231,64 +217,75 @@ internal sealed partial class DiscoverChannelLinksWorker(
 			transientAttempts = 0;
 
 			var history = historyResult.Value!;
+			allHistory.Add(history);
 
 			if (history.Messages.Length == 0)
 				break;
-
-			var chats = new Dictionary<long, ChatBase>();
-			var users = new Dictionary<long, User>();
-			history.CollectUsersChats(users, chats);
-
-			foreach (var keyValuePair in chats)
-			{
-				var chat = keyValuePair.Value;
-				if (chat is ChatForbidden or ChannelForbidden)
-					continue;
-
-				if (!string.IsNullOrEmpty(chat.MainUsername))
-				{
-					publicPeers.TryAdd(chat.MainUsername, new DiscoveredPeerInfo
-					{
-						PeerType = ResolvePeerType(chat),
-						Username = chat.MainUsername,
-						TelegramId = keyValuePair.Key,
-						Title = chat.Title,
-						ParticipantsCount = (chat as Channel)?.participants_count
-					});
-				}
-				else if (keyValuePair.Key != 0)
-				{
-					privatePeers.TryAdd(keyValuePair.Key, new DiscoveredPeerInfo
-					{
-						PeerType = ResolvePeerType(chat),
-						TelegramId = keyValuePair.Key,
-						Title = chat.Title,
-						ParticipantsCount = (chat as Channel)?.participants_count
-					});
-				}
-			}
-
-			foreach (var message in history.Messages.OfType<Message>())
-			{
-				if (lastParsedId < message.ID)
-					lastParsedId = message.ID;
-
-				if (!string.IsNullOrEmpty(message.message))
-					ExtractLinksFromText(message.message, textUsernames, inviteHashes, privateChannelIds);
-
-				ExtractLinksFromEntities(message.entities, textUsernames, inviteHashes, privateChannelIds);
-			}
-
 			offset = history.Messages.Last().ID;
-
 			if (history.Messages.Length < MessageBatchSize)
 				break;
-
 			await Task.Delay(InterBatchDelay, ct);
 		}
 
+		return allHistory;
+	}
+
+	private HistoryScanResult ScanChannelHistoryAsync(
+		List<Messages_MessagesBase> allHistory
+	)
+	{
+		var publicPeers = new Dictionary<string, DiscoveredPeerInfo>(StringComparer.OrdinalIgnoreCase);
+		var privatePeers = new Dictionary<long, DiscoveredPeerInfo>();
+		var textUsernames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+		var inviteHashes = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+		var privateChannelIds = new HashSet<long>();
+
+		var chats = new Dictionary<long, ChatBase>();
+		var users = new Dictionary<long, User>();
+
+		foreach (var messagesMessagesBase in allHistory)
+			messagesMessagesBase.CollectUsersChats(users, chats);
+
+		foreach (var keyValuePair in chats)
+		{
+			var chat = keyValuePair.Value;
+			if (chat is ChatForbidden or ChannelForbidden)
+				continue;
+
+			if (!string.IsNullOrEmpty(chat.MainUsername))
+			{
+				publicPeers.TryAdd(chat.MainUsername, new DiscoveredPeerInfo
+				{
+					PeerType = ResolvePeerType(chat),
+					Username = chat.MainUsername,
+					TelegramId = keyValuePair.Key,
+					Title = chat.Title,
+					ParticipantsCount = (chat as Channel)?.participants_count
+				});
+			}
+			else if (keyValuePair.Key != 0)
+			{
+				privatePeers.TryAdd(keyValuePair.Key, new DiscoveredPeerInfo
+				{
+					PeerType = ResolvePeerType(chat),
+					TelegramId = keyValuePair.Key,
+					Title = chat.Title,
+					ParticipantsCount = (chat as Channel)?.participants_count
+				});
+			}
+		}
+
+		var allmessages = allHistory.SelectMany(messagesBase => messagesBase.Messages.OfType<Message>()).ToList();
+		var lastParseId = allmessages.Select(x => x.ID).Max();
+
+		foreach (var message in allmessages)
+		{
+			ExtractLinksFromText(message.message, textUsernames, inviteHashes, privateChannelIds);
+			ExtractLinksFromEntities(message.entities, textUsernames, inviteHashes, privateChannelIds);
+		}
+
 		return new HistoryScanResult(publicPeers, privatePeers, textUsernames, inviteHashes, privateChannelIds,
-			lastParsedId);
+			lastParseId);
 	}
 
 	private async Task SaveDiscoveredPeersAsync(
@@ -308,9 +305,11 @@ internal sealed partial class DiscoverChannelLinksWorker(
 			{
 				Username = peer.Username,
 				TgUrl = $"https://t.me/{peer.Username}",
-				TelegramId = peer.TelegramId,
+				TelegramId = peer.TelegramId != 0 ? peer.TelegramId : null,
 				PeerType = peer.PeerType,
 				Title = peer.Title,
+				Description = peer.Description,
+				AvatarUrl = peer.AvatarUrl,
 				ParticipantsCount = peer.ParticipantsCount,
 				InviteHash = peer.InviteHash,
 				DiscoveredFromChannelId = channelDto.Id
@@ -359,8 +358,7 @@ internal sealed partial class DiscoverChannelLinksWorker(
 		}, ct);
 	}
 
-	private async Task<Dictionary<string, DiscoveredPeerInfo>> ResolveChatPeersAsync(
-		WTelegram.Client client,
+	private async Task<Dictionary<string, DiscoveredPeerInfo>> ResolveAllChatPeersAsync(
 		HashSet<string> usernames,
 		CancellationToken ct
 	)
@@ -371,31 +369,46 @@ internal sealed partial class DiscoverChannelLinksWorker(
 		{
 			ct.ThrowIfCancellationRequested();
 
-			var result = await tgMessages.ResolveChannelAsync(client, username, ct);
-			if (result.IsSuccess && result.Value is not null)
-			{
-				chats[username] = new DiscoveredPeerInfo
-				{
-					PeerType = ResolvePeerType(result.Value),
-					TelegramId = result.Value.ID,
-					Username = username,
-					Title = result.Value.Title,
-					ParticipantsCount = result.Value.participants_count
-				};
-			}
-			else
-			{
-				logger.LogDebug("Не удалось разрешить @{Username} ({Status}), пропускаем", username, result.Status);
-			}
-
-			await Task.Delay(TimeSpan.FromSeconds(3), ct);
+			var peerInfo = await ResolveChatPeersAsync(username, ct);
+			if (peerInfo.HasValue)
+				chats.TryAdd(username, peerInfo.Value);
 		}
 
 		return chats;
 	}
 
+	private async Task<DiscoveredPeerInfo?> ResolveChatPeersAsync(
+		string username,
+		CancellationToken ct
+	)
+	{
+		var result = await publicLookup.LookupAsync(username, ct);
+		if (!result.IsSuccess || result.Value is null)
+		{
+			logger.LogDebug("HTTP-lookup не удался для @{Username} ({Status}), пропускаем",
+				username, result.Status);
+			return null;
+		}
+
+		var info = result.Value;
+		if (info.Type is not (TelegramEntityType.Channel or TelegramEntityType.Group))
+			return null;
+
+		return new DiscoveredPeerInfo
+		{
+			PeerType = info.Type == TelegramEntityType.Channel ? "channel" : "chat",
+			Username = info.Username,
+			Title = info.Title,
+			Description = info.Description,
+			AvatarUrl = info.PhotoUrl,
+			ParticipantsCount = info.MembersCount is { } members
+				? (int?)Math.Min(members, int.MaxValue)
+				: null
+		};
+	}
+
 	private async Task<Dictionary<string, DiscoveredPeerInfo>> ResolveInviteLinksAsync(
-		WTelegram.Client client,
+		Client client,
 		HashSet<string> hashes,
 		CancellationToken ct
 	)
@@ -569,6 +582,9 @@ internal sealed partial class DiscoverChannelLinksWorker(
 		HashSet<long> privateChannelIds
 	)
 	{
+		if (string.IsNullOrEmpty(text))
+			return;
+
 		foreach (Match match in TmeLinkRegex().Matches(text))
 		{
 			var username = match.Groups[1].Value;
@@ -619,5 +635,7 @@ internal sealed partial class DiscoverChannelLinksWorker(
 		string PeerType = "channel",
 		string? Title = null,
 		int? ParticipantsCount = null,
-		string? InviteHash = null);
+		string? InviteHash = null,
+		string? Description = null,
+		string? AvatarUrl = null);
 }

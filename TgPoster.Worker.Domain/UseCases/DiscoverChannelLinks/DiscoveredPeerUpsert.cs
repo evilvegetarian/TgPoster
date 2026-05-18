@@ -8,6 +8,8 @@ public sealed record DiscoveredPeerUpsert
 	public long? TelegramId { get; init; }
 	public string? PeerType { get; init; }
 	public string? Title { get; init; }
+	public string? Description { get; init; }
+	public string? AvatarUrl { get; init; }
 	public int? ParticipantsCount { get; init; }
 	public string? InviteHash { get; init; }
 	public Guid? DiscoveredFromChannelId { get; init; }
