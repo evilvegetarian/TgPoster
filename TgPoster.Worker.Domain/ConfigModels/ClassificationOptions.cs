@@ -3,6 +3,6 @@ namespace TgPoster.Worker.Domain.ConfigModels;
 public class OpenRouterOptions
 {
 	public string? SecretKey { get; set; }
-	public string Model { get; set; } = "x-ai/grok-4.20";
+	public string Model { get; set; } = "x-ai/grok-4.1-fast";
 	public int MessageSampleCount { get; set; } = 25;
 }
