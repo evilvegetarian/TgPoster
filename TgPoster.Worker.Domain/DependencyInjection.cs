@@ -118,7 +118,7 @@ public static class DependencyInjection
 		recurringJobManager.AddOrUpdate<DiscoverChannelLinksWorker>(
 			"discover-channel-links-job",
 			worker => worker.ProcessChannelsAsync(),
-			"0 */3 * * *");
+			"0 */2 * * *");
 
 		recurringJobManager.AddOrUpdate<ClassifyChannelWorker>(
 			"classify-channels-job",
