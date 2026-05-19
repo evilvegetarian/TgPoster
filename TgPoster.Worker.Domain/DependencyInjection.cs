@@ -114,7 +114,7 @@ public static class DependencyInjection
 			worker => worker.CheckForNewPostsAsync(),
 			Cron.Minutely());
 
-		//Каждые 6 часов
+		//Каждые 2 часов
 		recurringJobManager.AddOrUpdate<DiscoverChannelLinksWorker>(
 			"discover-channel-links-job",
 			worker => worker.ProcessChannelsAsync(),
@@ -123,7 +123,7 @@ public static class DependencyInjection
 		recurringJobManager.AddOrUpdate<ClassifyChannelWorker>(
 			"classify-channels-job",
 			worker => worker.ClassifyChannelsAsync(),
-			Cron.Hourly());
+			"*/20 * * * *");
 
 		recurringJobManager.AddOrUpdate<UpdateChannelStatsWorker>(
 			"update-channel-stats-job",
