@@ -19,7 +19,12 @@ internal sealed class DiscoverChannelLinksStorage(PosterContext context, GuidFac
 
 	public Task<List<DiscoverChannelDto>> GetChannelsToProcessAsync(int channelBatchSize, CancellationToken ct)
 	{
-		return context.DiscoveredChannels
+		//Пока это только ищу
+		var query = context.DiscoveredChannels
+			.Where(x => x.PeerType == "chat")
+			.Where(x => x.Category == "18+");
+		
+		return query
 			.Where(x => x.Status == DiscoveryStatus.Pending || x.Status == DiscoveryStatus.Completed)
 			.Where(x => x.Username != null)
 			.OrderBy(x => x.LastDiscoveredAt != null)

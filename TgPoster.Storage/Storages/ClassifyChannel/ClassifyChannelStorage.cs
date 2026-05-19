@@ -16,7 +16,13 @@ internal sealed class ClassifyChannelStorage(PosterContext context) : IClassifyC
 
 	public Task<List<ChannelForClassificationDto>> GetUnclassifiedChannelsAsync(int batchSize, CancellationToken ct)
 	{
-		return context.DiscoveredChannels
+		//Пока это только ищу
+		
+		var query = context.DiscoveredChannels
+			.Where(x => x.PeerType == "chat")
+			.Where(x => x.Category == "18+");
+		
+		return query
 			.Where(x => x.Username != null)
 			.OrderBy(x => x.LastClassifiedAt != null)
 			.Take(batchSize)
