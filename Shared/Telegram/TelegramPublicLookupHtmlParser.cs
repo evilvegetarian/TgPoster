@@ -65,6 +65,55 @@ internal static partial class TelegramPublicLookupHtmlParser
         };
     }
 
+    /// <summary>
+    ///     Разбирает HTML страницы приглашения <c>https://t.me/+&lt;hash&gt;</c> и возвращает информацию о канале/группе.
+    /// </summary>
+    /// <param name="html">HTML-ответ страницы инвайта.</param>
+    /// <returns>
+    ///     Описание сущности. <see cref="TelegramPublicEntityInfo.Username"/> всегда <c>null</c> (на странице инвайта
+    ///     публичного username нет). <see cref="TelegramPublicEntityInfo.Type"/> — <c>Channel</c>, <c>Group</c>
+    ///     или <c>NotFound</c>, если HTML не похож на превью.
+    /// </returns>
+    public static TelegramPublicEntityInfo ParseInvite(string html)
+    {
+        if (string.IsNullOrWhiteSpace(html) || !TitleRegex().IsMatch(html))
+        {
+            return new TelegramPublicEntityInfo
+            {
+                Username = null,
+                Type = TelegramEntityType.NotFound
+            };
+        }
+
+        var extraMatch = ExtraRegex().Match(html);
+        var extraText = extraMatch.Success ? DecodeAndTrim(StripTags(extraMatch.Groups["body"].Value)) : null;
+
+        var type = DetermineInviteType(extraText);
+
+        var titleMatch = TitleRegex().Match(html);
+        var title = titleMatch.Success ? DecodeAndTrim(StripTags(titleMatch.Groups["body"].Value)) : null;
+
+        var descriptionMatch = DescriptionRegex().Match(html);
+        var description = descriptionMatch.Success
+            ? DecodeAndTrim(StripTags(descriptionMatch.Groups["body"].Value))
+            : null;
+
+        var membersCount = extraText is not null ? ParseMembersCount(extraText) : null;
+
+        var photoMatch = PhotoRegex().Match(html);
+        var photoUrl = photoMatch.Success ? WebUtility.HtmlDecode(photoMatch.Groups["src"].Value).Trim() : null;
+
+        return new TelegramPublicEntityInfo
+        {
+            Username = null,
+            Type = type,
+            Title = string.IsNullOrEmpty(title) ? null : title,
+            Description = string.IsNullOrEmpty(description) ? null : description,
+            MembersCount = membersCount,
+            PhotoUrl = string.IsNullOrEmpty(photoUrl) ? null : photoUrl
+        };
+    }
+
     private static TelegramEntityType DetermineType(string username, string? extraText)
     {
         if (extraText is not null)
@@ -80,6 +129,20 @@ internal static partial class TelegramPublicLookupHtmlParser
             return TelegramEntityType.Bot;
 
         return TelegramEntityType.User;
+    }
+
+    private static TelegramEntityType DetermineInviteType(string? extraText)
+    {
+        if (extraText is not null)
+        {
+            if (extraText.Contains("subscriber", StringComparison.OrdinalIgnoreCase))
+                return TelegramEntityType.Channel;
+
+            if (extraText.Contains("member", StringComparison.OrdinalIgnoreCase))
+                return TelegramEntityType.Group;
+        }
+
+        return TelegramEntityType.Channel;
     }
 
     private static long? ParseMembersCount(string extraText)

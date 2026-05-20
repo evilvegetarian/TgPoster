@@ -7,8 +7,12 @@ namespace Shared.Telegram;
 /// </summary>
 public sealed record TelegramPublicEntityInfo
 {
-    /// <summary>Нормализованный username без префикса <c>@</c> и без <c>t.me/</c>.</summary>
-    public required string Username { get; init; }
+    /// <summary>
+    ///     Нормализованный username без префикса <c>@</c> и без <c>t.me/</c>.
+    ///     Может быть <c>null</c>, если сущность получена со страницы приглашения <c>t.me/+&lt;hash&gt;</c>
+    ///     (у приватных каналов/групп публичного username нет).
+    /// </summary>
+    public string? Username { get; init; }
 
     /// <summary>Тип сущности.</summary>
     public required TelegramEntityType Type { get; init; }

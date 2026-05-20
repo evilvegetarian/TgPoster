@@ -19,6 +19,7 @@ internal sealed partial class DiscoverChannelLinksWorker(
 	private const int MessageBatchSize = 100;
 	private const int ChannelBatchSize = 1;
 	private static readonly TimeSpan InterBatchDelay = TimeSpan.FromMilliseconds(1500);
+	private static readonly TimeSpan InviteLookupDelay = TimeSpan.FromMilliseconds(500);
 	private static readonly SemaphoreSlim ParseLock = new(1, 1);
 
 	public async Task ProcessChannelsAsync()
@@ -107,7 +108,7 @@ internal sealed partial class DiscoverChannelLinksWorker(
 		foreach (var resolvedPeer in resolvedTextPeers.Values)
 			scan.PublicPeers.TryAdd(resolvedPeer.Username!, resolvedPeer);
 
-		var resolvedInvites = await ResolveInviteLinksAsync(client, scan.InviteHashes, ct);
+		var resolvedInvites = await ResolveInviteLinksAsync(scan.InviteHashes, ct);
 
 		DeduplicateResolvedInvites(scan.PublicPeers, scan.PrivatePeers, resolvedInvites);
 		DeduplicateByTitle(scan.PublicPeers, scan.PrivatePeers, resolvedInvites);
@@ -276,13 +277,16 @@ internal sealed partial class DiscoverChannelLinksWorker(
 		}
 
 		var allmessages = allHistory.SelectMany(messagesBase => messagesBase.Messages.OfType<Message>()).ToList();
-		var lastParseId = allmessages.Select(x => x.ID).Max();
+		var lastParseId = allmessages.Count > 0 ? allmessages.Select(x => x.ID).Max() : 0;
 
 		foreach (var message in allmessages)
 		{
 			ExtractLinksFromText(message.message, textUsernames, inviteHashes, privateChannelIds);
 			ExtractLinksFromEntities(message.entities, textUsernames, inviteHashes, privateChannelIds);
 		}
+
+		// HTTP-lookup делаем только для username'ов, которых нет в chats dict — там данные мы уже взяли бесплатно из MTProto.
+		textUsernames.ExceptWith(publicPeers.Keys);
 
 		return new HistoryScanResult(publicPeers, privatePeers, textUsernames, inviteHashes, privateChannelIds,
 			lastParseId);
@@ -338,6 +342,8 @@ internal sealed partial class DiscoverChannelLinksWorker(
 				TelegramId = peer.TelegramId != 0 ? peer.TelegramId : null,
 				PeerType = peer.PeerType,
 				Title = peer.Title,
+				Description = peer.Description,
+				AvatarUrl = peer.AvatarUrl,
 				ParticipantsCount = peer.ParticipantsCount,
 				InviteHash = hash,
 				DiscoveredFromChannelId = channelDto.Id
@@ -408,7 +414,6 @@ internal sealed partial class DiscoverChannelLinksWorker(
 	}
 
 	private async Task<Dictionary<string, DiscoveredPeerInfo>> ResolveInviteLinksAsync(
-		Client client,
 		HashSet<string> hashes,
 		CancellationToken ct
 	)
@@ -419,52 +424,37 @@ internal sealed partial class DiscoverChannelLinksWorker(
 		{
 			ct.ThrowIfCancellationRequested();
 
-			var inviteResult = await tgMessages.CheckChatInviteAsync(client, hash, ct);
-			if (!inviteResult.IsSuccess)
+			var result = await publicLookup.LookupInviteAsync(hash, ct);
+			if (!result.IsSuccess || result.Value is null)
 			{
-				logger.LogDebug("Не удалось проверить инвайт-хеш {Hash} ({Status}), пропускаем",
-					hash, inviteResult.Status);
-				await Task.Delay(TimeSpan.FromSeconds(3), ct);
+				logger.LogDebug("HTTP-lookup инвайта {Hash} не удался ({Status}), пропускаем",
+					hash, result.Status);
+				await Task.Delay(InviteLookupDelay, ct);
 				continue;
 			}
 
-			switch (inviteResult.Value)
+			var info = result.Value;
+			if (info.Type is not (TelegramEntityType.Channel or TelegramEntityType.Group))
 			{
-				case ChatInviteAlready { chat: var chat }:
-					results[hash] = new DiscoveredPeerInfo
-					{
-						Username = chat.MainUsername,
-						TelegramId = chat.ID,
-						PeerType = ResolvePeerType(chat),
-						Title = chat.Title,
-						ParticipantsCount = (chat as Channel)?.participants_count,
-						InviteHash = hash
-					};
-					break;
-				case ChatInvitePeek { chat: var chat }:
-					results[hash] = new DiscoveredPeerInfo
-					{
-						Username = chat.MainUsername,
-						TelegramId = chat.ID,
-						PeerType = ResolvePeerType(chat),
-						Title = chat.Title,
-						ParticipantsCount = (chat as Channel)?.participants_count,
-						InviteHash = hash
-					};
-					break;
-				case ChatInvite invite:
-					results[hash] = new DiscoveredPeerInfo
-					{
-						TelegramId = 0,
-						PeerType = ResolvePeerType(invite),
-						Title = invite.title,
-						ParticipantsCount = invite.participants_count,
-						InviteHash = hash
-					};
-					break;
+				await Task.Delay(InviteLookupDelay, ct);
+				continue;
 			}
 
-			await Task.Delay(TimeSpan.FromSeconds(3), ct);
+			results[hash] = new DiscoveredPeerInfo
+			{
+				PeerType = info.Type == TelegramEntityType.Channel ? "channel" : "chat",
+				Username = info.Username,
+				TelegramId = 0,
+				Title = info.Title,
+				Description = info.Description,
+				AvatarUrl = info.PhotoUrl,
+				ParticipantsCount = info.MembersCount is { } members
+					? (int?)Math.Min(members, int.MaxValue)
+					: null,
+				InviteHash = hash
+			};
+
+			await Task.Delay(InviteLookupDelay, ct);
 		}
 
 		return results;
@@ -552,9 +542,6 @@ internal sealed partial class DiscoverChannelLinksWorker(
 	}
 
 	private static string ResolvePeerType(ChatBase chat) => chat.IsChannel ? "channel" : "chat";
-
-	private static string ResolvePeerType(ChatInvite invite) =>
-		invite.flags.HasFlag(ChatInvite.Flags.channel) ? "channel" : "chat";
 
 	private static void ExtractLinksFromEntities(
 		MessageEntity[]? entities,
