@@ -391,4 +391,93 @@ public sealed class DiscoverChannelLinksStorageShould(StorageTestFixture fixture
 		saved.Status.ShouldBe(DiscoveryStatus.Skipped);
 		saved.LastDiscoveredAt.ShouldNotBeNull();
 	}
+
+	[Fact]
+	public async Task UpsertAsync_WhenAnotherRowOwnsUsername_ShouldMergeRowsWithoutConstraintViolation()
+	{
+		var username = $"merge_{Guid.NewGuid():N}";
+		var telegramId = 800_000L + Random.Shared.NextInt64(1, 1_000_000);
+
+		var rowByTelegramId = new DiscoveredChannel
+		{
+			Id = Guid.NewGuid(),
+			TelegramId = telegramId,
+			Title = "Private Row",
+			Status = DiscoveryStatus.Pending
+		};
+		var rowByUsername = new DiscoveredChannel
+		{
+			Id = Guid.NewGuid(),
+			Username = username,
+			Description = "From Text Mention",
+			Status = DiscoveryStatus.Pending
+		};
+		context.DiscoveredChannels.AddRange(rowByTelegramId, rowByUsername);
+		await context.SaveChangesAsync(CancellationToken.None);
+		context.ChangeTracker.Clear();
+
+		await sut.UpsertAsync(new DiscoveredPeerUpsert
+		{
+			Username = username,
+			TelegramId = telegramId,
+			Title = "Resolved",
+			MarkAsCompleted = true
+		}, CancellationToken.None);
+
+		var rows = await context.DiscoveredChannels
+			.Where(x => x.Username == username || x.TelegramId == telegramId)
+			.ToListAsync(CancellationToken.None);
+
+		rows.Count.ShouldBe(1);
+		rows[0].Username.ShouldBe(username);
+		rows[0].TelegramId.ShouldBe(telegramId);
+		rows[0].Title.ShouldBe("Resolved");
+		rows[0].Description.ShouldBe("From Text Mention");
+		rows[0].Status.ShouldBe(DiscoveryStatus.Completed);
+	}
+
+	[Fact]
+	public async Task BulkUpsertAsync_WhenAnotherRowOwnsUsername_ShouldMergeRowsWithoutConstraintViolation()
+	{
+		var username = $"bulkmerge_{Guid.NewGuid():N}";
+		var telegramId = 900_000L + Random.Shared.NextInt64(1, 1_000_000);
+
+		var rowByTelegramId = new DiscoveredChannel
+		{
+			Id = Guid.NewGuid(),
+			TelegramId = telegramId,
+			Title = "Private",
+			Status = DiscoveryStatus.Pending
+		};
+		var rowByUsername = new DiscoveredChannel
+		{
+			Id = Guid.NewGuid(),
+			Username = username,
+			ParticipantsCount = 42,
+			Status = DiscoveryStatus.Pending
+		};
+		context.DiscoveredChannels.AddRange(rowByTelegramId, rowByUsername);
+		await context.SaveChangesAsync(CancellationToken.None);
+		context.ChangeTracker.Clear();
+
+		await sut.BulkUpsertAsync([
+			new DiscoveredPeerUpsert
+			{
+				Username = username,
+				TelegramId = telegramId,
+				Title = "Resolved",
+				PeerType = "channel"
+			}
+		], CancellationToken.None);
+
+		var rows = await context.DiscoveredChannels
+			.Where(x => x.Username == username || x.TelegramId == telegramId)
+			.ToListAsync(CancellationToken.None);
+
+		rows.Count.ShouldBe(1);
+		rows[0].Username.ShouldBe(username);
+		rows[0].TelegramId.ShouldBe(telegramId);
+		rows[0].Title.ShouldBe("Resolved");
+		rows[0].ParticipantsCount.ShouldBe(42);
+	}
 }
