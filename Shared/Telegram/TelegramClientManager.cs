@@ -52,7 +52,6 @@ public sealed class TelegramClientManager(ILogger<TelegramClientManager> logger)
 	public void AddActiveClient(Guid sessionId, Client client)
 	{
 		activeClients[sessionId] = client;
-		logger.LogDebug("Клиент добавлен в активные для сессии {SessionId}", sessionId);
 	}
 
 	/// <summary>
