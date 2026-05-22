@@ -46,7 +46,6 @@ internal sealed class ProcessMessageConsumer(
 		            && string.IsNullOrWhiteSpace(parameters.ModelOpenRouter);
 
 		var ct = context.CancellationToken;
-		logger.LogDebug("Начата обработка поста для ScheduleId: {ScheduleId}", scheduleId);
 
 		var token = cryptoAes.Decrypt(telegramOptions.SecretKey, encryptedToken);
 		var telegramBot = botManager.GetClient(token);
@@ -253,7 +252,6 @@ internal sealed class ProcessMessageConsumer(
 			var postingTime = timePostingService.GetTimeForPosting(1, scheduleTime, lastMessageTimePosting);
 			messageDto.TimePosting = postingTime.First();
 			await storage.CreateMessageAsync(messageDto, ct);
-			logger.LogDebug("Пост для ScheduleId {ScheduleId} успешно обработан и сохранен.", scheduleId);
 		}
 		else
 		{

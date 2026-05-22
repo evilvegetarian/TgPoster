@@ -19,7 +19,6 @@ public sealed class TelegramAuthService(
 {
 	public void Dispose()
 	{
-		logger.LogInformation("TelegramAuthService освобожден");
 	}
 
 	/// <summary>

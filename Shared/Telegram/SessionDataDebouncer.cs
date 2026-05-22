@@ -67,8 +67,6 @@ public sealed class SessionDataDebouncer(
 			var repository = scope.ServiceProvider.GetRequiredService<ITelegramAuthRepository>();
 			var sessionString = Convert.ToBase64String(data);
 			await repository.UpdateSessionDataAsync(sessionId, sessionString, CancellationToken.None);
-
-			logger.LogDebug("Данные сессии {SessionId} сохранены в БД (debounced)", sessionId);
 		}
 		catch (Exception ex)
 		{

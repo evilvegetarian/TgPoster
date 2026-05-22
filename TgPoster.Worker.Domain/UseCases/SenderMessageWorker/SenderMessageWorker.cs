@@ -37,7 +37,6 @@ public class SenderMessageWorker(
 		}
 
 		await storage.UpdateStatusInHandleMessageAsync(messages.Select(x => x.Id).ToList());
-		logger.LogDebug("Найдено {count} сообщений", messages.Count);
 		foreach (var detail in messageDetails)
 		{
 			var token = crypto.Decrypt(options.SecretKey, detail.Api);
@@ -48,9 +47,6 @@ public class SenderMessageWorker(
 				{
 					BackgroundJob.Schedule<SenderMessageWorker>(
 						x => x.SendMessageAsync(message.Id, token, detail.ChannelId, message, detail.YouTubeAccount),
-						message.TimePosting);
-					logger.LogDebug(
-						"Сообщение для чата {channelId} запланировано на {timePosting} сек.", detail.ChannelId,
 						message.TimePosting);
 				}
 				catch (Exception e)
@@ -120,13 +116,10 @@ public class SenderMessageWorker(
 		}
 
 		await storage.UpdateSendStatusMessageAsync(messageId);
-		logger.LogDebug("Отправлено сообщение в чат {chatId}", chatId);
 
 		if (telegramMessageId.HasValue)
 		{
 			await storage.SaveTelegramMessageIdAsync(messageId, telegramMessageId.Value, ct);
-			logger.LogDebug("Сохранен TelegramMessageId: {TelegramMessageId} для сообщения {MessageId}",
-				telegramMessageId.Value, messageId);
 
 			var repostSettingsList = await storage.GetRepostSettingsForMessageAsync(messageId, ct);
 			foreach (var repostSettings in repostSettingsList.Where(rs => rs.Destinations.Count > 0))
@@ -139,15 +132,11 @@ public class SenderMessageWorker(
 				};
 
 				await publishEndpoint.Publish(command, ct);
-				logger.LogDebug(
-					"Опубликовано событие репоста для сообщения {MessageId} в {Count} направлений",
-					messageId, repostSettings.Destinations.Count);
 			}
 		}
 
 		if (youTubeAccount?.AutoPostingVideo == true)
 		{
-			logger.LogDebug("Начал отправку видео в ютуб");
 			await UploadVideosToYouTubeAsync(bot, message, youTubeAccount);
 		}
 	}
@@ -164,7 +153,6 @@ public class SenderMessageWorker(
 
 		if (videoFiles.Count == 0)
 		{
-			logger.LogDebug("Нет видео файлов для загрузки на YouTube");
 			return;
 		}
 
@@ -179,9 +167,6 @@ public class SenderMessageWorker(
 
 				await storage.UpdateYouTubeTokensAsync(youTubeAccount.Id, result.AccessToken, result.RefreshToken,
 					lifetime.ApplicationStopping);
-
-				logger.LogDebug("Видео успешно загружено на YouTube с названием: {title}",
-					youTubeAccount.DefaultTitle);
 			}
 			catch (Exception e)
 			{

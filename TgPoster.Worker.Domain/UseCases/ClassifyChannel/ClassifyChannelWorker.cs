@@ -80,7 +80,6 @@ internal sealed partial class ClassifyChannelWorker(
 			var channels = await storage.GetUnclassifiedChannelsAsync(BatchSize, ct);
 			if (channels.Count == 0)
 			{
-				logger.LogDebug("Нет каналов для классификации");
 				return;
 			}
 
@@ -122,8 +121,6 @@ internal sealed partial class ClassifyChannelWorker(
 		CancellationToken ct
 	)
 	{
-		logger.LogDebug("Классифицируем канал: {Title} ({ChannelId})", channel.Title, channel.Id);
-
 		var resolved = await ResolvePeerAsync(telegramClient, channel, ct);
 		if (resolved.Peer is null)
 		{

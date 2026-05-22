@@ -49,8 +49,6 @@ internal sealed class TelegramPublicLookupService(
 
         var info = TelegramPublicLookupHtmlParser.Parse(username, page.Html!);
 
-        logger.LogDebug("t.me lookup для {Username}: {Type}", username, info.Type);
-
         return TelegramOperationResult<TelegramPublicEntityInfo>.Success(info);
     }
 
@@ -84,8 +82,6 @@ internal sealed class TelegramPublicLookupService(
         }
 
         var info = TelegramPublicLookupHtmlParser.ParseInvite(page.Html!);
-
-        logger.LogDebug("t.me invite-lookup для +{Hash}: {Type}", hash, info.Type);
 
         return TelegramOperationResult<TelegramPublicEntityInfo>.Success(info);
     }

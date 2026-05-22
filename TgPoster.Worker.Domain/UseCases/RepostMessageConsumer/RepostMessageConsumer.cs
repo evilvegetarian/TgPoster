@@ -17,7 +17,6 @@ internal sealed class RepostMessageConsumer(
 	{
 		var command = context.Message;
 		var ct = context.CancellationToken;
-		logger.LogInformation("Начал обработку репоста для сообщения {MessageId}", command.MessageId);
 
 		var repostData = await storage.GetRepostDataAsync(command.MessageId, command.RepostSettingsId, ct);
 		if (repostData is null)
@@ -129,8 +128,6 @@ internal sealed class RepostMessageConsumer(
 				forwardResult.ErrorMessage,
 				ct);
 		}
-
-		logger.LogInformation("Завершена обработка репоста для сообщения {MessageId}", command.MessageId);
 	}
 
 	private async Task<bool> ShouldRepostToDestinationAsync(

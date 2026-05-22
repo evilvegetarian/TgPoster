@@ -62,7 +62,6 @@ internal sealed class UpdateChannelStatsWorker(
 			{
 				await storage.UpdateParticipantsCountAsync(channel.Id, fullResult.Value.Value, ct);
 				updated++;
-				logger.LogDebug("@{Username}: {Count} подписчиков", channel.Username, fullResult.Value.Value);
 			}
 			else
 			{

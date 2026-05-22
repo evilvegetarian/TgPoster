@@ -78,7 +78,6 @@ public sealed class TelegramClientManager(ILogger<TelegramClientManager> logger)
 	public void AddPendingClient(Guid sessionId, Client client)
 	{
 		pendingClients.TryAdd(sessionId, client);
-		logger.LogDebug("Клиент добавлен в ожидающие для сессии {SessionId}", sessionId);
 	}
 
 	/// <summary>
@@ -86,13 +85,7 @@ public sealed class TelegramClientManager(ILogger<TelegramClientManager> logger)
 	/// </summary>
 	public bool RemovePendingClient(Guid sessionId)
 	{
-		var removed = pendingClients.TryRemove(sessionId, out _);
-		if (removed)
-		{
-			logger.LogDebug("Клиент удален из ожидающих для сессии {SessionId}", sessionId);
-		}
-
-		return removed;
+		return pendingClients.TryRemove(sessionId, out _);
 	}
 
 	/// <summary>
