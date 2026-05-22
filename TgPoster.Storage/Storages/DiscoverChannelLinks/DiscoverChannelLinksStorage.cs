@@ -42,7 +42,10 @@ internal sealed class DiscoverChannelLinksStorage(PosterContext context, GuidFac
 
 	public Task<bool> ExistsAsync(string? username, long? telegramId, string? inviteHash, CancellationToken ct)
 	{
+		// IgnoreQueryFilters: уникальные индексы покрывают и забаненные строки, поэтому
+		// проверку существования делаем без фильтра IsBanned
 		return context.DiscoveredChannels
+			.IgnoreQueryFilters()
 			.AnyAsync(x =>
 				(telegramId != null && x.TelegramId == telegramId)
 				|| (username != null && x.Username == username)
@@ -120,7 +123,12 @@ internal sealed class DiscoverChannelLinksStorage(PosterContext context, GuidFac
 			.Distinct()
 			.ToArray();
 
+		// IgnoreQueryFilters: уникальные индексы IX_DiscoveredChannels_Username и
+		// IX_DiscoveredChannels_InviteHash покрывают и забаненные строки. Без этого
+		// при наличии в БД забаненной строки с тем же Username/InviteHash мы бы её
+		// не увидели и попытались вставить новую → нарушение unique constraint
 		var existing = await context.DiscoveredChannels
+			.IgnoreQueryFilters()
 			.Where(x =>
 				(x.Username != null && usernames.Contains(x.Username))
 				|| (x.TelegramId != null && telegramIds.Contains(x.TelegramId.Value))
@@ -200,7 +208,10 @@ internal sealed class DiscoverChannelLinksStorage(PosterContext context, GuidFac
 		CancellationToken ct
 	)
 	{
+		// IgnoreQueryFilters: для корректного upsert нужно видеть и забаненные строки,
+		// иначе словим duplicate key по IX_DiscoveredChannels_Username/InviteHash
 		return context.DiscoveredChannels
+			.IgnoreQueryFilters()
 			.Where(x =>
 				(telegramId != null && x.TelegramId == telegramId)
 				|| (username != null && x.Username == username)
