@@ -1,6 +1,6 @@
 using System.Net;
 using Microsoft.Extensions.Logging.Abstractions;
-using Shared.Telegram;
+using TgPoster.Telegram;
 using Shouldly;
 
 namespace Shared.Tests;

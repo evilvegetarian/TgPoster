@@ -6,13 +6,9 @@ using Shared.Telegram;
 using Shared.Video;
 using Telegram.Bot;
 using Telegram.Bot.Types;
+using TgPoster.Telegram;
 using TgPoster.Worker.Domain.ConfigModels;
 using TgPoster.Worker.Domain.UseCases.ParseChannel;
-using TL;
-using Document = TL.Document;
-using InputMediaPhoto = Telegram.Bot.Types.InputMediaPhoto;
-using InputMediaVideo = Telegram.Bot.Types.InputMediaVideo;
-using Message = TL.Message;
 
 namespace TgPoster.Worker.Domain.UseCases.ProcessMessageConsumer;
 
@@ -23,7 +19,6 @@ internal sealed class ProcessMessageConsumer(
 	TelegramExecuteServices telegramExecuteServices,
 	TimePostingService timePostingService,
 	IProcessMessageConsumerStorage storage,
-	ITelegramAuthService authService,
 	ITelegramMessageService tgMessages,
 	TelegramBotManager botManager,
 	ILogger<ProcessMessageConsumer> logger
@@ -50,9 +45,9 @@ internal sealed class ProcessMessageConsumer(
 		var token = cryptoAes.Decrypt(telegramOptions.SecretKey, encryptedToken);
 		var telegramBot = botManager.GetClient(token);
 
-		var client = await authService.GetClientAsync(parameters.TelegramSessionId, ct);
+		var sessionId = parameters.TelegramSessionId;
 
-		var resolveResult = await tgMessages.ResolveChannelAsync(client, channelName, ct);
+		var resolveResult = await tgMessages.ResolveChannelAsync(sessionId, channelName, ct);
 		if (!resolveResult.IsSuccess)
 		{
 			logger.LogError("Не удалось найти канал по имени: {ChannelName} ({Status})",
@@ -61,7 +56,7 @@ internal sealed class ProcessMessageConsumer(
 		}
 
 		var channel = resolveResult.Value!;
-		var channelInput = new InputChannel(channel.ID, channel.access_hash);
+		var channelPeer = channel.Peer;
 
 		var messageDto = new MessageDto
 		{
@@ -76,19 +71,19 @@ internal sealed class ProcessMessageConsumer(
 			foreach (var part in command.Messages)
 			{
 				await Task.Delay(2000, ct);
-				var messageResult = await tgMessages.GetChannelMessageAsync(client, channelInput, part.Id, ct);
+				var messageResult = await tgMessages.GetChannelMessageAsync(sessionId, channelPeer, part.Id, ct);
 				if (!messageResult.IsSuccess || messageResult.Value is not { } message)
 				{
 					continue;
 				}
 
-				if (!deleteMedia)
+				if (!deleteMedia && message.Media is { } media)
 				{
-					if (part.IsPhoto && message is { media: MessageMediaPhoto { photo: Photo photo } })
+					if (part.IsPhoto && media.Type == TelegramMediaType.Photo)
 					{
 						var stream = new MemoryStream();
-						var downloadResult = await tgMessages.DownloadPhotoAsync(
-							client, channelInput, part.Id, photo, stream, ct);
+						var downloadResult = await tgMessages.DownloadMediaAsync(
+							sessionId, channelPeer, part.Id, media, stream, ct);
 						if (!downloadResult.IsSuccess)
 						{
 							logger.LogWarning("Не удалось скачать фото для сообщения {MessageId}: {Status} {Error}",
@@ -96,17 +91,19 @@ internal sealed class ProcessMessageConsumer(
 							await stream.DisposeAsync();
 							continue;
 						}
+
 						stream.Position = 0;
 						downloadedMedia.Add(new DownloadedMedia
 						{
 							Stream = stream, IsPhoto = true, MimeType = "image/jpeg"
 						});
 					}
-					else if (part.IsVideo && message is { media: MessageMediaDocument { document: Document doc } })
+					else if (part.IsVideo
+					         && media.Type is TelegramMediaType.Video or TelegramMediaType.Document)
 					{
 						var stream = new MemoryStream();
-						var downloadResult = await tgMessages.DownloadDocumentAsync(
-							client, channelInput, part.Id, doc, stream, ct);
+						var downloadResult = await tgMessages.DownloadMediaAsync(
+							sessionId, channelPeer, part.Id, media, stream, ct);
 						if (!downloadResult.IsSuccess)
 						{
 							logger.LogWarning("Не удалось скачать видео для сообщения {MessageId}: {Status} {Error}",
@@ -114,18 +111,19 @@ internal sealed class ProcessMessageConsumer(
 							await stream.DisposeAsync();
 							continue;
 						}
+
 						stream.Position = 0;
 						downloadedMedia.Add(new DownloadedMedia
 						{
-							Stream = stream, IsVideo = true, MimeType = doc.mime_type
+							Stream = stream, IsVideo = true, MimeType = media.MimeType ?? "video/mp4"
 						});
 					}
 				}
 
-				messageDto.Text = !deleteText && !string.IsNullOrEmpty(message.message) ? message.message : null;
+				messageDto.Text = !deleteText && !string.IsNullOrEmpty(message.Text) ? message.Text : null;
 				if (useAi)
 				{
-					//openRouterClient.SendMessageAsync()
+					// openRouterClient.SendMessageAsync()
 				}
 			}
 

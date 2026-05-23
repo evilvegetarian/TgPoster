@@ -1,6 +1,6 @@
 using MassTransit;
 using MediatR;
-using Shared.Telegram;
+using TgPoster.Telegram;
 using Telegram.Bot;
 using TgPoster.API.Domain.Extensions;
 using TgPoster.API.Domain.Services;
@@ -11,7 +11,6 @@ internal class CreateParseChannelUseCase(
 	IParseChannelStorage storage,
 	TelegramTokenService tokenService,
 	IBus bus,
-	ITelegramAuthService authService,
 	ITelegramChatService chatService)
 	: IRequestHandler<CreateParseChannelCommand, CreateParseChannelResponse>
 {
@@ -22,8 +21,7 @@ internal class CreateParseChannelUseCase(
 		var channel = request.Channel.ConvertToTelegramHandle();
 		var chat = await bot.GetChat(channel, ct);
 
-		var client = await authService.GetClientAsync(request.TelegramSessionId, ct);
-		var totalMessagesCount = await chatService.GetChannelMessagesCountAsync(client, chat.Username!);
+		var totalMessagesCount = await chatService.GetChannelMessagesCountAsync(request.TelegramSessionId, chat.Username!);
 
 		var id = await storage.AddParseChannelParametersAsync(chat.Username!, request.AlwaysCheckNewPosts,
 			request.ScheduleId, request.DeleteText, request.DeleteMedia, request.AvoidWords, request.NeedVerifiedPosts,

@@ -1,6 +1,6 @@
 using MediatR;
 using Security.IdentityServices;
-using Shared.Telegram;
+using TgPoster.Telegram;
 using TgPoster.Exceptions;
 using TgPoster.Exceptions.BadRequest;
 using TgPoster.Exceptions.NotFound;
@@ -9,7 +9,6 @@ namespace TgPoster.API.Domain.UseCases.CommentRepost.CreateCommentRepost;
 
 internal sealed class CreateCommentRepostUseCase(
 	ICreateCommentRepostStorage storage,
-	ITelegramAuthService authService,
 	ITelegramChatService chatService,
 	IIdentityProvider identity)
 	: IRequestHandler<CreateCommentRepostCommand, CreateCommentRepostResponse>
@@ -17,26 +16,33 @@ internal sealed class CreateCommentRepostUseCase(
 	public async Task<CreateCommentRepostResponse> Handle(CreateCommentRepostCommand request, CancellationToken ct)
 	{
 		if (!await storage.ScheduleExistsAsync(request.ScheduleId, identity.Current.UserId, ct))
+		{
 			throw new ScheduleNotFoundException(request.ScheduleId);
+		}
 
 		if (!await storage.TelegramSessionExistsAndActiveAsync(request.TelegramSessionId, ct))
+		{
 			throw new TelegramSessionEntityNotFoundException(request.TelegramSessionId);
+		}
 
-		var client = await authService.GetClientAsync(request.TelegramSessionId, ct);
-		var chatInfo = await chatService.GetChatInfoAsync(client, request.WatchedChannel);
+		var chatInfo = await chatService.GetChatInfoAsync(request.TelegramSessionId, request.WatchedChannel);
 		var sourceChannel = await storage.GetSourceChannelAsync(request.ScheduleId, ct);
 
 		// Проверка что вступил в канал откуда будет репост
-		await chatService.GetChatInfoAsync(client, sourceChannel);
+		await chatService.GetChatInfoAsync(request.TelegramSessionId, sourceChannel);
 
 		if (await storage.SettingsExistsAsync(chatInfo.Id, request.ScheduleId, ct))
+		{
 			throw new CommentRepostSettingsAlreadyExistsException(request.WatchedChannel);
+		}
 
 		var (linkedChatId, discussionAccessHash) =
-			await chatService.GetLinkedDiscussionGroupAsync(client, chatInfo, ct);
+			await chatService.GetLinkedDiscussionGroupAsync(request.TelegramSessionId, chatInfo, ct);
 
 		if (linkedChatId == 0)
+		{
 			throw new ChannelNoCommentsException(request.WatchedChannel);
+		}
 
 		var settingsId = await storage.CreateAsync(
 			request.WatchedChannel,

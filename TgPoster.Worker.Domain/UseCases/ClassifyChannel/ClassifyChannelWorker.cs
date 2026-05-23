@@ -6,13 +6,11 @@ using Microsoft.Extensions.Logging;
 using Shared.Enums;
 using Shared.OpenRouter;
 using Shared.OpenRouter.Models.Request;
-using Shared.Telegram;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats.Jpeg;
 using SixLabors.ImageSharp.Processing;
-using TL;
+using TgPoster.Telegram;
 using TgPoster.Worker.Domain.ConfigModels;
-using Message = TL.Message;
 
 namespace TgPoster.Worker.Domain.UseCases.ClassifyChannel;
 
@@ -64,7 +62,9 @@ internal sealed partial class ClassifyChannelWorker(
 		var ct = lifetime.ApplicationStopping;
 
 		if (!await ParseLock.WaitAsync(0, ct))
+		{
 			return;
+		}
 
 		try
 		{
@@ -76,17 +76,21 @@ internal sealed partial class ClassifyChannelWorker(
 
 			var channels = await storage.GetUnclassifiedChannelsAsync(BatchSize, ct);
 			if (channels.Count == 0)
+			{
 				return;
+			}
 
-			var telegramClient = await authService.GetClientAsync(TelegramSessionPurpose.Classification, ct);
-			if (telegramClient is null)
+			var sessionId = await authService.GetSessionIdForPurposeAsync(TelegramSessionPurpose.Classification, ct);
+			if (sessionId is null)
+			{
 				return;
+			}
 
 			foreach (var channel in channels)
 			{
 				try
 				{
-					await ClassifyChannelAsync(channel, telegramClient, ct);
+					await ClassifyChannelAsync(channel, sessionId.Value, ct);
 				}
 				catch (Exception ex)
 				{
@@ -102,18 +106,18 @@ internal sealed partial class ClassifyChannelWorker(
 
 	private async Task ClassifyChannelAsync(
 		ChannelForClassificationDto channel,
-		WTelegram.Client telegramClient,
+		Guid sessionId,
 		CancellationToken ct
 	)
 	{
-		var resolved = await ResolvePeerAsync(telegramClient, channel, ct);
-		if (resolved.Peer is null)
+		var resolved = await ResolvePeerAsync(sessionId, channel, ct);
+		if (resolved is null)
 		{
 			logger.LogDebug("Не удалось найти канал {ChannelId} в Telegram для загрузки сообщений", channel.Id);
 			return;
 		}
 
-		var sample = await FetchRecentMessagesAsync(telegramClient, resolved.Peer, ct);
+		var sample = await FetchRecentMessagesAsync(sessionId, resolved, ct);
 
 		var messagesSection = sample.Texts.Count > 0
 			? string.Join("\n---\n", sample.Texts)
@@ -171,48 +175,50 @@ internal sealed partial class ClassifyChannelWorker(
 	}
 
 	private async Task<RecentMessagesSample> FetchRecentMessagesAsync(
-		WTelegram.Client client,
-		InputPeer peer,
+		Guid sessionId,
+		TelegramPeer peer,
 		CancellationToken ct
 	)
 	{
 		var historyResult = await tgMessages.GetHistoryAsync(
-			client, peer, limit: options.MessageSampleCount, ct: ct);
+			sessionId, peer, limit: options.MessageSampleCount, ct: ct);
 
 		if (!historyResult.IsSuccess)
 		{
 			logger.LogDebug("Не удалось получить сообщения канала {ChannelId}: {Status} {Error}",
-				peer.ID, historyResult.Status, historyResult.ErrorMessage);
+				peer.Id, historyResult.Status, historyResult.ErrorMessage);
 			return new RecentMessagesSample([], []);
 		}
 
 		var texts = new List<string>();
 		var photos = new List<PhotoForClassification>();
 
-		foreach (var message in historyResult.Value!.Messages.OfType<Message>())
+		foreach (var message in historyResult.Value!.Messages)
 		{
-			if (!string.IsNullOrWhiteSpace(message.message))
+			if (!string.IsNullOrWhiteSpace(message.Text))
 			{
-				var cleaned = CleanMessageText(message.message);
+				var cleaned = CleanMessageText(message.Text);
 				if (!string.IsNullOrWhiteSpace(cleaned))
+				{
 					texts.Add(TruncateMessage(cleaned, MaxTextLength));
+				}
 			}
 
 			if (photos.Count < MaxPhotoCount
-			    && message is { media: MessageMediaPhoto { photo: Photo photo } })
+			    && message.Media is { Type: TelegramMediaType.Photo } media)
 			{
-				photos.Add(new PhotoForClassification(message.ID, photo));
+				photos.Add(new PhotoForClassification(message.Id, media));
 			}
 		}
 
 		logger.LogDebug("Загружено {TextCount} сообщений и {PhotoCount} фото для канала {ChannelId}",
-			texts.Count, photos.Count, peer.ID);
+			texts.Count, photos.Count, peer.Id);
 		return new RecentMessagesSample(texts, photos);
 	}
 
 	private async Task<List<string>> DownloadAndPrepareImagesAsync(
-		WTelegram.Client client,
-		InputChannel channel,
+		Guid sessionId,
+		TelegramPeer channel,
 		List<PhotoForClassification> photos,
 		CancellationToken ct
 	)
@@ -224,8 +230,8 @@ internal sealed partial class ClassifyChannelWorker(
 			try
 			{
 				await using var rawStream = new MemoryStream();
-				var downloadResult = await tgMessages.DownloadPhotoAsync(
-					client, channel, item.MessageId, item.Photo, rawStream, ct);
+				var downloadResult = await tgMessages.DownloadMediaAsync(
+					sessionId, channel, item.MessageId, item.Media, rawStream, ct);
 
 				if (!downloadResult.IsSuccess)
 				{
@@ -256,54 +262,46 @@ internal sealed partial class ClassifyChannelWorker(
 		return results;
 	}
 
-	private async Task<ResolvedPeer> ResolvePeerAsync(
-		WTelegram.Client client,
+	private async Task<TelegramPeer?> ResolvePeerAsync(
+		Guid sessionId,
 		ChannelForClassificationDto channel,
 		CancellationToken ct
 	)
 	{
 		if (!string.IsNullOrEmpty(channel.Username))
 		{
-			var resolved = await tgMessages.ResolveChannelAsync(client, channel.Username, ct);
+			var resolved = await tgMessages.ResolveChannelAsync(sessionId, channel.Username, ct);
 			if (await resolved.HandleChannelUnavailableAsync(async () =>
 				    await storage.MarkChannelBannedAsync(channel.Id, ct)))
-				return new ResolvedPeer(null, null);
+			{
+				return null;
+			}
 
-			if (!resolved.IsSuccess)
-				return new ResolvedPeer(null, null);
-
-			var tg = resolved.Value!;
-			return new ResolvedPeer(
-				new InputPeerChannel(tg.ID, tg.access_hash),
-				new InputChannel(tg.ID, tg.access_hash));
+			return resolved.IsSuccess ? resolved.Value!.Peer : null;
 		}
 
 		if (channel.TelegramId.HasValue)
 		{
-			var dialogsResult = await tgMessages.GetAllDialogsAsync(client, ct);
+			var dialogsResult = await tgMessages.GetAllDialogsAsync(sessionId, ct);
 			if (!dialogsResult.IsSuccess)
-				return new ResolvedPeer(null, null);
-
-			if (dialogsResult.Value!.chats.TryGetValue(channel.TelegramId.Value, out var chat))
 			{
-				if (chat is Channel tgChannel)
-				{
-					return new ResolvedPeer(
-						new InputPeerChannel(tgChannel.ID, tgChannel.access_hash),
-						new InputChannel(tgChannel.ID, tgChannel.access_hash));
-				}
-
-				return new ResolvedPeer(new InputPeerChat(chat.ID), null);
+				return null;
 			}
+
+			var found = dialogsResult.Value!.FirstOrDefault(c => c.Id == channel.TelegramId.Value);
+			return found?.Peer;
 		}
 
-		return new ResolvedPeer(null, null);
+		return null;
 	}
 
 	private static string TruncateMessage(string text, int maxLength)
 	{
 		if (text.Length <= maxLength)
+		{
 			return text;
+		}
+
 		return string.Concat(text.AsSpan(0, maxLength), "...");
 	}
 
@@ -325,7 +323,9 @@ internal sealed partial class ClassifyChannelWorker(
 			var startIndex = json.IndexOf('{');
 			var endIndex = json.LastIndexOf('}');
 			if (startIndex >= 0 && endIndex > startIndex)
+			{
 				json = json[startIndex..(endIndex + 1)];
+			}
 		}
 
 		try
@@ -353,7 +353,5 @@ internal sealed partial class ClassifyChannelWorker(
 
 	private sealed record RecentMessagesSample(List<string> Texts, List<PhotoForClassification> Photos);
 
-	private sealed record PhotoForClassification(int MessageId, Photo Photo);
-
-	private sealed record ResolvedPeer(InputPeer? Peer, InputChannel? Channel);
+	private sealed record PhotoForClassification(int MessageId, TelegramMessageMedia Media);
 }

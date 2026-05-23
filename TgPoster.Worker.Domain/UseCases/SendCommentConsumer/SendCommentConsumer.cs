@@ -1,13 +1,11 @@
 using MassTransit;
 using Microsoft.Extensions.Logging;
-using Shared.Telegram;
-using TL;
+using TgPoster.Telegram;
 
 namespace TgPoster.Worker.Domain.UseCases.SendCommentConsumer;
 
 internal sealed class SendCommentConsumer(
 	ISendCommentConsumerStorage storage,
-	ITelegramAuthService authService,
 	ITelegramMessageService tgMessages,
 	ILogger<SendCommentConsumer> logger)
 	: IConsumer<SendCommentCommand>
@@ -16,12 +14,12 @@ internal sealed class SendCommentConsumer(
 	{
 		var command = context.Message;
 		var ct = context.CancellationToken;
+		var sessionId = command.TelegramSessionId;
+
 		logger.LogInformation("Начал отправку комментария для поста {PostId} в канале {ChannelId}",
 			command.OriginalPostId, command.WatchedChannelId);
 
-		var client = await authService.GetClientAsync(command.TelegramSessionId, ct);
-
-		var dialogsResult = await tgMessages.GetAllDialogsAsync(client, ct);
+		var dialogsResult = await tgMessages.GetAllDialogsAsync(sessionId, ct);
 		if (!dialogsResult.IsSuccess)
 		{
 			await LogFailureAsync(command, $"Не удалось получить диалоги: {dialogsResult.ErrorMessage}", ct);
@@ -36,15 +34,14 @@ internal sealed class SendCommentConsumer(
 			return;
 		}
 
-		var sourcePeer = new InputPeerChannel(sourceChannel.ID, sourceChannel.access_hash);
-		var historyResult = await tgMessages.GetHistoryAsync(client, sourcePeer, limit: 1, ct: ct);
+		var historyResult = await tgMessages.GetHistoryAsync(sessionId, sourceChannel.Peer, limit: 1, ct: ct);
 		if (!historyResult.IsSuccess)
 		{
 			await LogFailureAsync(command, $"Ошибка получения истории: {historyResult.ErrorMessage}", ct);
 			return;
 		}
 
-		var lastPost = historyResult.Value!.Messages.OfType<TL.Message>().FirstOrDefault();
+		var lastPost = historyResult.Value!.Messages.FirstOrDefault();
 		if (lastPost is null)
 		{
 			logger.LogWarning("В канале {ChannelId} нет постов для пересылки", command.SourceChannelId);
@@ -52,9 +49,9 @@ internal sealed class SendCommentConsumer(
 			return;
 		}
 
-		var watchedPeer = new InputPeerChannel(command.WatchedChannelId, command.WatchedChannelAccessHash ?? 0);
+		var watchedPeer = TelegramPeer.Channel(command.WatchedChannelId, command.WatchedChannelAccessHash ?? 0);
 		var discussionResult = await tgMessages.GetDiscussionMessageIdAsync(
-			client, watchedPeer, command.OriginalPostId, ct);
+			sessionId, watchedPeer, command.OriginalPostId, ct);
 
 		if (!discussionResult.IsSuccess)
 		{
@@ -72,12 +69,12 @@ internal sealed class SendCommentConsumer(
 			return;
 		}
 
-		var discussionPeer = new InputPeerChannel(command.DiscussionGroupId, command.DiscussionGroupAccessHash ?? 0);
+		var discussionPeer = TelegramPeer.Channel(command.DiscussionGroupId, command.DiscussionGroupAccessHash ?? 0);
 
 		var linkResult = await tgMessages.ExportMessageLinkAsync(
-			client,
-			new InputChannel(sourceChannel.ID, sourceChannel.access_hash),
-			lastPost.ID,
+			sessionId,
+			sourceChannel.Peer,
+			lastPost.Id,
 			ct);
 
 		if (!linkResult.IsSuccess)
@@ -87,7 +84,7 @@ internal sealed class SendCommentConsumer(
 		}
 
 		var sendResult = await tgMessages.SendMessageAsync(
-			client, discussionPeer, linkResult.Value!,
+			sessionId, discussionPeer, linkResult.Value!,
 			replyToMsgId: discussionResult.Value, ct: ct);
 
 		if (!sendResult.IsSuccess)
@@ -101,7 +98,7 @@ internal sealed class SendCommentConsumer(
 		await storage.CreateLogAsync(
 			command.CommentRepostSettingsId,
 			command.OriginalPostId,
-			lastPost.ID,
+			lastPost.Id,
 			sendResult.Value,
 			null,
 			ct);
@@ -118,12 +115,9 @@ internal sealed class SendCommentConsumer(
 			errorMessage,
 			ct);
 
-	private static Channel? GetChannel(Messages_Dialogs dialogs, long channelId)
+	private static TelegramChatInfo? GetChannel(IReadOnlyList<TelegramChatInfo> dialogs, long channelId)
 	{
-		var rawId = TelegramChatService.ResolveRawId(channelId);
-		if (!dialogs.chats.TryGetValue(rawId, out var chat) || chat is not Channel channel)
-			return null;
-
-		return channel;
+		var rawId = TelegramChatId.ResolveRaw(channelId);
+		return dialogs.FirstOrDefault(c => c.Id == rawId);
 	}
 }

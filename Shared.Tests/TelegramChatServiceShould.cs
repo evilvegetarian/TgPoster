@@ -1,4 +1,4 @@
-using Shared.Telegram;
+using TgPoster.Telegram;
 using Shouldly;
 
 namespace Shared.Tests;
@@ -176,7 +176,7 @@ public sealed class TelegramChatServiceShould
     [InlineData(0, 0)]
     public void ResolveRawId_ConvertsCorrectly(long input, long expected)
     {
-        var result = TelegramChatService.ResolveRawId(input);
+        var result = TelegramChatId.ResolveRaw(input);
 
         result.ShouldBe(expected);
     }

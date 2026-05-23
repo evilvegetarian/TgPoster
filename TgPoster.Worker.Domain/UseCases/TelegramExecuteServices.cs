@@ -13,7 +13,7 @@ public sealed record TelegramSendResult(bool IsSuccess, int? MessageId = null)
 
 public class TelegramExecuteServices(ILogger<TelegramExecuteServices> logger)
 {
-	public Task<Telegram.Bot.Types.Message[]> SendMedia(
+	public Task<global::Telegram.Bot.Types.Message[]> SendMedia(
 		TelegramBotClient telegramBot,
 		long chatId,
 		List<IAlbumInputMedia> album,
@@ -26,7 +26,7 @@ public class TelegramExecuteServices(ILogger<TelegramExecuteServices> logger)
 			maxRetries, ct);
 	}
 
-	public Task<Telegram.Bot.Types.Message> SendPhoto(
+	public Task<global::Telegram.Bot.Types.Message> SendPhoto(
 		TelegramBotClient telegramBot,
 		long chatId,
 		InputFileStream photoStream,

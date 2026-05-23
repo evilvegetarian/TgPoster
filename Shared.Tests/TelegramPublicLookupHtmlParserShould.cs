@@ -1,4 +1,4 @@
-using Shared.Telegram;
+using TgPoster.Telegram;
 using Shouldly;
 
 namespace Shared.Tests;

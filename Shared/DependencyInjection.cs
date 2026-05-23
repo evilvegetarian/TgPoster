@@ -16,13 +16,7 @@ public static class DependencyInjection
 	public static IServiceCollection AddShared(this IServiceCollection services)
 	{
 		services.AddHttpClient();
-		services.AddSingleton<TelegramClientManager>();
 		services.AddSingleton<TelegramBotManager>();
-		services.AddSingleton<SessionDataDebouncer>();
-		services.AddScoped<ITelegramAuthService, TelegramAuthService>();
-		services.AddScoped<ITelegramChatService, TelegramChatService>();
-		services.AddScoped<ITelegramMessageService, TelegramMessageService>();
-		services.AddScoped<ITelegramPublicLookupService, TelegramPublicLookupService>();
 
 		services.AddScoped<IOpenRouterClient, OpenRouterClient>();
 		services.AddScoped<ITgStatScrapingService, TgStatScrapingService>();

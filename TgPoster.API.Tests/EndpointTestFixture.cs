@@ -11,7 +11,7 @@ using Microsoft.Extensions.Logging;
 using NSubstitute;
 using Security.Authentication;
 using Security.IdentityServices;
-using Shared.Telegram;
+using TgPoster.Telegram;
 using Shared.Utilities;
 using Telegram.Bot;
 using Testcontainers.PostgreSql;
@@ -107,7 +107,7 @@ public class EndpointTestFixture : WebApplicationFactory<Program>, IAsyncLifetim
 	private static ITelegramChatService CreateMockChatService()
 	{
 		var mock = Substitute.For<ITelegramChatService>();
-		mock.GetChatInfoAsync(Arg.Any<WTelegram.Client>(), Arg.Any<string>(), Arg.Any<bool>())
+		mock.GetChatInfoAsync(Arg.Any<Guid>(), Arg.Any<string>(), Arg.Any<bool>())
 			.Returns(new TelegramChatInfo
 			{
 				Id = 123456789L,
@@ -118,9 +118,9 @@ public class EndpointTestFixture : WebApplicationFactory<Program>, IAsyncLifetim
 				IsGroup = false,
 				CanSendMessages = true,
 				CanSendMedia = true,
-				InputPeer = new TL.InputPeerChannel(123456789L, 0L)
+				Peer = TelegramPeer.Channel(123456789L, 0L)
 			});
-		mock.GetFullChannelInfoAsync(Arg.Any<WTelegram.Client>(), Arg.Any<TelegramChatInfo>())
+		mock.GetFullChannelInfoAsync(Arg.Any<Guid>(), Arg.Any<TelegramChatInfo>())
 			.Returns(new TelegramChannelInfoResult
 			{
 				Title = "Test Channel",
@@ -130,7 +130,7 @@ public class EndpointTestFixture : WebApplicationFactory<Program>, IAsyncLifetim
 				IsGroup = false
 			});
 		mock.GetLinkedDiscussionGroupAsync(
-				Arg.Any<WTelegram.Client>(), Arg.Any<TelegramChatInfo>(), Arg.Any<CancellationToken>())
+				Arg.Any<Guid>(), Arg.Any<TelegramChatInfo>(), Arg.Any<CancellationToken>())
 			.Returns((123456789L, (long?)987654321L));
 		return mock;
 	}

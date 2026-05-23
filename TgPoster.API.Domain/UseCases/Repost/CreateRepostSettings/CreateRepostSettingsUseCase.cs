@@ -1,38 +1,39 @@
 using MediatR;
-using Shared.Telegram;
 using TgPoster.Exceptions;
 using TgPoster.Exceptions.BadRequest;
 using TgPoster.Exceptions.NotFound;
-using TL;
+using TgPoster.Telegram;
 
 namespace TgPoster.API.Domain.UseCases.Repost.CreateRepostSettings;
 
 internal sealed class CreateRepostSettingsUseCase(
 	ICreateRepostSettingsStorage storage,
-	ITelegramAuthService authService,
 	ITelegramChatService chatService)
 	: IRequestHandler<CreateRepostSettingsCommand, CreateRepostSettingsResponse>
 {
 	public async Task<CreateRepostSettingsResponse> Handle(CreateRepostSettingsCommand request, CancellationToken ct)
 	{
 		if (!await storage.ScheduleExistsAsync(request.ScheduleId, ct))
+		{
 			throw new ScheduleNotFoundException(request.ScheduleId);
+		}
 
 		if (!await storage.TelegramSessionExistsAndActiveAsync(request.TelegramSessionId, ct))
+		{
 			throw new TelegramSessionEntityNotFoundException(request.TelegramSessionId);
+		}
 
-		var client = await authService.GetClientAsync(request.TelegramSessionId, ct);
 		var chats = new List<long>();
 		foreach (var destination in request.Destinations)
 		{
 			try
 			{
-				var info = await chatService.GetChatInfoAsync(client, destination);
+				var info = await chatService.GetChatInfoAsync(request.TelegramSessionId, destination);
 				chats.Add(info.Id);
-				var resolveResult = await client.Contacts_ResolveUsername(destination.TrimStart('@'));
-
-				if (resolveResult.Chat == null)
-					throw new TelegramChannelNotFoundException(destination);
+			}
+			catch (TelegramChatNotFoundException)
+			{
+				throw new TelegramChannelNotFoundException(destination);
 			}
 			catch (Exception ex) when (ex is not TelegramChannelNotFoundException)
 			{

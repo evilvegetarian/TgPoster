@@ -1,6 +1,6 @@
 using MediatR;
 using Security.IdentityServices;
-using Shared.Telegram;
+using TgPoster.Telegram;
 using TgPoster.Exceptions;
 using TgPoster.API.Domain.UseCases.Proxies.ListProxies;
 using TgPoster.Exceptions.NotFound;

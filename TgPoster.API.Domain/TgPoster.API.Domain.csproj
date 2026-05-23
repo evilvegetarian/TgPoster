@@ -11,6 +11,7 @@
         <ProjectReference Include="..\Security\Security.csproj" />
         <ProjectReference Include="..\Shared\Shared.csproj" />
         <ProjectReference Include="..\TgPoster.Exceptions\TgPoster.Exceptions.csproj" />
+        <ProjectReference Include="..\TgPoster.Telegram\TgPoster.Telegram.csproj" />
     </ItemGroup>
 
     <ItemGroup>

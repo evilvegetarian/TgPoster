@@ -1,6 +1,6 @@
 using MediatR;
 using Security.IdentityServices;
-using Shared.Telegram;
+using TgPoster.Telegram;
 using TgPoster.Exceptions;
 using TgPoster.Exceptions.NotFound;
 
@@ -8,7 +8,7 @@ namespace TgPoster.API.Domain.UseCases.TelegramSessions.DeleteTelegramSession;
 
 internal sealed class DeleteTelegramSessionUseCase(
 	IDeleteTelegramSessionStorage storage,
-	TelegramClientManager clientManager,
+	ITelegramAuthService authService,
 	IIdentityProvider identityProvider
 ) : IRequestHandler<DeleteTelegramSessionCommand>
 {
@@ -21,7 +21,7 @@ internal sealed class DeleteTelegramSessionUseCase(
 			throw new TelegramSessionEntityNotFoundException(request.SessionId);
 		}
 
-		await clientManager.RemoveActiveClientAsync(request.SessionId);
+		await authService.RemoveClientAsync(request.SessionId);
 		await storage.DeleteAsync(request.SessionId, ct);
 	}
 }

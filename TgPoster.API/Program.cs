@@ -8,6 +8,7 @@ using Security.Middleware;
 using Shared;
 using Shared.Services;
 using TgPoster.API.Configuration;
+using TgPoster.Telegram;
 using TgPoster.API.Domain;
 using TgPoster.API.Middlewares;
 using TgPoster.API.Telemetry;
@@ -69,6 +70,7 @@ builder.Services.AddMemoryCache();
 builder.Services.AddSingleton<FileExtensionContentTypeProvider>();
 builder.Services
 	.AddShared()
+	.AddTgPosterTelegram()
 	.AddStorage(builder.Configuration, builder.Environment)
 	.AddDomain(builder.Configuration)
 	.AddSecurity(builder.Configuration);

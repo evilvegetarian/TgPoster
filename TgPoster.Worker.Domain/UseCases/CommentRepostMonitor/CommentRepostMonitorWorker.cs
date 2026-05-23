@@ -2,15 +2,13 @@ using Hangfire;
 using MassTransit;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Shared.Telegram;
+using TgPoster.Telegram;
 using TgPoster.Worker.Domain.UseCases.SendCommentConsumer;
-using TL;
 
 namespace TgPoster.Worker.Domain.UseCases.CommentRepostMonitor;
 
 public class CommentRepostMonitorWorker(
 	ICommentRepostMonitorStorage storage,
-	ITelegramAuthService authService,
 	ITelegramMessageService tgMessages,
 	IPublishEndpoint publishEndpoint,
 	ILogger<CommentRepostMonitorWorker> logger,
@@ -41,11 +39,9 @@ public class CommentRepostMonitorWorker(
 
 	private async Task ProcessSettingAsync(CommentRepostSettingDto setting)
 	{
-		var client = await authService.GetClientAsync(setting.TelegramSessionId, lifetime.ApplicationStopping);
-
-		var peer = new InputPeerChannel(setting.WatchedChannelId, setting.WatchedChannelAccessHash ?? 0);
+		var peer = TelegramPeer.Channel(setting.WatchedChannelId, setting.WatchedChannelAccessHash ?? 0);
 		var historyResult = await tgMessages.GetHistoryAsync(
-			client,
+			setting.TelegramSessionId,
 			peer,
 			limit: 20,
 			minId: setting.LastProcessedPostId ?? 0,
@@ -60,13 +56,14 @@ public class CommentRepostMonitorWorker(
 		}
 
 		var newPosts = historyResult.Value!.Messages
-			.OfType<TL.Message>()
-			.Where(m => m.ID > (setting.LastProcessedPostId ?? 0))
-			.OrderBy(m => m.ID)
+			.Where(m => m.Id > (setting.LastProcessedPostId ?? 0))
+			.OrderBy(m => m.Id)
 			.ToList();
 
 		if (newPosts.Count == 0)
+		{
 			return;
+		}
 
 		logger.LogDebug("Найдено {Count} новых постов в канале {ChannelId}",
 			newPosts.Count, setting.WatchedChannelId);
@@ -76,7 +73,7 @@ public class CommentRepostMonitorWorker(
 			var command = new SendCommentCommand
 			{
 				CommentRepostSettingsId = setting.Id,
-				OriginalPostId = post.ID,
+				OriginalPostId = post.Id,
 				WatchedChannelId = setting.WatchedChannelId,
 				WatchedChannelAccessHash = setting.WatchedChannelAccessHash,
 				DiscussionGroupId = setting.DiscussionGroupId,
@@ -88,7 +85,7 @@ public class CommentRepostMonitorWorker(
 			await publishEndpoint.Publish(command, lifetime.ApplicationStopping);
 		}
 
-		var maxPostId = newPosts.Max(m => m.ID);
+		var maxPostId = newPosts.Max(m => m.Id);
 		await storage.UpdateLastProcessedAsync(setting.Id, maxPostId, lifetime.ApplicationStopping);
 	}
 }

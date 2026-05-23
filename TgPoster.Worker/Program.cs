@@ -6,6 +6,7 @@ using Security.IdentityServices;
 using Serilog;
 using Shared;
 using TgPoster.Storage;
+using TgPoster.Telegram;
 using TgPoster.Worker;
 using TgPoster.Worker.Configuration;
 using TgPoster.Worker.Domain;
@@ -31,6 +32,7 @@ builder.Services.AddScoped<ICryptoAES, CryptoAES>();
 builder.Services.AddScoped<IIdentityProvider, DesignTimeIdentityProvider>();
 builder.Services
 	.AddShared()
+	.AddTgPosterTelegram()
 	.AddDomain(builder.Configuration)
 	.AddStorage(builder.Configuration, builder.Environment);
 

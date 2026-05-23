@@ -1,7 +1,7 @@
 using MediatR;
 using Security.IdentityServices;
 using Shared.Enums;
-using Shared.Telegram;
+using TgPoster.Telegram;
 using TgPoster.Exceptions;
 using TgPoster.Exceptions.NotFound;
 
@@ -10,7 +10,7 @@ namespace TgPoster.API.Domain.UseCases.Proxies.UpdateProxy;
 internal sealed class UpdateProxyUseCase(
 	IUpdateProxyStorage storage,
 	IIdentityProvider identityProvider,
-	TelegramClientManager clientManager
+	ITelegramAuthService authService
 ) : IRequestHandler<UpdateProxyCommand>
 {
 	public async Task Handle(UpdateProxyCommand request, CancellationToken ct)
@@ -34,7 +34,7 @@ internal sealed class UpdateProxyUseCase(
 
 		foreach (var sessionId in affectedSessions)
 		{
-			await clientManager.RemoveActiveClientAsync(sessionId);
+			await authService.RemoveClientAsync(sessionId);
 		}
 	}
 

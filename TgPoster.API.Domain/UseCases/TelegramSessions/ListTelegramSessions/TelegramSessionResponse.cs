@@ -1,4 +1,4 @@
-using Shared.Telegram;
+using TgPoster.Telegram;
 
 namespace TgPoster.API.Domain.UseCases.TelegramSessions.ListTelegramSessions;
 

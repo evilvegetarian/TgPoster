@@ -1,6 +1,6 @@
 using MediatR;
 using Shared.Enums;
-using Shared.Telegram;
+using TgPoster.Telegram;
 using TgPoster.Exceptions;
 using TgPoster.Exceptions.NotFound;
 
@@ -8,7 +8,6 @@ namespace TgPoster.API.Domain.UseCases.Repost.AddRepostDestination;
 
 internal sealed class AddRepostDestinationUseCase(
 	IAddRepostDestinationStorage storage,
-	ITelegramAuthService authService,
 	ITelegramChatService chatService)
 	: IRequestHandler<AddRepostDestinationCommand, AddRepostDestinationResponse>
 {
@@ -16,15 +15,12 @@ internal sealed class AddRepostDestinationUseCase(
 	{
 		var telegramSessionId = await storage.GetTelegramSessionIdAsync(request.RepostSettingsId, ct);
 		if (telegramSessionId == null)
+		{
 			throw new RepostSettingsNotFoundException(request.RepostSettingsId);
+		}
 
-		// if (await storage.DestinationExistsAsync(request.RepostSettingsId, request.ChatIdentifier, ct))
-		// 	throw new RepostDestinationAlreadyExistsException(request.ChatIdentifier);
-
-		var client = await authService.GetClientAsync(telegramSessionId.Value, ct);
-
-		var info = await chatService.GetChatInfoAsync(client, request.ChatIdentifier);
-		var fullInfo = await chatService.GetFullChannelInfoAsync(client, info);
+		var info = await chatService.GetChatInfoAsync(telegramSessionId.Value, request.ChatIdentifier);
+		var fullInfo = await chatService.GetFullChannelInfoAsync(telegramSessionId.Value, info);
 
 		var chatType = info.IsChannel ? ChatType.Channel
 			: info.IsGroup ? ChatType.Group

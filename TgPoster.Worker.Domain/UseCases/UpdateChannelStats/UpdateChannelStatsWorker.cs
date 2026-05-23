@@ -2,14 +2,12 @@ using Hangfire;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Shared.Enums;
-using Shared.Telegram;
-using TL;
+using TgPoster.Telegram;
 
 namespace TgPoster.Worker.Domain.UseCases.UpdateChannelStats;
 
 internal sealed class UpdateChannelStatsWorker(
 	IUpdateChannelStatsStorage storage,
-	ITelegramAuthService authService,
 	ITelegramMessageService tgMessages,
 	ILogger<UpdateChannelStatsWorker> logger,
 	IHostApplicationLifetime lifetime)
@@ -37,25 +35,24 @@ internal sealed class UpdateChannelStatsWorker(
 
 		logger.LogInformation("Начинаем обновление статистики для {Count} каналов", channels.Count);
 
-		var client = await authService.GetClientAsync(sessionId.Value, ct);
 		var updated = 0;
 
 		foreach (var channel in channels)
 		{
 			ct.ThrowIfCancellationRequested();
 
-			var resolved = await tgMessages.ResolveChannelAsync(client, channel.Username, ct);
+			var resolved = await tgMessages.ResolveChannelAsync(sessionId.Value, channel.Username, ct);
 			if (!resolved.IsSuccess)
 			{
-				logger.LogDebug("Не удалось разрешить @{Username} ({Status}), пропускаем", channel.Username, resolved.Status);
+				logger.LogDebug("Не удалось разрешить @{Username} ({Status}), пропускаем", channel.Username,
+					resolved.Status);
 				await Task.Delay(TimeSpan.FromSeconds(3), ct);
 				continue;
 			}
 
-			var ch = resolved.Value!;
 			var fullResult = await tgMessages.GetFullChannelAsync(
-				client,
-				new InputChannel(ch.ID, ch.access_hash),
+				sessionId.Value,
+				resolved.Value!.Peer,
 				ct);
 
 			if (fullResult.IsSuccess && fullResult.Value.HasValue)
@@ -65,7 +62,8 @@ internal sealed class UpdateChannelStatsWorker(
 			}
 			else
 			{
-				logger.LogDebug("Не удалось получить статистику @{Username} ({Status})", channel.Username, fullResult.Status);
+				logger.LogDebug("Не удалось получить статистику @{Username} ({Status})", channel.Username,
+					fullResult.Status);
 			}
 
 			await Task.Delay(TimeSpan.FromSeconds(3), ct);

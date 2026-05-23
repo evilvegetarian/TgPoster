@@ -1,15 +1,12 @@
 using MassTransit;
 using Microsoft.Extensions.Logging;
-using Shared.Telegram;
-using TL;
-using Message = TL.Message;
+using TgPoster.Telegram;
 
 namespace TgPoster.Worker.Domain.UseCases.ParseChannel;
 
 internal class ParseChannelUseCase(
 	IParseChannelUseCaseStorage storage,
 	IPublishEndpoint publishEndpoint,
-	ITelegramAuthService authService,
 	ITelegramMessageService tgMessages,
 	ILogger<ParseChannelUseCase> logger)
 {
@@ -32,10 +29,9 @@ internal class ParseChannelUseCase(
 		var lastParseId = parameters.LastParsedId;
 		var checkNewPosts = parameters.CheckNewPosts;
 		var telegramBotId = parameters.TelegramBotId;
+		var sessionId = parameters.TelegramSessionId;
 
-		var client = await authService.GetClientAsync(parameters.TelegramSessionId, ct);
-
-		var resolveResult = await tgMessages.ResolveChannelAsync(client, channelName, ct);
+		var resolveResult = await tgMessages.ResolveChannelAsync(sessionId, channelName, ct);
 		if (!resolveResult.IsSuccess)
 		{
 			logger.LogError("Не удалось найти канал по имени: {ChannelName} ({Status})", channelName,
@@ -45,15 +41,15 @@ internal class ParseChannelUseCase(
 		}
 
 		var channel = resolveResult.Value!;
-		List<Message> allMessages = [];
+		List<TelegramMessage> allMessages = [];
 		var tempLastParseId = 0;
 		const int limit = 100;
 		var offset = lastParseId ?? 0;
 		while (true)
 		{
 			var historyResult = await tgMessages.GetHistoryAsync(
-				client,
-				new InputPeerChannel(channel.ID, channel.access_hash),
+				sessionId,
+				channel.Peer,
 				limit: limit,
 				offsetDate: toDate ?? DateTime.Now,
 				offsetId: offset,
@@ -71,43 +67,42 @@ internal class ParseChannelUseCase(
 
 			var messageFiltered = history.Messages
 				.Where(x => fromDate is null || x.Date >= fromDate)
-				.OfType<Message>()
-				.Where(x => lastParseId is null || x.ID > lastParseId)
+				.Where(x => lastParseId is null || x.Id > lastParseId)
 				.ToList();
 
 			allMessages.AddRange(messageFiltered);
 
-			if (history.Messages.Length is not 0)
+			if (history.Messages.Count is not 0)
 			{
-				var maxId = history.Messages.Max(x => x.ID);
+				var maxId = history.Messages.Max(x => x.Id);
 				if (tempLastParseId < maxId)
 				{
 					tempLastParseId = maxId;
 				}
 			}
 
-			if (history.Messages.Length is 0
-			    || history.Messages.Any(x => x.ID < lastParseId)
+			if (history.Messages.Count is 0
+			    || history.Messages.Any(x => x.Id < lastParseId)
 			    || history.Messages.Any(x => x.Date < fromDate))
 			{
 				break;
 			}
 
-			offset = history.Messages.Last().ID;
+			offset = history.Messages[^1].Id;
 		}
 
-		var groupedMessages = new Dictionary<long, List<Message>>();
+		var groupedMessages = new Dictionary<long, List<TelegramMessage>>();
 		long i = 1;
-		foreach (var message in allMessages.OrderBy(m => m.ID))
+		foreach (var message in allMessages.OrderBy(m => m.Id))
 		{
-			if (message.grouped_id != 0)
+			if (message.GroupedId is { } groupedId)
 			{
-				if (!groupedMessages.ContainsKey(message.grouped_id))
+				if (!groupedMessages.ContainsKey(groupedId))
 				{
-					groupedMessages[message.grouped_id] = [];
+					groupedMessages[groupedId] = [];
 				}
 
-				groupedMessages[message.grouped_id].Add(message);
+				groupedMessages[groupedId].Add(message);
 			}
 			else
 			{
@@ -116,9 +111,9 @@ internal class ParseChannelUseCase(
 		}
 
 		var validGroups = groupedMessages
-			.Where(group => !group.Value.Any(msg => msg.message != null
+			.Where(group => !group.Value.Any(msg => msg.Text != null
 			                                        && avoidWords.Any(word =>
-				                                        msg.message.Contains(word, StringComparison.OrdinalIgnoreCase))
+				                                        msg.Text.Contains(word, StringComparison.OrdinalIgnoreCase))
 			)).ToList();
 
 		logger.LogDebug("Найдено {Count} новых постов для обработки.", validGroups.Count);
@@ -131,13 +126,13 @@ internal class ParseChannelUseCase(
 				TelegramBotId = telegramBotId,
 				Messages = group.Value.Select(m => new MessageCommand
 				{
-					Id = m.ID,
-					IsPhoto = m.media is MessageMediaPhoto,
-					IsVideo = m.media is MessageMediaDocument
+					Id = m.Id,
+					IsPhoto = m.Media?.Type == TelegramMediaType.Photo,
+					IsVideo = m.Media?.Type is TelegramMediaType.Video or TelegramMediaType.Document
 				}).ToList()
 			};
 
-			if (group.Value.All(p => p.message is null && p.media is null))
+			if (group.Value.All(p => p.Text is null && p.Media is null))
 			{
 				continue;
 			}

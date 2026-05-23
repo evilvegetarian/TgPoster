@@ -1,6 +1,6 @@
 using MediatR;
 using Security.IdentityServices;
-using Shared.Telegram;
+using TgPoster.Telegram;
 using TgPoster.Exceptions;
 using TgPoster.API.Domain.UseCases.Proxies.ListProxies;
 using TgPoster.Exceptions.NotFound;
@@ -10,7 +10,7 @@ namespace TgPoster.API.Domain.UseCases.TelegramSessions.UpdateTelegramSession;
 internal sealed class UpdateTelegramSessionUseCase(
 	IUpdateTelegramSessionStorage storage,
 	IListProxiesStorage proxyStorage,
-	TelegramClientManager clientManager,
+	ITelegramAuthService authService,
 	IIdentityProvider identityProvider
 ) : IRequestHandler<UpdateTelegramSessionCommand>
 {
@@ -35,7 +35,7 @@ internal sealed class UpdateTelegramSessionUseCase(
 
 		if (request.IsActive == false || proxyChanged)
 		{
-			await clientManager.RemoveActiveClientAsync(request.SessionId);
+			await authService.RemoveClientAsync(request.SessionId);
 		}
 
 		await storage.UpdateAsync(request.SessionId, request.Name, request.IsActive, request.ProxyId, ct);
