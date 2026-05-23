@@ -1,4 +1,6 @@
-namespace TgPoster.Exceptions;
+using TgPoster.Exceptions.Base;
+
+namespace TgPoster.Exceptions.BadRequest;
 
 /// <summary>
 ///     Исключение, выбрасываемое когда требуется повторная авторизация в Telegram (например, при 401 ошибке)

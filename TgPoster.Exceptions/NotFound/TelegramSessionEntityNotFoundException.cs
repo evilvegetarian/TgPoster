@@ -1,4 +1,6 @@
-namespace TgPoster.Exceptions;
+using TgPoster.Exceptions.Base;
+
+namespace TgPoster.Exceptions.NotFound;
 
 /// <summary>
 ///     Исключение, выбрасываемое когда запись о Telegram-сессии не найдена в базе данных

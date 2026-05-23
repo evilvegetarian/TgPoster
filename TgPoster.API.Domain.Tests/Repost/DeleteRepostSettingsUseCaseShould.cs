@@ -4,6 +4,7 @@ using Moq.Language.Flow;
 using Shouldly;
 using TgPoster.Exceptions;
 using TgPoster.API.Domain.UseCases.Repost.DeleteRepostSettings;
+using TgPoster.Exceptions.NotFound;
 
 namespace TgPoster.API.Domain.Tests.Repost;
 

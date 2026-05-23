@@ -2,6 +2,7 @@ using MediatR;
 using Security.IdentityServices;
 using Shared.Telegram;
 using TgPoster.Exceptions;
+using TgPoster.Exceptions.NotFound;
 
 namespace TgPoster.API.Domain.UseCases.TelegramSessions.SendPassword;
 

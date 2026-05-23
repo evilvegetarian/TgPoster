@@ -6,6 +6,8 @@ using Shouldly;
 using TgPoster.Exceptions;
 using TgPoster.API.Domain.Models;
 using TgPoster.API.Domain.UseCases.Accounts.SignIn;
+using TgPoster.Exceptions.BadRequest;
+using TgPoster.Exceptions.NotFound;
 
 namespace TgPoster.API.Domain.Tests.SignIn;
 

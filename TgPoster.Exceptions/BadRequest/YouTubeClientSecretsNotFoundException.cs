@@ -1,4 +1,6 @@
-namespace TgPoster.Exceptions;
+using TgPoster.Exceptions.Base;
+
+namespace TgPoster.Exceptions.BadRequest;
 
 /// <summary>
 ///     Исключение, выбрасываемое когда не найдены учётные данные клиента YouTube (ClientId или ClientSecret)

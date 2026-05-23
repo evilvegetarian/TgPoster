@@ -2,6 +2,7 @@ using Security.Cryptography;
 using Security.IdentityServices;
 using TgPoster.API.Domain.ConfigModels;
 using TgPoster.Exceptions;
+using TgPoster.Exceptions.NotFound;
 
 namespace TgPoster.API.Domain.Services;
 

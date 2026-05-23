@@ -1,4 +1,6 @@
-namespace TgPoster.Exceptions;
+using TgPoster.Exceptions.Base;
+
+namespace TgPoster.Exceptions.BadRequest;
 
 /// <summary>
 ///     Исключение, выбрасываемое при неверном пароле двухфакторной аутентификации Telegram

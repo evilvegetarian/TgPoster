@@ -1,4 +1,6 @@
-namespace TgPoster.Exceptions;
+using TgPoster.Exceptions.Base;
+
+namespace TgPoster.Exceptions.BadRequest;
 
 /// <summary>
 ///     Нет прав на отправку сообщений в чат

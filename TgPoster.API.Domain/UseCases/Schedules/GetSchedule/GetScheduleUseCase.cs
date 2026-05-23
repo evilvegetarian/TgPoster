@@ -2,6 +2,7 @@ using MediatR;
 using Security.IdentityServices;
 using TgPoster.Exceptions;
 using TgPoster.API.Domain.UseCases.Schedules.ListSchedule;
+using TgPoster.Exceptions.NotFound;
 
 namespace TgPoster.API.Domain.UseCases.Schedules.GetSchedule;
 

@@ -5,6 +5,7 @@ using Security.Authentication;
 using Shouldly;
 using TgPoster.Exceptions;
 using TgPoster.API.Domain.UseCases.Accounts.RefreshToken;
+using TgPoster.Exceptions.NotFound;
 
 namespace TgPoster.API.Domain.Tests.Account;
 

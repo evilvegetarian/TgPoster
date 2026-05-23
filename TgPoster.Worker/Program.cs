@@ -6,6 +6,7 @@ using Security.IdentityServices;
 using Serilog;
 using Shared;
 using TgPoster.Storage;
+using TgPoster.Worker;
 using TgPoster.Worker.Configuration;
 using TgPoster.Worker.Domain;
 using TgPoster.Worker.Domain.ConfigModels;
@@ -49,11 +50,14 @@ app.AddHangfire();
 app.Run();
 
 
-file sealed class DesignTimeIdentityProvider : IIdentityProvider
+namespace TgPoster.Worker
 {
-	public Identity Current => Identity.Anonymous;
-
-	public void Set(Identity identity)
+	file sealed class DesignTimeIdentityProvider : IIdentityProvider
 	{
+		public Identity Current => Identity.Anonymous;
+
+		public void Set(Identity identity)
+		{
+		}
 	}
 }

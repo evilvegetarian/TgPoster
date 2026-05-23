@@ -3,6 +3,7 @@ using System.Text;
 using Microsoft.Extensions.Logging;
 using Shared.Enums;
 using TgPoster.Exceptions;
+using TgPoster.Exceptions.BadRequest;
 using TL;
 using WTelegram;
 

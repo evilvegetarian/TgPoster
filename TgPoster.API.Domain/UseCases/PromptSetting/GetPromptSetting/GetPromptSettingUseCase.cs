@@ -2,6 +2,7 @@ using MediatR;
 using Security.IdentityServices;
 using TgPoster.Exceptions;
 using TgPoster.API.Domain.UseCases.PromptSetting.ListPromptSetting;
+using TgPoster.Exceptions.NotFound;
 
 namespace TgPoster.API.Domain.UseCases.PromptSetting.GetPromptSetting;
 

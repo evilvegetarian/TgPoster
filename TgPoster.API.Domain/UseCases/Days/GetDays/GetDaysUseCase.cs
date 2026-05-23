@@ -1,6 +1,7 @@
 using MediatR;
 using Security.IdentityServices;
 using TgPoster.Exceptions;
+using TgPoster.Exceptions.NotFound;
 
 namespace TgPoster.API.Domain.UseCases.Days.GetDays;
 

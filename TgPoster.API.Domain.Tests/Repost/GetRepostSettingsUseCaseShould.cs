@@ -4,6 +4,7 @@ using Security.IdentityServices;
 using Shouldly;
 using TgPoster.Exceptions;
 using TgPoster.API.Domain.UseCases.Repost.GetRepostSettings;
+using TgPoster.Exceptions.NotFound;
 
 namespace TgPoster.API.Domain.Tests.Repost;
 

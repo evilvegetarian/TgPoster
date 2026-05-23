@@ -1,6 +1,7 @@
 using System.Net;
+using TgPoster.Exceptions.Base;
 
-namespace TgPoster.Exceptions;
+namespace TgPoster.Exceptions.BadRequest;
 
 /// <summary>
 ///     Исключение, выбрасываемое при ошибке загрузки файла в S3

@@ -7,6 +7,7 @@ using Shared.Utilities;
 using Telegram.Bot;
 using TgPoster.Exceptions;
 using TgPoster.API.Domain.UseCases.Messages.ListMessage;
+using TgPoster.Exceptions.BadRequest;
 
 namespace TgPoster.API.Domain.Services;
 

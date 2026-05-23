@@ -1,6 +1,7 @@
 using MediatR;
 using Security.Authentication;
 using TgPoster.Exceptions;
+using TgPoster.Exceptions.BadRequest;
 
 namespace TgPoster.API.Domain.UseCases.Accounts.SignOn;
 

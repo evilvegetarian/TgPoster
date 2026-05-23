@@ -1,4 +1,6 @@
-namespace TgPoster.Exceptions;
+using TgPoster.Exceptions.Base;
+
+namespace TgPoster.Exceptions.BadRequest;
 
 /// <summary>
 ///     Исключение, выбрасываемое когда импорт Telegram сессии из файла не удался

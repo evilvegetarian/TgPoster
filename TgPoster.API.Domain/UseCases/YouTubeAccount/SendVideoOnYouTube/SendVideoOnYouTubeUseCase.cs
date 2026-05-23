@@ -4,6 +4,7 @@ using Shared.YouTube;
 using Telegram.Bot;
 using TgPoster.Exceptions;
 using TgPoster.API.Domain.Services;
+using TgPoster.Exceptions.NotFound;
 
 namespace TgPoster.API.Domain.UseCases.YouTubeAccount.SendVideoOnYouTube;
 

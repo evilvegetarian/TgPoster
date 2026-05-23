@@ -2,6 +2,7 @@ using MediatR;
 using Shared.Enums;
 using Shared.Telegram;
 using TgPoster.Exceptions;
+using TgPoster.Exceptions.NotFound;
 
 namespace TgPoster.API.Domain.UseCases.Repost.AddRepostDestination;
 

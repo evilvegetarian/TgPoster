@@ -2,6 +2,8 @@ using MediatR;
 using Microsoft.AspNetCore.Http;
 using Security.Authentication;
 using TgPoster.Exceptions;
+using TgPoster.Exceptions.BadRequest;
+using TgPoster.Exceptions.NotFound;
 
 namespace TgPoster.API.Domain.UseCases.Accounts.SignIn;
 

@@ -5,6 +5,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Security.IdentityServices;
 using Testcontainers.PostgreSql;
+using TgPoster.API;
 using TgPoster.Storage.Data;
 
 namespace TgPoster.E2E;

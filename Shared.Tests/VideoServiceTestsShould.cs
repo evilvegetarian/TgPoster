@@ -2,6 +2,7 @@ using OpenCvSharp;
 using TgPoster.Exceptions;
 using Shared.Video;
 using Shouldly;
+using TgPoster.Exceptions.BadRequest;
 
 namespace Shared.Tests;
 

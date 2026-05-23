@@ -1,4 +1,6 @@
-namespace TgPoster.Exceptions;
+using TgPoster.Exceptions.Base;
+
+namespace TgPoster.Exceptions.NotFound;
 
 public class TelegramBotNotPermission()
 	: NotFoundException(

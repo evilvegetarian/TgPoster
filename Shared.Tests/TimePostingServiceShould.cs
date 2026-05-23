@@ -1,6 +1,7 @@
 using TgPoster.Exceptions;
 using Shared.Services;
 using Shouldly;
+using TgPoster.Exceptions.Base;
 
 namespace Shared.Tests;
 

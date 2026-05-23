@@ -1,6 +1,8 @@
 using MediatR;
 using Shared.Telegram;
 using TgPoster.Exceptions;
+using TgPoster.Exceptions.BadRequest;
+using TgPoster.Exceptions.NotFound;
 using TL;
 
 namespace TgPoster.API.Domain.UseCases.Repost.CreateRepostSettings;

@@ -97,9 +97,12 @@ app.MapHealthChecks("/health");
 app.UseOpenTelemetryPrometheusScrapingEndpoint();
 app.Run();
 
-/// <summary>
-///     Класс точки входа приложения
-/// </summary>
-public partial class Program
+namespace TgPoster.API
 {
+	/// <summary>
+	///     Класс точки входа приложения
+	/// </summary>
+	public partial class Program
+	{
+	}
 }

@@ -6,6 +6,7 @@ using Telegram.Bot.Types;
 using TgPoster.API.Domain.ConfigModels;
 using TgPoster.Exceptions;
 using TgPoster.API.Domain.Extensions;
+using TgPoster.Exceptions.NotFound;
 
 namespace TgPoster.API.Domain.UseCases.Schedules.CreateSchedule;
 

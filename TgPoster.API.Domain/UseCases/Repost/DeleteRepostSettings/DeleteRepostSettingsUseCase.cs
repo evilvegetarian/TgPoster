@@ -1,5 +1,6 @@
 using MediatR;
 using TgPoster.Exceptions;
+using TgPoster.Exceptions.NotFound;
 
 namespace TgPoster.API.Domain.UseCases.Repost.DeleteRepostSettings;
 

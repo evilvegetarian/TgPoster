@@ -3,6 +3,7 @@ using Security.IdentityServices;
 using Shared.Telegram;
 using TgPoster.Exceptions;
 using TgPoster.API.Domain.UseCases.Proxies.ListProxies;
+using TgPoster.Exceptions.NotFound;
 
 namespace TgPoster.API.Domain.UseCases.TelegramSessions.UpdateTelegramSession;
 

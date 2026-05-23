@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.Extensions.Logging;
 using Telegram.Bot.Exceptions;
+using TgPoster.Exceptions.Base;
 
 namespace TgPoster.Exceptions.Middlewares;
 

@@ -7,6 +7,7 @@ using Shared.OpenRouter;
 using Shared.OpenRouter.Models.Request;
 using Shared.OpenRouter.Models.Response;
 using Shouldly;
+using TgPoster.Exceptions.BadRequest;
 
 namespace Shared.Tests;
 

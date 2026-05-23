@@ -2,6 +2,7 @@ using MediatR;
 using Security.IdentityServices;
 using TgPoster.Exceptions;
 using TgPoster.API.Domain.UseCases.OpenRouterSetting.ListOpenRouterSetting;
+using TgPoster.Exceptions.BadRequest;
 
 namespace TgPoster.API.Domain.UseCases.OpenRouterSetting.GetOpenRouterSetting;
 

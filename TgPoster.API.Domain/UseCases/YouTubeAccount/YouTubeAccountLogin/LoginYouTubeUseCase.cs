@@ -4,6 +4,7 @@ using Google.Apis.YouTube.v3;
 using MediatR;
 using Security.IdentityServices;
 using TgPoster.Exceptions;
+using TgPoster.Exceptions.BadRequest;
 
 namespace TgPoster.API.Domain.UseCases.YouTubeAccount.YouTubeAccountLogin;
 

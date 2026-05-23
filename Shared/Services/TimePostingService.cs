@@ -1,4 +1,5 @@
 using TgPoster.Exceptions;
+using TgPoster.Exceptions.BadRequest;
 
 namespace Shared.Services;
 
