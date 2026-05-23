@@ -2,6 +2,8 @@ using MassTransit;
 using Microsoft.Extensions.Logging;
 using Shared.Enums;
 using TgPoster.Telegram;
+using TgPoster.Telegram.Abstractions;
+using TgPoster.Telegram.Models;
 
 namespace TgPoster.Worker.Domain.UseCases.RepostMessageConsumer;
 

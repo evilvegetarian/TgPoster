@@ -1,10 +1,11 @@
 using Microsoft.Extensions.Logging;
-using TgPoster.Telegram.Internal;
+using TgPoster.Telegram.Abstractions;
 using TgPoster.Telegram.Internal.Mapping;
+using TgPoster.Telegram.Models;
 using TL;
 using WTelegram;
 
-namespace TgPoster.Telegram;
+namespace TgPoster.Telegram.Internal;
 
 internal sealed class TelegramMessageService(
 	ILogger<TelegramMessageService> logger,

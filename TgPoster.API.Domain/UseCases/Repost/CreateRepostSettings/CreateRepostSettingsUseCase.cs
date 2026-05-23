@@ -3,6 +3,7 @@ using TgPoster.Exceptions;
 using TgPoster.Exceptions.BadRequest;
 using TgPoster.Exceptions.NotFound;
 using TgPoster.Telegram;
+using TgPoster.Telegram.Abstractions;
 
 namespace TgPoster.API.Domain.UseCases.Repost.CreateRepostSettings;
 

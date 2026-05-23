@@ -1,4 +1,4 @@
-namespace TgPoster.Telegram;
+namespace TgPoster.Telegram.Models;
 
 /// <summary>
 ///     Утилиты для работы с Telegram chat ID

@@ -1,4 +1,6 @@
-namespace TgPoster.Telegram;
+using TgPoster.Telegram.Models;
+
+namespace TgPoster.Telegram.Abstractions;
 
 /// <summary>
 ///     Высокоуровневый сервис для работы с Telegram-чатами/каналами: получение информации,

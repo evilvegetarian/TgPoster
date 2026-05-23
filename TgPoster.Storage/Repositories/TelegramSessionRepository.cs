@@ -2,6 +2,8 @@ using Microsoft.EntityFrameworkCore;
 using Shared.Enums;
 using TgPoster.Telegram;
 using TgPoster.Storage.Data;
+using TgPoster.Telegram.Abstractions;
+using TgPoster.Telegram.Models;
 
 namespace TgPoster.Storage.Repositories;
 

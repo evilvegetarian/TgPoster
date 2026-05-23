@@ -1,6 +1,7 @@
 using Shared.Enums;
+using TgPoster.Telegram.Models;
 
-namespace TgPoster.Telegram;
+namespace TgPoster.Telegram.Abstractions;
 
 /// <summary>
 ///     Репозиторий для работы с Telegram авторизацией.

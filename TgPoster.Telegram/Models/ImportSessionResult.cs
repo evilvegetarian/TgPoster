@@ -1,4 +1,4 @@
-namespace TgPoster.Telegram;
+namespace TgPoster.Telegram.Models;
 
 /// <summary>
 ///     Результат импорта сессии из файла.

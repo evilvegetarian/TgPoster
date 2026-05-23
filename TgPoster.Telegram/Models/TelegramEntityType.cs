@@ -1,4 +1,4 @@
-namespace TgPoster.Telegram;
+namespace TgPoster.Telegram.Models;
 
 /// <summary>
 ///     Тип Telegram-сущности, определённый по публичному HTTP-превью t.me.

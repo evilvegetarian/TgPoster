@@ -3,6 +3,7 @@ using Security.IdentityServices;
 using TgPoster.Telegram;
 using TgPoster.Exceptions;
 using TgPoster.Exceptions.NotFound;
+using TgPoster.Telegram.Abstractions;
 
 namespace TgPoster.API.Domain.UseCases.TelegramSessions.SendPassword;
 

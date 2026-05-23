@@ -1,14 +1,13 @@
 using System.Text.RegularExpressions;
-using Microsoft.Extensions.Logging;
 using Shared.Enums;
-using TgPoster.Exceptions;
 using TgPoster.Exceptions.BadRequest;
-using TgPoster.Telegram.Internal;
+using TgPoster.Telegram.Abstractions;
 using TgPoster.Telegram.Internal.Mapping;
+using TgPoster.Telegram.Models;
 using TL;
 using WTelegram;
 
-namespace TgPoster.Telegram;
+namespace TgPoster.Telegram.Internal;
 
 /// <summary>
 ///     Тип распознанного ввода

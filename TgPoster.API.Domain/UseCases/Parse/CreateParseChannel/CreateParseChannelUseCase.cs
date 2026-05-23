@@ -4,6 +4,8 @@ using TgPoster.Telegram;
 using Telegram.Bot;
 using TgPoster.API.Domain.Extensions;
 using TgPoster.API.Domain.Services;
+using TgPoster.Telegram.Abstractions;
+using TgPoster.Telegram.Models;
 
 namespace TgPoster.API.Domain.UseCases.Parse.CreateParseChannel;
 

@@ -6,6 +6,7 @@ using TgPoster.Telegram;
 using TgPoster.Storage.ConfigModels;
 using TgPoster.Storage.Data;
 using TgPoster.Storage.Repositories;
+using TgPoster.Telegram.Abstractions;
 
 namespace TgPoster.Storage;
 

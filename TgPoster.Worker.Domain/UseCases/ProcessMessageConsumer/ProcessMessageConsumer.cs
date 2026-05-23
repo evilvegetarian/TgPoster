@@ -7,6 +7,8 @@ using Shared.Video;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using TgPoster.Telegram;
+using TgPoster.Telegram.Abstractions;
+using TgPoster.Telegram.Models;
 using TgPoster.Worker.Domain.ConfigModels;
 using TgPoster.Worker.Domain.UseCases.ParseChannel;
 

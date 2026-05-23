@@ -1,8 +1,9 @@
 using System.Globalization;
 using System.Net;
 using System.Text.RegularExpressions;
+using TgPoster.Telegram.Models;
 
-namespace TgPoster.Telegram;
+namespace TgPoster.Telegram.Internal;
 
 /// <summary>
 ///     Парсер HTML-страницы <c>https://t.me/&lt;username&gt;</c>.

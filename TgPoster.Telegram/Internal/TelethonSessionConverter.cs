@@ -1,10 +1,9 @@
 using System.Security.Cryptography;
-using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.Data.Sqlite;
 
-namespace TgPoster.Telegram;
+namespace TgPoster.Telegram.Internal;
 
 /// <summary>
 ///     Конвертер сессий Telethon (.session SQLite) в формат WTelegram.

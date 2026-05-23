@@ -3,6 +3,7 @@ using Security.IdentityServices;
 using TgPoster.Exceptions;
 using TgPoster.Telegram;
 using TgPoster.Exceptions.BadRequest;
+using TgPoster.Telegram.Abstractions;
 
 namespace TgPoster.API.Domain.UseCases.TelegramSessions.ImportTelegramSession;
 

@@ -1,6 +1,6 @@
 using Shared.Enums;
 
-namespace TgPoster.Telegram;
+namespace TgPoster.Telegram.Models;
 
 /// <summary>
 ///     DTO для Telegram сессии.

@@ -1,5 +1,8 @@
 using TgPoster.Telegram;
 using Shouldly;
+using TgPoster.Telegram.Internal;
+using TgPoster.Telegram.Models;
+using TelegramChatService = TgPoster.Telegram.Internal.TelegramChatService;
 
 namespace Shared.Tests;
 

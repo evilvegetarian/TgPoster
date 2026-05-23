@@ -3,6 +3,8 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Shared.Enums;
 using TgPoster.Telegram;
+using TgPoster.Telegram.Abstractions;
+using TgPoster.Telegram.Models;
 
 namespace TgPoster.Worker.Domain.UseCases.DiscoverChannelLinks;
 
@@ -370,6 +372,8 @@ internal sealed partial class DiscoverChannelLinksWorker(
 			{
 				chats.TryAdd(username, peerInfo.Value);
 			}
+
+			await Task.Delay(TimeSpan.FromSeconds(10), ct);
 		}
 
 		return chats;

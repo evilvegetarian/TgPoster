@@ -2,7 +2,7 @@ using System.Collections.Concurrent;
 using Microsoft.Extensions.Logging;
 using WTelegram;
 
-namespace TgPoster.Telegram;
+namespace TgPoster.Telegram.Internal;
 
 /// <summary>
 ///     Менеджер для управления активными и ожидающими WTelegram клиентами.

@@ -1,8 +1,9 @@
 using System.Collections.Concurrent;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using TgPoster.Telegram.Abstractions;
 
-namespace TgPoster.Telegram;
+namespace TgPoster.Telegram.Internal;
 
 /// <summary>
 ///     Debouncer для сохранения данных Telegram сессий в БД.

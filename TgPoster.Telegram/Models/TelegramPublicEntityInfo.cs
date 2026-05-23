@@ -1,4 +1,4 @@
-namespace TgPoster.Telegram;
+namespace TgPoster.Telegram.Models;
 
 /// <summary>
 ///     Информация о Telegram-сущности, полученная из публичного HTTP-превью t.me/&lt;username&gt;.

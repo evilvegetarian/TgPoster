@@ -1,4 +1,4 @@
-namespace TgPoster.Telegram;
+namespace TgPoster.Telegram.Models;
 
 /// <summary>
 ///     Серверный фильтр для <c>Messages_Search</c>: ограничивает выборку только сообщениями нужного типа.

@@ -3,6 +3,8 @@ using MassTransit;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using TgPoster.Telegram;
+using TgPoster.Telegram.Abstractions;
+using TgPoster.Telegram.Models;
 using TgPoster.Worker.Domain.UseCases.SendCommentConsumer;
 
 namespace TgPoster.Worker.Domain.UseCases.CommentRepostMonitor;

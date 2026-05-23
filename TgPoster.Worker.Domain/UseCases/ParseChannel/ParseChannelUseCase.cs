@@ -1,6 +1,8 @@
 using MassTransit;
 using Microsoft.Extensions.Logging;
 using TgPoster.Telegram;
+using TgPoster.Telegram.Abstractions;
+using TgPoster.Telegram.Models;
 
 namespace TgPoster.Worker.Domain.UseCases.ParseChannel;
 

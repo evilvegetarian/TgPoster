@@ -1,4 +1,6 @@
-namespace TgPoster.Telegram;
+using TgPoster.Telegram.Models;
+
+namespace TgPoster.Telegram.Abstractions;
 
 /// <summary>
 ///     Сервис определения типа Telegram-сущности по username через публичное HTTP-превью t.me.

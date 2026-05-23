@@ -19,6 +19,8 @@ using TgPoster.API.Domain.Services;
 using TgPoster.API.Tests.Helper;
 using TgPoster.API.Tests.Seeder;
 using TgPoster.Storage.Data;
+using TgPoster.Telegram.Abstractions;
+using TgPoster.Telegram.Models;
 
 namespace TgPoster.API.Tests;
 

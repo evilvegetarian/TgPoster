@@ -1,3 +1,4 @@
+using TgPoster.Telegram.Models;
 using TL;
 
 namespace TgPoster.Telegram.Internal.Mapping;

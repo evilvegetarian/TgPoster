@@ -2,13 +2,13 @@ using System.Net.Sockets;
 using System.Text;
 using Microsoft.Extensions.Logging;
 using Shared.Enums;
-using TgPoster.Exceptions;
 using TgPoster.Exceptions.BadRequest;
-using TgPoster.Telegram.Internal;
+using TgPoster.Telegram.Abstractions;
+using TgPoster.Telegram.Models;
 using TL;
 using WTelegram;
 
-namespace TgPoster.Telegram;
+namespace TgPoster.Telegram.Internal;
 
 /// <summary>
 ///     Сервис для управления авторизацией Telegram сессий и активными WTelegram клиентами

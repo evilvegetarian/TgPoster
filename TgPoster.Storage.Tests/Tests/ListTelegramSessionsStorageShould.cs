@@ -104,6 +104,6 @@ public sealed class ListTelegramSessionsStorageShould(StorageTestFixture fixture
 		dto.PhoneNumber.ShouldBe("+79991234567");
 		dto.Name.ShouldBe("Test Session");
 		dto.IsActive.ShouldBeTrue();
-		dto.Status.ShouldBe(TgPoster.Telegram.TelegramSessionStatus.Authorized);
+		dto.Status.ShouldBe(Telegram.Models.TelegramSessionStatus.Authorized);
 	}
 }

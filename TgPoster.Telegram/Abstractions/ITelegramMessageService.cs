@@ -1,4 +1,6 @@
-namespace TgPoster.Telegram;
+using TgPoster.Telegram.Models;
+
+namespace TgPoster.Telegram.Abstractions;
 
 /// <summary>
 ///     Унифицированный сервис для работы с Telegram через WTelegram-клиент.

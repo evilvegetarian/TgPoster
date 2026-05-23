@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using TgPoster.Telegram;
 using TgPoster.API.Domain.UseCases.TelegramSessions.ListTelegramSessions;
 using TgPoster.Storage.Data;
+using TgPoster.Telegram.Models;
 
 namespace TgPoster.Storage.Storages;
 

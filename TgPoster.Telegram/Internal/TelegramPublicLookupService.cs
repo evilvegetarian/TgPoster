@@ -1,7 +1,9 @@
 using System.Net;
 using Microsoft.Extensions.Logging;
+using TgPoster.Telegram.Abstractions;
+using TgPoster.Telegram.Models;
 
-namespace TgPoster.Telegram;
+namespace TgPoster.Telegram.Internal;
 
 /// <inheritdoc cref="ITelegramPublicLookupService"/>
 internal sealed class TelegramPublicLookupService(

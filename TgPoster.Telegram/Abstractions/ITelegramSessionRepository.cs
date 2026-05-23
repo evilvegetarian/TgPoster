@@ -1,4 +1,6 @@
-namespace TgPoster.Telegram;
+using TgPoster.Telegram.Models;
+
+namespace TgPoster.Telegram.Abstractions;
 
 /// <summary>
 ///     Репозиторий для работы с Telegram сессиями.

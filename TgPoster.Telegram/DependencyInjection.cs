@@ -1,4 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
+using TgPoster.Telegram.Abstractions;
 using TgPoster.Telegram.Internal;
 
 namespace TgPoster.Telegram;
@@ -15,7 +16,7 @@ public static class DependencyInjection
 		services.AddScoped<TelegramAuthService>();
 		services.AddScoped<ITelegramAuthService>(sp => sp.GetRequiredService<TelegramAuthService>());
 		services.AddScoped<ITelegramClientResolver>(sp => sp.GetRequiredService<TelegramAuthService>());
-		services.AddScoped<ITelegramChatService, TelegramChatService>();
+		services.AddScoped<ITelegramChatService, Internal.TelegramChatService>();
 		services.AddScoped<ITelegramMessageService, TelegramMessageService>();
 		services.AddScoped<ITelegramPublicLookupService, TelegramPublicLookupService>();
 

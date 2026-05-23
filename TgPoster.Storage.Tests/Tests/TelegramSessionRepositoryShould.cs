@@ -5,7 +5,7 @@ using TgPoster.Storage.Data;
 using TgPoster.Storage.Repositories;
 using TgPoster.Storage.Tests.Builders;
 using StorageTelegramSessionStatus = TgPoster.Storage.Data.Enum.TelegramSessionStatus;
-using SharedTelegramSessionStatus = TgPoster.Telegram.TelegramSessionStatus;
+using SharedTelegramSessionStatus = TgPoster.Telegram.Models.TelegramSessionStatus;
 
 namespace TgPoster.Storage.Tests.Tests;
 

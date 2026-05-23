@@ -2,6 +2,8 @@ using System.Net;
 using Microsoft.Extensions.Logging.Abstractions;
 using TgPoster.Telegram;
 using Shouldly;
+using TgPoster.Telegram.Internal;
+using TgPoster.Telegram.Models;
 
 namespace Shared.Tests;
 

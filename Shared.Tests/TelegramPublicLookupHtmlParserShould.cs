@@ -1,5 +1,7 @@
 using TgPoster.Telegram;
 using Shouldly;
+using TgPoster.Telegram.Models;
+using TelegramPublicLookupHtmlParser = TgPoster.Telegram.Internal.TelegramPublicLookupHtmlParser;
 
 namespace Shared.Tests;
 

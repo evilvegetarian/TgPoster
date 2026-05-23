@@ -1,6 +1,6 @@
 using Shared.Enums;
 
-namespace TgPoster.Telegram;
+namespace TgPoster.Telegram.Models;
 
 /// <summary>
 ///     Результат обновления информации о канале/чате с учётом статуса доступа.

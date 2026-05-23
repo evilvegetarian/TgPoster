@@ -10,6 +10,8 @@ using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats.Jpeg;
 using SixLabors.ImageSharp.Processing;
 using TgPoster.Telegram;
+using TgPoster.Telegram.Abstractions;
+using TgPoster.Telegram.Models;
 using TgPoster.Worker.Domain.ConfigModels;
 
 namespace TgPoster.Worker.Domain.UseCases.ClassifyChannel;
