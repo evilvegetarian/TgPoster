@@ -27,33 +27,19 @@ internal sealed partial class DiscoverChannelLinksWorker(
 		var ct = lifetime.ApplicationStopping;
 
 		if (!await ParseLock.WaitAsync(0, ct))
-		{
-			logger.LogWarning("Парсинг уже выполняется, повторный запуск пропущен");
 			return;
-		}
 
 		try
 		{
-			var sessionId = await storage.GetSessionIdByPurposeAsync(TelegramSessionPurpose.Discover, ct);
-			if (sessionId is null)
-			{
-				logger.LogWarning("Нет активной авторизованной сессии с назначением Discover");
-				return;
-			}
-
 			var channels = await storage.GetChannelsToProcessAsync(ChannelBatchSize, ct);
 			if (channels.Count == 0)
 			{
 				logger.LogInformation("Нет каналов для обработки DiscoverChannelLinks");
 				return;
 			}
-
-			logger.LogInformation("Начинаем обработку {Count} каналов для поиска ссылок", channels.Count);
-
-			var client = await authService.GetClientAsync(sessionId.Value, ct);
+			var client = await authService.GetClientAsync(TelegramSessionPurpose.Discover, ct);
 			if (client is null)
 			{
-				logger.LogInformation("Нет клиента для получения ссылок");
 				return;
 			}
 

@@ -4,8 +4,6 @@ namespace TgPoster.Worker.Domain.UseCases.ClassifyChannel;
 
 public interface IClassifyChannelStorage
 {
-	Task<Guid?> GetSessionIdByPurposeAsync(TelegramSessionPurpose purpose, CancellationToken ct);
-
 	Task<List<ChannelForClassificationDto>> GetUnclassifiedChannelsAsync(int batchSize, CancellationToken ct);
 
 	Task UpdateClassificationAsync(

@@ -7,12 +7,6 @@ namespace TgPoster.Storage.Storages.ClassifyChannel;
 
 internal sealed class ClassifyChannelStorage(PosterContext context) : IClassifyChannelStorage
 {
-	public Task<Guid?> GetSessionIdByPurposeAsync(TelegramSessionPurpose purpose, CancellationToken ct)
-		=> context.TelegramSessions
-			.Where(s => s.IsActive
-			            && s.Purposes.Contains(purpose))
-			.Select(s => (Guid?)s.Id)
-			.FirstOrDefaultAsync(ct);
 
 	public Task<List<ChannelForClassificationDto>> GetUnclassifiedChannelsAsync(int batchSize, CancellationToken ct)
 	{

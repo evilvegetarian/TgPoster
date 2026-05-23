@@ -22,6 +22,14 @@ public sealed class TelegramAuthService(
 	{
 	}
 
+	public async Task<Client?> GetClientAsync(TelegramSessionPurpose purpose, CancellationToken ct = default)
+	{
+		var sessionId=await authRepository.GetByTelegramSessionPurpose(purpose, ct);
+		if (sessionId == null)
+			return null;
+		return await GetClientAsync(sessionId.Value, ct);
+	}
+
 	/// <summary>
 	///     Получает или создает WTelegram клиент для указанной сессии.
 	/// </summary>

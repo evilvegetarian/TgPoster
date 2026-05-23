@@ -64,10 +64,7 @@ internal sealed partial class ClassifyChannelWorker(
 		var ct = lifetime.ApplicationStopping;
 
 		if (!await ParseLock.WaitAsync(0, ct))
-		{
-			logger.LogWarning("Классификация уже выполняется, повторный запуск пропущен");
 			return;
-		}
 
 		try
 		{
@@ -79,21 +76,9 @@ internal sealed partial class ClassifyChannelWorker(
 
 			var channels = await storage.GetUnclassifiedChannelsAsync(BatchSize, ct);
 			if (channels.Count == 0)
-			{
 				return;
-			}
 
-			logger.LogInformation("Начинаем классификацию {Count} каналов", channels.Count);
-
-			var sessionId = await storage.GetSessionIdByPurposeAsync(TelegramSessionPurpose.Classification, ct);
-
-			if (sessionId is null)
-			{
-				logger.LogWarning("Нет активной сессии Classification ");
-				return;
-			}
-
-			var telegramClient = await authService.GetClientAsync(sessionId!.Value, ct);
+			var telegramClient = await authService.GetClientAsync(TelegramSessionPurpose.Classification, ct);
 			if (telegramClient is null)
 				return;
 
@@ -129,7 +114,6 @@ internal sealed partial class ClassifyChannelWorker(
 		}
 
 		var sample = await FetchRecentMessagesAsync(telegramClient, resolved.Peer, ct);
-
 
 		var messagesSection = sample.Texts.Count > 0
 			? string.Join("\n---\n", sample.Texts)

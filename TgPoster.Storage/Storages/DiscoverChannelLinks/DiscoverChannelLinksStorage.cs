@@ -10,13 +10,6 @@ namespace TgPoster.Storage.Storages.DiscoverChannelLinks;
 internal sealed class DiscoverChannelLinksStorage(PosterContext context, GuidFactory guidFactory)
 	: IDiscoverChannelLinksStorage
 {
-	public Task<Guid?> GetSessionIdByPurposeAsync(TelegramSessionPurpose purpose, CancellationToken ct)
-		=> context.TelegramSessions
-			.Where(s => s.IsActive
-			            && s.Purposes.Contains(purpose))
-			.Select(s => (Guid?)s.Id)
-			.FirstOrDefaultAsync(ct);
-
 	public Task<List<DiscoverChannelDto>> GetChannelsToProcessAsync(int channelBatchSize, CancellationToken ct)
 	{
 		//Пока это только ищу
@@ -38,18 +31,6 @@ internal sealed class DiscoverChannelLinksStorage(PosterContext context, GuidFac
 				LastParsedId = x.LastParsedId
 			})
 			.ToListAsync(ct);
-	}
-
-	public Task<bool> ExistsAsync(string? username, long? telegramId, string? inviteHash, CancellationToken ct)
-	{
-		// IgnoreQueryFilters: уникальные индексы покрывают и забаненные строки, поэтому
-		// проверку существования делаем без фильтра IsBanned
-		return context.DiscoveredChannels
-			.IgnoreQueryFilters()
-			.AnyAsync(x =>
-				(telegramId != null && x.TelegramId == telegramId)
-				|| (username != null && x.Username == username)
-				|| (inviteHash != null && x.InviteHash == inviteHash), ct);
 	}
 
 	public async Task UpsertAsync(DiscoveredPeerUpsert upsert, CancellationToken ct)
