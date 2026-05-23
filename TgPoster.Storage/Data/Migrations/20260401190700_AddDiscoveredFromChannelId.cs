@@ -1,9 +1,9 @@
-﻿using System;
+using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace TgPoster.Storage.Migrations
+namespace TgPoster.Storage.Data.Migrations
 {
     /// <inheritdoc />
     public partial class AddDiscoveredFromChannelId : Migration

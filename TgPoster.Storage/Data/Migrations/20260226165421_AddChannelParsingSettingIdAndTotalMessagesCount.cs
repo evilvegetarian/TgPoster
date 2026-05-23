@@ -1,9 +1,9 @@
-﻿using System;
+using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace TgPoster.Storage.Data.Db.Migrations
+namespace TgPoster.Storage.Data.Migrations
 {
     /// <inheritdoc />
     public partial class AddChannelParsingSettingIdAndTotalMessagesCount : Migration

@@ -1,28 +1,28 @@
-﻿using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace TgPoster.Storage.Migrations
+namespace TgPoster.Storage.Data.Migrations
 {
     /// <inheritdoc />
-    public partial class AddParticipantsUpdatedAt : Migration
+    public partial class AddBannedProperty : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AddColumn<DateTimeOffset>(
-                name: "ParticipantsUpdatedAt",
+            migrationBuilder.AddColumn<bool>(
+                name: "IsBanned",
                 table: "DiscoveredChannels",
-                type: "timestamp with time zone",
-                nullable: true);
+                type: "boolean",
+                nullable: false,
+                defaultValue: false);
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropColumn(
-                name: "ParticipantsUpdatedAt",
+                name: "IsBanned",
                 table: "DiscoveredChannels");
         }
     }

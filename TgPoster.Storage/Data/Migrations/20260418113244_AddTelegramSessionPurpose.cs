@@ -1,8 +1,8 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace TgPoster.Storage.Migrations
+namespace TgPoster.Storage.Data.Migrations
 {
     /// <inheritdoc />
     public partial class AddTelegramSessionPurpose : Migration
