@@ -35,9 +35,31 @@ function ChannelCard({channel}: {channel: DiscoverChannelResponse}) {
                     <div className="flex-1 min-w-0">
                         <div className="flex items-start justify-between gap-2">
                             <div className="min-w-0">
-                                <p className="font-semibold truncate">{channel.title ?? channel.username}</p>
+                                {tgLink ? (
+                                    <a
+                                        href={tgLink}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="font-semibold truncate hover:underline block"
+                                    >
+                                        {channel.title ?? channel.username}
+                                    </a>
+                                ) : (
+                                    <p className="font-semibold truncate">{channel.title ?? channel.username}</p>
+                                )}
                                 {channel.username && (
-                                    <p className="text-sm text-muted-foreground">@{channel.username}</p>
+                                    tgLink ? (
+                                        <a
+                                            href={tgLink}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="text-sm text-muted-foreground hover:text-primary hover:underline"
+                                        >
+                                            @{channel.username}
+                                        </a>
+                                    ) : (
+                                        <p className="text-sm text-muted-foreground">@{channel.username}</p>
+                                    )
                                 )}
                             </div>
                             {tgLink && (
@@ -47,8 +69,9 @@ function ChannelCard({channel}: {channel: DiscoverChannelResponse}) {
                                     rel="noopener noreferrer"
                                     className="flex-shrink-0"
                                 >
-                                    <Button variant="ghost" size="icon" className="h-8 w-8">
-                                        <ExternalLink className="h-4 w-4"/>
+                                    <Button variant="outline" size="sm" className="h-8 gap-1.5">
+                                        <ExternalLink className="h-3.5 w-3.5"/>
+                                        <span className="text-xs">Открыть в Telegram</span>
                                     </Button>
                                 </a>
                             )}
