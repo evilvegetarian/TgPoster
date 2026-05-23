@@ -1,7 +1,7 @@
 using System.Drawing;
 using FFMpegCore;
 using FFMpegCore.Pipes;
-using Shared.Exceptions;
+using TgPoster.Exceptions;
 
 namespace Shared.Video;
 

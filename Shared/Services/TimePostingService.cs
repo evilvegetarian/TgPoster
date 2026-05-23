@@ -1,4 +1,4 @@
-using Shared.Exceptions;
+using TgPoster.Exceptions;
 
 namespace Shared.Services;
 

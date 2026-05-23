@@ -2,7 +2,7 @@ using MediatR;
 using Moq;
 using Moq.Language.Flow;
 using Shouldly;
-using TgPoster.API.Domain.Exceptions;
+using TgPoster.Exceptions;
 using TgPoster.API.Domain.UseCases.Repost.DeleteRepostSettings;
 
 namespace TgPoster.API.Domain.Tests.Repost;

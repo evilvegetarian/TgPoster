@@ -1,6 +1,6 @@
 using MediatR;
 using Security.IdentityServices;
-using TgPoster.API.Domain.Exceptions;
+using TgPoster.Exceptions;
 using TgPoster.API.Domain.UseCases.PromptSetting.ListPromptSetting;
 
 namespace TgPoster.API.Domain.UseCases.PromptSetting.GetPromptSetting;

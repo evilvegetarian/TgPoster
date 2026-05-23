@@ -1,0 +1,21 @@
+namespace TgPoster.Exceptions;
+
+/// <summary>
+///     Исключение, выбрасываемое когда требуется повторная авторизация в Telegram (например, при 401 ошибке)
+/// </summary>
+public sealed class TelegramReauthorizationRequiredException : DomainException
+{
+	public TelegramReauthorizationRequiredException(Guid sessionId, Exception? innerException = null)
+		: base($"Требуется повторная авторизация для сессии {sessionId}")
+	{
+		SessionId = sessionId;
+		if (innerException != null)
+		{
+			InnerException = innerException;
+		}
+	}
+
+	public Guid SessionId { get; }
+
+	public new Exception? InnerException { get; init; }
+}

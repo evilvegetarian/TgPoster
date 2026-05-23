@@ -1,7 +1,7 @@
 using Moq;
 using Moq.Language.Flow;
 using Shouldly;
-using TgPoster.API.Domain.Exceptions;
+using TgPoster.Exceptions;
 using TgPoster.API.Domain.UseCases.Repost.UpdateRepostDestination;
 
 namespace TgPoster.API.Domain.Tests.Repost;

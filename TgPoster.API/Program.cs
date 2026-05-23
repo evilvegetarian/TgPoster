@@ -11,6 +11,7 @@ using TgPoster.API.Configuration;
 using TgPoster.API.Domain;
 using TgPoster.API.Middlewares;
 using TgPoster.API.Telemetry;
+using TgPoster.Exceptions;
 using TgPoster.Storage;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -82,7 +83,7 @@ builder.Services.AddMassTransit(x =>
 	x.ConfigureMassTransient(dataBase.ConnectionString);
 });
 var app = builder.Build();
-app.UseMiddleware<ErrorHandlingMiddleware>();
+app.UseTgPosterExceptionHandling();
 app.UseHttpsRedirection();
 app.UseSwagger();
 app.UseSwaggerUI();

@@ -1,6 +1,6 @@
 using MediatR;
 using Telegram.Bot;
-using TgPoster.API.Domain.Exceptions;
+using TgPoster.Exceptions;
 using TgPoster.API.Domain.Services;
 
 namespace TgPoster.API.Domain.UseCases.Files.GetFile;

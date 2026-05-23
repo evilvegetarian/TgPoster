@@ -1,7 +1,7 @@
 using MediatR;
 using Security.IdentityServices;
 using Shared.Telegram;
-using TgPoster.API.Domain.Exceptions;
+using TgPoster.Exceptions;
 
 namespace TgPoster.API.Domain.UseCases.CommentRepost.CreateCommentRepost;
 
@@ -18,7 +18,7 @@ internal sealed class CreateCommentRepostUseCase(
 			throw new ScheduleNotFoundException(request.ScheduleId);
 
 		if (!await storage.TelegramSessionExistsAndActiveAsync(request.TelegramSessionId, ct))
-			throw new TelegramSessionNotFoundException(request.TelegramSessionId);
+			throw new TelegramSessionEntityNotFoundException(request.TelegramSessionId);
 
 		var client = await authService.GetClientAsync(request.TelegramSessionId, ct);
 		var chatInfo = await chatService.GetChatInfoAsync(client, request.WatchedChannel);

@@ -1,7 +1,7 @@
 using MediatR;
 using Shared.Utilities;
 using Telegram.Bot;
-using TgPoster.API.Domain.Exceptions;
+using TgPoster.Exceptions;
 using TgPoster.API.Domain.Services;
 
 namespace TgPoster.API.Domain.UseCases.Files.UploadFileToS3;

@@ -1,7 +1,7 @@
 using System.Text.RegularExpressions;
 using Microsoft.Extensions.Logging;
 using Shared.Enums;
-using Shared.Exceptions;
+using TgPoster.Exceptions;
 using TL;
 using WTelegram;
 

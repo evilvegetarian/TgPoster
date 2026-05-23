@@ -2,7 +2,7 @@ using MediatR;
 using Security.IdentityServices;
 using Shared.YouTube;
 using Telegram.Bot;
-using TgPoster.API.Domain.Exceptions;
+using TgPoster.Exceptions;
 using TgPoster.API.Domain.Services;
 
 namespace TgPoster.API.Domain.UseCases.YouTubeAccount.SendVideoOnYouTube;

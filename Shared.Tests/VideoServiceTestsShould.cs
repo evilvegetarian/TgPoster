@@ -1,5 +1,5 @@
 using OpenCvSharp;
-using Shared.Exceptions;
+using TgPoster.Exceptions;
 using Shared.Video;
 using Shouldly;
 

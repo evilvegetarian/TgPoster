@@ -8,8 +8,3 @@ public enum MessageStatus
 	Error = 10,
 	Cancel = 20
 }
-
-public static class MessageStatusExtensions
-{
-	public static List<MessageStatus> GetBadStatus() => [MessageStatus.Cancel, MessageStatus.Error];
-}

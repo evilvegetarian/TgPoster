@@ -1,7 +1,7 @@
 using MediatR;
 using Security.IdentityServices;
 using Shared.Utilities;
-using TgPoster.API.Domain.Exceptions;
+using TgPoster.Exceptions;
 
 namespace TgPoster.API.Domain.UseCases.Messages.ListMessage;
 

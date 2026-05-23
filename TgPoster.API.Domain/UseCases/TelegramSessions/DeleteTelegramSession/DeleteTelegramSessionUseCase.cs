@@ -1,7 +1,7 @@
 using MediatR;
 using Security.IdentityServices;
 using Shared.Telegram;
-using TgPoster.API.Domain.Exceptions;
+using TgPoster.Exceptions;
 
 namespace TgPoster.API.Domain.UseCases.TelegramSessions.DeleteTelegramSession;
 
@@ -17,7 +17,7 @@ internal sealed class DeleteTelegramSessionUseCase(
 
 		if (!exists)
 		{
-			throw new TelegramSessionNotFoundException(request.SessionId);
+			throw new TelegramSessionEntityNotFoundException(request.SessionId);
 		}
 
 		await clientManager.RemoveActiveClientAsync(request.SessionId);

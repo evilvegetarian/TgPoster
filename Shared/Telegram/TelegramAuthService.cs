@@ -2,7 +2,7 @@ using System.Net.Sockets;
 using System.Text;
 using Microsoft.Extensions.Logging;
 using Shared.Enums;
-using Shared.Exceptions;
+using TgPoster.Exceptions;
 using TL;
 using WTelegram;
 

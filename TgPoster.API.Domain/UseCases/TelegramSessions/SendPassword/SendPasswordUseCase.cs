@@ -1,7 +1,7 @@
 using MediatR;
 using Security.IdentityServices;
 using Shared.Telegram;
-using TgPoster.API.Domain.Exceptions;
+using TgPoster.Exceptions;
 
 namespace TgPoster.API.Domain.UseCases.TelegramSessions.SendPassword;
 
@@ -17,7 +17,7 @@ internal sealed class SendPasswordUseCase(
 
 		if (!exists)
 		{
-			throw new TelegramSessionNotFoundException(request.SessionId);
+			throw new TelegramSessionEntityNotFoundException(request.SessionId);
 		}
 
 		var success = await authService.SendPasswordAsync(request.SessionId, request.Password, ct);

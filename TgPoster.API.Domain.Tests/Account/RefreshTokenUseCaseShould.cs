@@ -3,7 +3,7 @@ using Moq;
 using Moq.Language.Flow;
 using Security.Authentication;
 using Shouldly;
-using TgPoster.API.Domain.Exceptions;
+using TgPoster.Exceptions;
 using TgPoster.API.Domain.UseCases.Accounts.RefreshToken;
 
 namespace TgPoster.API.Domain.Tests.Account;

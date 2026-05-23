@@ -4,7 +4,7 @@ using Shared.OpenRouter;
 using Shared.OpenRouter.Models.Request;
 using Telegram.Bot;
 using TgPoster.API.Domain.ConfigModels;
-using TgPoster.API.Domain.Exceptions;
+using TgPoster.Exceptions;
 using TgPoster.API.Domain.Services;
 
 namespace TgPoster.API.Domain.UseCases.Messages.GenerateAiContent;

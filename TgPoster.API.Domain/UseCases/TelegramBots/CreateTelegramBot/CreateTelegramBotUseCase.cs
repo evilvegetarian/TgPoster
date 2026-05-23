@@ -3,7 +3,7 @@ using Security.Cryptography;
 using Security.IdentityServices;
 using Telegram.Bot;
 using TgPoster.API.Domain.ConfigModels;
-using TgPoster.API.Domain.Exceptions;
+using TgPoster.Exceptions;
 
 namespace TgPoster.API.Domain.UseCases.TelegramBots.CreateTelegramBot;
 

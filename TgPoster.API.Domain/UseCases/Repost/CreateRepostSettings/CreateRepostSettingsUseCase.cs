@@ -1,6 +1,6 @@
 using MediatR;
 using Shared.Telegram;
-using TgPoster.API.Domain.Exceptions;
+using TgPoster.Exceptions;
 using TL;
 
 namespace TgPoster.API.Domain.UseCases.Repost.CreateRepostSettings;
@@ -17,7 +17,7 @@ internal sealed class CreateRepostSettingsUseCase(
 			throw new ScheduleNotFoundException(request.ScheduleId);
 
 		if (!await storage.TelegramSessionExistsAndActiveAsync(request.TelegramSessionId, ct))
-			throw new TelegramSessionNotFoundException(request.TelegramSessionId);
+			throw new TelegramSessionEntityNotFoundException(request.TelegramSessionId);
 
 		var client = await authService.GetClientAsync(request.TelegramSessionId, ct);
 		var chats = new List<long>();

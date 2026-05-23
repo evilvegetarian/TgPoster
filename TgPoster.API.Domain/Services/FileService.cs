@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.Extensions.Caching.Memory;
 using Shared.Utilities;
 using Telegram.Bot;
-using TgPoster.API.Domain.Exceptions;
+using TgPoster.Exceptions;
 using TgPoster.API.Domain.UseCases.Messages.ListMessage;
 
 namespace TgPoster.API.Domain.Services;

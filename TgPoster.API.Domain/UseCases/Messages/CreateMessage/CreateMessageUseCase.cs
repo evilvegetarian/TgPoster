@@ -1,7 +1,7 @@
 using MediatR;
 using Security.IdentityServices;
 using Telegram.Bot;
-using TgPoster.API.Domain.Exceptions;
+using TgPoster.Exceptions;
 using TgPoster.API.Domain.Services;
 
 namespace TgPoster.API.Domain.UseCases.Messages.CreateMessage;

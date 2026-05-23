@@ -1,4 +1,4 @@
-using Shared.Exceptions;
+using TgPoster.Exceptions;
 using Shared.Services;
 using Shouldly;
 
@@ -13,7 +13,7 @@ public sealed class TimePostingServiceShould
 	{
 		var scheduleTime = new Dictionary<DayOfWeek, List<TimeOnly>>();
 		var existingTimes = new List<DateTimeOffset>();
-		Should.Throw<SharedException>(() => sut.GetTimeForPosting(5, scheduleTime, existingTimes));
+		Should.Throw<DomainException>(() => sut.GetTimeForPosting(5, scheduleTime, existingTimes));
 	}
 
 	[Fact]

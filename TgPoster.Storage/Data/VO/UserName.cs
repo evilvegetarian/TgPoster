@@ -1,5 +1,4 @@
 using TgPoster.Storage.Data.Configurations;
-using TgPoster.Storage.Exceptions;
 
 namespace TgPoster.Storage.Data.VO;
 
@@ -9,7 +8,7 @@ public sealed record UserName
 	{
 		if (string.IsNullOrWhiteSpace(value))
 		{
-			throw new NullOrWhiteSpaceException(nameof(value));
+			throw new ArgumentException("Значение не может быть null или пустой строкой.", nameof(value));
 		}
 
 		if (value.Length < 5)

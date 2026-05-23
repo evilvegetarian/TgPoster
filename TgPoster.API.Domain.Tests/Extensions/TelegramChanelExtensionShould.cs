@@ -1,5 +1,5 @@
 using Shouldly;
-using TgPoster.API.Domain.Exceptions;
+using TgPoster.Exceptions;
 using TgPoster.API.Domain.Extensions;
 
 namespace TgPoster.API.Domain.Tests.Extensions;

@@ -1,7 +1,7 @@
 using MediatR;
 using Security.IdentityServices;
 using Shared.Telegram;
-using TgPoster.API.Domain.Exceptions;
+using TgPoster.Exceptions;
 using TgPoster.API.Domain.UseCases.Proxies.ListProxies;
 
 namespace TgPoster.API.Domain.UseCases.TelegramSessions.CreateTelegramSession;

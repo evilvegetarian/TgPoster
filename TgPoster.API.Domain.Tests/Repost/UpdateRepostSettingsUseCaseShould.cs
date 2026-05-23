@@ -2,7 +2,7 @@ using Moq;
 using Moq.Language.Flow;
 using Security.IdentityServices;
 using Shouldly;
-using TgPoster.API.Domain.Exceptions;
+using TgPoster.Exceptions;
 using TgPoster.API.Domain.UseCases.Repost.UpdateRepostSettings;
 
 namespace TgPoster.API.Domain.Tests.Repost;
