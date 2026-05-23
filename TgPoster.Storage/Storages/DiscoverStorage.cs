@@ -13,7 +13,6 @@ internal sealed class DiscoverStorage(PosterContext context) : IListDiscoverStor
         ListDiscoverQuery query, CancellationToken ct)
     {
         var q = context.DiscoveredChannels
-            .Where(x => x.Status == DiscoveryStatus.Completed)
             .Where(x => query.Category == null || x.Category == query.Category)
             .Where(x => query.PeerType == null || x.PeerType == query.PeerType)
             .Where(x => query.Search == null
