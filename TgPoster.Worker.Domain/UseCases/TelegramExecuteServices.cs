@@ -119,5 +119,23 @@ public class TelegramExecuteServices(ILogger<TelegramExecuteServices> logger)
 
 				await Task.Delay(waitTime, ct);
 			}
+			catch (RequestException ex)
+				when (ex.InnerException is TaskCanceledException && !ct.IsCancellationRequested)
+			{
+				retryCount++;
+				if (retryCount > maxRetries)
+				{
+					logger.LogError(ex, "Достигнуто максимальное количество попыток после таймаута. Отказ.");
+					throw;
+				}
+
+				var waitTime = TimeSpan.FromSeconds(Math.Pow(2, retryCount));
+
+				logger.LogWarning(
+					"Таймаут запроса к Telegram API. Повтор через {WaitTime} сек. Попытка {RetryCount}/{MaxRetries}",
+					waitTime.TotalSeconds, retryCount, maxRetries);
+
+				await Task.Delay(waitTime, ct);
+			}
 	}
 }
