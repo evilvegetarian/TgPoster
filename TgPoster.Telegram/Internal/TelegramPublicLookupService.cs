@@ -14,10 +14,24 @@ internal sealed class TelegramPublicLookupService(
 
 	private static readonly TimeSpan RequestTimeout = TimeSpan.FromSeconds(10);
 
-	// t.me отдаёт более полную страницу для «браузерного» UA, поэтому имитируем Chrome.
-	private const string UserAgent =
+	// t.me отдаёт более полную страницу для «браузерного» UA, поэтому имитируем разные браузеры
+	private static readonly string[] UserAgents =
+	[
 		"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
-		+ "(KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
+		+ "(KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+		"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+		+ "(KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
+		"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 "
+		+ "(KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36",
+		"Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:130.0) Gecko/20100101 Firefox/130.0",
+		"Mozilla/5.0 (Macintosh; Intel Mac OS X 14.6; rv:131.0) Gecko/20100101 Firefox/131.0",
+		"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 "
+		+ "(KHTML, like Gecko) Version/17.6 Safari/605.1.15",
+		"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+		+ "(KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36 Edg/130.0.0.0",
+		"Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 "
+		+ "(KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36"
+	];
 
 	public async Task<TelegramOperationResult<TelegramPublicEntityInfo>> LookupAsync(
 		string usernameOrUrl,
@@ -95,7 +109,7 @@ internal sealed class TelegramPublicLookupService(
 		var client = httpClientFactory.CreateClient();
 
 		using var request = new HttpRequestMessage(HttpMethod.Get, url);
-		request.Headers.UserAgent.ParseAdd(UserAgent);
+		request.Headers.UserAgent.ParseAdd(UserAgents[Random.Shared.Next(UserAgents.Length)]);
 
 		using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
 		timeoutCts.CancelAfter(RequestTimeout);
