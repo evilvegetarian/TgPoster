@@ -5,7 +5,7 @@ import {Input} from "@/components/ui/input.tsx"
 import {Label} from "@/components/ui/label.tsx"
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select.tsx"
 import {Badge} from "@/components/ui/badge.tsx"
-import {ArrowLeft, Calendar, Clock, Copy, Loader2, Plus, Power, PowerOff, Save, Settings, Trash2, X,} from "lucide-react"
+import {ArrowLeft, Calendar, Clock, Copy, Loader2, Plus, Power, PowerOff, Save, Settings, Trash2, X, Youtube,} from "lucide-react"
 import {Checkbox} from "@/components/ui/checkbox.tsx"
 import {Separator} from "@/components/ui/separator.tsx"
 import {toast} from "sonner"
@@ -440,6 +440,13 @@ export function SchedulePage() {
                                                         Неактивно
                                                     </>
                                                 )}
+                                            </Badge>
+                                            <Badge
+                                                variant={schedule.youTubeAccountId ? "default" : "outline"}
+                                                className="text-xs"
+                                            >
+                                                <Youtube className="h-3 w-3 mr-1"/>
+                                                YouTube
                                             </Badge>
                                         </div>
                                         <CardDescription className="mt-1">Канал: {schedule.botName}</CardDescription>
