@@ -1,6 +1,7 @@
 using Shouldly;
 using TgPoster.Storage.Data;
 using TgPoster.Storage.Data.Entities;
+using TgPoster.Storage.Data.Enum;
 using TgPoster.Storage.Storages;
 using TgPoster.Storage.Tests.Builders;
 
@@ -99,5 +100,40 @@ public class ListScheduleStorageShould(StorageTestFixture fixture) : IClassFixtu
 		returnedSchedule.Id.ShouldBe(schedule.Id);
 		returnedSchedule.Name.ShouldBe(scheduleName);
 		returnedSchedule.IsActive.ShouldBe(true);
+	}
+
+	[Fact]
+	public async Task GetListScheduleAsync_ShouldReturnCorrectPostCountAndPendingPostCount()
+	{
+		var user = await new UserBuilder(context).CreateAsync();
+		var telegramBot = await new TelegramBotBuilder(context).WithOwnerId(user.Id).CreateAsync();
+		var schedule = await new ScheduleBuilder(context).WithUserId(user.Id).WithTelegramBotId(telegramBot.Id)
+			.CreateAsync();
+
+		await new MessageBuilder(context).WithScheduleId(schedule.Id).WithStatus(MessageStatus.Register).CreateAsync();
+		await new MessageBuilder(context).WithScheduleId(schedule.Id).WithStatus(MessageStatus.Register).CreateAsync();
+		await new MessageBuilder(context).WithScheduleId(schedule.Id).WithStatus(MessageStatus.Send).CreateAsync();
+		await new MessageBuilder(context).WithScheduleId(schedule.Id).WithStatus(MessageStatus.Cancel).CreateAsync();
+
+		var result = await sut.GetListScheduleAsync(user.Id, CancellationToken.None);
+
+		var returnedSchedule = result.First(x => x.Id == schedule.Id);
+		returnedSchedule.PostCount.ShouldBe(4);
+		returnedSchedule.PendingPostCount.ShouldBe(2);
+	}
+
+	[Fact]
+	public async Task GetListScheduleAsync_WithNoMessages_ShouldReturnZeroCounts()
+	{
+		var user = await new UserBuilder(context).CreateAsync();
+		var telegramBot = await new TelegramBotBuilder(context).WithOwnerId(user.Id).CreateAsync();
+		var schedule = await new ScheduleBuilder(context).WithUserId(user.Id).WithTelegramBotId(telegramBot.Id)
+			.CreateAsync();
+
+		var result = await sut.GetListScheduleAsync(user.Id, CancellationToken.None);
+
+		var returnedSchedule = result.First(x => x.Id == schedule.Id);
+		returnedSchedule.PostCount.ShouldBe(0);
+		returnedSchedule.PendingPostCount.ShouldBe(0);
 	}
 }

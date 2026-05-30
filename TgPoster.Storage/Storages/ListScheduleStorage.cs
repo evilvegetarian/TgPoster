@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using TgPoster.API.Domain.UseCases.Schedules.ListSchedule;
 using TgPoster.Storage.Data;
+using TgPoster.Storage.Data.Enum;
 
 namespace TgPoster.Storage.Storages;
 
@@ -19,7 +20,9 @@ internal sealed class ListScheduleStorage(PosterContext context) : IListSchedule
 				TelegramBotId = x.TelegramBotId,
 				OpenRouterId = x.OpenRouterSetting != null ? x.OpenRouterSetting.Id : null,
 				PromptId = x.PromptSetting != null ? x.PromptSetting.Id : null,
-				YouTubeAccountId = x.YouTubeAccountId
+				YouTubeAccountId = x.YouTubeAccountId,
+				PostCount = x.Messages.Count,
+				PendingPostCount = x.Messages.Count(m => m.Status == MessageStatus.Register&& m.TimePosting>DateTime.Now)
 			}).ToListAsync(ct);
 	}
 }

@@ -5,7 +5,7 @@ import {Input} from "@/components/ui/input.tsx"
 import {Label} from "@/components/ui/label.tsx"
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select.tsx"
 import {Badge} from "@/components/ui/badge.tsx"
-import {ArrowLeft, Calendar, Clock, Copy, Loader2, Plus, Power, PowerOff, Save, Settings, Trash2, X, Youtube,} from "lucide-react"
+import {ArrowLeft, Calendar, Clock, Copy, FileText, Loader2, Plus, Power, PowerOff, Save, Settings, Trash2, X, Youtube,} from "lucide-react"
 import {Checkbox} from "@/components/ui/checkbox.tsx"
 import {Separator} from "@/components/ui/separator.tsx"
 import {toast} from "sonner"
@@ -465,6 +465,22 @@ export function SchedulePage() {
                                     <span className={schedule.isActive ? "text-green-600" : "text-gray-500"}>
                     {schedule.isActive ? "Работает" : "Остановлено"}
                   </span>
+                                </div>
+
+                                <div className="flex items-center justify-between text-sm">
+                                    <span className="text-muted-foreground flex items-center gap-1">
+                                        <FileText className="h-3.5 w-3.5"/>
+                                        Постов:
+                                    </span>
+                                    <Badge variant="secondary">{schedule.postCount}</Badge>
+                                </div>
+
+                                <div className="flex items-center justify-between text-sm">
+                                    <span className="text-muted-foreground flex items-center gap-1">
+                                        <Clock className="h-3.5 w-3.5"/>
+                                        В очереди:
+                                    </span>
+                                    <Badge variant="outline">{schedule.pendingPostCount}</Badge>
                                 </div>
 
                                 <div className="space-y-2">

@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using TgPoster.API.Domain.UseCases.Schedules.GetSchedule;
 using TgPoster.API.Domain.UseCases.Schedules.ListSchedule;
 using TgPoster.Storage.Data;
+using TgPoster.Storage.Data.Enum;
 
 namespace TgPoster.Storage.Storages;
 
@@ -18,7 +19,9 @@ internal sealed class GetScheduleStorage(PosterContext context) : IGetScheduleSt
 				ChannelName = x.ChannelName,
 				IsActive = x.IsActive,
 				BotName = x.TelegramBot.Name,
-				TelegramBotId = x.TelegramBotId
+				TelegramBotId = x.TelegramBotId,
+				PostCount = x.Messages.Count,
+				PendingPostCount = x.Messages.Count(m => m.Status == MessageStatus.Register&& m.TimePosting>DateTime.Now)
 			})
 			.FirstOrDefaultAsync(ct);
 	}

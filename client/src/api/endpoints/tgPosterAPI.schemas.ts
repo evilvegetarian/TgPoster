@@ -727,6 +727,8 @@ export interface ScheduleResponse {
   promptId?: string | null;
   /** @nullable */
   youTubeAccountId?: string | null;
+  postCount: number;
+  pendingPostCount: number;
 }
 
 export interface ScrapeChannelsCommand {

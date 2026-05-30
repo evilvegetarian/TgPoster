@@ -46,6 +46,16 @@ public sealed record ScheduleResponse
 	///     Id YouTube аккаунта
 	/// </summary>
 	public Guid? YouTubeAccountId { get; init; }
+
+	/// <summary>
+	///     Количество постов в этом расписании
+	/// </summary>
+	public required int PostCount { get; init; }
+
+	/// <summary>
+	///     Количество постов, которые ещё только будут запощены
+	/// </summary>
+	public required int PendingPostCount { get; init; }
 }
 
 public sealed record ScheduleListResponse
