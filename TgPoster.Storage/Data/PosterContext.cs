@@ -27,6 +27,7 @@ internal class PosterContext(
 	public DbSet<CommentRepostSettings> CommentRepostSettings { get; set; }
 	public DbSet<CommentRepostLog> CommentRepostLogs { get; set; }
 	public DbSet<DiscoveredChannel> DiscoveredChannels { get; set; }
+	public DbSet<WorkerJobState> WorkerJobStates { get; set; }
 
 	public override Task<int> SaveChangesAsync(CancellationToken ct = new())
 	{

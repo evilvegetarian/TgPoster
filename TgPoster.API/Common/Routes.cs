@@ -155,6 +155,7 @@ internal static class Routes
 		internal const string Root = Base + "/discover";
 		internal const string List = Root;
 		internal const string Categories = Root + "/categories";
+		internal const string Status = Root + "/status";
 	}
 
 	internal static class Repost

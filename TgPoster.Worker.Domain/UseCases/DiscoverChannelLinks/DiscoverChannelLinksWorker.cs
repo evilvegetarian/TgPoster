@@ -5,6 +5,7 @@ using Shared.Enums;
 using TgPoster.Telegram;
 using TgPoster.Telegram.Abstractions;
 using TgPoster.Telegram.Models;
+using TgPoster.Worker.Domain.UseCases.WorkerJobStatus;
 
 namespace TgPoster.Worker.Domain.UseCases.DiscoverChannelLinks;
 
@@ -13,6 +14,8 @@ internal sealed partial class DiscoverChannelLinksWorker(
 	ITelegramAuthService authService,
 	ITelegramMessageService tgMessages,
 	ITelegramPublicLookupService publicLookup,
+	IWorkerJobStatusStorage statusStorage,
+	HangfireNextRunProvider nextRun,
 	ILogger<DiscoverChannelLinksWorker> logger,
 	IHostApplicationLifetime lifetime)
 {
@@ -20,7 +23,12 @@ internal sealed partial class DiscoverChannelLinksWorker(
 	private const int ChannelBatchSize = 1;
 	private static readonly TimeSpan InterBatchDelay = TimeSpan.FromMilliseconds(1500);
 	private static readonly TimeSpan InviteLookupDelay = TimeSpan.FromMilliseconds(500);
+	private static readonly TimeSpan HeartbeatInterval = TimeSpan.FromSeconds(20);
 	private static readonly SemaphoreSlim ParseLock = new(1, 1);
+
+	private DateTimeOffset lastHeartbeat;
+	private int progressCurrent;
+	private int progressTotal;
 
 	public async Task ProcessChannelsAsync()
 	{
@@ -33,32 +41,40 @@ internal sealed partial class DiscoverChannelLinksWorker(
 
 		try
 		{
-			var channels = await storage.GetChannelsToProcessAsync(ChannelBatchSize, ct);
-			if (channels.Count == 0)
-			{
-				logger.LogInformation("Нет каналов для обработки DiscoverChannelLinks");
-				return;
-			}
+			await TryReportAsync(() => statusStorage.ReportStartedAsync(WorkerJobNames.DiscoverChannelLinks, ct));
 
-			var sessionId = await authService.GetSessionIdForPurposeAsync(TelegramSessionPurpose.Discover, ct);
-			if (sessionId is null)
-			{
-				return;
-			}
+			var floodWaitSeconds = await ProcessChannelsCoreAsync(ct);
 
-			foreach (var channelDto in channels)
+			// Финальную запись статуса делаем с CancellationToken.None: при остановке приложения
+			// она должна успеть выполниться best-effort
+			var nextRunAt = nextRun.GetNextRunAt(WorkerJobNames.DiscoverChannelLinks);
+			if (floodWaitSeconds is { } floodWait)
 			{
-				try
-				{
-					await ProcessChannelAsync(sessionId.Value, channelDto, ct);
-				}
-				catch (Exception ex)
-				{
-					logger.LogError(ex, "Ошибка при обработке канала {Channel}",
-						channelDto.Username ?? channelDto.TelegramId?.ToString());
-					throw;
-				}
+				await TryReportAsync(() => statusStorage.ReportCooldownAsync(
+					WorkerJobNames.DiscoverChannelLinks,
+					DateTimeOffset.UtcNow.AddSeconds(floodWait),
+					nextRunAt,
+					CancellationToken.None));
 			}
+			else
+			{
+				await TryReportAsync(() => statusStorage.ReportCompletedAsync(
+					WorkerJobNames.DiscoverChannelLinks, nextRunAt, CancellationToken.None));
+			}
+		}
+		catch (OperationCanceledException)
+		{
+			// Статус не пишем: запись останется Running, и API покажет «прервана» по протухшему heartbeat'у
+			throw;
+		}
+		catch (Exception ex)
+		{
+			await TryReportAsync(() => statusStorage.ReportFailedAsync(
+				WorkerJobNames.DiscoverChannelLinks,
+				ex.Message,
+				nextRun.GetNextRunAt(WorkerJobNames.DiscoverChannelLinks),
+				CancellationToken.None));
+			throw;
 		}
 		finally
 		{
@@ -66,7 +82,57 @@ internal sealed partial class DiscoverChannelLinksWorker(
 		}
 	}
 
-	private async Task ProcessChannelAsync(
+	private async Task<int?> ProcessChannelsCoreAsync(CancellationToken ct)
+	{
+		var channels = await storage.GetChannelsToProcessAsync(ChannelBatchSize, ct);
+		if (channels.Count == 0)
+		{
+			logger.LogInformation("Нет каналов для обработки DiscoverChannelLinks");
+			return null;
+		}
+
+		var sessionId = await authService.GetSessionIdForPurposeAsync(TelegramSessionPurpose.Discover, ct);
+		if (sessionId is null)
+		{
+			return null;
+		}
+
+		progressTotal = channels.Count;
+		foreach (var channelDto in channels)
+		{
+			await ReportProgressAsync(
+				$"@{channelDto.Username ?? channelDto.TelegramId?.ToString()}", ct, force: true);
+
+			int? floodWaitSeconds;
+			try
+			{
+				floodWaitSeconds = await ProcessChannelAsync(sessionId.Value, channelDto, ct);
+			}
+			catch (Exception ex)
+			{
+				logger.LogError(ex, "Ошибка при обработке канала {Channel}",
+					channelDto.Username ?? channelDto.TelegramId?.ToString());
+				throw;
+			}
+
+			progressCurrent++;
+			if (floodWaitSeconds is not null)
+			{
+				return floodWaitSeconds;
+			}
+		}
+
+		return null;
+	}
+
+	/// <summary>
+	///     Обработать один канал: найти ссылки в истории и сохранить обнаруженные пиры
+	/// </summary>
+	/// <param name="sessionId">ID сессии Telegram</param>
+	/// <param name="channelDto">Канал для обработки</param>
+	/// <param name="ct">Токен отмены</param>
+	/// <returns>Секунды FloodWait-таймаута, если Telegram его вернул, иначе null</returns>
+	private async Task<int?> ProcessChannelAsync(
 		Guid sessionId,
 		DiscoverChannelDto channelDto,
 		CancellationToken ct
@@ -78,11 +144,11 @@ internal sealed partial class DiscoverChannelLinksWorker(
 		{
 			logger.LogWarning("Не удалось найти канал: {Channel}",
 				channelDto.Username ?? channelDto.TelegramId?.ToString());
-			return;
+			return null;
 		}
 
-		var allHistory = await GetAllHistoryAsync(sessionId, channel, channelDto.LastParsedId, ct);
-		var scan = ScanChannelHistoryAsync(allHistory);
+		var fetch = await GetAllHistoryAsync(sessionId, channel, channelDto.LastParsedId, ct);
+		var scan = ScanChannelHistoryAsync(fetch.Pages);
 
 		foreach (var privId in scan.PrivateChannelIds)
 		{
@@ -115,6 +181,8 @@ internal sealed partial class DiscoverChannelLinksWorker(
 			channelDto.Username ?? channelDto.TelegramId?.ToString());
 
 		await SaveDiscoveredPeersAsync(channelDto, channel, scan, resolvedInvites, ct);
+
+		return fetch.FloodWaitSeconds;
 	}
 
 	private async Task<TelegramChatInfo?> ResolveChannelAsync(
@@ -163,7 +231,7 @@ internal sealed partial class DiscoverChannelLinksWorker(
 		return null;
 	}
 
-	private async Task<List<TelegramHistoryPage>> GetAllHistoryAsync(
+	private async Task<HistoryFetchResult> GetAllHistoryAsync(
 		Guid sessionId,
 		TelegramChatInfo channel,
 		int? lastParsedId,
@@ -171,6 +239,7 @@ internal sealed partial class DiscoverChannelLinksWorker(
 	)
 	{
 		var offset = 0;
+		var loadedMessages = 0;
 		var transientAttempts = 0;
 		const int maxTransientAttempts = 3;
 		var allHistory = new List<TelegramHistoryPage>();
@@ -192,6 +261,13 @@ internal sealed partial class DiscoverChannelLinksWorker(
 				logger.LogWarning("Ошибка получения истории канала {Channel}: {Status} {Error}", channel.Username,
 					historyResult.Status, historyResult.ErrorMessage);
 
+				// Длинный FloodWait пробрасываем наружу: уже собраные страницы обработаем,
+				// а время окончания таймаута попадёт в статус задачи
+				if (historyResult.Status is TelegramOperationStatus.FloodWait)
+				{
+					return new HistoryFetchResult(allHistory, historyResult.FloodWaitSeconds);
+				}
+
 				if (historyResult.Status is TelegramOperationStatus.Timeout or TelegramOperationStatus.UnknownError)
 				{
 					if (++transientAttempts >= maxTransientAttempts)
@@ -212,6 +288,10 @@ internal sealed partial class DiscoverChannelLinksWorker(
 
 			var history = historyResult.Value!;
 			allHistory.Add(history);
+			loadedMessages += history.Messages.Count;
+
+			await ReportProgressAsync(
+				$"@{channel.Username ?? channel.Title}: загружено {loadedMessages} сообщений", ct);
 
 			if (history.Messages.Count == 0)
 			{
@@ -227,7 +307,7 @@ internal sealed partial class DiscoverChannelLinksWorker(
 			await Task.Delay(InterBatchDelay, ct);
 		}
 
-		return allHistory;
+		return new HistoryFetchResult(allHistory, null);
 	}
 
 	private HistoryScanResult ScanChannelHistoryAsync(List<TelegramHistoryPage> allHistory)
@@ -367,6 +447,8 @@ internal sealed partial class DiscoverChannelLinksWorker(
 		{
 			ct.ThrowIfCancellationRequested();
 
+			await ReportProgressAsync($"HTTP-lookup @{username}", ct);
+
 			var peerInfo = await ResolveChatPeersAsync(username, ct);
 			if (peerInfo.HasValue)
 			{
@@ -421,6 +503,8 @@ internal sealed partial class DiscoverChannelLinksWorker(
 		foreach (var hash in hashes)
 		{
 			ct.ThrowIfCancellationRequested();
+
+			await ReportProgressAsync($"HTTP-lookup инвайта {hash}", ct);
 
 			var result = await publicLookup.LookupInviteAsync(hash, ct);
 			if (!result.IsSuccess || result.Value is null)
@@ -553,6 +637,43 @@ internal sealed partial class DiscoverChannelLinksWorker(
 		}
 	}
 
+	/// <summary>
+	///     Обновить heartbeat и прогресс задачи в хранилище статусов. Записи троттлятся,
+	///     чтобы не спамить БД из частых циклов
+	/// </summary>
+	/// <param name="message">Человекочитаемое описание текущего этапа</param>
+	/// <param name="ct">Токен отмены</param>
+	/// <param name="force">Записать без учёта троттлинга</param>
+	private async Task ReportProgressAsync(string? message, CancellationToken ct, bool force = false)
+	{
+		var now = DateTimeOffset.UtcNow;
+		if (!force && now - lastHeartbeat < HeartbeatInterval)
+		{
+			return;
+		}
+
+		lastHeartbeat = now;
+		await TryReportAsync(() => statusStorage.ReportHeartbeatAsync(
+			WorkerJobNames.DiscoverChannelLinks, progressCurrent, progressTotal, message, ct));
+	}
+
+	/// <summary>
+	///     Выполнить запись статуса, проглатывая ошибки: сбой записи не должен ронять job
+	/// </summary>
+	/// <param name="report">Операция записи статуса</param>
+	private async Task TryReportAsync(Func<Task> report)
+	{
+		try
+		{
+			await report();
+		}
+		catch (Exception ex)
+		{
+			logger.LogWarning(ex, "Не удалось записать статус задачи {JobName}",
+				WorkerJobNames.DiscoverChannelLinks);
+		}
+	}
+
 	private static string ResolvePeerType(TelegramChatInfo chat) => chat.IsChannel ? "channel" : "chat";
 
 	private static void ExtractLinksFromEntities(
@@ -633,6 +754,10 @@ internal sealed partial class DiscoverChannelLinksWorker(
 
 	[GeneratedRegex(@"(?:https?://)?t\.me/c/(\d+)(?:/\d+)?", RegexOptions.Compiled)]
 	private static partial Regex PrivateChannelLinkRegex();
+
+	private sealed record HistoryFetchResult(
+		List<TelegramHistoryPage> Pages,
+		int? FloodWaitSeconds);
 
 	private sealed record HistoryScanResult(
 		Dictionary<string, DiscoveredPeerInfo> PublicPeers,

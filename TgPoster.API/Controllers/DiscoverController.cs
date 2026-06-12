@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TgPoster.API.Common;
 using TgPoster.API.Domain.UseCases.Discover.GetCategories;
+using TgPoster.API.Domain.UseCases.Discover.GetDiscoverStatus;
 using TgPoster.API.Domain.UseCases.Discover.ListDiscover;
 using TgPoster.API.Domain.UseCases.Messages.ListMessage;
 using TgPoster.API.Mapper;
@@ -40,5 +41,17 @@ public class DiscoverController(ISender sender) : ControllerBase
     {
         var categories = await sender.Send(new GetCategoriesQuery(), ct);
         return Ok(categories);
+    }
+
+    /// <summary>
+    ///     Получить состояние фоновой задачи обнаружения каналов
+    /// </summary>
+    [HttpGet(Routes.Discover.Status)]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(DiscoverStatusResponse))]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
+    public async Task<IActionResult> GetStatus(CancellationToken ct)
+    {
+        var status = await sender.Send(new GetDiscoverStatusQuery(), ct);
+        return Ok(status);
     }
 }

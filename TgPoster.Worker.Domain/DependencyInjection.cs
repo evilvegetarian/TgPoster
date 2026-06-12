@@ -21,6 +21,7 @@ using TgPoster.Worker.Domain.UseCases.ScrapeChannel;
 using TgPoster.Worker.Domain.UseCases.ClassifyChannel;
 using TgPoster.Worker.Domain.UseCases.DiscoverChannelLinks;
 using TgPoster.Worker.Domain.UseCases.UpdateChannelStats;
+using TgPoster.Worker.Domain.UseCases.WorkerJobStatus;
 
 namespace TgPoster.Worker.Domain;
 
@@ -50,6 +51,7 @@ public static class DependencyInjection
 		services.AddScoped<DiscoverChannelLinksWorker>();
 		services.AddScoped<ClassifyChannelWorker>();
 		services.AddScoped<UpdateChannelStatsWorker>();
+		services.AddScoped<HangfireNextRunProvider>();
 
 		return services;
 	}
@@ -116,7 +118,7 @@ public static class DependencyInjection
 
 		//Каждые 2 часов
 		recurringJobManager.AddOrUpdate<DiscoverChannelLinksWorker>(
-			"discover-channel-links-job",
+			WorkerJobNames.DiscoverChannelLinks,
 			worker => worker.ProcessChannelsAsync(),
 			"0 */2 * * *");
 
@@ -129,6 +131,14 @@ public static class DependencyInjection
 			"update-channel-stats-job",
 			worker => worker.UpdateStatsAsync(),
 			Cron.Hourly());
+
+		var statusStorage = scope.ServiceProvider.GetRequiredService<IWorkerJobStatusStorage>();
+		var nextRunProvider = scope.ServiceProvider.GetRequiredService<HangfireNextRunProvider>();
+		statusStorage.EnsureRegisteredAsync(
+				WorkerJobNames.DiscoverChannelLinks,
+				nextRunProvider.GetNextRunAt(WorkerJobNames.DiscoverChannelLinks),
+				CancellationToken.None)
+			.GetAwaiter().GetResult();
 	}
 
 	private class AllowAllAuthorizationFilter : IDashboardAuthorizationFilter

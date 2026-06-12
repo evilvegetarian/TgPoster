@@ -1,13 +1,16 @@
 using Microsoft.EntityFrameworkCore;
 using TgPoster.API.Domain.Models;
 using TgPoster.API.Domain.UseCases.Discover.GetCategories;
+using TgPoster.API.Domain.UseCases.Discover.GetDiscoverStatus;
 using TgPoster.API.Domain.UseCases.Discover.ListDiscover;
 using TgPoster.Storage.Data;
 using TgPoster.Storage.Data.Enum;
+using TgPoster.Worker.Domain;
 
 namespace TgPoster.Storage.Storages;
 
-internal sealed class DiscoverStorage(PosterContext context) : IListDiscoverStorage, IGetCategoriesStorage
+internal sealed class DiscoverStorage(PosterContext context)
+    : IListDiscoverStorage, IGetCategoriesStorage, IGetDiscoverStatusStorage
 {
     public async Task<PagedList<DiscoverChannelResponse>> GetDiscoverChannelsAsync(
         ListDiscoverQuery query, CancellationToken ct)
@@ -51,4 +54,20 @@ internal sealed class DiscoverStorage(PosterContext context) : IListDiscoverStor
             .Distinct()
             .OrderBy(x => x)
             .ToListAsync(ct);
+
+    public Task<WorkerJobStateDto?> GetDiscoverJobStateAsync(CancellationToken ct) =>
+        context.WorkerJobStates
+            .Where(x => x.JobName == WorkerJobNames.DiscoverChannelLinks)
+            .Select(x => new WorkerJobStateDto(
+                (WorkerJobStateStatus)x.Status,
+                x.LastStartedAt,
+                x.LastFinishedAt,
+                x.HeartbeatAt,
+                x.CooldownUntil,
+                x.NextRunAt,
+                x.LastError,
+                x.ProgressCurrent,
+                x.ProgressTotal,
+                x.ProgressMessage))
+            .FirstOrDefaultAsync(ct);
 }
