@@ -28,6 +28,7 @@ public static class DependencyInjection
 		services.AddScoped<GuidFactory>();
 		services.AddScoped<ITelegramSessionRepository, TelegramSessionRepository>();
 		services.AddScoped<ITelegramAuthRepository, TelegramSessionRepository>();
+		services.AddScoped<ITelegramHttpProxyRepository, TelegramHttpProxyRepository>();
 		services.RegisterStorage();
 
 		return services;

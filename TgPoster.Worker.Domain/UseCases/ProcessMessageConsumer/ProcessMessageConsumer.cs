@@ -123,10 +123,6 @@ internal sealed class ProcessMessageConsumer(
 				}
 
 				messageDto.Text = !deleteText && !string.IsNullOrEmpty(message.Text) ? message.Text : null;
-				if (useAi)
-				{
-					// openRouterClient.SendMessageAsync()
-				}
 			}
 
 			var messagesToDelete = new List<int>();

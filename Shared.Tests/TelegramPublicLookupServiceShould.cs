@@ -1,7 +1,9 @@
 using System.Net;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Options;
 using TgPoster.Telegram;
 using Shouldly;
+using TgPoster.Telegram.Configuration;
 using TgPoster.Telegram.Internal;
 using TgPoster.Telegram.Models;
 
@@ -113,8 +115,10 @@ public sealed class TelegramPublicLookupServiceShould
         var handler = new RecordingHandler(responder);
         var httpClient = new HttpClient(handler);
         var factory = new SingleClientFactory(httpClient);
+        var options = Options.Create(new TelegramPublicLookupOptions { MaxRetries = 0 });
         var service = new TelegramPublicLookupService(
             factory,
+            options,
             NullLogger<TelegramPublicLookupService>.Instance);
         return (service, handler);
     }

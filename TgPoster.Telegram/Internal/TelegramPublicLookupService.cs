@@ -1,6 +1,8 @@
 using System.Net;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using TgPoster.Telegram.Abstractions;
+using TgPoster.Telegram.Configuration;
 using TgPoster.Telegram.Models;
 
 namespace TgPoster.Telegram.Internal;
@@ -8,11 +10,12 @@ namespace TgPoster.Telegram.Internal;
 /// <inheritdoc cref="ITelegramPublicLookupService"/>
 internal sealed class TelegramPublicLookupService(
 	IHttpClientFactory httpClientFactory,
+	IOptions<TelegramPublicLookupOptions> options,
 	ILogger<TelegramPublicLookupService> logger) : ITelegramPublicLookupService
 {
 	private const string BaseUrl = "https://t.me/";
 
-	private static readonly TimeSpan RequestTimeout = TimeSpan.FromSeconds(10);
+	private readonly TelegramPublicLookupOptions settings = options.Value;
 
 	// t.me отдаёт более полную страницу для «браузерного» UA, поэтому имитируем разные браузеры
 	private static readonly string[] UserAgents =
@@ -106,39 +109,42 @@ internal sealed class TelegramPublicLookupService(
 
 	private async Task<TmePageFetchResult> FetchTmePageAsync(string url, string subject, CancellationToken ct)
 	{
-		var client = httpClientFactory.CreateClient();
+		var client = httpClientFactory.CreateClient(DependencyInjection.PublicLookupClient);
+		var timeout = TimeSpan.FromSeconds(settings.TimeoutSeconds);
+		var maxRetries = Math.Max(0, settings.MaxRetries);
 
-		using var request = new HttpRequestMessage(HttpMethod.Get, url);
-		request.Headers.UserAgent.ParseAdd(UserAgents[Random.Shared.Next(UserAgents.Length)]);
+		for (var attempt = 0;; attempt++)
+		{
+			using var request = new HttpRequestMessage(HttpMethod.Get, url);
+			request.Headers.UserAgent.ParseAdd(UserAgents[Random.Shared.Next(UserAgents.Length)]);
+			request.Headers.Accept.ParseAdd("text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
+			request.Headers.AcceptLanguage.ParseAdd("en-US,en;q=0.9");
 
-		using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
-		timeoutCts.CancelAfter(RequestTimeout);
+			using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
+			timeoutCts.CancelAfter(timeout);
 
-		HttpResponseMessage response;
-		try
-		{
-			response = await client.SendAsync(request, HttpCompletionOption.ResponseContentRead, timeoutCts.Token);
-		}
-		catch (OperationCanceledException) when (!ct.IsCancellationRequested)
-		{
-			logger.LogWarning("Таймаут при запросе t.me для {Subject}", subject);
-			return TmePageFetchResult.Fail(TelegramOperationStatus.Timeout, "Таймаут HTTP-запроса к t.me");
-		}
-		catch (HttpRequestException ex)
-		{
-			logger.LogError(ex, "Ошибка HTTP-запроса t.me для {Subject}", subject);
-			return TmePageFetchResult.Fail(TelegramOperationStatus.UnknownError, ex.Message);
-		}
-
-		using (response)
-		{
-			if (response.StatusCode == HttpStatusCode.NotFound)
+			try
 			{
-				return TmePageFetchResult.OkNotFound();
-			}
+				using var response = await client.SendAsync(
+					request, HttpCompletionOption.ResponseContentRead, timeoutCts.Token);
 
-			if (!response.IsSuccessStatusCode)
-			{
+				if (response.StatusCode == HttpStatusCode.NotFound)
+				{
+					return TmePageFetchResult.OkNotFound();
+				}
+
+				if (response.IsSuccessStatusCode)
+				{
+					var html = await response.Content.ReadAsStringAsync(timeoutCts.Token);
+					return TmePageFetchResult.Ok(html);
+				}
+
+				if (IsTransientStatus(response.StatusCode) && attempt < maxRetries)
+				{
+					await DelayBeforeRetryAsync(attempt, ct);
+					continue;
+				}
+
 				logger.LogWarning(
 					"Неожиданный HTTP-код {StatusCode} от t.me для {Subject}",
 					(int)response.StatusCode, subject);
@@ -146,10 +152,39 @@ internal sealed class TelegramPublicLookupService(
 					TelegramOperationStatus.UnknownError,
 					$"HTTP {(int)response.StatusCode}");
 			}
+			catch (OperationCanceledException) when (!ct.IsCancellationRequested)
+			{
+				if (attempt < maxRetries)
+				{
+					await DelayBeforeRetryAsync(attempt, ct);
+					continue;
+				}
 
-			var html = await response.Content.ReadAsStringAsync(timeoutCts.Token);
-			return TmePageFetchResult.Ok(html);
+				logger.LogWarning("Таймаут при запросе t.me для {Subject}", subject);
+				return TmePageFetchResult.Fail(TelegramOperationStatus.Timeout, "Таймаут HTTP-запроса к t.me");
+			}
+			catch (HttpRequestException ex)
+			{
+				if (attempt < maxRetries)
+				{
+					await DelayBeforeRetryAsync(attempt, ct);
+					continue;
+				}
+
+				logger.LogError(ex, "Ошибка HTTP-запроса t.me для {Subject}", subject);
+				return TmePageFetchResult.Fail(TelegramOperationStatus.UnknownError, ex.Message);
+			}
 		}
+	}
+
+	private static bool IsTransientStatus(HttpStatusCode status) =>
+		(int)status >= 500 || status == HttpStatusCode.TooManyRequests;
+
+	private Task DelayBeforeRetryAsync(int attempt, CancellationToken ct)
+	{
+		var backoff = settings.RetryBaseDelayMs * (1 << attempt);
+		var jitter = Random.Shared.Next(0, settings.RetryBaseDelayMs + 1);
+		return Task.Delay(TimeSpan.FromMilliseconds(backoff + jitter), ct);
 	}
 
 	private readonly record struct TmePageFetchResult(
