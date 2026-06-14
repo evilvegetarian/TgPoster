@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using System.Net;
+using Microsoft.Extensions.Logging;
 using Telegram.Bot;
 
 namespace Shared.Telegram;
@@ -11,7 +12,8 @@ namespace Shared.Telegram;
 /// Прокси для запросов к api.telegram.org. Тот же <see cref="IWebProxy"/>, что и для парсинга t.me.
 /// Если не зарегистрирован — запросы идут напрямую
 /// </param>
-public sealed class TelegramBotManager(IWebProxy? proxy = null) : IDisposable
+/// <param name="logger">Логгер (опционален, чтобы не ломать юнит-тесты)</param>
+public sealed class TelegramBotManager(IWebProxy? proxy = null, ILogger<TelegramBotManager>? logger = null) : IDisposable
 {
     private readonly ConcurrentDictionary<string, TelegramBotClient> clients = [];
 
@@ -24,6 +26,10 @@ public sealed class TelegramBotManager(IWebProxy? proxy = null) : IDisposable
     {
         return clients.GetOrAdd(token, t =>
         {
+            logger?.LogInformation(
+                "Создание TelegramBotClient. Прокси для api.telegram.org: {ProxyMode}",
+                proxy is null ? "НЕ настроен (запросы напрямую)" : "включён");
+
             var handler = new SocketsHttpHandler
             {
                 PooledConnectionLifetime = TimeSpan.FromMinutes(2),

@@ -82,7 +82,22 @@ internal sealed class DbActiveHttpProxy(
 		var repository = scope.ServiceProvider.GetRequiredService<ITelegramHttpProxyRepository>();
 		var proxy = await repository.GetActiveHttpProxyAsync(ct);
 
+		var previous = snapshot;
 		snapshot = Build(proxy);
+
+		var firstLoad = previous.FetchedAt == DateTimeOffset.MinValue;
+		var changed = previous.ProxyUri?.ToString() != snapshot.ProxyUri?.ToString();
+		if (firstLoad || changed)
+		{
+			if (snapshot.ProxyUri is null)
+			{
+				logger.LogWarning("Активный HTTP-прокси в БД не найден — запросы к Telegram идут напрямую");
+			}
+			else
+			{
+				logger.LogInformation("Активный HTTP-прокси для запросов к Telegram: {Proxy}", snapshot.ProxyUri);
+			}
+		}
 	}
 
 	private static Snapshot Build(ProxyDto? proxy)
