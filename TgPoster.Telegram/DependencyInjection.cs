@@ -30,6 +30,7 @@ public static class DependencyInjection
 
 		services.AddOptions<TelegramPublicLookupOptions>().BindConfiguration("TelegramPublicLookup");
 		services.AddSingleton<DbActiveHttpProxy>();
+		services.AddSingleton<IWebProxy>(sp => sp.GetRequiredService<DbActiveHttpProxy>());
 
 		services.AddHttpClient(PublicLookupClient)
 			.ConfigurePrimaryHttpMessageHandler(sp =>

@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Net;
 using Telegram.Bot;
 
 namespace Shared.Telegram;
@@ -6,7 +7,11 @@ namespace Shared.Telegram;
 /// <summary>
 /// Менеджер для кеширования и переиспользования TelegramBotClient экземпляров
 /// </summary>
-public sealed class TelegramBotManager : IDisposable
+/// <param name="proxy">
+/// Прокси для запросов к api.telegram.org. Тот же <see cref="IWebProxy"/>, что и для парсинга t.me.
+/// Если не зарегистрирован — запросы идут напрямую
+/// </param>
+public sealed class TelegramBotManager(IWebProxy? proxy = null) : IDisposable
 {
     private readonly ConcurrentDictionary<string, TelegramBotClient> clients = [];
 
@@ -19,7 +24,13 @@ public sealed class TelegramBotManager : IDisposable
     {
         return clients.GetOrAdd(token, t =>
         {
-            var http = new HttpClient { Timeout = TimeSpan.FromMinutes(5) };
+            var handler = new SocketsHttpHandler
+            {
+                PooledConnectionLifetime = TimeSpan.FromMinutes(2),
+                Proxy = proxy,
+                UseProxy = proxy is not null
+            };
+            var http = new HttpClient(handler) { Timeout = TimeSpan.FromMinutes(5) };
             return new TelegramBotClient(t, http);
         });
     }
