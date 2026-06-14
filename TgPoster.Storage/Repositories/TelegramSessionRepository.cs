@@ -40,29 +40,58 @@ internal sealed class TelegramSessionRepository(PosterContext context)
 		await context.SaveChangesAsync(ct);
 	}
 
-	public Task<TelegramSessionDto?> GetByIdAsync(Guid sessionId, CancellationToken ct)
+	public async Task<TelegramSessionDto?> GetByIdAsync(Guid sessionId, CancellationToken ct)
 	{
-		return context.TelegramSessions
+		// Прокси проецируем без кросс-enum каста (Data.Enum.ProxyType со строковым конвертером),
+		// иначе (ProxyType)s.Proxy.Type в SQL даёт CAST("Type" AS integer) и падает на строковой колонке
+		var session = await context.TelegramSessions
 			.Where(s => s.Id == sessionId)
-			.Select(s => new TelegramSessionDto
+			.Select(s => new
 			{
-				Id = s.Id,
-				ApiId = s.ApiId,
-				ApiHash = s.ApiHash,
-				PhoneNumber = s.PhoneNumber,
-				IsActive = s.IsActive,
-				UserId = s.UserId,
-				SessionData = s.SessionData,
+				s.Id,
+				s.ApiId,
+				s.ApiHash,
+				s.PhoneNumber,
+				s.IsActive,
+				s.UserId,
+				s.SessionData,
 				Proxy = s.Proxy == null
 					? null
-					: new ProxyDto(
-						(ProxyType)s.Proxy.Type,
+					: new
+					{
+						s.Proxy.Type,
 						s.Proxy.Host,
 						s.Proxy.Port,
 						s.Proxy.Username,
 						s.Proxy.Password,
-						s.Proxy.Secret)
+						s.Proxy.Secret
+					}
 			})
 			.FirstOrDefaultAsync(ct);
+
+		if (session is null)
+		{
+			return null;
+		}
+
+		return new TelegramSessionDto
+		{
+			Id = session.Id,
+			ApiId = session.ApiId,
+			ApiHash = session.ApiHash,
+			PhoneNumber = session.PhoneNumber,
+			IsActive = session.IsActive,
+			UserId = session.UserId,
+			SessionData = session.SessionData,
+			Proxy = session.Proxy == null
+				? null
+				: new ProxyDto(
+					(ProxyType)session.Proxy.Type,
+					session.Proxy.Host,
+					session.Proxy.Port,
+					session.Proxy.Username,
+					session.Proxy.Password,
+					session.Proxy.Secret)
+		};
 	}
 }

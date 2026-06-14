@@ -8,18 +8,32 @@ namespace TgPoster.Storage.Repositories;
 
 internal sealed class TelegramHttpProxyRepository(PosterContext context) : ITelegramHttpProxyRepository
 {
-	public Task<ProxyDto?> GetActiveHttpProxyAsync(CancellationToken ct)
+	public async Task<ProxyDto?> GetActiveHttpProxyAsync(CancellationToken ct)
 	{
-		return context.Proxies
+		// Тип проецируем как есть (Data.Enum.ProxyType со строковым конвертером) и кастим в памяти —
+		// иначе кросс-enum каст в SQL превращается в CAST("Type" AS integer) и падает на строковой колонке
+		var proxy = await context.Proxies
 			.Where(p => p.Type == Data.Enum.ProxyType.Http)
 			.OrderBy(p => p.Created)
-			.Select(p => new ProxyDto(
-				(ProxyType)p.Type,
+			.Select(p => new
+			{
+				p.Type,
 				p.Host,
 				p.Port,
 				p.Username,
 				p.Password,
-				p.Secret))
+				p.Secret
+			})
 			.FirstOrDefaultAsync(ct);
+
+		return proxy is null
+			? null
+			: new ProxyDto(
+				(ProxyType)proxy.Type,
+				proxy.Host,
+				proxy.Port,
+				proxy.Username,
+				proxy.Password,
+				proxy.Secret);
 	}
 }
