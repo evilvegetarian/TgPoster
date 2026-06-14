@@ -20,7 +20,10 @@ internal sealed class DbActiveHttpProxy(
 {
 	private readonly TimeSpan refreshInterval = TimeSpan.FromSeconds(Math.Max(1, options.Value.ProxyRefreshSeconds));
 
+	private readonly Lock initGate = new();
+
 	private volatile Snapshot snapshot = Snapshot.Empty;
+	private volatile bool initialized;
 	private int refreshing;
 
 	/// <summary>
@@ -28,7 +31,11 @@ internal sealed class DbActiveHttpProxy(
 	/// </summary>
 	public ICredentials? Credentials
 	{
-		get => snapshot.Credentials;
+		get
+		{
+			EnsureFresh();
+			return snapshot.Credentials;
+		}
 		set { }
 	}
 
@@ -46,9 +53,46 @@ internal sealed class DbActiveHttpProxy(
 
 	private void EnsureFresh()
 	{
+		// Первая загрузка — блокирующая: иначе SocketsHttpHandler успевает прочитать пустой снимок
+		// (Credentials = null) до завершения фонового обновления и шлёт CONNECT без Proxy-Authorization → 407
+		if (!initialized)
+		{
+			EnsureInitialized();
+			return;
+		}
+
 		if (DateTimeOffset.UtcNow - snapshot.FetchedAt >= refreshInterval)
 		{
 			TriggerRefresh();
+		}
+	}
+
+	private void EnsureInitialized()
+	{
+		if (initialized)
+		{
+			return;
+		}
+
+		lock (initGate)
+		{
+			if (initialized)
+			{
+				return;
+			}
+
+			try
+			{
+				RefreshAsync(CancellationToken.None).GetAwaiter().GetResult();
+			}
+			catch (Exception ex)
+			{
+				logger.LogWarning(ex, "Не удалось выполнить первичную загрузку HTTP-прокси для запросов к Telegram");
+			}
+			finally
+			{
+				initialized = true;
+			}
 		}
 	}
 
@@ -95,7 +139,12 @@ internal sealed class DbActiveHttpProxy(
 			}
 			else
 			{
-				logger.LogInformation("Активный HTTP-прокси для запросов к Telegram: {Proxy}", snapshot.ProxyUri);
+				// Сам URI прокси не содержит логин/пароль, поэтому отдельно логируем наличие аутентификации —
+				// при 407 от прокси это сразу показывает, заполнены ли креды в БД
+				logger.LogInformation(
+					"Активный HTTP-прокси для запросов к Telegram: {Proxy}. Аутентификация: {AuthMode}",
+					snapshot.ProxyUri,
+					snapshot.Credentials is null ? "НЕ настроена (логин/пароль пусты)" : "настроена");
 			}
 		}
 	}

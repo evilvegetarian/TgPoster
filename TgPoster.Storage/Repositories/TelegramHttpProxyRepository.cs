@@ -12,9 +12,10 @@ internal sealed class TelegramHttpProxyRepository(PosterContext context) : ITele
 	{
 		// Тип проецируем как есть (Data.Enum.ProxyType со строковым конвертером) и кастим в памяти —
 		// иначе кросс-enum каст в SQL превращается в CAST("Type" AS integer) и падает на строковой колонке
+		// Берём самую свежую добавленную HTTP-прокси: при замене прокси старые записи не должны перехватывать трафик
 		var proxy = await context.Proxies
 			.Where(p => p.Type == Data.Enum.ProxyType.Http)
-			.OrderBy(p => p.Created)
+			.OrderByDescending(p => p.Created)
 			.Select(p => new
 			{
 				p.Type,
