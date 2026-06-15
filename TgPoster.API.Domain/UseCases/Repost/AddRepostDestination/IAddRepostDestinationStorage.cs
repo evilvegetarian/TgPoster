@@ -15,9 +15,20 @@ public interface IAddRepostDestinationStorage
 	Task<bool> DestinationExistsAsync(Guid repostSettingsId, long chatIdentifier, CancellationToken ct);
 
 	/// <summary>
-	///     Добавляет новый destination с расширенной информацией о канале. Возвращает ID созданного destination.
+	///     Добавляет новый destination с расширенной информацией о канале и связывает его с записью Discover
+	///     (создаёт новую, если такого канала ещё нет).
 	/// </summary>
-	Task<Guid> AddDestinationAsync(
+	/// <param name="repostSettingsId">Id настроек репоста.</param>
+	/// <param name="chatId">Id чата/канала в Telegram.</param>
+	/// <param name="title">Название канала/чата.</param>
+	/// <param name="username">Username канала (без @).</param>
+	/// <param name="memberCount">Количество участников/подписчиков.</param>
+	/// <param name="chatType">Тип чата (канал/группа).</param>
+	/// <param name="chatStatus">Статус доступа к чату.</param>
+	/// <param name="avatarBase64">Аватарка в формате base64 data URI.</param>
+	/// <param name="ct">Токен отмены.</param>
+	/// <returns>Id созданного destination и id связанной записи Discover.</returns>
+	Task<AddDestinationResult> AddDestinationAsync(
 		Guid repostSettingsId,
 		long chatId,
 		string? title,

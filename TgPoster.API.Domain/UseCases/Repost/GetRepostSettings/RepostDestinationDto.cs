@@ -58,6 +58,11 @@ public sealed record RepostDestinationDto
 	public DateTimeOffset? InfoUpdatedAt { get; init; }
 
 	/// <summary>
+	///     Id связанной записи в Discover (null для каналов, добавленных до связывания).
+	/// </summary>
+	public Guid? DiscoveredChannelId { get; init; }
+
+	/// <summary>
 	///     Минимальная задержка перед репостом (секунды).
 	/// </summary>
 	public int DelayMinSeconds { get; init; }

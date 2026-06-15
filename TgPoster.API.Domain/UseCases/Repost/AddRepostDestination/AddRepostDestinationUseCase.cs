@@ -2,6 +2,7 @@ using MediatR;
 using Shared.Enums;
 using TgPoster.Telegram;
 using TgPoster.Exceptions;
+using TgPoster.Exceptions.BadRequest;
 using TgPoster.Exceptions.NotFound;
 using TgPoster.Telegram.Abstractions;
 
@@ -21,6 +22,19 @@ internal sealed class AddRepostDestinationUseCase(
 		}
 
 		var info = await chatService.GetChatInfoAsync(telegramSessionId.Value, request.ChatIdentifier);
+
+		// Репост пересылает контент с медиа/видео, поэтому требуем права и на сообщения, и на медиа.
+		// Иначе пересылка упадёт в рантайме с CHAT_SEND_*_FORBIDDEN
+		if (!info.CanSendMessages)
+		{
+			throw new TelegramChatNoWritePermissionException(info.Title);
+		}
+
+		if (!info.CanSendMedia)
+		{
+			throw new TelegramChatNoMediaPermissionException(info.Title);
+		}
+
 		var fullInfo = await chatService.GetFullChannelInfoAsync(telegramSessionId.Value, info);
 
 		var chatType = info.IsChannel ? ChatType.Channel
@@ -31,7 +45,7 @@ internal sealed class AddRepostDestinationUseCase(
 			? "data:image/jpeg;base64," + Convert.ToBase64String(fullInfo.AvatarThumbnail)
 			: null;
 
-		var destinationId = await storage.AddDestinationAsync(
+		var result = await storage.AddDestinationAsync(
 			request.RepostSettingsId,
 			info.Id,
 			fullInfo.Title,
@@ -42,6 +56,10 @@ internal sealed class AddRepostDestinationUseCase(
 			avatarBase64,
 			ct);
 
-		return new AddRepostDestinationResponse { Id = destinationId };
+		return new AddRepostDestinationResponse
+		{
+			Id = result.DestinationId,
+			DiscoveredChannelId = result.DiscoveredChannelId
+		};
 	}
 }

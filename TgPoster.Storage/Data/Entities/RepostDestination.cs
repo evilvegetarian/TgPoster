@@ -58,6 +58,11 @@ public sealed class RepostDestination : BaseEntity
 	public DateTimeOffset? InfoUpdatedAt { get; set; }
 
 	/// <summary>
+	///     Ссылка на запись в Discover (обнаруженный канал), null до связывания.
+	/// </summary>
+	public Guid? DiscoveredChannelId { get; set; }
+
+	/// <summary>
 	///     Минимальная задержка перед репостом (секунды).
 	/// </summary>
 	public int DelayMinSeconds { get; set; }
@@ -98,6 +103,11 @@ public sealed class RepostDestination : BaseEntity
 	///     Журналы репостов в этот канал.
 	/// </summary>
 	public ICollection<RepostLog> RepostLogs { get; set; } = [];
+
+	/// <summary>
+	///     Связанная запись в Discover.
+	/// </summary>
+	public DiscoveredChannel? DiscoveredChannel { get; set; }
 
 	#endregion
 }

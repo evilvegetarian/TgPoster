@@ -63,5 +63,12 @@ internal sealed class RepostDestinationConfiguration : BaseEntityConfiguration<R
 			.WithOne(x => x.RepostDestination)
 			.HasForeignKey(x => x.RepostDestinationId)
 			.OnDelete(DeleteBehavior.Cascade);
+
+		builder.HasOne(x => x.DiscoveredChannel)
+			.WithMany()
+			.HasForeignKey(x => x.DiscoveredChannelId)
+			.OnDelete(DeleteBehavior.SetNull);
+
+		builder.HasIndex(x => x.DiscoveredChannelId);
 	}
 }
