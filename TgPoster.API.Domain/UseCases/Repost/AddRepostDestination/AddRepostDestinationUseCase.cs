@@ -22,6 +22,23 @@ internal sealed class AddRepostDestinationUseCase(
 		}
 
 		var info = await chatService.GetChatInfoAsync(telegramSessionId.Value, request.ChatIdentifier);
+		var fullInfo = await chatService.GetFullChannelInfoAsync(telegramSessionId.Value, info);
+
+		var chatType = info.IsChannel ? ChatType.Channel
+			: info.IsGroup ? ChatType.Group
+			: ChatType.Unknown;
+
+		// Фиксируем в Discover статусы прав ДО валидации — чтобы Discover знал и о каналах,
+		// куда постить нельзя
+		var discoveredChannelId = await storage.UpsertDiscoveredChannelAsync(
+			info.Id,
+			fullInfo.Title,
+			fullInfo.Username,
+			fullInfo.MemberCount,
+			chatType,
+			info.CanSendMessages,
+			info.CanSendMedia,
+			ct);
 
 		// Репост пересылает контент с медиа/видео, поэтому требуем права и на сообщения, и на медиа.
 		// Иначе пересылка упадёт в рантайме с CHAT_SEND_*_FORBIDDEN
@@ -35,17 +52,11 @@ internal sealed class AddRepostDestinationUseCase(
 			throw new TelegramChatNoMediaPermissionException(info.Title);
 		}
 
-		var fullInfo = await chatService.GetFullChannelInfoAsync(telegramSessionId.Value, info);
-
-		var chatType = info.IsChannel ? ChatType.Channel
-			: info.IsGroup ? ChatType.Group
-			: ChatType.Unknown;
-
 		var avatarBase64 = fullInfo.AvatarThumbnail != null
 			? "data:image/jpeg;base64," + Convert.ToBase64String(fullInfo.AvatarThumbnail)
 			: null;
 
-		var result = await storage.AddDestinationAsync(
+		var destinationId = await storage.AddDestinationAsync(
 			request.RepostSettingsId,
 			info.Id,
 			fullInfo.Title,
@@ -54,12 +65,13 @@ internal sealed class AddRepostDestinationUseCase(
 			chatType,
 			ChatStatus.Active,
 			avatarBase64,
+			discoveredChannelId,
 			ct);
 
 		return new AddRepostDestinationResponse
 		{
-			Id = result.DestinationId,
-			DiscoveredChannelId = result.DiscoveredChannelId
+			Id = destinationId,
+			DiscoveredChannelId = discoveredChannelId
 		};
 	}
 }

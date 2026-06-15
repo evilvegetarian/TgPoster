@@ -66,12 +66,15 @@ public sealed class AddRepostDestinationStorageShould(StorageTestFixture fixture
 	}
 
 	[Fact]
-	public async Task AddDestinationAsync_WithValidData_ShouldCreateDestination()
+	public async Task AddDestinationAsync_WithValidData_ShouldCreateDestinationLinkedToDiscover()
 	{
 		var settings = await new RepostSettingsBuilder(context).CreateAsync();
 		var chatIdentifier = 12141241;
+		var discoveredId = await sut.UpsertDiscoveredChannelAsync(
+			chatIdentifier, "Test Channel", "testchannel", 1000,
+			ChatType.Channel, true, true, CancellationToken.None);
 
-		var response = await sut.AddDestinationAsync(
+		var destinationId = await sut.AddDestinationAsync(
 			settings.Id,
 			chatIdentifier,
 			"Test Channel",
@@ -80,39 +83,38 @@ public sealed class AddRepostDestinationStorageShould(StorageTestFixture fixture
 			ChatType.Channel,
 			ChatStatus.Active,
 			null,
+			discoveredId,
 			CancellationToken.None);
 
 		var createdDestination = await context.RepostDestinations
-			.FirstOrDefaultAsync(x => x.Id == response.DestinationId);
+			.FirstOrDefaultAsync(x => x.Id == destinationId);
 
 		createdDestination.ShouldNotBeNull();
 		createdDestination.ChatId.ShouldBe(chatIdentifier);
 		createdDestination.IsActive.ShouldBeTrue();
 		createdDestination.RepostSettingsId.ShouldBe(settings.Id);
-		createdDestination.DiscoveredChannelId.ShouldBe(response.DiscoveredChannelId);
+		createdDestination.DiscoveredChannelId.ShouldBe(discoveredId);
 	}
 
 	[Fact]
-	public async Task AddDestinationAsync_WhenChannelNotInDiscover_ShouldCreateDiscoveredChannel()
+	public async Task UpsertDiscoveredChannelAsync_WhenChannelNotInDiscover_ShouldCreateWithStatuses()
 	{
-		var settings = await new RepostSettingsBuilder(context).CreateAsync();
 		var chatId = faker.Random.Long(1_000_000_000, 9_000_000_000);
 		var username = "newrepostchan" + faker.Random.Number(1000, 9999);
 
-		var response = await sut.AddDestinationAsync(
-			settings.Id,
+		var discoveredId = await sut.UpsertDiscoveredChannelAsync(
 			chatId,
 			"Brand New Channel",
 			username,
 			500,
 			ChatType.Channel,
-			ChatStatus.Active,
-			null,
+			canSendMessages: true,
+			canSendMedia: false,
 			CancellationToken.None);
 
 		var discovered = await context.DiscoveredChannels
 			.IgnoreQueryFilters()
-			.FirstOrDefaultAsync(x => x.Id == response.DiscoveredChannelId);
+			.FirstOrDefaultAsync(x => x.Id == discoveredId);
 
 		discovered.ShouldNotBeNull();
 		discovered.TelegramId.ShouldBe(chatId);
@@ -121,12 +123,13 @@ public sealed class AddRepostDestinationStorageShould(StorageTestFixture fixture
 		discovered.ParticipantsCount.ShouldBe(500);
 		discovered.PeerType.ShouldBe("channel");
 		discovered.TgUrl.ShouldBe($"https://t.me/{username}");
+		discovered.CanSendMessages.ShouldBe(true);
+		discovered.CanSendMedia.ShouldBe(false);
 	}
 
 	[Fact]
-	public async Task AddDestinationAsync_WhenChannelExistsInDiscover_ShouldLinkAndUpdate()
+	public async Task UpsertDiscoveredChannelAsync_WhenChannelExists_ShouldUpdateInfoAndStatuses()
 	{
-		var settings = await new RepostSettingsBuilder(context).CreateAsync();
 		var chatId = faker.Random.Long(1_000_000_000, 9_000_000_000);
 		var username = "existingchan" + faker.Random.Number(1000, 9999);
 
@@ -142,18 +145,17 @@ public sealed class AddRepostDestinationStorageShould(StorageTestFixture fixture
 		await context.DiscoveredChannels.AddAsync(existing);
 		await context.SaveChangesAsync();
 
-		var response = await sut.AddDestinationAsync(
-			settings.Id,
+		var discoveredId = await sut.UpsertDiscoveredChannelAsync(
 			chatId,
 			"Fresh Title",
 			username,
 			999,
 			ChatType.Channel,
-			ChatStatus.Active,
-			null,
+			canSendMessages: true,
+			canSendMedia: true,
 			CancellationToken.None);
 
-		response.DiscoveredChannelId.ShouldBe(existing.Id);
+		discoveredId.ShouldBe(existing.Id);
 
 		var matchingCount = await context.DiscoveredChannels
 			.IgnoreQueryFilters()
@@ -166,5 +168,7 @@ public sealed class AddRepostDestinationStorageShould(StorageTestFixture fixture
 		refreshed.Title.ShouldBe("Fresh Title");
 		refreshed.ParticipantsCount.ShouldBe(999);
 		refreshed.PeerType.ShouldBe("channel");
+		refreshed.CanSendMessages.ShouldBe(true);
+		refreshed.CanSendMedia.ShouldBe(true);
 	}
 }

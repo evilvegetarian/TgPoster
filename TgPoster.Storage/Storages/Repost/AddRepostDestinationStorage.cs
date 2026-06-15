@@ -23,52 +23,14 @@ internal sealed class AddRepostDestinationStorage(PosterContext context, GuidFac
 			.AnyAsync(x => x.RepostSettingsId == repostSettingsId && x.ChatId == chatIdentifier, ct);
 	}
 
-	public async Task<AddDestinationResult> AddDestinationAsync(
-		Guid repostSettingsId,
+	public async Task<Guid> UpsertDiscoveredChannelAsync(
 		long chatId,
 		string? title,
 		string? username,
 		int? memberCount,
 		ChatType chatType,
-		ChatStatus chatStatus,
-		string? avatarBase64,
-		CancellationToken ct)
-	{
-		var discoveredChannelId = await FindOrCreateDiscoveredChannelAsync(
-			chatId, title, username, memberCount, chatType, ct);
-
-		var destination = new RepostDestination
-		{
-			Id = guidFactory.New(),
-			RepostSettingsId = repostSettingsId,
-			ChatId = chatId,
-			IsActive = true,
-			Title = title,
-			Username = username,
-			MemberCount = memberCount,
-			ChatType = chatType,
-			ChatStatus = chatStatus,
-			AvatarBase64 = avatarBase64,
-			InfoUpdatedAt = DateTimeOffset.UtcNow,
-			DiscoveredChannelId = discoveredChannelId
-		};
-
-		await context.AddAsync(destination, ct);
-		await context.SaveChangesAsync(ct);
-
-		return new AddDestinationResult(destination.Id, discoveredChannelId);
-	}
-
-	/// <summary>
-	///     Ищет запись в Discover по TelegramId/username. Если нашлась — обновляет её свежей инфой,
-	///     иначе создаёт новую. Возвращает Id записи Discover.
-	/// </summary>
-	private async Task<Guid> FindOrCreateDiscoveredChannelAsync(
-		long chatId,
-		string? title,
-		string? username,
-		int? memberCount,
-		ChatType chatType,
+		bool canSendMessages,
+		bool canSendMedia,
 		CancellationToken ct)
 	{
 		var normalizedUsername = string.IsNullOrWhiteSpace(username) ? null : username;
@@ -112,6 +74,10 @@ internal sealed class AddRepostDestinationStorage(PosterContext context, GuidFac
 				existing.PeerType = peerType;
 			}
 
+			existing.CanSendMessages = canSendMessages;
+			existing.CanSendMedia = canSendMedia;
+
+			await context.SaveChangesAsync(ct);
 			return existing.Id;
 		}
 
@@ -124,11 +90,48 @@ internal sealed class AddRepostDestinationStorage(PosterContext context, GuidFac
 			ParticipantsCount = memberCount,
 			PeerType = peerType,
 			TgUrl = normalizedUsername != null ? $"https://t.me/{normalizedUsername}" : null,
+			CanSendMessages = canSendMessages,
+			CanSendMedia = canSendMedia,
 			Status = DiscoveryStatus.Pending
 		};
 
 		await context.DiscoveredChannels.AddAsync(discovered, ct);
+		await context.SaveChangesAsync(ct);
 
 		return discovered.Id;
+	}
+
+	public async Task<Guid> AddDestinationAsync(
+		Guid repostSettingsId,
+		long chatId,
+		string? title,
+		string? username,
+		int? memberCount,
+		ChatType chatType,
+		ChatStatus chatStatus,
+		string? avatarBase64,
+		Guid discoveredChannelId,
+		CancellationToken ct)
+	{
+		var destination = new RepostDestination
+		{
+			Id = guidFactory.New(),
+			RepostSettingsId = repostSettingsId,
+			ChatId = chatId,
+			IsActive = true,
+			Title = title,
+			Username = username,
+			MemberCount = memberCount,
+			ChatType = chatType,
+			ChatStatus = chatStatus,
+			AvatarBase64 = avatarBase64,
+			InfoUpdatedAt = DateTimeOffset.UtcNow,
+			DiscoveredChannelId = discoveredChannelId
+		};
+
+		await context.AddAsync(destination, ct);
+		await context.SaveChangesAsync(ct);
+
+		return destination.Id;
 	}
 }

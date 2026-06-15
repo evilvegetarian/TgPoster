@@ -12,8 +12,8 @@ using TgPoster.Storage.Data;
 namespace TgPoster.Storage.Data.Migrations
 {
     [DbContext(typeof(PosterContext))]
-    [Migration("20260615193453_AddDiscoveredChannelLinkToRepostDestination")]
-    partial class AddDiscoveredChannelLinkToRepostDestination
+    [Migration("20260615201209_AddRepostDiscoverLinkAndPostPermissions")]
+    partial class AddRepostDiscoverLinkAndPostPermissions
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -303,6 +303,12 @@ namespace TgPoster.Storage.Data.Migrations
                     b.Property<string>("AvatarUrl")
                         .HasMaxLength(1024)
                         .HasColumnType("character varying(1024)");
+
+                    b.Property<bool?>("CanSendMedia")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool?>("CanSendMessages")
+                        .HasColumnType("boolean");
 
                     b.Property<string>("Category")
                         .HasMaxLength(128)

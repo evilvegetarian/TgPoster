@@ -301,6 +301,12 @@ namespace TgPoster.Storage.Data.Migrations
                         .HasMaxLength(1024)
                         .HasColumnType("character varying(1024)");
 
+                    b.Property<bool?>("CanSendMedia")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool?>("CanSendMessages")
+                        .HasColumnType("boolean");
+
                     b.Property<string>("Category")
                         .HasMaxLength(128)
                         .HasColumnType("character varying(128)");

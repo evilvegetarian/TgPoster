@@ -103,6 +103,16 @@ public sealed class DiscoveredChannel : BaseEntity
 	public DateTimeOffset? ParticipantsUpdatedAt { get; set; }
 
 	/// <summary>
+	///     Может ли наш аккаунт отправлять сообщения в этот канал/чат (null — не проверялось)
+	/// </summary>
+	public bool? CanSendMessages { get; set; }
+
+	/// <summary>
+	///     Может ли наш аккаунт отправлять медиа в этот канал/чат (null — не проверялось)
+	/// </summary>
+	public bool? CanSendMedia { get; set; }
+
+	/// <summary>
 	///     ID канала, из которого был обнаружен данный канал (самореферентный FK).
 	/// </summary>
 	public Guid? DiscoveredFromChannelId { get; set; }

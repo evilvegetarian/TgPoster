@@ -15,6 +15,7 @@ public class AddRepostDestinationUseCaseShould
 	private readonly Mock<ITelegramChatService> chatService;
 	private readonly AddRepostDestinationUseCase sut;
 	private readonly Guid sessionId = Guid.NewGuid();
+	private readonly Guid discoveredId = Guid.NewGuid();
 
 	public AddRepostDestinationUseCaseShould()
 	{
@@ -23,6 +24,11 @@ public class AddRepostDestinationUseCaseShould
 
 		storage.Setup(s => s.GetTelegramSessionIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
 			.ReturnsAsync(sessionId);
+
+		storage.Setup(s => s.UpsertDiscoveredChannelAsync(
+				It.IsAny<long>(), It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<int?>(),
+				It.IsAny<ChatType>(), It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
+			.ReturnsAsync(discoveredId);
 
 		sut = new AddRepostDestinationUseCase(storage.Object, chatService.Object);
 	}
@@ -42,57 +48,55 @@ public class AddRepostDestinationUseCaseShould
 	[Fact]
 	public async Task ThrowNoWritePermission_WhenCannotSendMessages()
 	{
-		SetupChatInfo(canSendMessages: false, canSendMedia: false);
+		SetupChat(canSendMessages: false, canSendMedia: false);
 
 		var command = new AddRepostDestinationCommand(Guid.NewGuid(), "@channel");
 
 		await Should.ThrowAsync<TelegramChatNoWritePermissionException>(
 			async () => await sut.Handle(command, CancellationToken.None));
 
-		storage.Verify(s => s.AddDestinationAsync(
-			It.IsAny<Guid>(), It.IsAny<long>(), It.IsAny<string?>(), It.IsAny<string?>(),
-			It.IsAny<int?>(), It.IsAny<ChatType>(), It.IsAny<ChatStatus>(), It.IsAny<string?>(),
-			It.IsAny<CancellationToken>()), Times.Never);
+		VerifyAddDestinationNeverCalled();
 	}
 
 	[Fact]
 	public async Task ThrowNoMediaPermission_WhenCannotSendMedia()
 	{
-		SetupChatInfo(canSendMessages: true, canSendMedia: false);
+		SetupChat(canSendMessages: true, canSendMedia: false);
 
 		var command = new AddRepostDestinationCommand(Guid.NewGuid(), "@channel");
 
 		await Should.ThrowAsync<TelegramChatNoMediaPermissionException>(
 			async () => await sut.Handle(command, CancellationToken.None));
 
-		storage.Verify(s => s.AddDestinationAsync(
-			It.IsAny<Guid>(), It.IsAny<long>(), It.IsAny<string?>(), It.IsAny<string?>(),
-			It.IsAny<int?>(), It.IsAny<ChatType>(), It.IsAny<ChatStatus>(), It.IsAny<string?>(),
-			It.IsAny<CancellationToken>()), Times.Never);
+		VerifyAddDestinationNeverCalled();
+	}
+
+	[Fact]
+	public async Task RecordDiscoverStatus_EvenWhenBlocked()
+	{
+		var info = SetupChat(canSendMessages: false, canSendMedia: false);
+
+		var command = new AddRepostDestinationCommand(Guid.NewGuid(), "@channel");
+
+		await Should.ThrowAsync<TelegramChatNoWritePermissionException>(
+			async () => await sut.Handle(command, CancellationToken.None));
+
+		storage.Verify(s => s.UpsertDiscoveredChannelAsync(
+			info.Id, It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<int?>(),
+			It.IsAny<ChatType>(), false, false, It.IsAny<CancellationToken>()), Times.Once);
 	}
 
 	[Fact]
 	public async Task AddDestinationAndReturnBothIds_WhenPermissionsValid()
 	{
-		var info = SetupChatInfo(canSendMessages: true, canSendMedia: true);
-		chatService.Setup(c => c.GetFullChannelInfoAsync(sessionId, It.IsAny<TelegramChatInfo>()))
-			.ReturnsAsync(new TelegramChannelInfoResult
-			{
-				Title = info.Title,
-				Username = info.Username,
-				MemberCount = 1000,
-				IsChannel = true,
-				IsGroup = false,
-				AvatarThumbnail = null
-			});
+		SetupChat(canSendMessages: true, canSendMedia: true);
 
 		var destinationId = Guid.NewGuid();
-		var discoveredId = Guid.NewGuid();
 		storage.Setup(s => s.AddDestinationAsync(
 				It.IsAny<Guid>(), It.IsAny<long>(), It.IsAny<string?>(), It.IsAny<string?>(),
 				It.IsAny<int?>(), It.IsAny<ChatType>(), It.IsAny<ChatStatus>(), It.IsAny<string?>(),
-				It.IsAny<CancellationToken>()))
-			.ReturnsAsync(new AddDestinationResult(destinationId, discoveredId));
+				It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+			.ReturnsAsync(destinationId);
 
 		var command = new AddRepostDestinationCommand(Guid.NewGuid(), "@channel");
 
@@ -100,9 +104,13 @@ public class AddRepostDestinationUseCaseShould
 
 		response.Id.ShouldBe(destinationId);
 		response.DiscoveredChannelId.ShouldBe(discoveredId);
+		storage.Verify(s => s.AddDestinationAsync(
+			It.IsAny<Guid>(), It.IsAny<long>(), It.IsAny<string?>(), It.IsAny<string?>(),
+			It.IsAny<int?>(), It.IsAny<ChatType>(), It.IsAny<ChatStatus>(), It.IsAny<string?>(),
+			discoveredId, It.IsAny<CancellationToken>()), Times.Once);
 	}
 
-	private TelegramChatInfo SetupChatInfo(bool canSendMessages, bool canSendMedia)
+	private TelegramChatInfo SetupChat(bool canSendMessages, bool canSendMedia)
 	{
 		var info = new TelegramChatInfo
 		{
@@ -119,7 +127,23 @@ public class AddRepostDestinationUseCaseShould
 
 		chatService.Setup(c => c.GetChatInfoAsync(sessionId, It.IsAny<string>(), It.IsAny<bool>()))
 			.ReturnsAsync(info);
+		chatService.Setup(c => c.GetFullChannelInfoAsync(sessionId, It.IsAny<TelegramChatInfo>()))
+			.ReturnsAsync(new TelegramChannelInfoResult
+			{
+				Title = info.Title,
+				Username = info.Username,
+				MemberCount = 1000,
+				IsChannel = true,
+				IsGroup = false,
+				AvatarThumbnail = null
+			});
 
 		return info;
 	}
+
+	private void VerifyAddDestinationNeverCalled() =>
+		storage.Verify(s => s.AddDestinationAsync(
+			It.IsAny<Guid>(), It.IsAny<long>(), It.IsAny<string?>(), It.IsAny<string?>(),
+			It.IsAny<int?>(), It.IsAny<ChatType>(), It.IsAny<ChatStatus>(), It.IsAny<string?>(),
+			It.IsAny<Guid>(), It.IsAny<CancellationToken>()), Times.Never);
 }

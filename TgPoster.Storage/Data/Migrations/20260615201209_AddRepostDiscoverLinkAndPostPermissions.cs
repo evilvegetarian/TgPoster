@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace TgPoster.Storage.Data.Migrations
 {
     /// <inheritdoc />
-    public partial class AddDiscoveredChannelLinkToRepostDestination : Migration
+    public partial class AddRepostDiscoverLinkAndPostPermissions : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -15,6 +15,18 @@ namespace TgPoster.Storage.Data.Migrations
                 name: "DiscoveredChannelId",
                 table: "RepostDestinations",
                 type: "uuid",
+                nullable: true);
+
+            migrationBuilder.AddColumn<bool>(
+                name: "CanSendMedia",
+                table: "DiscoveredChannels",
+                type: "boolean",
+                nullable: true);
+
+            migrationBuilder.AddColumn<bool>(
+                name: "CanSendMessages",
+                table: "DiscoveredChannels",
+                type: "boolean",
                 nullable: true);
 
             migrationBuilder.CreateIndex(
@@ -45,6 +57,14 @@ namespace TgPoster.Storage.Data.Migrations
             migrationBuilder.DropColumn(
                 name: "DiscoveredChannelId",
                 table: "RepostDestinations");
+
+            migrationBuilder.DropColumn(
+                name: "CanSendMedia",
+                table: "DiscoveredChannels");
+
+            migrationBuilder.DropColumn(
+                name: "CanSendMessages",
+                table: "DiscoveredChannels");
         }
     }
 }
