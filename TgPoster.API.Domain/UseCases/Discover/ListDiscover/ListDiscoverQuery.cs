@@ -8,4 +8,45 @@ public sealed record ListDiscoverQuery(
     int PageSize,
     string? Category,
     string? Search,
-    string? PeerType) : IRequest<PagedResponse<DiscoverChannelResponse>>;
+    string? PeerType,
+    int? MinParticipants,
+    int? MaxParticipants,
+    DiscoverSortBy SortBy,
+    SortDirection SortDirection) : IRequest<PagedResponse<DiscoverChannelResponse>>;
+
+/// <summary>
+///     Поле для сортировки обнаруженных каналов
+/// </summary>
+public enum DiscoverSortBy
+{
+    /// <summary>
+    ///     По количеству подписчиков
+    /// </summary>
+    Participants,
+
+    /// <summary>
+    ///     По дате обнаружения
+    /// </summary>
+    DiscoveredAt,
+
+    /// <summary>
+    ///     По названию
+    /// </summary>
+    Title
+}
+
+/// <summary>
+///     Направление сортировки
+/// </summary>
+public enum SortDirection
+{
+    /// <summary>
+    ///     По возрастанию
+    /// </summary>
+    Asc,
+
+    /// <summary>
+    ///     По убыванию
+    /// </summary>
+    Desc
+}

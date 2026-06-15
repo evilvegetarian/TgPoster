@@ -21,6 +21,7 @@ import type {
 
 import type {
   DiscoverChannelResponsePagedResponse,
+  DiscoverStatusResponse,
   GetApiV1DiscoverParams,
   ProblemDetails
 } from '../tgPosterAPI.schemas';
@@ -204,6 +205,98 @@ export function useGetApiV1DiscoverCategories<TData = Awaited<ReturnType<typeof 
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getGetApiV1DiscoverCategoriesQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+
+/**
+ * @summary Получить состояние фоновой задачи обнаружения каналов
+ */
+export const getApiV1DiscoverStatus = (
+    
+ signal?: AbortSignal
+) => {
+      
+      
+      return customInstance<DiscoverStatusResponse>(
+      {url: `/api/v1/discover/status`, method: 'GET', signal
+    },
+      );
+    }
+  
+
+
+
+export const getGetApiV1DiscoverStatusQueryKey = () => {
+    return [
+    `/api/v1/discover/status`
+    ] as const;
+    }
+
+    
+export const getGetApiV1DiscoverStatusQueryOptions = <TData = Awaited<ReturnType<typeof getApiV1DiscoverStatus>>, TError = ProblemDetails>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1DiscoverStatus>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetApiV1DiscoverStatusQueryKey();
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getApiV1DiscoverStatus>>> = ({ signal }) => getApiV1DiscoverStatus(signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getApiV1DiscoverStatus>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetApiV1DiscoverStatusQueryResult = NonNullable<Awaited<ReturnType<typeof getApiV1DiscoverStatus>>>
+export type GetApiV1DiscoverStatusQueryError = ProblemDetails
+
+
+export function useGetApiV1DiscoverStatus<TData = Awaited<ReturnType<typeof getApiV1DiscoverStatus>>, TError = ProblemDetails>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1DiscoverStatus>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getApiV1DiscoverStatus>>,
+          TError,
+          Awaited<ReturnType<typeof getApiV1DiscoverStatus>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetApiV1DiscoverStatus<TData = Awaited<ReturnType<typeof getApiV1DiscoverStatus>>, TError = ProblemDetails>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1DiscoverStatus>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getApiV1DiscoverStatus>>,
+          TError,
+          Awaited<ReturnType<typeof getApiV1DiscoverStatus>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetApiV1DiscoverStatus<TData = Awaited<ReturnType<typeof getApiV1DiscoverStatus>>, TError = ProblemDetails>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1DiscoverStatus>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Получить состояние фоновой задачи обнаружения каналов
+ */
+
+export function useGetApiV1DiscoverStatus<TData = Awaited<ReturnType<typeof getApiV1DiscoverStatus>>, TError = ProblemDetails>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1DiscoverStatus>>, TError, TData>>, }
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetApiV1DiscoverStatusQueryOptions(options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 

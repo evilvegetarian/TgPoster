@@ -385,6 +385,53 @@ export interface DiscoverChannelResponsePagedResponse {
   data?: DiscoverChannelResponse[];
 }
 
+export type DiscoverJobStatus = typeof DiscoverJobStatus[keyof typeof DiscoverJobStatus];
+
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const DiscoverJobStatus = {
+  Idle: 'Idle',
+  Running: 'Running',
+  CooldownWait: 'CooldownWait',
+  Failed: 'Failed',
+  Unknown: 'Unknown',
+} as const;
+
+/**
+ * Поле для сортировки обнаруженных каналов
+ */
+export type DiscoverSortBy = typeof DiscoverSortBy[keyof typeof DiscoverSortBy];
+
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const DiscoverSortBy = {
+  Participants: 'Participants',
+  DiscoveredAt: 'DiscoveredAt',
+  Title: 'Title',
+} as const;
+
+export interface DiscoverStatusResponse {
+  status: DiscoverJobStatus;
+  /** @nullable */
+  lastStartedAt?: string | null;
+  /** @nullable */
+  lastFinishedAt?: string | null;
+  /** @nullable */
+  cooldownUntil?: string | null;
+  /** @nullable */
+  nextRunAt?: string | null;
+  /** @nullable */
+  lastError?: string | null;
+  /** @nullable */
+  progressCurrent?: number | null;
+  /** @nullable */
+  progressTotal?: number | null;
+  /** @nullable */
+  progressMessage?: string | null;
+  /** @nullable */
+  heartbeatAt?: string | null;
+}
+
 /**
  * Request создания промптов
  */
@@ -1066,6 +1113,26 @@ Search?: string;
  * Тип: "channel" (канал) или "chat" (чат). null — без фильтра.
  */
 PeerType?: string;
+/**
+ * Минимальное число подписчиков (включительно)
+ * @minimum 0
+ * @maximum 2147483647
+ */
+MinParticipants?: number;
+/**
+ * Максимальное число подписчиков (включительно)
+ * @minimum 0
+ * @maximum 2147483647
+ */
+MaxParticipants?: number;
+/**
+ * Поле сортировки. По умолчанию — по числу подписчиков
+ */
+SortBy?: DiscoverSortBy;
+/**
+ * Направление сортировки. По умолчанию — по убыванию
+ */
+SortDirection?: SortDirection;
 /**
  * Номер страницы.
  */

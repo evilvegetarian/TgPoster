@@ -7,9 +7,27 @@ import {Card, CardContent} from "@/components/ui/card"
 import {Input} from "@/components/ui/input"
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select"
 import {Skeleton} from "@/components/ui/skeleton"
-import type {DiscoverChannelResponse} from "@/api/endpoints/tgPosterAPI.schemas"
+import type {DiscoverChannelResponse, DiscoverSortBy, SortDirection} from "@/api/endpoints/tgPosterAPI.schemas"
 
 const PAGE_SIZE = 20
+
+const SORT_OPTIONS: ReadonlyArray<{value: DiscoverSortBy; label: string}> = [
+    {value: "Participants", label: "По подписчикам"},
+    {value: "DiscoveredAt", label: "По дате обнаружения"},
+    {value: "Title", label: "По названию"},
+]
+
+const DIRECTION_OPTIONS: ReadonlyArray<{value: SortDirection; label: string}> = [
+    {value: "Desc", label: "По убыванию"},
+    {value: "Asc", label: "По возрастанию"},
+]
+
+function parseCount(value: string): number | undefined {
+    const trimmed = value.trim()
+    if (trimmed === "") return undefined
+    const parsed = Number(trimmed)
+    return Number.isNaN(parsed) ? undefined : parsed
+}
 
 function ChannelCard({channel}: {channel: DiscoverChannelResponse}) {
     const tgLink = channel.tgUrl
@@ -133,6 +151,10 @@ export function DiscoverPage() {
     const [category, setCategory] = useState<string>("all")
     const [peerType, setPeerType] = useState<string>("all")
     const [search, setSearch] = useState("")
+    const [minParticipants, setMinParticipants] = useState("")
+    const [maxParticipants, setMaxParticipants] = useState("")
+    const [sortBy, setSortBy] = useState<DiscoverSortBy>("Participants")
+    const [sortDirection, setSortDirection] = useState<SortDirection>("Desc")
     const [page, setPage] = useState(1)
 
     const apiCategory = category === "all" ? undefined : category
@@ -143,6 +165,10 @@ export function DiscoverPage() {
         Category: apiCategory,
         Search: apiSearch,
         PeerType: apiPeerType,
+        MinParticipants: parseCount(minParticipants),
+        MaxParticipants: parseCount(maxParticipants),
+        SortBy: sortBy,
+        SortDirection: sortDirection,
         PageNumber: page,
         PageSize: PAGE_SIZE,
     })
@@ -169,6 +195,26 @@ export function DiscoverPage() {
         setPage(1)
     }
 
+    const handleMinParticipantsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setMinParticipants(e.target.value)
+        setPage(1)
+    }
+
+    const handleMaxParticipantsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setMaxParticipants(e.target.value)
+        setPage(1)
+    }
+
+    const handleSortByChange = (value: string) => {
+        setSortBy(value as DiscoverSortBy)
+        setPage(1)
+    }
+
+    const handleSortDirectionChange = (value: string) => {
+        setSortDirection(value as SortDirection)
+        setPage(1)
+    }
+
     return (
         <div className="container mx-auto p-6 max-w-5xl">
             <div className="flex items-center justify-between mb-6">
@@ -183,7 +229,7 @@ export function DiscoverPage() {
             </div>
 
             <Card className="mb-6">
-                <CardContent className="pt-6">
+                <CardContent className="pt-6 space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <Select value={category} onValueChange={handleCategoryChange}>
                             <SelectTrigger>
@@ -215,6 +261,50 @@ export function DiscoverPage() {
                                 className="pl-9"
                             />
                         </div>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <div className="relative">
+                            <Users className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground"/>
+                            <Input
+                                type="number"
+                                min={0}
+                                placeholder="Подписчиков от"
+                                value={minParticipants}
+                                onChange={handleMinParticipantsChange}
+                                className="pl-9"
+                            />
+                        </div>
+                        <div className="relative">
+                            <Users className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground"/>
+                            <Input
+                                type="number"
+                                min={0}
+                                placeholder="Подписчиков до"
+                                value={maxParticipants}
+                                onChange={handleMaxParticipantsChange}
+                                className="pl-9"
+                            />
+                        </div>
+                        <Select value={sortBy} onValueChange={handleSortByChange}>
+                            <SelectTrigger>
+                                <SelectValue placeholder="Сортировка"/>
+                            </SelectTrigger>
+                            <SelectContent>
+                                {SORT_OPTIONS.map((opt) => (
+                                    <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                        <Select value={sortDirection} onValueChange={handleSortDirectionChange}>
+                            <SelectTrigger>
+                                <SelectValue placeholder="Направление"/>
+                            </SelectTrigger>
+                            <SelectContent>
+                                {DIRECTION_OPTIONS.map((opt) => (
+                                    <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
                     </div>
                 </CardContent>
             </Card>
