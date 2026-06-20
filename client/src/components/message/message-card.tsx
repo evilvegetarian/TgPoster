@@ -1,15 +1,28 @@
 import {useState, useRef, useEffect} from "react"
-import {Clock, Youtube} from "lucide-react"
+import {Clock, Loader2, Trash2, Youtube} from "lucide-react"
 import {format} from "date-fns"
 import {ru} from "date-fns/locale"
+import {useQueryClient} from "@tanstack/react-query"
 import {Card, CardContent} from "@/components/ui/card"
 import {Checkbox} from "@/components/ui/checkbox"
 import {Badge} from "@/components/ui/badge"
 import {Button} from "@/components/ui/button"
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger
+} from "@/components/ui/alert-dialog"
 import {MediaAlbum} from "./media-album"
 import {EditMessageDialog} from "./edit-message-dialog"
 import type {MessageResponse} from "@/api/endpoints/tgPosterAPI.schemas"
 import {usePostApiV1YoutubeMessageId} from "@/api/endpoints/you-tube-account/you-tube-account"
+import {useDeleteApiV1Message} from "@/api/endpoints/message/message"
 import {toast} from "sonner"
 
 interface MessageCardProps {
@@ -24,6 +37,7 @@ export function MessageCard({message, isSelected, onSelectionChange, availableTi
     const [isExpanded, setIsExpanded] = useState(false)
     const [isClamped, setIsClamped] = useState(false)
     const textRef = useRef<HTMLParagraphElement>(null)
+    const queryClient = useQueryClient()
 
     useEffect(() => {
         const el = textRef.current
@@ -39,6 +53,18 @@ export function MessageCard({message, isSelected, onSelectionChange, availableTi
             },
             onError: () => {
                 toast.error("Ошибка при отправке видео")
+            }
+        }
+    })
+
+    const {mutate: deleteMessage, isPending: isDeleting} = useDeleteApiV1Message({
+        mutation: {
+            onSuccess: () => {
+                toast.success("Сообщение удалено")
+                queryClient.invalidateQueries({queryKey: ["/api/v1/message"]})
+            },
+            onError: (error) => {
+                toast.error("Ошибка", {description: error.title ?? "Не удалось удалить сообщение"})
             }
         }
     })
@@ -85,6 +111,35 @@ export function MessageCard({message, isSelected, onSelectionChange, availableTi
                                             {isPublishing ? "Публикация..." : "Опубликовать видео"}
                                         </Button>
                                     )}
+                                    <AlertDialog>
+                                        <AlertDialogTrigger asChild>
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                className="text-destructive hover:text-destructive"
+                                                disabled={isDeleting}
+                                            >
+                                                {isDeleting
+                                                    ? <Loader2 className="h-4 w-4 mr-1 animate-spin"/>
+                                                    : <Trash2 className="h-4 w-4 mr-1"/>}
+                                                Удалить
+                                            </Button>
+                                        </AlertDialogTrigger>
+                                        <AlertDialogContent>
+                                            <AlertDialogHeader>
+                                                <AlertDialogTitle>Удалить сообщение?</AlertDialogTitle>
+                                                <AlertDialogDescription>
+                                                    Это действие нельзя отменить. Сообщение будет удалено безвозвратно
+                                                </AlertDialogDescription>
+                                            </AlertDialogHeader>
+                                            <AlertDialogFooter>
+                                                <AlertDialogCancel>Отмена</AlertDialogCancel>
+                                                <AlertDialogAction onClick={() => deleteMessage({data: [message.id]})}>
+                                                    Удалить
+                                                </AlertDialogAction>
+                                            </AlertDialogFooter>
+                                        </AlertDialogContent>
+                                    </AlertDialog>
                                     <EditMessageDialog
                                         availableTimes={availableTimes}
                                         message={message}
