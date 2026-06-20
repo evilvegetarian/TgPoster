@@ -35,6 +35,14 @@ internal class MonitoringPipelineBehavior<TRequest, TResponse>(
 
 			return result;
 		}
+		catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+		{
+			// Запрос отменён клиентом (RequestAborted) — это не ошибка сервера, не шумим на уровне Error
+			logger.LogDebug("UseCase {UseCaseName} отменён (запрос прерван)", request.GetType().Name);
+			activity?.SetStatus(ActivityStatusCode.Ok);
+
+			throw;
+		}
 		catch (Exception e)
 		{
 			logger.LogError(e, "Unhandled error caught while handling UseCase {UseCaseName}", request.GetType().Name);

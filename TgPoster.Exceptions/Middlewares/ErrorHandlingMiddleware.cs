@@ -20,6 +20,10 @@ internal sealed class ErrorHandlingMiddleware(RequestDelegate next)
 		{
 			await next.Invoke(context);
 		}
+		catch (OperationCanceledException) when (context.RequestAborted.IsCancellationRequested)
+		{
+			logger.LogDebug("Запрос {RequestPath} отменён клиентом", context.Request.Path.Value);
+		}
 		catch (Exception exception)
 		{
 			logger.LogError(
