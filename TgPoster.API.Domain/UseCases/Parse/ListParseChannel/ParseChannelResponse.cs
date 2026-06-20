@@ -35,6 +35,16 @@ public sealed record ParseChannelResponse
 	public required Guid TelegramSessionId { get; init; }
 
 	/// <summary>
+	///     Название Telegram сессии, используемой для парсинга (если задано пользователем)
+	/// </summary>
+	public string? TelegramSessionName { get; init; }
+
+	/// <summary>
+	///     Номер телефона Telegram сессии, используемой для парсинга
+	/// </summary>
+	public required string TelegramSessionPhoneNumber { get; init; }
+
+	/// <summary>
 	///     Общее количество сообщений в канале-источнике
 	/// </summary>
 	public int? TotalMessagesCount { get; init; }

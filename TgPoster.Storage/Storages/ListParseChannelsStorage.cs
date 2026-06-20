@@ -11,6 +11,7 @@ internal class ListParseChannelsStorage(PosterContext context) : IListParseChann
 	{
 		var parametersList = await context.ChannelParsingParameters
 			.Include(x => x.Schedule)
+			.Include(x => x.TelegramSession)
 			.Where(x => x.Schedule.UserId == userId)
 			.Select(x => new { Entity = x, ParsedMessagesCount = x.ParsedMessages.Count() })
 			.ToListAsync(ct);

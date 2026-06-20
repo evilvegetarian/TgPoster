@@ -4,7 +4,7 @@ import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card"
 import {Badge} from "@/components/ui/badge"
 import {Input} from "@/components/ui/input"
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select"
-import {Calendar, Edit, Eye, EyeOff, Filter, Hash, Loader2, Plus, RefreshCw, Search, Settings} from "lucide-react"
+import {Calendar, Edit, Eye, EyeOff, Filter, Hash, Loader2, Plus, RefreshCw, Search, Settings, User} from "lucide-react"
 import {toast} from "sonner"
 
 import {
@@ -28,10 +28,14 @@ export function ParseChannelPage() {
     const [editingSettings, setEditingSettings] = useState<ParseChannelResponse | null>(null)
     const [scheduleFilter, setScheduleFilter] = useState<string>("all")
     const [statusFilter, setStatusFilter] = useState<string>("all")
+    const [sessionFilter, setSessionFilter] = useState<string>("all")
     const [channelSearch, setChannelSearch] = useState("")
 
     const {data, isLoading, error, refetch} = useGetApiV1ParseChannel()
     const settings = data?.items ?? []
+
+    const getSessionLabel = (setting: ParseChannelResponse) =>
+        setting.telegramSessionName || setting.telegramSessionPhoneNumber || "Сессия не указана"
 
     const uniqueSchedules = useMemo(() => {
         const map = new Map<string, string>()
@@ -43,15 +47,26 @@ export function ParseChannelPage() {
         return Array.from(map.entries()).map(([id, name]) => ({id, name}))
     }, [settings])
 
+    const uniqueSessions = useMemo(() => {
+        const map = new Map<string, string>()
+        for (const s of settings) {
+            if (s.telegramSessionId) {
+                map.set(s.telegramSessionId, getSessionLabel(s))
+            }
+        }
+        return Array.from(map.entries()).map(([id, name]) => ({id, name}))
+    }, [settings])
+
     const filteredSettings = useMemo(() => {
         return settings.filter((s) => {
             if (scheduleFilter !== "all" && s.scheduleId !== scheduleFilter) return false
             if (statusFilter === "active" && !s.isActive) return false
             if (statusFilter === "inactive" && s.isActive) return false
+            if (sessionFilter !== "all" && s.telegramSessionId !== sessionFilter) return false
             if (channelSearch && !s.channel?.toLowerCase().includes(channelSearch.toLowerCase())) return false
             return true
         })
-    }, [settings, scheduleFilter, statusFilter, channelSearch])
+    }, [settings, scheduleFilter, statusFilter, sessionFilter, channelSearch])
 
     const createMutation = usePostApiV1ParseChannel({
         mutation: {
@@ -176,7 +191,7 @@ export function ParseChannelPage() {
             {settings.length > 0 && (
                 <Card className="mb-6">
                     <CardContent className="pt-6">
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                             <div>
                                 <Select value={scheduleFilter} onValueChange={setScheduleFilter}>
                                     <SelectTrigger>
@@ -199,6 +214,19 @@ export function ParseChannelPage() {
                                         <SelectItem value="all">Все статусы</SelectItem>
                                         <SelectItem value="active">Активные</SelectItem>
                                         <SelectItem value="inactive">Неактивные</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div>
+                                <Select value={sessionFilter} onValueChange={setSessionFilter}>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Все сессии"/>
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="all">Все сессии</SelectItem>
+                                        {uniqueSessions.map((s) => (
+                                            <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
+                                        ))}
                                     </SelectContent>
                                 </Select>
                             </div>
@@ -273,6 +301,10 @@ export function ParseChannelPage() {
                                 <p className="text-sm text-muted-foreground mt-1">
                                     <Calendar className="inline h-3.5 w-3.5 mr-1"/>
                                     Расписание: {setting.scheduleName}
+                                </p>
+                                <p className="text-sm text-muted-foreground mt-1">
+                                    <User className="inline h-3.5 w-3.5 mr-1"/>
+                                    Сессия: {getSessionLabel(setting)}
                                 </p>
                             </CardHeader>
 

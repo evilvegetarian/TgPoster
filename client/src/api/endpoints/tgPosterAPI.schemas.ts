@@ -625,6 +625,9 @@ export interface ParseChannelResponse {
   scheduleName: string;
   telegramSessionId: string;
   /** @nullable */
+  telegramSessionName?: string | null;
+  telegramSessionPhoneNumber: string;
+  /** @nullable */
   totalMessagesCount?: number | null;
   parsedMessagesCount?: number;
 }

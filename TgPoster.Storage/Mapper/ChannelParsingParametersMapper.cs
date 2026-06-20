@@ -24,6 +24,8 @@ public static class ChannelParsingParametersMapper
 			LastParseDate = entity.LastParseDate,
 			ScheduleName = entity.Schedule.Name,
 			TelegramSessionId = entity.TelegramSessionId,
+			TelegramSessionName = entity.TelegramSession.Name,
+			TelegramSessionPhoneNumber = entity.TelegramSession.PhoneNumber,
 			TotalMessagesCount = entity.TotalMessagesCount,
 			ParsedMessagesCount = parsedMessagesCount
 		};
