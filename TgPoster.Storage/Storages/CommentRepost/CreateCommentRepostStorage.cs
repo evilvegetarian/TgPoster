@@ -55,8 +55,8 @@ internal sealed class CreateCommentRepostStorage(PosterContext context, GuidFact
 		return id;
 	}
 
-	public Task<string?> GetSourceChannelAsync(Guid scheduleId, CancellationToken ct)
+	public Task<string> GetSourceChannelAsync(Guid scheduleId, CancellationToken ct)
 	{
-		return context.Schedules.Where(x => x.Id == scheduleId).Select(x => x.ChannelName).FirstOrDefaultAsync( ct);
+		return context.Schedules.Where(x => x.Id == scheduleId).Select(x => x.ChannelName).FirstAsync(ct);
 	}
 }

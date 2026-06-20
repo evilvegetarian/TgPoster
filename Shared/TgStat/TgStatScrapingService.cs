@@ -93,7 +93,7 @@ internal sealed partial class TgStatScrapingService(ILogger<TgStatScrapingServic
 				"[class*='subscribers'], [class*='participants'], [class*='members']");
 			return new TgStatChannelDetailDto
 			{
-				TgUrl =tUrl ,
+				TgUrl = tUrl,
 				Title = title,
 				Username = username,
 				Description = description,

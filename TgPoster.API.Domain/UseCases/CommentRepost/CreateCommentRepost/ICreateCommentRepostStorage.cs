@@ -30,5 +30,11 @@ public interface ICreateCommentRepostStorage
 		Guid scheduleId,
 		CancellationToken ct);
 
-	Task<string?> GetSourceChannelAsync(Guid scheduleId, CancellationToken ct);
+	/// <summary>
+	///     Возвращает имя канала-источника репостов для указанного расписания.
+	/// </summary>
+	/// <param name="scheduleId">Идентификатор расписания.</param>
+	/// <param name="ct">Токен отмены.</param>
+	/// <returns>Имя канала-источника.</returns>
+	Task<string> GetSourceChannelAsync(Guid scheduleId, CancellationToken ct);
 }

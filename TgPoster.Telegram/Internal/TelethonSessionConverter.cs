@@ -124,10 +124,10 @@ internal static class TelethonSessionConverter
 	/// </summary>
 	private sealed class WTelegramSessionDto
 	{
-		public long ApiId;
-		public long UserId;
-		public int MainDC;
-		public Dictionary<int, DCSessionDto> DCSessions = [];
+		public long ApiId { get; init; }
+		public long UserId { get; init; }
+		public int MainDC { get; init; }
+		public Dictionary<int, DCSessionDto> DCSessions { get; init; } = [];
 	}
 
 	/// <summary>
@@ -135,9 +135,9 @@ internal static class TelethonSessionConverter
 	/// </summary>
 	private sealed class DCSessionDto
 	{
-		public byte[]? AuthKey;
-		public long UserId;
-		public long OldSalt;
-		public long Salt;
+		public byte[]? AuthKey { get; init; }
+		public long UserId { get; init; }
+		public long OldSalt { get; init; }
+		public long Salt { get; init; }
 	}
 }

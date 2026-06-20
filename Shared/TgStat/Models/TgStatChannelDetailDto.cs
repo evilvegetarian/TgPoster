@@ -8,7 +8,7 @@ public sealed class TgStatChannelDetailDto
 	/// <summary>
 	///     URL канала на tgstat.
 	/// </summary>
-	public required string TgUrl { get; set; }
+	public string? TgUrl { get; set; }
 
 	/// <summary>
 	///     Username канала (без @).
