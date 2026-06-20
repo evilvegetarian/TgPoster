@@ -1,3 +1,4 @@
+using Amazon.S3;
 using Hangfire;
 using Hangfire.Dashboard;
 using Hangfire.MemoryStorage;
@@ -19,6 +20,7 @@ using TgPoster.Worker.Domain.UseCases.SendCommentConsumer;
 using TgPoster.Worker.Domain.UseCases.SenderMessageWorker;
 using TgPoster.Worker.Domain.UseCases.ScrapeChannel;
 using TgPoster.Worker.Domain.UseCases.ClassifyChannel;
+using TgPoster.Worker.Domain.UseCases.CleanupS3Files;
 using TgPoster.Worker.Domain.UseCases.DiscoverChannelLinks;
 using TgPoster.Worker.Domain.UseCases.UpdateChannelStats;
 using TgPoster.Worker.Domain.UseCases.WorkerJobStatus;
@@ -31,6 +33,15 @@ public static class DependencyInjection
 	{
 		var telegramOptions = configuration.GetSection(nameof(TelegramOptions)).Get<TelegramOptions>()!;
 		services.AddSingleton(telegramOptions);
+
+		var s3Options = configuration.GetSection(nameof(S3Options)).Get<S3Options>()!;
+		services.AddSingleton(s3Options);
+		services.AddSingleton<IAmazonS3>(_ =>
+			new AmazonS3Client(s3Options.AccessKey, s3Options.SecretKey, new AmazonS3Config
+			{
+				ServiceURL = s3Options.ServiceUrl,
+				ForcePathStyle = true
+			}));
 
 		services.AddMassTransient(configuration);
 
@@ -51,6 +62,7 @@ public static class DependencyInjection
 		services.AddScoped<DiscoverChannelLinksWorker>();
 		services.AddScoped<ClassifyChannelWorker>();
 		services.AddScoped<UpdateChannelStatsWorker>();
+		services.AddScoped<CleanupS3FilesWorker>();
 		services.AddScoped<HangfireNextRunProvider>();
 
 		return services;
@@ -131,6 +143,11 @@ public static class DependencyInjection
 			"update-channel-stats-job",
 			worker => worker.UpdateStatsAsync(),
 			Cron.Hourly());
+
+		recurringJobManager.AddOrUpdate<CleanupS3FilesWorker>(
+			WorkerJobNames.CleanupS3Files,
+			worker => worker.CleanupAsync(),
+			Cron.Weekly());
 
 		var statusStorage = scope.ServiceProvider.GetRequiredService<IWorkerJobStatusStorage>();
 		var nextRunProvider = scope.ServiceProvider.GetRequiredService<HangfireNextRunProvider>();
