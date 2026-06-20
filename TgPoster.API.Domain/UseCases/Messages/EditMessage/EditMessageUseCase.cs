@@ -1,6 +1,6 @@
 using MediatR;
 using Security.IdentityServices;
-using Telegram.Bot;
+using Shared.Telegram;
 using TgPoster.Exceptions;
 using TgPoster.API.Domain.Services;
 using TgPoster.Exceptions.NotFound;
@@ -11,7 +11,8 @@ internal class EditMessageUseCase(
 	IEditMessageStorage storage,
 	IIdentityProvider provider,
 	TelegramTokenService tokenService,
-	ITelegramService telegramService)
+	ITelegramService telegramService,
+	TelegramBotManager botManager)
 	: IRequestHandler<EditMessageCommand>
 {
 	public async Task Handle(EditMessageCommand request, CancellationToken ct)
@@ -24,7 +25,7 @@ internal class EditMessageUseCase(
 
 		var (token, chatId) = await tokenService.GetTokenByScheduleIdAsync(request.ScheduleId, ct);
 
-		var bot = new TelegramBotClient(token);
+		var bot = botManager.GetClient(token);
 		var files = await telegramService.GetFileMessageInTelegramByFile(bot, request.NewFiles, chatId, ct);
 
 		await storage.UpdateMessageAsync(request, files, ct);

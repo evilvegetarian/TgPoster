@@ -1,5 +1,6 @@
 using MediatR;
 using Security.IdentityServices;
+using Shared.Telegram;
 using Shared.YouTube;
 using Telegram.Bot;
 using TgPoster.Exceptions;
@@ -12,7 +13,8 @@ internal class SendVideoOnYouTubeUseCase(
 	ISendVideoOnYouTubeStorage storage,
 	IIdentityProvider provider,
 	TelegramTokenService tokenService,
-	YouTubeService youTubeService)
+	YouTubeService youTubeService,
+	TelegramBotManager botManager)
 	: IRequestHandler<SendVideoOnYouTubeCommand>
 {
 	public async Task Handle(SendVideoOnYouTubeCommand request, CancellationToken ct)
@@ -30,7 +32,7 @@ internal class SendVideoOnYouTubeUseCase(
 		}
 
 		var telegram = await tokenService.GetTokenByMessageIdAsync(request.MessageId, ct);
-		var bot = new TelegramBotClient(telegram.token, cancellationToken: ct);
+		var bot = botManager.GetClient(telegram.token);
 
 		var youtubeAccount = new YouTubeAccountDto
 		{

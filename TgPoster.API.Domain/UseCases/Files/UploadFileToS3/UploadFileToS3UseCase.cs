@@ -1,6 +1,6 @@
 using MediatR;
+using Shared.Telegram;
 using Shared.Utilities;
-using Telegram.Bot;
 using TgPoster.Exceptions;
 using TgPoster.API.Domain.Services;
 using TgPoster.Exceptions.NotFound;
@@ -11,6 +11,7 @@ internal sealed class UploadFileToS3UseCase(
 	IUploadFileToS3Storage storage,
 	FileService fileService,
 	TelegramTokenService tokenService,
+	TelegramBotManager botManager,
 	S3Options s3Options
 ) : IRequestHandler<UploadFileToS3Command, string>
 {
@@ -30,7 +31,7 @@ internal sealed class UploadFileToS3UseCase(
 
 		var scheduleId = await storage.GetScheduleIdByFileIdAsync(request.FileId, ct);
 		var (token, _) = await tokenService.GetTokenByScheduleIdAnonymousAsync(scheduleId, ct);
-		var botClient = new TelegramBotClient(token);
+		var botClient = botManager.GetClient(token);
 
 		var fileType = fileInfo.ContentType.GetFileType();
 		var uploaded = await fileService.DownloadAndUploadToS3Async(

@@ -1,6 +1,7 @@
 using MediatR;
 using Security.Cryptography;
 using Security.IdentityServices;
+using Shared.Telegram;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using TgPoster.API.Domain.ConfigModels;
@@ -14,7 +15,8 @@ internal sealed class CreateScheduleUseCase(
 	TelegramOptions options,
 	ICreateScheduleStorage storage,
 	IIdentityProvider identity,
-	ICryptoAES aes
+	ICryptoAES aes,
+	TelegramBotManager botManager
 ) : IRequestHandler<CreateScheduleCommand, CreateScheduleResponse>
 {
 	public async Task<CreateScheduleResponse> Handle(CreateScheduleCommand request, CancellationToken ct)
@@ -28,7 +30,7 @@ internal sealed class CreateScheduleUseCase(
 
 		var token = aes.Decrypt(options.SecretKey, encryptedToken);
 
-		var bot = new TelegramBotClient(token);
+		var bot = botManager.GetClient(token);
 		var userNameChat = request.Channel.ConvertToTelegramHandle();
 		var channel = await bot.GetChat(userNameChat, ct);
 		var botMember = await bot.GetChatMember(userNameChat, bot.BotId, ct);

@@ -1,5 +1,6 @@
 using MassTransit;
 using MediatR;
+using Shared.Telegram;
 using TgPoster.Telegram;
 using Telegram.Bot;
 using TgPoster.API.Domain.Extensions;
@@ -13,13 +14,14 @@ internal class CreateParseChannelUseCase(
 	IParseChannelStorage storage,
 	TelegramTokenService tokenService,
 	IBus bus,
-	ITelegramChatService chatService)
+	ITelegramChatService chatService,
+	TelegramBotManager botManager)
 	: IRequestHandler<CreateParseChannelCommand, CreateParseChannelResponse>
 {
 	public async Task<CreateParseChannelResponse> Handle(CreateParseChannelCommand request, CancellationToken ct)
 	{
 		var (token, _) = await tokenService.GetTokenByScheduleIdAsync(request.ScheduleId, ct);
-		var bot = new TelegramBotClient(token);
+		var bot = botManager.GetClient(token);
 		var channel = request.Channel.ConvertToTelegramHandle();
 		var chat = await bot.GetChat(channel, ct);
 

@@ -2,7 +2,7 @@ using MediatR;
 using Security.Cryptography;
 using Shared.OpenRouter;
 using Shared.OpenRouter.Models.Request;
-using Telegram.Bot;
+using Shared.Telegram;
 using TgPoster.API.Domain.ConfigModels;
 using TgPoster.Exceptions;
 using TgPoster.API.Domain.Services;
@@ -18,6 +18,7 @@ internal class GenerateAiContentHandler(
 	ICryptoAES crypto,
 	ITelegramService service,
 	TelegramTokenService tokenService,
+	TelegramBotManager botManager,
 	OpenRouterOptions options)
 	: IRequestHandler<GenerateAiContentCommand, GenerateAiContentResponse>
 {
@@ -37,7 +38,7 @@ internal class GenerateAiContentHandler(
 		}
 
 		var tk = await tokenService.GetTokenByScheduleIdAsync(openApiToken.ScheduleId, ct);
-		var bot = new TelegramBotClient(tk.token);
+		var bot = botManager.GetClient(tk.token);
 		var prompt = await storage.GetPromptSettingsAsync(openApiToken.ScheduleId, ct);
 		var contentParts = new List<MessageContentPart>
 		{

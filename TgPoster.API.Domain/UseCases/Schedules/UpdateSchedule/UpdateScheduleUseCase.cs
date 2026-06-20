@@ -1,6 +1,7 @@
 using MediatR;
 using Security.Cryptography;
 using Security.IdentityServices;
+using Shared.Telegram;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using TgPoster.API.Domain.ConfigModels;
@@ -13,7 +14,8 @@ internal sealed class UpdateScheduleUseCase(
 	IUpdateScheduleStorage storage,
 	IIdentityProvider provider,
 	TelegramOptions options,
-	ICryptoAES aes
+	ICryptoAES aes,
+	TelegramBotManager botManager
 ) : IRequestHandler<UpdateScheduleCommand>
 {
 	public async Task Handle(UpdateScheduleCommand request, CancellationToken ct)
@@ -31,7 +33,7 @@ internal sealed class UpdateScheduleUseCase(
 				throw new ScheduleNotFoundException(request.Id);
 
 			var token = aes.Decrypt(options.SecretKey, encryptedToken);
-			var bot = new TelegramBotClient(token);
+			var bot = botManager.GetClient(token);
 			var botMember = await bot.GetChatMember(channelName, bot.BotId, ct);
 			if (botMember is not ChatMemberAdministrator { CanPostMessages: true })
 				throw new TelegramBotNotPermission();

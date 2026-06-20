@@ -1,6 +1,7 @@
 using MediatR;
 using Security.Cryptography;
 using Security.IdentityServices;
+using Shared.Telegram;
 using Telegram.Bot;
 using TgPoster.API.Domain.ConfigModels;
 using TgPoster.Exceptions;
@@ -12,7 +13,8 @@ internal sealed class CreateTelegramBotUseCase(
 	ICreateTelegramBotStorage storage,
 	IIdentityProvider identity,
 	ICryptoAES cryptoAes,
-	TelegramOptions options
+	TelegramOptions options,
+	TelegramBotManager botManager
 ) : IRequestHandler<CreateTelegramBotCommand, CreateTelegramBotResponse>
 {
 	public async Task<CreateTelegramBotResponse> Handle(
@@ -20,7 +22,7 @@ internal sealed class CreateTelegramBotUseCase(
 		CancellationToken ct
 	)
 	{
-		var bot = new TelegramBotClient(request.ApiToken);
+		var bot = botManager.GetClient(request.ApiToken);
 		var updates = await bot.GetUpdates(cancellationToken: ct);
 		var chatId = updates
 			             .Where(x => x.Message != null)

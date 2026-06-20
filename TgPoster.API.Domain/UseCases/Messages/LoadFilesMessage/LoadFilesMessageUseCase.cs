@@ -1,5 +1,5 @@
 using MediatR;
-using Telegram.Bot;
+using Shared.Telegram;
 using TgPoster.API.Domain.Services;
 
 namespace TgPoster.API.Domain.UseCases.Messages.LoadFilesMessage;
@@ -7,7 +7,8 @@ namespace TgPoster.API.Domain.UseCases.Messages.LoadFilesMessage;
 internal class LoadFilesMessageUseCase(
 	ILoadFilesMessageStorage storage,
 	ITelegramService telegramService,
-	TelegramTokenService tokenService
+	TelegramTokenService tokenService,
+	TelegramBotManager botManager
 )
 	: IRequestHandler<LoadFilesMessageCommand>
 {
@@ -15,7 +16,7 @@ internal class LoadFilesMessageUseCase(
 	{
 		var (token, chatId) = await tokenService.GetTokenByMessageIdAsync(request.Id, ct);
 
-		var bot = new TelegramBotClient(token);
+		var bot = botManager.GetClient(token);
 		var files = await telegramService.GetFileMessageInTelegramByFile(bot, request.Files, chatId, ct);
 
 		await storage.AddFileAsync(request.Id, files, ct);
