@@ -13,12 +13,13 @@ public sealed record TelegramSendResult(bool IsSuccess, int? MessageId = null)
 
 public class TelegramExecuteServices(ILogger<TelegramExecuteServices> logger)
 {
-	public Task<global::Telegram.Bot.Types.Message[]> SendMedia(
+	public Task<Message[]> SendMedia(
 		TelegramBotClient telegramBot,
 		long chatId,
 		List<IAlbumInputMedia> album,
 		int maxRetries,
-		CancellationToken ct)
+		CancellationToken ct
+	)
 	{
 		return ExecuteWithRetryAsync(
 			() => telegramBot.SendMediaGroup(chatId, album,
@@ -26,12 +27,13 @@ public class TelegramExecuteServices(ILogger<TelegramExecuteServices> logger)
 			maxRetries, ct);
 	}
 
-	public Task<global::Telegram.Bot.Types.Message> SendPhoto(
+	public Task<Message> SendPhoto(
 		TelegramBotClient telegramBot,
 		long chatId,
 		InputFileStream photoStream,
 		int maxRetries,
-		CancellationToken ct)
+		CancellationToken ct
+	)
 	{
 		return ExecuteWithRetryAsync(
 			() => telegramBot.SendPhoto(chatId, photoStream, cancellationToken: ct),
@@ -42,7 +44,8 @@ public class TelegramExecuteServices(ILogger<TelegramExecuteServices> logger)
 		ITelegramBotClient bot,
 		long chatId,
 		IEnumerable<IAlbumInputMedia> medias,
-		CancellationToken ct)
+		CancellationToken ct
+	)
 	{
 		try
 		{
@@ -66,7 +69,8 @@ public class TelegramExecuteServices(ILogger<TelegramExecuteServices> logger)
 		ITelegramBotClient bot,
 		long chatId,
 		string text,
-		CancellationToken ct)
+		CancellationToken ct
+	)
 	{
 		try
 		{

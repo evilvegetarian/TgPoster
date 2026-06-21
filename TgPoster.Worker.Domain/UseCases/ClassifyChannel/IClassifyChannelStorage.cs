@@ -1,5 +1,3 @@
-using Shared.Enums;
-
 namespace TgPoster.Worker.Domain.UseCases.ClassifyChannel;
 
 public interface IClassifyChannelStorage
@@ -13,7 +11,8 @@ public interface IClassifyChannelStorage
 		string[]? tags,
 		string? language,
 		double? confidence,
-		CancellationToken ct);
+		CancellationToken ct
+	);
 
 	Task MarkChannelBannedAsync(Guid channelId, CancellationToken ct);
 }

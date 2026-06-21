@@ -2,7 +2,6 @@ using Moq;
 using Moq.Language.Flow;
 using Security.IdentityServices;
 using Shouldly;
-using TgPoster.Exceptions;
 using TgPoster.API.Domain.UseCases.Repost.UpdateRepostSettings;
 using TgPoster.Exceptions.NotFound;
 
@@ -10,8 +9,8 @@ namespace TgPoster.API.Domain.Tests.Repost;
 
 public class UpdateRepostSettingsUseCaseShould
 {
-	private readonly Mock<IUpdateRepostSettingsStorage> storage;
 	private readonly ISetup<IUpdateRepostSettingsStorage, Task<bool>> existsSetup;
+	private readonly Mock<IUpdateRepostSettingsStorage> storage;
 	private readonly UpdateRepostSettingsUseCase sut;
 	private readonly Guid userId = Guid.NewGuid();
 
@@ -46,8 +45,8 @@ public class UpdateRepostSettingsUseCaseShould
 		var id = Guid.NewGuid();
 		existsSetup.ReturnsAsync(false);
 
-		await Should.ThrowAsync<RepostSettingsNotFoundException>(
-			async () => await sut.Handle(new UpdateRepostSettingsCommand(id, true), CancellationToken.None));
+		await Should.ThrowAsync<RepostSettingsNotFoundException>(async () =>
+			await sut.Handle(new UpdateRepostSettingsCommand(id, true), CancellationToken.None));
 
 		storage.Verify(s => s.UpdateSettingsAsync(It.IsAny<Guid>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()),
 			Times.Never);

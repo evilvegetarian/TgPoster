@@ -9,8 +9,8 @@ using TgPoster.Telegram.Models;
 namespace TgPoster.Telegram.Internal;
 
 /// <summary>
-///     Динамический <see cref="IWebProxy"/> для запросов к t.me: берёт первый активный HTTP-прокси
-///     из БД и кэширует его на <see cref="TelegramPublicLookupOptions.ProxyRefreshSeconds"/>.
+///     Динамический <see cref="IWebProxy" /> для запросов к t.me: берёт первый активный HTTP-прокси
+///     из БД и кэширует его на <see cref="TelegramPublicLookupOptions.ProxyRefreshSeconds" />.
 ///     Если активного прокси нет — запросы идут напрямую.
 /// </summary>
 internal sealed class DbActiveHttpProxy(
@@ -18,13 +18,12 @@ internal sealed class DbActiveHttpProxy(
 	IOptions<TelegramPublicLookupOptions> options,
 	ILogger<DbActiveHttpProxy> logger) : IWebProxy
 {
-	private readonly TimeSpan refreshInterval = TimeSpan.FromSeconds(Math.Max(1, options.Value.ProxyRefreshSeconds));
-
 	private readonly Lock initGate = new();
-
-	private volatile Snapshot snapshot = Snapshot.Empty;
+	private readonly TimeSpan refreshInterval = TimeSpan.FromSeconds(Math.Max(1, options.Value.ProxyRefreshSeconds));
 	private volatile bool initialized;
 	private int refreshing;
+
+	private volatile Snapshot snapshot = Snapshot.Empty;
 
 	/// <summary>
 	///     Креды текущего прокси. Управляются снимком из БД, сеттер игнорируется

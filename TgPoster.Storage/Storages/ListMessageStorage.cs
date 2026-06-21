@@ -2,8 +2,10 @@ using Microsoft.EntityFrameworkCore;
 using TgPoster.API.Domain.Models;
 using TgPoster.API.Domain.UseCases.Messages.ListMessage;
 using TgPoster.Storage.Data;
+using TgPoster.Storage.Data.Enum;
 using FileDto = TgPoster.API.Domain.UseCases.Messages.ListMessage.FileDto;
 using MessageDto = TgPoster.API.Domain.UseCases.Messages.ListMessage.MessageDto;
+using MessageStatus = TgPoster.API.Domain.UseCases.Messages.ListMessage.MessageStatus;
 
 namespace TgPoster.Storage.Storages;
 
@@ -102,7 +104,7 @@ internal sealed class ListMessageStorage(PosterContext context) : IListMessageSt
 						IsInS3 = file.IsInS3,
 						Duration = file.Duration,
 						Previews = file.Thumbnails
-							.Where(x => x.FileType != Data.Enum.FileTypes.VideoClip)
+							.Where(x => x.FileType != FileTypes.VideoClip)
 							.Select(x => new PreviewDto
 							{
 								Id = x.Id,
@@ -110,7 +112,7 @@ internal sealed class ListMessageStorage(PosterContext context) : IListMessageSt
 								IsInS3 = x.IsInS3
 							}).ToList(),
 						VideoClip = file.Thumbnails
-							.Where(x => x.FileType == Data.Enum.FileTypes.VideoClip)
+							.Where(x => x.FileType == FileTypes.VideoClip)
 							.Select(x => new PreviewDto
 							{
 								Id = x.Id,

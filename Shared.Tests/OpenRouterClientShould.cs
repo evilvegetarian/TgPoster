@@ -2,7 +2,6 @@ using System.Net;
 using System.Text.Json;
 using Moq;
 using Moq.Protected;
-using TgPoster.Exceptions;
 using Shared.OpenRouter;
 using Shared.OpenRouter.Models.Request;
 using Shared.OpenRouter.Models.Response;

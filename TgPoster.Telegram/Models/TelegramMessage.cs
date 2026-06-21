@@ -26,7 +26,7 @@ public enum TelegramMessageEntityType
 	/// <summary>Простой URL в тексте (https://example.com)</summary>
 	Url,
 
-	/// <summary>Текстовая ссылка (URL хранится отдельно, в свойстве <see cref="TelegramMessageEntity.Url"/>)</summary>
+	/// <summary>Текстовая ссылка (URL хранится отдельно, в свойстве <see cref="TelegramMessageEntity.Url" />)</summary>
 	TextUrl,
 
 	/// <summary>Упоминание пользователя через @username</summary>
@@ -48,12 +48,12 @@ public enum TelegramMessageEntityType
 /// <param name="Offset">Смещение от начала текста (в UTF-16 кодовых единицах)</param>
 /// <param name="Length">Длина фрагмента</param>
 /// <param name="Type">Тип сущности</param>
-/// <param name="Url">URL — заполнен только для <see cref="TelegramMessageEntityType.TextUrl"/></param>
+/// <param name="Url">URL — заполнен только для <see cref="TelegramMessageEntityType.TextUrl" /></param>
 public sealed record TelegramMessageEntity(int Offset, int Length, TelegramMessageEntityType Type, string? Url);
 
 /// <summary>
 ///     Медиа-вложение в Telegram-сообщении.
-///     <see cref="Source"/> — internal-деталь, Domain не должен её читать
+///     <see cref="Source" /> — internal-деталь, Domain не должен её читать
 /// </summary>
 public sealed class TelegramMessageMedia
 {

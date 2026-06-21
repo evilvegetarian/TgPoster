@@ -5,7 +5,7 @@ namespace TgPoster.Telegram.Abstractions;
 /// <summary>
 ///     Унифицированный сервис для работы с Telegram через WTelegram-клиент.
 ///     Инкапсулирует получение клиента по идентификатору сессии, маппинг RpcException в
-///     <see cref="TelegramOperationStatus"/>, автоматический FLOOD_WAIT-retry и обновление
+///     <see cref="TelegramOperationStatus" />, автоматический FLOOD_WAIT-retry и обновление
 ///     FILE_REFERENCE при скачивании медиа
 /// </summary>
 public interface ITelegramMessageService
@@ -200,7 +200,7 @@ public interface ITelegramMessageService
 	/// <param name="sessionId">Идентификатор Telegram-сессии</param>
 	/// <param name="channel">Peer канала, в котором сообщение</param>
 	/// <param name="messageId">ID сообщения с медиа</param>
-	/// <param name="media">Медиа-объект из <see cref="TelegramMessage.Media"/></param>
+	/// <param name="media">Медиа-объект из <see cref="TelegramMessage.Media" /></param>
 	/// <param name="target">Поток-приёмник</param>
 	/// <param name="ct">Токен отмены</param>
 	/// <param name="waitOnFloodWait">Ждать при FLOOD_WAIT</param>

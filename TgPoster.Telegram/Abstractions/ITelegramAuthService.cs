@@ -57,5 +57,10 @@ public interface ITelegramAuthService
 	/// <param name="sessionBytes">Содержимое файла сессии</param>
 	/// <param name="ct">Токен отмены</param>
 	/// <returns>Результат импорта (информация о пользователе или ошибка)</returns>
-	Task<ImportSessionResult> ImportSessionAsync(string apiId, string apiHash, MemoryStream sessionBytes, CancellationToken ct);
+	Task<ImportSessionResult> ImportSessionAsync(
+		string apiId,
+		string apiHash,
+		MemoryStream sessionBytes,
+		CancellationToken ct
+	);
 }

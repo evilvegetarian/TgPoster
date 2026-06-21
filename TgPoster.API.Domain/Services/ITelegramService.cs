@@ -12,7 +12,8 @@ public interface ITelegramService
 		TelegramBotClient botClient,
 		List<IFormFile> files,
 		long chatIdWithBotUser,
-		CancellationToken ct);
+		CancellationToken ct
+	);
 
 	Task<byte[]> GetByteFileAsync(TelegramBotClient client, string fileId, CancellationToken ct);
 }

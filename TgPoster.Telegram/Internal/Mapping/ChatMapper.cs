@@ -11,12 +11,12 @@ internal static class ChatMapper
 		var isAdmin = c.admin_rights != null || isCreator;
 
 		var (canMsg, canMedia) = CalculatePermissions(
-			isCreator: isCreator,
-			isAdmin: isAdmin,
-			adminRights: c.admin_rights,
-			bannedRights: c.banned_rights,
-			defaultBannedRights: c.default_banned_rights,
-			isPublicGroupOrChannel: c.IsChannel && !c.IsGroup
+			isCreator,
+			isAdmin,
+			c.admin_rights,
+			c.banned_rights,
+			c.default_banned_rights,
+			c.IsChannel && !c.IsGroup
 		);
 
 		return new TelegramChatInfo
@@ -41,10 +41,10 @@ internal static class ChatMapper
 		var isCreator = c.flags.HasFlag(Chat.Flags.creator);
 		var isDeactivated = c.flags.HasFlag(Chat.Flags.deactivated);
 
-		var canSend = !isDeactivated &&
-		              !(c.default_banned_rights?.flags.HasFlag(ChatBannedRights.Flags.send_messages) ?? false);
-		var canMedia = !isDeactivated &&
-		               !(c.default_banned_rights?.flags.HasFlag(ChatBannedRights.Flags.send_media) ?? false);
+		var canSend = !isDeactivated
+		              && !(c.default_banned_rights?.flags.HasFlag(ChatBannedRights.Flags.send_messages) ?? false);
+		var canMedia = !isDeactivated
+		               && !(c.default_banned_rights?.flags.HasFlag(ChatBannedRights.Flags.send_media) ?? false);
 
 		return new TelegramChatInfo
 		{
@@ -97,7 +97,8 @@ internal static class ChatMapper
 		ChatAdminRights? adminRights,
 		ChatBannedRights? bannedRights,
 		ChatBannedRights? defaultBannedRights,
-		bool isPublicGroupOrChannel)
+		bool isPublicGroupOrChannel
+	)
 	{
 		if (isCreator)
 		{

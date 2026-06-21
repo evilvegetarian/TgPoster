@@ -1,8 +1,6 @@
 using MediatR;
 using Security.IdentityServices;
 using Shared.Enums;
-using TgPoster.Telegram;
-using TgPoster.Exceptions;
 using TgPoster.Exceptions.NotFound;
 using TgPoster.Telegram.Abstractions;
 

@@ -8,8 +8,8 @@ namespace TgPoster.Storage.Tests;
 public class StorageTestFixture : IAsyncLifetime
 {
 	private readonly PostgreSqlContainer dbContainer = new PostgreSqlBuilder().Build();
-	private PosterContext PosterContext { get; set; } = null!;
 	private readonly IIdentityProvider identityProvider = new TestIdentityProvider();
+	private PosterContext PosterContext { get; set; } = null!;
 
 	public virtual async Task InitializeAsync()
 	{

@@ -42,7 +42,8 @@ internal sealed class RepostMessageConsumerStorage(PosterContext context) : IRep
 		Guid repostDestinationId,
 		int? telegramMessageId,
 		string? error,
-		CancellationToken ct)
+		CancellationToken ct
+	)
 	{
 		var log = new RepostLog
 		{

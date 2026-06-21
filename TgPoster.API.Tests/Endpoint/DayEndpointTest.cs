@@ -77,7 +77,8 @@ public class DayEndpointTest(EndpointTestFixture fixture) : IClassFixture<Endpoi
 
 		var getResponse = await client.GetAsync<DayListResponse>(Url + "?scheduleId=" + scheduleId);
 		getResponse.Items.ShouldContain(x => x.ScheduleId == scheduleId);
-		getResponse.Items.ShouldContain(x => request.DaysOfWeek.Select(day => day.DayOfWeekPosting).Contains(x.DayOfWeek));
+		getResponse.Items.ShouldContain(x =>
+			request.DaysOfWeek.Select(day => day.DayOfWeekPosting).Contains(x.DayOfWeek));
 	}
 
 	[Fact]

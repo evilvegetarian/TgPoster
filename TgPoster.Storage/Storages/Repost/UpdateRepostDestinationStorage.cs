@@ -20,7 +20,8 @@ internal sealed class UpdateRepostDestinationStorage(PosterContext context) : IU
 		int repostEveryNth,
 		int skipProbability,
 		int? maxRepostsPerDay,
-		CancellationToken ct)
+		CancellationToken ct
+	)
 	{
 		var destination = await context.Set<RepostDestination>()
 			.FirstAsync(x => x.Id == id, ct);

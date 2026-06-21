@@ -9,7 +9,6 @@ using Shared.OpenRouter.Models.Request;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats.Jpeg;
 using SixLabors.ImageSharp.Processing;
-using TgPoster.Telegram;
 using TgPoster.Telegram.Abstractions;
 using TgPoster.Telegram.Models;
 using TgPoster.Worker.Domain.ConfigModels;
@@ -30,7 +29,6 @@ internal sealed partial class ClassifyChannelWorker(
 	private const int MaxImageSize = 512;
 	private const int JpegQuality = 80;
 	private const int MaxTextLength = 500;
-	private static readonly SemaphoreSlim ParseLock = new(1, 1);
 
 	private const string ClassificationSystemPrompt = """
 	                                                  Ты — классификатор Telegram-каналов. На вход получаешь название, описание,
@@ -57,6 +55,8 @@ internal sealed partial class ClassifyChannelWorker(
 	                                                        Последние посты (--- разделитель):
 	                                                        {2}
 	                                                        """;
+
+	private static readonly SemaphoreSlim ParseLock = new(1, 1);
 
 	[DisableConcurrentExecution(100000)]
 	public async Task ClassifyChannelsAsync()
@@ -183,7 +183,7 @@ internal sealed partial class ClassifyChannelWorker(
 	)
 	{
 		var historyResult = await tgMessages.GetHistoryAsync(
-			sessionId, peer, limit: options.MessageSampleCount, ct: ct);
+			sessionId, peer, options.MessageSampleCount, ct: ct);
 
 		if (!historyResult.IsSuccess)
 		{

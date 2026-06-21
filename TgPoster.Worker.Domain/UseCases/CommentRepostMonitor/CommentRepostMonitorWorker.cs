@@ -2,7 +2,6 @@ using Hangfire;
 using MassTransit;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using TgPoster.Telegram;
 using TgPoster.Telegram.Abstractions;
 using TgPoster.Telegram.Models;
 using TgPoster.Worker.Domain.UseCases.SendCommentConsumer;
@@ -45,7 +44,7 @@ public class CommentRepostMonitorWorker(
 		var historyResult = await tgMessages.GetHistoryAsync(
 			setting.TelegramSessionId,
 			peer,
-			limit: 20,
+			20,
 			minId: setting.LastProcessedPostId ?? 0,
 			ct: lifetime.ApplicationStopping);
 

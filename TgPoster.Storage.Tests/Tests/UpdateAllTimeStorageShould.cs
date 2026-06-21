@@ -15,7 +15,7 @@ public class UpdateAllTimeStorageShould : IClassFixture<StorageTestFixture>
 	public UpdateAllTimeStorageShould(StorageTestFixture fixture)
 	{
 		_context = fixture.GetDbContext();
-		sut = new(_context);
+		sut = new UpdateAllTimeStorage(_context);
 	}
 
 	[Fact]

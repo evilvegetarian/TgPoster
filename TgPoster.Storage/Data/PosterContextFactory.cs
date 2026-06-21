@@ -11,8 +11,8 @@ internal sealed class PosterContextFactory : IDesignTimeDbContextFactory<PosterC
 	{
 		var configuration = new ConfigurationBuilder()
 			.SetBasePath(Directory.GetCurrentDirectory())
-			.AddJsonFile("appsettings.json", optional: true)
-			.AddJsonFile("appsettings.Development.json", optional: true)
+			.AddJsonFile("appsettings.json", true)
+			.AddJsonFile("appsettings.Development.json", true)
 			.AddUserSecrets("8cad5989-a758-42b6-a3fd-da884daf90bb")
 			.Build();
 
@@ -29,5 +29,8 @@ internal sealed class PosterContextFactory : IDesignTimeDbContextFactory<PosterC
 file sealed class DesignTimeIdentityProvider : IIdentityProvider
 {
 	public Identity Current => Identity.Anonymous;
-	public void Set(Identity identity) { }
+
+	public void Set(Identity identity)
+	{
+	}
 }

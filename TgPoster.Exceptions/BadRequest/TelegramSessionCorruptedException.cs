@@ -9,9 +9,10 @@ namespace TgPoster.Exceptions.BadRequest;
 /// <param name="sessionId">Идентификатор Telegram-сессии</param>
 /// <param name="innerException">Исходное исключение парсинга</param>
 public sealed class TelegramSessionCorruptedException(Guid sessionId, Exception? innerException = null)
-    : DomainException($"Данные Telegram сессии {sessionId} повреждены. Сессия деактивирована, требуется повторная авторизация.")
+	: DomainException(
+		$"Данные Telegram сессии {sessionId} повреждены. Сессия деактивирована, требуется повторная авторизация.")
 {
-    public Guid SessionId { get; } = sessionId;
+	public Guid SessionId { get; } = sessionId;
 
-    public new Exception? InnerException { get; } = innerException;
+	public new Exception? InnerException { get; } = innerException;
 }

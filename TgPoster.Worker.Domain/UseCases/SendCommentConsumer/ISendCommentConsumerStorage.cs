@@ -12,5 +12,6 @@ public interface ISendCommentConsumerStorage
 		int? forwardedMessageId,
 		int? commentMessageId,
 		string? error,
-		CancellationToken ct);
+		CancellationToken ct
+	);
 }

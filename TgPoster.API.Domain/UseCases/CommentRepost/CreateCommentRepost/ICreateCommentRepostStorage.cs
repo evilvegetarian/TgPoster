@@ -28,7 +28,8 @@ public interface ICreateCommentRepostStorage
 		long? discussionGroupAccessHash,
 		Guid telegramSessionId,
 		Guid scheduleId,
-		CancellationToken ct);
+		CancellationToken ct
+	);
 
 	/// <summary>
 	///     Возвращает имя канала-источника репостов для указанного расписания.

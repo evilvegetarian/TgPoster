@@ -1,7 +1,7 @@
 namespace TgPoster.API.Models;
 
 /// <summary>
-/// Запрос на создание Telegram сессии
+///     Запрос на создание Telegram сессии
 /// </summary>
 /// <param name="ApiId">API ID приложения Telegram</param>
 /// <param name="ApiHash">API Hash приложения Telegram</param>

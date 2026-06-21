@@ -16,7 +16,8 @@ internal sealed class CreateProxyStorage(PosterContext context, GuidFactory guid
 		string? username,
 		string? password,
 		string? secret,
-		CancellationToken ct)
+		CancellationToken ct
+	)
 	{
 		var proxy = new Proxy
 		{

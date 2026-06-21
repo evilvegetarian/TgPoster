@@ -12,6 +12,13 @@ internal static class TelethonSessionConverter
 {
 	private static readonly byte[] SqliteMagic = "SQLite format 3\0"u8.ToArray();
 
+	private static readonly JsonSerializerOptions JsonOptions = new()
+	{
+		IncludeFields = true,
+		WriteIndented = true,
+		DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingDefault
+	};
+
 	/// <summary>
 	///     Проверяет, является ли файл SQLite-сессией Telethon.
 	/// </summary>
@@ -52,32 +59,32 @@ internal static class TelethonSessionConverter
 	{
 		var tempFile = Path.GetTempFileName();
 
-			File.WriteAllBytes(tempFile, sqliteData);
+		File.WriteAllBytes(tempFile, sqliteData);
 
-			var connectionString = new SqliteConnectionStringBuilder
-			{
-				DataSource = tempFile,
-				Mode = SqliteOpenMode.ReadOnly
-			}.ToString();
+		var connectionString = new SqliteConnectionStringBuilder
+		{
+			DataSource = tempFile,
+			Mode = SqliteOpenMode.ReadOnly
+		}.ToString();
 
-			using var connection = new SqliteConnection(connectionString);
-			connection.Open();
+		using var connection = new SqliteConnection(connectionString);
+		connection.Open();
 
-			using var command = connection.CreateCommand();
-			command.CommandText = "SELECT dc_id, auth_key FROM sessions WHERE auth_key IS NOT NULL";
+		using var command = connection.CreateCommand();
+		command.CommandText = "SELECT dc_id, auth_key FROM sessions WHERE auth_key IS NOT NULL";
 
-			var result = new Dictionary<int, byte[]>();
-			using var reader = command.ExecuteReader();
-			while (reader.Read())
-			{
-				var dcId = reader.GetInt32(0);
-				var authKey = (byte[])reader[1];
+		var result = new Dictionary<int, byte[]>();
+		using var reader = command.ExecuteReader();
+		while (reader.Read())
+		{
+			var dcId = reader.GetInt32(0);
+			var authKey = (byte[])reader[1];
 
-				if (authKey.Length == 256)
-					result[dcId] = authKey;
-			}
+			if (authKey.Length == 256)
+				result[dcId] = authKey;
+		}
 
-			return result;
+		return result;
 		// finally
 		// {
 		// 	File.Delete(tempFile);
@@ -111,13 +118,6 @@ internal static class TelethonSessionConverter
 
 		return result;
 	}
-
-	private static readonly JsonSerializerOptions JsonOptions = new()
-	{
-		IncludeFields = true,
-		WriteIndented = true,
-		DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingDefault
-	};
 
 	/// <summary>
 	///     DTO, повторяющий структуру WTelegram.Session для JSON-сериализации.

@@ -11,7 +11,8 @@ public interface IRepostMessageConsumerStorage
 		Guid repostDestinationId,
 		int? telegramMessageId,
 		string? error,
-		CancellationToken ct);
+		CancellationToken ct
+	);
 
 	/// <summary>
 	///     Обновляет статус доступа к целевому каналу.

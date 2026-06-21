@@ -1,5 +1,4 @@
 using Shouldly;
-using TgPoster.Exceptions;
 using TgPoster.API.Domain.Extensions;
 using TgPoster.Exceptions.BadRequest;
 

@@ -1,7 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Shared.YouTube;
 using TgPoster.Storage.Data;
-using TgPoster.Storage.Data.Entities;
 using TgPoster.Storage.Data.Enum;
 using TgPoster.Worker.Domain.UseCases.SenderMessageWorker;
 

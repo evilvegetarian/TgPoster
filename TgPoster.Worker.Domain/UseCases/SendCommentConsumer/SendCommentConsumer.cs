@@ -1,6 +1,5 @@
 using MassTransit;
 using Microsoft.Extensions.Logging;
-using TgPoster.Telegram;
 using TgPoster.Telegram.Abstractions;
 using TgPoster.Telegram.Models;
 
@@ -36,7 +35,7 @@ internal sealed class SendCommentConsumer(
 			return;
 		}
 
-		var historyResult = await tgMessages.GetHistoryAsync(sessionId, sourceChannel.Peer, limit: 1, ct: ct);
+		var historyResult = await tgMessages.GetHistoryAsync(sessionId, sourceChannel.Peer, 1, ct: ct);
 		if (!historyResult.IsSuccess)
 		{
 			await LogFailureAsync(command, $"Ошибка получения истории: {historyResult.ErrorMessage}", ct);
@@ -87,7 +86,7 @@ internal sealed class SendCommentConsumer(
 
 		var sendResult = await tgMessages.SendMessageAsync(
 			sessionId, discussionPeer, linkResult.Value!,
-			replyToMsgId: discussionResult.Value, ct: ct);
+			discussionResult.Value, ct);
 
 		if (!sendResult.IsSuccess)
 		{

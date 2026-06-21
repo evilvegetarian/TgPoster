@@ -32,7 +32,8 @@ internal sealed class RefreshDestinationInfoStorage(PosterContext context) : IRe
 		ChatType chatType,
 		ChatStatus chatStatus,
 		string? avatarBase64,
-		CancellationToken ct)
+		CancellationToken ct
+	)
 	{
 		var destination = await context.Set<RepostDestination>()
 			.FirstAsync(x => x.Id == destinationId, ct);

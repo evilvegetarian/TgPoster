@@ -1,5 +1,4 @@
 using Microsoft.EntityFrameworkCore;
-using Shared.Enums;
 using TgPoster.Storage.Data;
 using TgPoster.Storage.Data.Entities;
 using TgPoster.Storage.Data.Enum;
@@ -126,7 +125,9 @@ internal sealed class DiscoverChannelLinksStorage(PosterContext context, GuidFac
 		var byInviteHash = new Dictionary<string, DiscoveredChannel>(StringComparer.OrdinalIgnoreCase);
 
 		foreach (var entity in liveExisting)
+		{
 			AddToLookups(entity, byUsername, byTelegramId, byInviteHash);
+		}
 
 		foreach (var upsert in upserts)
 		{
@@ -146,7 +147,10 @@ internal sealed class DiscoverChannelLinksStorage(PosterContext context, GuidFac
 				// Освобождаем словари от удалённых дубликатов и переиндексируем target —
 				// у него могли появиться новые ключи после merge.
 				foreach (var dup in matched.Where(x => x != target))
+				{
 					RemoveFromLookups(dup, byUsername, byTelegramId, byInviteHash);
+				}
+
 				RemoveFromLookups(target, byUsername, byTelegramId, byInviteHash);
 				AddToLookups(target, byUsername, byTelegramId, byInviteHash);
 			}
@@ -241,7 +245,8 @@ internal sealed class DiscoverChannelLinksStorage(PosterContext context, GuidFac
 		DiscoveredChannel entity,
 		Dictionary<string, DiscoveredChannel> byUsername,
 		Dictionary<long, DiscoveredChannel> byTelegramId,
-		Dictionary<string, DiscoveredChannel> byInviteHash)
+		Dictionary<string, DiscoveredChannel> byInviteHash
+	)
 	{
 		if (entity.Username is not null)
 			byUsername[entity.Username] = entity;
@@ -255,7 +260,8 @@ internal sealed class DiscoverChannelLinksStorage(PosterContext context, GuidFac
 		DiscoveredChannel entity,
 		Dictionary<string, DiscoveredChannel> byUsername,
 		Dictionary<long, DiscoveredChannel> byTelegramId,
-		Dictionary<string, DiscoveredChannel> byInviteHash)
+		Dictionary<string, DiscoveredChannel> byInviteHash
+	)
 	{
 		if (entity.Username is not null
 		    && byUsername.TryGetValue(entity.Username, out var u)
@@ -289,6 +295,7 @@ internal sealed class DiscoverChannelLinksStorage(PosterContext context, GuidFac
 				parent[x] = parent[parent[x]];
 				x = parent[x];
 			}
+
 			return x;
 		}
 
@@ -314,6 +321,7 @@ internal sealed class DiscoverChannelLinksStorage(PosterContext context, GuidFac
 				else
 					idxByUsername[r.Username] = i;
 			}
+
 			if (r.TelegramId is not null)
 			{
 				if (idxByTelegramId.TryGetValue(r.TelegramId.Value, out var j))
@@ -321,6 +329,7 @@ internal sealed class DiscoverChannelLinksStorage(PosterContext context, GuidFac
 				else
 					idxByTelegramId[r.TelegramId.Value] = i;
 			}
+
 			if (r.InviteHash is not null)
 			{
 				if (idxByInviteHash.TryGetValue(r.InviteHash, out var j))
@@ -339,12 +348,15 @@ internal sealed class DiscoverChannelLinksStorage(PosterContext context, GuidFac
 				list = [];
 				groups[root] = list;
 			}
+
 			list.Add(rows[i]);
 		}
 
 		var result = new List<DiscoveredChannel>(groups.Count);
 		foreach (var group in groups.Values)
+		{
 			result.Add(ConsolidateDuplicates(group));
+		}
 
 		return result;
 	}

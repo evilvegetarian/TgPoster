@@ -14,7 +14,7 @@ public class DeleteTelegramBotStorageShould : IClassFixture<StorageTestFixture>
 	public DeleteTelegramBotStorageShould(StorageTestFixture fixture)
 	{
 		context = fixture.GetDbContext();
-		sut = new(context);
+		sut = new DeleteTelegramBotStorage(context);
 	}
 
 	[Fact]

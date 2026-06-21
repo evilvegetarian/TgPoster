@@ -14,7 +14,7 @@ public class UpdateStatusScheduleStorageShould : IClassFixture<StorageTestFixtur
 	public UpdateStatusScheduleStorageShould(StorageTestFixture fixture)
 	{
 		context = fixture.GetDbContext();
-		sut = new(context);
+		sut = new UpdateStatusScheduleStorage(context);
 	}
 
 	[Fact]

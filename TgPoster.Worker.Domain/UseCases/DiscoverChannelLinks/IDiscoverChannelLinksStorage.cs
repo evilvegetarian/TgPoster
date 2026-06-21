@@ -1,5 +1,3 @@
-using Shared.Enums;
-
 namespace TgPoster.Worker.Domain.UseCases.DiscoverChannelLinks;
 
 public interface IDiscoverChannelLinksStorage

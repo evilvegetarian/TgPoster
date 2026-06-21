@@ -8,12 +8,13 @@ namespace Security.Tests;
 /// </summary>
 public sealed class CryptoAesShould
 {
+	private const string SecretKey = "1234567890123456";
 	private readonly ICryptoAES cryptoAES;
+
 	public CryptoAesShould()
 	{
 		cryptoAES = new CryptoAES();
 	}
-	private const string SecretKey = "1234567890123456";
 
 	[Fact]
 	public void EncryptPlainText()

@@ -7,7 +7,8 @@ using TgPoster.Storage.Data.Enum;
 
 namespace TgPoster.Storage.Storages.Repost;
 
-internal sealed class AddRepostDestinationStorage(PosterContext context, GuidFactory guidFactory) : IAddRepostDestinationStorage
+internal sealed class AddRepostDestinationStorage(PosterContext context, GuidFactory guidFactory)
+	: IAddRepostDestinationStorage
 {
 	public Task<Guid?> GetTelegramSessionIdAsync(Guid repostSettingsId, CancellationToken ct)
 	{
@@ -31,7 +32,8 @@ internal sealed class AddRepostDestinationStorage(PosterContext context, GuidFac
 		ChatType chatType,
 		bool canSendMessages,
 		bool canSendMedia,
-		CancellationToken ct)
+		CancellationToken ct
+	)
 	{
 		var normalizedUsername = string.IsNullOrWhiteSpace(username) ? null : username;
 		var peerType = chatType switch
@@ -111,7 +113,8 @@ internal sealed class AddRepostDestinationStorage(PosterContext context, GuidFac
 		ChatStatus chatStatus,
 		string? avatarBase64,
 		Guid discoveredChannelId,
-		CancellationToken ct)
+		CancellationToken ct
+	)
 	{
 		var destination = new RepostDestination
 		{

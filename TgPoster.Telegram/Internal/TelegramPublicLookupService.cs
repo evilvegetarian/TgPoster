@@ -7,15 +7,13 @@ using TgPoster.Telegram.Models;
 
 namespace TgPoster.Telegram.Internal;
 
-/// <inheritdoc cref="ITelegramPublicLookupService"/>
+/// <inheritdoc cref="ITelegramPublicLookupService" />
 internal sealed class TelegramPublicLookupService(
 	IHttpClientFactory httpClientFactory,
 	IOptions<TelegramPublicLookupOptions> options,
 	ILogger<TelegramPublicLookupService> logger) : ITelegramPublicLookupService
 {
 	private const string BaseUrl = "https://t.me/";
-
-	private readonly TelegramPublicLookupOptions settings = options.Value;
 
 	// t.me отдаёт более полную страницу для «браузерного» UA, поэтому имитируем разные браузеры
 	private static readonly string[] UserAgents =
@@ -36,11 +34,13 @@ internal sealed class TelegramPublicLookupService(
 		+ "(KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36"
 	];
 
+	private readonly TelegramPublicLookupOptions settings = options.Value;
+
 	public async Task<TelegramOperationResult<TelegramPublicEntityInfo>> LookupAsync(
 		string usernameOrUrl,
 		CancellationToken ct = default
 	)
-	{ 
+	{
 		var parseResult = TelegramChatService.ParseInput(usernameOrUrl);
 		if (parseResult.Type != ChatInputType.Username)
 		{

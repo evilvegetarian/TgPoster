@@ -5,7 +5,6 @@ using Shared.Telegram;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using TgPoster.API.Domain.ConfigModels;
-using TgPoster.Exceptions;
 using TgPoster.Exceptions.NotFound;
 
 namespace TgPoster.API.Domain.UseCases.Schedules.UpdateSchedule;
@@ -39,6 +38,7 @@ internal sealed class UpdateScheduleUseCase(
 				throw new TelegramBotNotPermission();
 		}
 
-		await storage.UpdateScheduleAsync(request.Id, userId, request.Name, request.YouTubeAccountId, request.TelegramBotId, ct);
+		await storage.UpdateScheduleAsync(request.Id, userId, request.Name, request.YouTubeAccountId,
+			request.TelegramBotId, ct);
 	}
 }

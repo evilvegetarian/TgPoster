@@ -14,7 +14,7 @@ public class DeleteScheduleStorageShould : IClassFixture<StorageTestFixture>
 	public DeleteScheduleStorageShould(StorageTestFixture fixture)
 	{
 		context = fixture.GetDbContext();
-		sut = new(context);
+		sut = new DeleteScheduleStorage(context);
 	}
 
 	[Fact]

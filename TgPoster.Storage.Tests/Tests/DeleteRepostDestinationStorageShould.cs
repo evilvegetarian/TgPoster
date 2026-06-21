@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Shouldly;
 using TgPoster.Storage.Data;
+using TgPoster.Storage.Data.Entities;
 using TgPoster.Storage.Storages.Repost;
 using TgPoster.Storage.Tests.Builders;
 
@@ -14,7 +15,7 @@ public sealed class DeleteRepostDestinationStorageShould : IClassFixture<Storage
 	public DeleteRepostDestinationStorageShould(StorageTestFixture fixture)
 	{
 		context = fixture.GetDbContext();
-		sut = new(context);
+		sut = new DeleteRepostDestinationStorage(context);
 	}
 
 	[Fact]
@@ -44,7 +45,7 @@ public sealed class DeleteRepostDestinationStorageShould : IClassFixture<Storage
 
 		await sut.DeleteDestinationAsync(destination.Id, CancellationToken.None);
 
-		var deletedDestination = await context.Set<Data.Entities.RepostDestination>()
+		var deletedDestination = await context.Set<RepostDestination>()
 			.IgnoreQueryFilters()
 			.FirstOrDefaultAsync(x => x.Id == destination.Id);
 

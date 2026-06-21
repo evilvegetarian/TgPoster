@@ -3,7 +3,7 @@ using Shared.Enums;
 namespace TgPoster.API.Models;
 
 /// <summary>
-/// Запрос на обновление прокси
+///     Запрос на обновление прокси
 /// </summary>
 public sealed record UpdateProxyRequest(
 	string Name,

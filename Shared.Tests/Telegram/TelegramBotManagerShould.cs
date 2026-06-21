@@ -1,11 +1,15 @@
 using Shared.Telegram;
-using Xunit;
 
 namespace Shared.Tests.Telegram;
 
 public sealed class TelegramBotManagerShould : IDisposable
 {
 	private readonly TelegramBotManager manager = new();
+
+	public void Dispose()
+	{
+		manager.Dispose();
+	}
 
 	[Fact]
 	public void ReturnSameClientForSameToken()
@@ -51,10 +55,5 @@ public sealed class TelegramBotManagerShould : IDisposable
 		var removed = manager.RemoveClient(token);
 
 		Assert.False(removed);
-	}
-
-	public void Dispose()
-	{
-		manager.Dispose();
 	}
 }

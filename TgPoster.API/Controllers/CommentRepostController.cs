@@ -32,7 +32,8 @@ public sealed class CommentRepostController(ISender sender) : ControllerBase
 	[ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
 	public async Task<IActionResult> Create(
 		[FromBody] [Required] CreateCommentRepostRequest request,
-		CancellationToken ct)
+		CancellationToken ct
+	)
 	{
 		var command = new CreateCommentRepostCommand(
 			request.ScheduleId,
@@ -91,7 +92,8 @@ public sealed class CommentRepostController(ISender sender) : ControllerBase
 	public async Task<IActionResult> Update(
 		[FromRoute] [Required] Guid id,
 		[FromBody] [Required] UpdateCommentRepostRequest request,
-		CancellationToken ct)
+		CancellationToken ct
+	)
 	{
 		var command = new UpdateCommentRepostCommand(id, request.IsActive);
 		await sender.Send(command, ct);

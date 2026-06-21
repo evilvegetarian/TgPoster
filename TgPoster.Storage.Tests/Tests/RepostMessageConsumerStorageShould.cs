@@ -50,7 +50,7 @@ public sealed class RepostMessageConsumerStorageShould(StorageTestFixture fixtur
 			.WithIsActive(true)
 			.CreateAsync();
 
-		var result = await sut.GetRepostDataAsync(msg.Id,settings.Id, CancellationToken.None);
+		var result = await sut.GetRepostDataAsync(msg.Id, settings.Id, CancellationToken.None);
 
 		result.ShouldNotBeNull();
 		result.TelegramMessageId.ShouldBe(12345);
@@ -79,13 +79,13 @@ public sealed class RepostMessageConsumerStorageShould(StorageTestFixture fixtur
 		await context.Messages.AddAsync(msg);
 		await context.SaveChangesAsync();
 
-	var settings=	await new RepostSettingsBuilder(context)
+		var settings = await new RepostSettingsBuilder(context)
 			.WithScheduleId(schedule.Id)
 			.WithTelegramSessionId(session.Id)
 			.WithIsActive(false)
 			.CreateAsync();
 
-		var result = await sut.GetRepostDataAsync(msg.Id,settings.Id, CancellationToken.None);
+		var result = await sut.GetRepostDataAsync(msg.Id, settings.Id, CancellationToken.None);
 
 		result.ShouldBeNull();
 	}

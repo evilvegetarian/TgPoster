@@ -14,7 +14,7 @@ public sealed class UpdateRepostDestinationStorageShould : IClassFixture<Storage
 	public UpdateRepostDestinationStorageShould(StorageTestFixture fixture)
 	{
 		context = fixture.GetDbContext();
-		sut = new(context);
+		sut = new UpdateRepostDestinationStorage(context);
 	}
 
 	[Fact]

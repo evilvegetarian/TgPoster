@@ -2,7 +2,6 @@ using Moq;
 using Moq.Language.Flow;
 using Security.IdentityServices;
 using Shouldly;
-using TgPoster.Exceptions;
 using TgPoster.API.Domain.UseCases.Schedules.DeleteSchedule;
 using TgPoster.Exceptions.NotFound;
 
@@ -10,8 +9,8 @@ namespace TgPoster.API.Domain.Tests.Schedule;
 
 public class DeleteScheduleUseCaseShould
 {
-	private readonly Mock<IDeleteScheduleStorage> storage;
 	private readonly ISetup<IDeleteScheduleStorage, Task<bool>> existsSetup;
+	private readonly Mock<IDeleteScheduleStorage> storage;
 	private readonly DeleteScheduleUseCase sut;
 	private readonly Guid userId = Guid.NewGuid();
 
@@ -46,8 +45,8 @@ public class DeleteScheduleUseCaseShould
 		var scheduleId = Guid.NewGuid();
 		existsSetup.ReturnsAsync(false);
 
-		await Should.ThrowAsync<ScheduleNotFoundException>(
-			async () => await sut.Handle(new DeleteScheduleCommand(scheduleId), CancellationToken.None));
+		await Should.ThrowAsync<ScheduleNotFoundException>(async () =>
+			await sut.Handle(new DeleteScheduleCommand(scheduleId), CancellationToken.None));
 
 		storage.Verify(s => s.DeleteScheduleAsync(It.IsAny<Guid>()), Times.Never);
 	}

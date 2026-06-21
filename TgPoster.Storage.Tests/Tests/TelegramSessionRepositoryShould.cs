@@ -1,5 +1,4 @@
 using Microsoft.EntityFrameworkCore;
-using TgPoster.Telegram;
 using Shouldly;
 using TgPoster.Storage.Data;
 using TgPoster.Storage.Repositories;
@@ -17,7 +16,7 @@ public sealed class TelegramSessionRepositoryShould : IClassFixture<StorageTestF
 	public TelegramSessionRepositoryShould(StorageTestFixture fixture)
 	{
 		context = fixture.GetDbContext();
-		sut = new(context);
+		sut = new TelegramSessionRepository(context);
 	}
 
 	[Fact]
@@ -110,7 +109,7 @@ public sealed class TelegramSessionRepositoryShould : IClassFixture<StorageTestF
 		var session = await new TelegramSessionBuilder(context)
 			.WithUserId(user.Id)
 			.CreateAsync();
-context.ChangeTracker.Clear();
+		context.ChangeTracker.Clear();
 		await sut.UpdateStatusAsync(session.Id, SharedTelegramSessionStatus.CodeSent, CancellationToken.None);
 		var updated1 = await context.TelegramSessions.FirstAsync(s => s.Id == session.Id, CancellationToken.None);
 		updated1.Status.ShouldBe(StorageTelegramSessionStatus.CodeSent);

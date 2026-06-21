@@ -35,7 +35,8 @@ public interface IAddRepostDestinationStorage
 		ChatType chatType,
 		bool canSendMessages,
 		bool canSendMedia,
-		CancellationToken ct);
+		CancellationToken ct
+	);
 
 	/// <summary>
 	///     Добавляет новый destination с расширенной информацией о канале, связывая его с записью Discover.
@@ -61,5 +62,6 @@ public interface IAddRepostDestinationStorage
 		ChatStatus chatStatus,
 		string? avatarBase64,
 		Guid discoveredChannelId,
-		CancellationToken ct);
+		CancellationToken ct
+	);
 }

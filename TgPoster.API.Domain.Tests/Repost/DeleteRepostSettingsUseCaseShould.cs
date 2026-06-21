@@ -2,7 +2,6 @@ using MediatR;
 using Moq;
 using Moq.Language.Flow;
 using Shouldly;
-using TgPoster.Exceptions;
 using TgPoster.API.Domain.UseCases.Repost.DeleteRepostSettings;
 using TgPoster.Exceptions.NotFound;
 
@@ -10,8 +9,8 @@ namespace TgPoster.API.Domain.Tests.Repost;
 
 public class DeleteRepostSettingsUseCaseShould
 {
-	private readonly Mock<IDeleteRepostSettingsStorage> storage;
 	private readonly ISetup<IDeleteRepostSettingsStorage, Task<bool>> existsSetup;
+	private readonly Mock<IDeleteRepostSettingsStorage> storage;
 	private readonly DeleteRepostSettingsUseCase sut;
 
 	public DeleteRepostSettingsUseCaseShould()
@@ -40,8 +39,8 @@ public class DeleteRepostSettingsUseCaseShould
 		var id = Guid.NewGuid();
 		existsSetup.ReturnsAsync(false);
 
-		await Should.ThrowAsync<RepostSettingsNotFoundException>(
-			async () => await sut.Handle(new DeleteRepostSettingsCommand(id), CancellationToken.None));
+		await Should.ThrowAsync<RepostSettingsNotFoundException>(async () =>
+			await sut.Handle(new DeleteRepostSettingsCommand(id), CancellationToken.None));
 
 		storage.Verify(s => s.DeleteRepostSettingsAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()), Times.Never);
 	}

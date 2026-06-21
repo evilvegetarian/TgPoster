@@ -8,12 +8,12 @@ using Security.Middleware;
 using Shared;
 using Shared.Services;
 using TgPoster.API.Configuration;
-using TgPoster.Telegram;
 using TgPoster.API.Domain;
 using TgPoster.API.Middlewares;
 using TgPoster.API.Telemetry;
 using TgPoster.Exceptions;
 using TgPoster.Storage;
+using TgPoster.Telegram;
 
 var builder = WebApplication.CreateBuilder(args);
 const string myAllowSpecificOrigins = "_myAllowSpecificOrigins";
@@ -104,7 +104,7 @@ namespace TgPoster.API
 	/// <summary>
 	///     Класс точки входа приложения
 	/// </summary>
-	public partial class Program
+	public class Program
 	{
 	}
 }

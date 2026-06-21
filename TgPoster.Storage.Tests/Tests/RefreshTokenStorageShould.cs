@@ -15,7 +15,7 @@ public class RefreshTokenStorageShould : IClassFixture<StorageTestFixture>
 	public RefreshTokenStorageShould(StorageTestFixture fixture)
 	{
 		context = fixture.GetDbContext();
-		sut = new(context);
+		sut = new RefreshTokenStorage(context);
 	}
 
 	[Fact]

@@ -9,9 +9,9 @@ namespace TgPoster.Exceptions.BadRequest;
 /// <param name="sessionId">Идентификатор Telegram-сессии</param>
 /// <param name="innerException">Исходное исключение</param>
 public sealed class TelegramAuthKeyDuplicatedException(Guid sessionId, Exception? innerException = null)
-    : DomainException($"Ключ авторизации дублирован для сессии {sessionId}. Сессия деактивирована.")
+	: DomainException($"Ключ авторизации дублирован для сессии {sessionId}. Сессия деактивирована.")
 {
-    public Guid SessionId { get; } = sessionId;
+	public Guid SessionId { get; } = sessionId;
 
-    public new Exception? InnerException { get; } = innerException;
+	public new Exception? InnerException { get; } = innerException;
 }

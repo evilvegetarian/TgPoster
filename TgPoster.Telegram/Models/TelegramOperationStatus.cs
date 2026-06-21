@@ -5,12 +5,12 @@ namespace TgPoster.Telegram.Models;
 /// </summary>
 public enum TelegramOperationStatus
 {
-    Success,
-    UsernameNotFound,
-    ChannelBanned,
-    FloodWait,
-    AccessDenied,
-    Timeout,
-    SessionNotFound,
-    UnknownError
+	Success,
+	UsernameNotFound,
+	ChannelBanned,
+	FloodWait,
+	AccessDenied,
+	Timeout,
+	SessionNotFound,
+	UnknownError
 }

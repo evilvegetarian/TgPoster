@@ -7,4 +7,4 @@ namespace TgPoster.Exceptions.BadRequest;
 /// </summary>
 /// <param name="input">Входная строка с ссылкой</param>
 public sealed class TelegramInvalidChatLinkException(string input)
-    : DomainException($"Не удалось распознать формат ссылки: {input}");
+	: DomainException($"Не удалось распознать формат ссылки: {input}");

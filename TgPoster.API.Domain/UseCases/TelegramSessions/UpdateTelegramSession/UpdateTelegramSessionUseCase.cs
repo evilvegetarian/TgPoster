@@ -1,7 +1,5 @@
 using MediatR;
 using Security.IdentityServices;
-using TgPoster.Telegram;
-using TgPoster.Exceptions;
 using TgPoster.API.Domain.UseCases.Proxies.ListProxies;
 using TgPoster.Exceptions.NotFound;
 using TgPoster.Telegram.Abstractions;
@@ -34,7 +32,7 @@ internal sealed class UpdateTelegramSessionUseCase(
 
 		var proxyChanged = session.ProxyId != request.ProxyId;
 
-		if (request.IsActive == false || proxyChanged)
+		if (!request.IsActive || proxyChanged)
 		{
 			await authService.RemoveClientAsync(request.SessionId);
 		}

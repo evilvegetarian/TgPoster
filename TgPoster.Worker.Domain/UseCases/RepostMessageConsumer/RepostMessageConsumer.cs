@@ -1,7 +1,6 @@
 using MassTransit;
 using Microsoft.Extensions.Logging;
 using Shared.Enums;
-using TgPoster.Telegram;
 using TgPoster.Telegram.Abstractions;
 using TgPoster.Telegram.Models;
 
@@ -87,10 +86,10 @@ internal sealed class RepostMessageConsumer(
 
 			var forwardResult = await tgMessages.ForwardMessageAsync(
 				sessionId,
-				from: sourceChannel.Peer,
-				to: destination.Peer,
-				messageId: repostData.TelegramMessageId.Value,
-				ct: ct);
+				sourceChannel.Peer,
+				destination.Peer,
+				repostData.TelegramMessageId.Value,
+				ct);
 
 			if (forwardResult.IsSuccess)
 			{
@@ -130,7 +129,10 @@ internal sealed class RepostMessageConsumer(
 	}
 
 	private async Task<bool> ShouldRepostToDestinationAsync(
-		RepostDestinationDataDto dest, Guid messageId, CancellationToken ct)
+		RepostDestinationDataDto dest,
+		Guid messageId,
+		CancellationToken ct
+	)
 	{
 		var counter = await storage.IncrementRepostCounterAsync(dest.Id, ct);
 

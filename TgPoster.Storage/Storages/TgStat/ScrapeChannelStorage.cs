@@ -16,7 +16,8 @@ internal sealed class ScrapeChannelStorage(PosterContext context, GuidFactory gu
 		int? participantsCount,
 		string? peerType,
 		string? tgUrl,
-		CancellationToken ct)
+		CancellationToken ct
+	)
 	{
 		var existing = await context.DiscoveredChannels
 			.FirstOrDefaultAsync(x => x.Username == username, ct);

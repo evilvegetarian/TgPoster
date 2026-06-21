@@ -1,4 +1,3 @@
-using Google.Apis.Auth.OAuth2.Responses;
 using Shared.YouTube;
 using Shouldly;
 

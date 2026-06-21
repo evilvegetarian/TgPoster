@@ -1,5 +1,4 @@
 using MediatR;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TgPoster.API.Common;
 using TgPoster.API.Domain.UseCases.TgStat.ScrapeChannels;
@@ -21,7 +20,8 @@ public sealed class TgStatController(ISender sender) : ControllerBase
 	[ProducesResponseType(StatusCodes.Status204NoContent)]
 	public async Task<IActionResult> ScrapeChannels(
 		[FromBody] ScrapeChannelsCommand command,
-		CancellationToken ct)
+		CancellationToken ct
+	)
 	{
 		await sender.Send(command, ct);
 		return NoContent();

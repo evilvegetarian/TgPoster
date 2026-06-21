@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
-using Shared.Enums;
 using TgPoster.Storage.Data;
+using TgPoster.Storage.Data.Enum;
 using TgPoster.Telegram.Abstractions;
 using TgPoster.Telegram.Models;
 
@@ -14,7 +14,7 @@ internal sealed class TelegramHttpProxyRepository(PosterContext context) : ITele
 		// иначе кросс-enum каст в SQL превращается в CAST("Type" AS integer) и падает на строковой колонке
 		// Берём самую свежую добавленную HTTP-прокси: при замене прокси старые записи не должны перехватывать трафик
 		var proxy = await context.Proxies
-			.Where(p => p.Type == Data.Enum.ProxyType.Http)
+			.Where(p => p.Type == ProxyType.Http)
 			.OrderByDescending(p => p.Created)
 			.Select(p => new
 			{
@@ -30,7 +30,7 @@ internal sealed class TelegramHttpProxyRepository(PosterContext context) : ITele
 		return proxy is null
 			? null
 			: new ProxyDto(
-				(ProxyType)proxy.Type,
+				(Shared.Enums.ProxyType)proxy.Type,
 				proxy.Host,
 				proxy.Port,
 				proxy.Username,

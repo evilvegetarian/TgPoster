@@ -85,8 +85,8 @@ internal sealed class SessionDataDebouncer(
 
 	private sealed class SessionEntry(Timer debounceTimer, Timer maxDelayTimer)
 	{
+		public byte[]? LatestData;
 		public Timer DebounceTimer { get; } = debounceTimer;
 		public Timer MaxDelayTimer { get; } = maxDelayTimer;
-		public byte[]? LatestData;
 	}
 }

@@ -2,7 +2,6 @@ using System.Text.RegularExpressions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Shared.Enums;
-using TgPoster.Telegram;
 using TgPoster.Telegram.Abstractions;
 using TgPoster.Telegram.Models;
 using TgPoster.Worker.Domain.UseCases.WorkerJobStatus;
@@ -101,7 +100,7 @@ internal sealed partial class DiscoverChannelLinksWorker(
 		foreach (var channelDto in channels)
 		{
 			await ReportProgressAsync(
-				$"@{channelDto.Username ?? channelDto.TelegramId?.ToString()}", ct, force: true);
+				$"@{channelDto.Username ?? channelDto.TelegramId?.ToString()}", ct, true);
 
 			int? floodWaitSeconds;
 			try
@@ -250,10 +249,10 @@ internal sealed partial class DiscoverChannelLinksWorker(
 			var historyResult = await tgMessages.SearchMessagesAsync(
 				sessionId,
 				channel.Peer,
-				filter: TelegramMessageFilter.Url,
-				limit: MessageBatchSize,
-				offsetId: offset,
-				minId: lastParsedId ?? 0,
+				TelegramMessageFilter.Url,
+				MessageBatchSize,
+				offset,
+				lastParsedId ?? 0,
 				ct: ct);
 
 			if (!historyResult.IsSuccess)

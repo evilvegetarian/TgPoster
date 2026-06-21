@@ -4,14 +4,12 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 using Security.Authentication;
 using Security.IdentityServices;
-using TgPoster.Telegram;
 using Shared.Utilities;
 using Telegram.Bot;
 using Testcontainers.PostgreSql;
@@ -29,9 +27,10 @@ public class EndpointTestFixture : WebApplicationFactory<Program>, IAsyncLifetim
 	private readonly PostgreSqlContainer dbContainer = new PostgreSqlBuilder()
 		.Build();
 
+	private readonly IIdentityProvider identityProvider = new TestIdentityProvider();
+
 	public string? Token;
 	public HttpClient AuthClient { get; private set; } = null!;
-	private readonly IIdentityProvider identityProvider = new TestIdentityProvider();
 
 	public async Task InitializeAsync()
 	{

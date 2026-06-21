@@ -1,5 +1,4 @@
 using Microsoft.EntityFrameworkCore;
-using Shared.Enums;
 using TgPoster.Storage.Data;
 using TgPoster.Worker.Domain.UseCases.ClassifyChannel;
 
@@ -7,7 +6,6 @@ namespace TgPoster.Storage.Storages.ClassifyChannel;
 
 internal sealed class ClassifyChannelStorage(PosterContext context) : IClassifyChannelStorage
 {
-
 	public Task<List<ChannelForClassificationDto>> GetUnclassifiedChannelsAsync(int batchSize, CancellationToken ct)
 	{
 		return context.DiscoveredChannels

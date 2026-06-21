@@ -1,5 +1,4 @@
 using OpenCvSharp;
-using TgPoster.Exceptions;
 using Shared.Video;
 using Shouldly;
 using TgPoster.Exceptions.BadRequest;
@@ -75,7 +74,7 @@ public sealed class VideoServiceTestsShould
 	{
 		using var invalidVideoStream = new MemoryStream([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
 
-		 await Should.ThrowAsync<VideoProcessingException>(() =>
+		await Should.ThrowAsync<VideoProcessingException>(() =>
 			sut.ExtractScreenshotsAsync(invalidVideoStream, 1)
 		);
 	}

@@ -18,5 +18,6 @@ public interface IUpdateRepostDestinationStorage
 		int repostEveryNth,
 		int skipProbability,
 		int? maxRepostsPerDay,
-		CancellationToken ct);
+		CancellationToken ct
+	);
 }

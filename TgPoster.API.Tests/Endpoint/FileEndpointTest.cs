@@ -1,7 +1,6 @@
 using System.Net;
 using Shouldly;
 using TgPoster.API.Common;
-using TgPoster.API.Tests.Helper;
 
 namespace TgPoster.API.Tests.Endpoint;
 

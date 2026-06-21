@@ -2,7 +2,6 @@ using Hangfire;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Shared.Enums;
-using TgPoster.Telegram;
 using TgPoster.Telegram.Abstractions;
 
 namespace TgPoster.Worker.Domain.UseCases.UpdateChannelStats;

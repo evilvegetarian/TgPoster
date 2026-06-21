@@ -15,7 +15,7 @@ public class ParseChannelStorageShould(StorageTestFixture fixture) : IClassFixtu
 	[Fact]
 	public async Task AddParseChannelParametersAsync_WithValidData_ShouldCreateChannelParsingParameters()
 	{
-		var telegramSession=await new TelegramSessionBuilder(context).CreateAsync();
+		var telegramSession = await new TelegramSessionBuilder(context).CreateAsync();
 		var schedule = await new ScheduleBuilder(context).CreateAsync();
 		var channel = "TestChannel";
 		var alwaysCheckNewPosts = true;

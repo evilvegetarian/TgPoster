@@ -1,6 +1,5 @@
 using MassTransit;
 using Microsoft.Extensions.Logging;
-using TgPoster.Telegram;
 using TgPoster.Telegram.Abstractions;
 using TgPoster.Telegram.Models;
 
@@ -52,7 +51,7 @@ internal class ParseChannelUseCase(
 			var historyResult = await tgMessages.GetHistoryAsync(
 				sessionId,
 				channel.Peer,
-				limit: limit,
+				limit,
 				offsetDate: toDate ?? DateTime.Now,
 				offsetId: offset,
 				ct: ct);

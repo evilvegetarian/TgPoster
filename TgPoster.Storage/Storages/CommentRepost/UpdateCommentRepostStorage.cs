@@ -1,7 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using TgPoster.API.Domain.UseCases.CommentRepost.UpdateCommentRepost;
 using TgPoster.Storage.Data;
-using TgPoster.Storage.Data.Entities;
 
 namespace TgPoster.Storage.Storages.CommentRepost;
 

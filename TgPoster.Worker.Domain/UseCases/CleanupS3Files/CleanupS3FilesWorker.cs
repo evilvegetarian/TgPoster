@@ -17,11 +17,11 @@ internal sealed class CleanupS3FilesWorker(
 	ILogger<CleanupS3FilesWorker> logger,
 	IHostApplicationLifetime lifetime)
 {
-	/// <summary>Максимальный возраст файла в S3, после которого он удаляется.</summary>
-	private static readonly TimeSpan MaxAge = TimeSpan.FromDays(10);
-
 	/// <summary>Максимальное число ключей в одном запросе на удаление (ограничение S3).</summary>
 	private const int DeleteBatchSize = 1000;
+
+	/// <summary>Максимальный возраст файла в S3, после которого он удаляется.</summary>
+	private static readonly TimeSpan MaxAge = TimeSpan.FromDays(10);
 
 	[DisableConcurrentExecution(3600)]
 	public async Task CleanupAsync()

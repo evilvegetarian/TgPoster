@@ -83,10 +83,7 @@ internal sealed class TelegramClientManager(ILogger<TelegramClientManager> logge
 	/// <summary>
 	///     Удаляет ожидающего клиента без освобождения ресурсов (клиент может стать активным).
 	/// </summary>
-	public bool RemovePendingClient(Guid sessionId)
-	{
-		return pendingClients.TryRemove(sessionId, out _);
-	}
+	public bool RemovePendingClient(Guid sessionId) => pendingClients.TryRemove(sessionId, out _);
 
 	/// <summary>
 	///     Удаляет ожидающего клиента и освобождает ресурсы.

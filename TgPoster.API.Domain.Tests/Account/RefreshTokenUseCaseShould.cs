@@ -3,7 +3,6 @@ using Moq;
 using Moq.Language.Flow;
 using Security.Authentication;
 using Shouldly;
-using TgPoster.Exceptions;
 using TgPoster.API.Domain.UseCases.Accounts.RefreshToken;
 using TgPoster.Exceptions.NotFound;
 
@@ -11,12 +10,12 @@ namespace TgPoster.API.Domain.Tests.Account;
 
 public class RefreshTokenUseCaseShould
 {
-	private readonly Mock<IRefreshTokenStorage> storage;
-	private readonly Mock<IJwtProvider> jwt;
-	private readonly ISetup<IRefreshTokenStorage, Task<Guid>> getUserIdSetup;
-	private readonly ISetup<IRefreshTokenStorage, Task<Guid>> getPreviousTokenSetup;
 	private readonly ISetup<IJwtProvider, string> generateAccessTokenSetup;
 	private readonly ISetup<IJwtProvider, (Guid, DateTimeOffset)> generateRefreshTokenSetup;
+	private readonly ISetup<IRefreshTokenStorage, Task<Guid>> getPreviousTokenSetup;
+	private readonly ISetup<IRefreshTokenStorage, Task<Guid>> getUserIdSetup;
+	private readonly Mock<IJwtProvider> jwt;
+	private readonly Mock<IRefreshTokenStorage> storage;
 	private readonly RefreshTokenUseCase sut;
 
 	public RefreshTokenUseCaseShould()
@@ -72,7 +71,8 @@ public class RefreshTokenUseCaseShould
 		await sut.Handle(new RefreshTokenCommand(oldRefreshToken), CancellationToken.None);
 
 		storage.Verify(s =>
-			s.UpdateRefreshSessionAsync(oldRefreshToken, newRefreshToken, newExpiration, It.IsAny<CancellationToken>()),
+				s.UpdateRefreshSessionAsync(oldRefreshToken, newRefreshToken, newExpiration,
+					It.IsAny<CancellationToken>()),
 			Times.Once);
 	}
 
@@ -83,8 +83,8 @@ public class RefreshTokenUseCaseShould
 		getUserIdSetup.ReturnsAsync(Guid.Empty);
 		getPreviousTokenSetup.ReturnsAsync(Guid.Empty);
 
-		await Should.ThrowAsync<UserNotFoundException>(
-			async () => await sut.Handle(new RefreshTokenCommand(invalidToken), CancellationToken.None));
+		await Should.ThrowAsync<UserNotFoundException>(async () =>
+			await sut.Handle(new RefreshTokenCommand(invalidToken), CancellationToken.None));
 	}
 
 	[Fact]
@@ -95,11 +95,11 @@ public class RefreshTokenUseCaseShould
 		getUserIdSetup.ReturnsAsync(Guid.Empty);
 		getPreviousTokenSetup.ReturnsAsync(userId);
 
-		await Should.ThrowAsync<UserNotFoundException>(
-			async () => await sut.Handle(new RefreshTokenCommand(replayedToken), CancellationToken.None));
+		await Should.ThrowAsync<UserNotFoundException>(async () =>
+			await sut.Handle(new RefreshTokenCommand(replayedToken), CancellationToken.None));
 
 		storage.Verify(s =>
-			s.RevokeAllUserSessionsAsync(userId, It.IsAny<CancellationToken>()),
+				s.RevokeAllUserSessionsAsync(userId, It.IsAny<CancellationToken>()),
 			Times.Once);
 	}
 
@@ -114,7 +114,7 @@ public class RefreshTokenUseCaseShould
 		await sut.Handle(new RefreshTokenCommand(Guid.NewGuid()), CancellationToken.None);
 
 		storage.Verify(s =>
-			s.RevokeAllUserSessionsAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()),
+				s.RevokeAllUserSessionsAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()),
 			Times.Never);
 	}
 }

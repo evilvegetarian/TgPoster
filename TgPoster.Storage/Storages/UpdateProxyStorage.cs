@@ -21,7 +21,8 @@ internal sealed class UpdateProxyStorage(PosterContext context) : IUpdateProxySt
 		string? username,
 		string? password,
 		string? secret,
-		CancellationToken ct)
+		CancellationToken ct
+	)
 	{
 		var proxy = await context.Proxies.FirstAsync(p => p.Id == proxyId, ct);
 

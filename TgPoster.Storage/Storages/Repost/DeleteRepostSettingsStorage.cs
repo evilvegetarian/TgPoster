@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using TgPoster.API.Domain.UseCases.Repost.DeleteRepostSettings;
 using TgPoster.Storage.Data;
+using TgPoster.Storage.Data.Entities;
 
 namespace TgPoster.Storage.Storages.Repost;
 
@@ -8,12 +9,12 @@ internal sealed class DeleteRepostSettingsStorage(PosterContext context) : IDele
 {
 	public Task<bool> RepostSettingsExistsAsync(Guid id, CancellationToken ct)
 	{
-		return context.Set<Data.Entities.RepostSettings>().AnyAsync(x => x.Id == id, ct);
+		return context.Set<RepostSettings>().AnyAsync(x => x.Id == id, ct);
 	}
 
 	public async Task DeleteRepostSettingsAsync(Guid id, CancellationToken ct)
 	{
-		var settings = await context.Set<Data.Entities.RepostSettings>()
+		var settings = await context.Set<RepostSettings>()
 			.FirstAsync(x => x.Id == id, ct);
 
 		context.Remove(settings);

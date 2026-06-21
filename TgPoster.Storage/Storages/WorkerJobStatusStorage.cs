@@ -35,8 +35,13 @@ internal sealed class WorkerJobStatusStorage(PosterContext context, GuidFactory 
 		await context.SaveChangesAsync(ct);
 	}
 
-	public async Task ReportHeartbeatAsync(string jobName, int? current, int? total, string? message,
-		CancellationToken ct)
+	public async Task ReportHeartbeatAsync(
+		string jobName,
+		int? current,
+		int? total,
+		string? message,
+		CancellationToken ct
+	)
 	{
 		var state = await GetOrCreateAsync(jobName, ct);
 		state.HeartbeatAt = DateTimeOffset.UtcNow;
@@ -47,8 +52,12 @@ internal sealed class WorkerJobStatusStorage(PosterContext context, GuidFactory 
 		await context.SaveChangesAsync(ct);
 	}
 
-	public async Task ReportCooldownAsync(string jobName, DateTimeOffset cooldownUntil, DateTimeOffset? nextRunAt,
-		CancellationToken ct)
+	public async Task ReportCooldownAsync(
+		string jobName,
+		DateTimeOffset cooldownUntil,
+		DateTimeOffset? nextRunAt,
+		CancellationToken ct
+	)
 	{
 		var state = await GetOrCreateAsync(jobName, ct);
 		state.Status = WorkerJobStatus.CooldownWait;

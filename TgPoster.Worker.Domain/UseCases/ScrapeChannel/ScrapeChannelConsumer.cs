@@ -1,6 +1,5 @@
 using MassTransit;
 using Microsoft.Extensions.Logging;
-using Shared.OpenRouter;
 using Shared.TgStat;
 
 namespace TgPoster.Worker.Domain.UseCases.ScrapeChannel;

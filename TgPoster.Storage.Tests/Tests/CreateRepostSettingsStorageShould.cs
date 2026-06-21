@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Shouldly;
 using TgPoster.Storage.Data;
+using TgPoster.Storage.Data.Entities;
 using TgPoster.Storage.Storages.Repost;
 using TgPoster.Storage.Tests.Builders;
 
@@ -82,10 +83,10 @@ public sealed class CreateRepostSettingsStorageShould(StorageTestFixture fixture
 			destinations,
 			CancellationToken.None);
 
-		var createdSettings = await context.Set<Data.Entities.RepostSettings>()
+		var createdSettings = await context.Set<RepostSettings>()
 			.Include(x => x.Destinations)
 			.FirstOrDefaultAsync(x => x.Id == response);
-		
+
 		createdSettings.ShouldNotBeNull();
 		createdSettings.Id.ShouldBe(response);
 		createdSettings.ScheduleId.ShouldBe(schedule.Id);

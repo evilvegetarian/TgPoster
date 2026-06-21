@@ -10,5 +10,6 @@ public interface IScrapeChannelStorage
 		int? participantsCount,
 		string? peerType,
 		string? tgUrl,
-		CancellationToken ct);
+		CancellationToken ct
+	);
 }

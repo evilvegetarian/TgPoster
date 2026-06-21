@@ -5,7 +5,8 @@ using TgPoster.Storage.Data.Entities;
 
 namespace TgPoster.Storage.Storages.Repost;
 
-internal sealed class CreateRepostSettingsStorage(PosterContext context, GuidFactory guidFactory) : ICreateRepostSettingsStorage
+internal sealed class CreateRepostSettingsStorage(PosterContext context, GuidFactory guidFactory)
+	: ICreateRepostSettingsStorage
 {
 	public Task<bool> ScheduleExistsAsync(Guid scheduleId, CancellationToken ct)
 	{

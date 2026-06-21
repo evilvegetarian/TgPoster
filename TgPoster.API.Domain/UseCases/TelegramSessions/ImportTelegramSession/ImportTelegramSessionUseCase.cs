@@ -1,7 +1,5 @@
 using MediatR;
 using Security.IdentityServices;
-using TgPoster.Exceptions;
-using TgPoster.Telegram;
 using TgPoster.Exceptions.BadRequest;
 using TgPoster.Telegram.Abstractions;
 
@@ -32,8 +30,10 @@ internal sealed class ImportTelegramSessionUseCase(
 		);
 
 		if (!importResult.Success)
+		{
 			throw new TelegramSessionImportFailedException(
 				importResult.ErrorMessage ?? "Неизвестная ошибка");
+		}
 
 		var sessionData = Convert.ToBase64String(memoryStream.ToArray());
 		var phoneNumber = importResult.PhoneNumber ?? "unknown";

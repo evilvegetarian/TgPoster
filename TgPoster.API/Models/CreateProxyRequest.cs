@@ -3,7 +3,7 @@ using Shared.Enums;
 namespace TgPoster.API.Models;
 
 /// <summary>
-/// Запрос на создание прокси
+///     Запрос на создание прокси
 /// </summary>
 /// <param name="Name">Имя прокси для отображения</param>
 /// <param name="Type">Тип прокси (Socks5/Http/MTProxy)</param>

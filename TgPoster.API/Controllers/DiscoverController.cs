@@ -19,39 +19,39 @@ namespace TgPoster.API.Controllers;
 [Tags("Discover")]
 public class DiscoverController(ISender sender) : ControllerBase
 {
-    /// <summary>
-    ///     Получить список обнаруженных каналов с пагинацией и фильтрацией
-    /// </summary>
-    [HttpGet(Routes.Discover.List)]
-    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(PagedResponse<DiscoverChannelResponse>))]
-    [ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
-    public async Task<IActionResult> List([FromQuery] ListDiscoverRequest request, CancellationToken ct)
-    {
-        var response = await sender.Send(request.ToDomain(), ct);
-        return Ok(response);
-    }
+	/// <summary>
+	///     Получить список обнаруженных каналов с пагинацией и фильтрацией
+	/// </summary>
+	[HttpGet(Routes.Discover.List)]
+	[ProducesResponseType(StatusCodes.Status200OK, Type = typeof(PagedResponse<DiscoverChannelResponse>))]
+	[ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
+	public async Task<IActionResult> List([FromQuery] ListDiscoverRequest request, CancellationToken ct)
+	{
+		var response = await sender.Send(request.ToDomain(), ct);
+		return Ok(response);
+	}
 
-    /// <summary>
-    ///     Получить список тематик обнаруженных каналов
-    /// </summary>
-    [HttpGet(Routes.Discover.Categories)]
-    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(List<string>))]
-    [ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
-    public async Task<IActionResult> GetCategories(CancellationToken ct)
-    {
-        var categories = await sender.Send(new GetCategoriesQuery(), ct);
-        return Ok(categories);
-    }
+	/// <summary>
+	///     Получить список тематик обнаруженных каналов
+	/// </summary>
+	[HttpGet(Routes.Discover.Categories)]
+	[ProducesResponseType(StatusCodes.Status200OK, Type = typeof(List<string>))]
+	[ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
+	public async Task<IActionResult> GetCategories(CancellationToken ct)
+	{
+		var categories = await sender.Send(new GetCategoriesQuery(), ct);
+		return Ok(categories);
+	}
 
-    /// <summary>
-    ///     Получить состояние фоновой задачи обнаружения каналов
-    /// </summary>
-    [HttpGet(Routes.Discover.Status)]
-    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(DiscoverStatusResponse))]
-    [ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
-    public async Task<IActionResult> GetStatus(CancellationToken ct)
-    {
-        var status = await sender.Send(new GetDiscoverStatusQuery(), ct);
-        return Ok(status);
-    }
+	/// <summary>
+	///     Получить состояние фоновой задачи обнаружения каналов
+	/// </summary>
+	[HttpGet(Routes.Discover.Status)]
+	[ProducesResponseType(StatusCodes.Status200OK, Type = typeof(DiscoverStatusResponse))]
+	[ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
+	public async Task<IActionResult> GetStatus(CancellationToken ct)
+	{
+		var status = await sender.Send(new GetDiscoverStatusQuery(), ct);
+		return Ok(status);
+	}
 }

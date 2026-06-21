@@ -24,7 +24,7 @@ public static class DependencyInjection
 		services.AddScoped<TelegramAuthService>();
 		services.AddScoped<ITelegramAuthService>(sp => sp.GetRequiredService<TelegramAuthService>());
 		services.AddScoped<ITelegramClientResolver>(sp => sp.GetRequiredService<TelegramAuthService>());
-		services.AddScoped<ITelegramChatService, Internal.TelegramChatService>();
+		services.AddScoped<ITelegramChatService, TelegramChatService>();
 		services.AddScoped<ITelegramMessageService, TelegramMessageService>();
 		services.AddScoped<ITelegramPublicLookupService, TelegramPublicLookupService>();
 

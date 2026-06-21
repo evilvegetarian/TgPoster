@@ -120,7 +120,8 @@ public class ScheduleController(ISender sender) : ControllerBase
 		CancellationToken ct
 	)
 	{
-		await sender.Send(new UpdateScheduleCommand(id, request.Name, request.YouTubeAccountId, request.TelegramBotId), ct);
+		await sender.Send(new UpdateScheduleCommand(id, request.Name, request.YouTubeAccountId, request.TelegramBotId),
+			ct);
 		return NoContent();
 	}
 }

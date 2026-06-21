@@ -1,4 +1,3 @@
-using TgPoster.Exceptions;
 using TgPoster.Exceptions.BadRequest;
 
 namespace TgPoster.API.Domain.Extensions;

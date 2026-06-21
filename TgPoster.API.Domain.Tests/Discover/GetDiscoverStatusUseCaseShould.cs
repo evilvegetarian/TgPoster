@@ -146,13 +146,13 @@ public class GetDiscoverStatusUseCaseShould
 
 	private static WorkerJobStateDto CreateState(WorkerJobStateStatus status) => new(
 		status,
-		LastStartedAt: null,
-		LastFinishedAt: null,
-		HeartbeatAt: null,
-		CooldownUntil: null,
-		NextRunAt: null,
-		LastError: null,
-		ProgressCurrent: null,
-		ProgressTotal: null,
-		ProgressMessage: null);
+		null,
+		null,
+		null,
+		null,
+		null,
+		null,
+		null,
+		null,
+		null);
 }

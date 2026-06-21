@@ -46,8 +46,10 @@ public class GetDaysStorageShould(StorageTestFixture fixture) : IClassFixture<St
 	public async Task GetDaysAsync_WithExistingDays_ShouldReturnDays()
 	{
 		var schedule = await new ScheduleBuilder(context).CreateAsync();
-		var day1 = await new DayBuilder(context).WithScheduleId(schedule.Id).WithDayOfWeek(DayOfWeek.Friday).CreateAsync();
-		var day2 = await new DayBuilder(context).WithScheduleId(schedule.Id).WithDayOfWeek(DayOfWeek.Sunday).CreateAsync();
+		var day1 = await new DayBuilder(context).WithScheduleId(schedule.Id).WithDayOfWeek(DayOfWeek.Friday)
+			.CreateAsync();
+		var day2 = await new DayBuilder(context).WithScheduleId(schedule.Id).WithDayOfWeek(DayOfWeek.Sunday)
+			.CreateAsync();
 
 		var result = await sut.GetDaysAsync(schedule.Id, CancellationToken.None);
 

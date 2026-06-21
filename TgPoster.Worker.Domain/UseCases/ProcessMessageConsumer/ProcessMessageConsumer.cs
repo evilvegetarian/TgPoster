@@ -6,7 +6,6 @@ using Shared.Telegram;
 using Shared.Video;
 using Telegram.Bot;
 using Telegram.Bot.Types;
-using TgPoster.Telegram;
 using TgPoster.Telegram.Abstractions;
 using TgPoster.Telegram.Models;
 using TgPoster.Worker.Domain.ConfigModels;
@@ -136,7 +135,7 @@ internal sealed class ProcessMessageConsumer(
 
 				if (photos.Count > 1)
 				{
-					List<IAlbumInputMedia> album = photos
+					var album = photos
 						.Select(p => (IAlbumInputMedia)new InputMediaPhoto(new InputFileStream(p.Stream)))
 						.ToList();
 

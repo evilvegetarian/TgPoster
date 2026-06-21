@@ -85,6 +85,7 @@ public sealed class ChannelParsingSetting : BaseEntity
 	///     Расписание для парсинга
 	/// </summary>
 	public Schedule Schedule { get; set; } = null!;
+
 	/// <summary>
 	///     Telegram сессия для парсинга канала.
 	/// </summary>

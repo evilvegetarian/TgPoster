@@ -1,6 +1,5 @@
 using System.Globalization;
 using System.Text.RegularExpressions;
-using MassTransit;
 using Microsoft.Extensions.Logging;
 using Microsoft.Playwright;
 using Shared.TgStat.Models;
@@ -80,7 +79,7 @@ internal sealed partial class TgStatScrapingService(ILogger<TgStatScrapingServic
 					username = href.Split("t.me/").Last().TrimEnd('/');
 			}
 
-			var tUrlElement= await page.QuerySelectorAsync("a.btn-outline-info[href*='t.me/']");
+			var tUrlElement = await page.QuerySelectorAsync("a.btn-outline-info[href*='t.me/']");
 			string? tUrl = null;
 			if (tUrlElement is not null)
 			{
@@ -88,6 +87,7 @@ internal sealed partial class TgStatScrapingService(ILogger<TgStatScrapingServic
 				if (href is not null && href.Contains("t.me/"))
 					tUrl = href;
 			}
+
 			// Подписчики
 			var participantsCount = await ExtractStatValueAsync(page,
 				"[class*='subscribers'], [class*='participants'], [class*='members']");
@@ -121,9 +121,9 @@ internal sealed partial class TgStatScrapingService(ILogger<TgStatScrapingServic
 	private static async Task<string?> DetectPeerTypeAsync(IPage page)
 	{
 		var content = await page.ContentAsync();
-		if (content.Contains("группа", StringComparison.OrdinalIgnoreCase) ||
-		    content.Contains("group", StringComparison.OrdinalIgnoreCase) ||
-		    content.Contains("chat", StringComparison.OrdinalIgnoreCase))
+		if (content.Contains("группа", StringComparison.OrdinalIgnoreCase)
+		    || content.Contains("group", StringComparison.OrdinalIgnoreCase)
+		    || content.Contains("chat", StringComparison.OrdinalIgnoreCase))
 			return "chat";
 
 		return "channel";
@@ -134,13 +134,13 @@ internal sealed partial class TgStatScrapingService(ILogger<TgStatScrapingServic
 		var cleaned = text.Trim();
 
 		var kMatch = KiloRegex().Match(cleaned);
-		if (kMatch.Success &&
-		    double.TryParse(kMatch.Groups[1].Value.Replace(",", "."), CultureInfo.InvariantCulture, out var kVal))
+		if (kMatch.Success
+		    && double.TryParse(kMatch.Groups[1].Value.Replace(",", "."), CultureInfo.InvariantCulture, out var kVal))
 			return (int)(kVal * 1000);
 
 		var mMatch = MegaRegex().Match(cleaned);
-		if (mMatch.Success &&
-		    double.TryParse(mMatch.Groups[1].Value.Replace(",", "."), CultureInfo.InvariantCulture, out var mVal))
+		if (mMatch.Success
+		    && double.TryParse(mMatch.Groups[1].Value.Replace(",", "."), CultureInfo.InvariantCulture, out var mVal))
 			return (int)(mVal * 1_000_000);
 
 		var digitsOnly = NonDigitRegex().Replace(cleaned, "");

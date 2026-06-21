@@ -11,11 +11,11 @@ namespace TgPoster.API.Domain.Tests.Repost;
 
 public class AddRepostDestinationUseCaseShould
 {
-	private readonly Mock<IAddRepostDestinationStorage> storage;
 	private readonly Mock<ITelegramChatService> chatService;
-	private readonly AddRepostDestinationUseCase sut;
-	private readonly Guid sessionId = Guid.NewGuid();
 	private readonly Guid discoveredId = Guid.NewGuid();
+	private readonly Guid sessionId = Guid.NewGuid();
+	private readonly Mock<IAddRepostDestinationStorage> storage;
+	private readonly AddRepostDestinationUseCase sut;
 
 	public AddRepostDestinationUseCaseShould()
 	{
@@ -41,19 +41,19 @@ public class AddRepostDestinationUseCaseShould
 
 		var command = new AddRepostDestinationCommand(Guid.NewGuid(), "@channel");
 
-		await Should.ThrowAsync<RepostSettingsNotFoundException>(
-			async () => await sut.Handle(command, CancellationToken.None));
+		await Should.ThrowAsync<RepostSettingsNotFoundException>(async () =>
+			await sut.Handle(command, CancellationToken.None));
 	}
 
 	[Fact]
 	public async Task ThrowNoWritePermission_WhenCannotSendMessages()
 	{
-		SetupChat(canSendMessages: false, canSendMedia: false);
+		SetupChat(false, false);
 
 		var command = new AddRepostDestinationCommand(Guid.NewGuid(), "@channel");
 
-		await Should.ThrowAsync<TelegramChatNoWritePermissionException>(
-			async () => await sut.Handle(command, CancellationToken.None));
+		await Should.ThrowAsync<TelegramChatNoWritePermissionException>(async () =>
+			await sut.Handle(command, CancellationToken.None));
 
 		VerifyAddDestinationNeverCalled();
 	}
@@ -61,12 +61,12 @@ public class AddRepostDestinationUseCaseShould
 	[Fact]
 	public async Task ThrowNoMediaPermission_WhenCannotSendMedia()
 	{
-		SetupChat(canSendMessages: true, canSendMedia: false);
+		SetupChat(true, false);
 
 		var command = new AddRepostDestinationCommand(Guid.NewGuid(), "@channel");
 
-		await Should.ThrowAsync<TelegramChatNoMediaPermissionException>(
-			async () => await sut.Handle(command, CancellationToken.None));
+		await Should.ThrowAsync<TelegramChatNoMediaPermissionException>(async () =>
+			await sut.Handle(command, CancellationToken.None));
 
 		VerifyAddDestinationNeverCalled();
 	}
@@ -74,12 +74,12 @@ public class AddRepostDestinationUseCaseShould
 	[Fact]
 	public async Task RecordDiscoverStatus_EvenWhenBlocked()
 	{
-		var info = SetupChat(canSendMessages: false, canSendMedia: false);
+		var info = SetupChat(false, false);
 
 		var command = new AddRepostDestinationCommand(Guid.NewGuid(), "@channel");
 
-		await Should.ThrowAsync<TelegramChatNoWritePermissionException>(
-			async () => await sut.Handle(command, CancellationToken.None));
+		await Should.ThrowAsync<TelegramChatNoWritePermissionException>(async () =>
+			await sut.Handle(command, CancellationToken.None));
 
 		storage.Verify(s => s.UpsertDiscoveredChannelAsync(
 			info.Id, It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<int?>(),
@@ -89,7 +89,7 @@ public class AddRepostDestinationUseCaseShould
 	[Fact]
 	public async Task AddDestinationAndReturnBothIds_WhenPermissionsValid()
 	{
-		SetupChat(canSendMessages: true, canSendMedia: true);
+		SetupChat(true, true);
 
 		var destinationId = Guid.NewGuid();
 		storage.Setup(s => s.AddDestinationAsync(

@@ -36,7 +36,8 @@ public sealed class RepostController(ISender sender) : ControllerBase
 	[ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
 	public async Task<IActionResult> CreateSettings(
 		[FromBody] [Required] CreateRepostSettingsRequest request,
-		CancellationToken ct)
+		CancellationToken ct
+	)
 	{
 		var command = new CreateRepostSettingsCommand(
 			request.ScheduleId,
@@ -114,7 +115,8 @@ public sealed class RepostController(ISender sender) : ControllerBase
 	public async Task<IActionResult> UpdateSettings(
 		[FromRoute] [Required] Guid id,
 		[FromBody] [Required] UpdateRepostSettingsRequest request,
-		CancellationToken ct)
+		CancellationToken ct
+	)
 	{
 		var command = new UpdateRepostSettingsCommand(id, request.IsActive);
 
@@ -138,7 +140,8 @@ public sealed class RepostController(ISender sender) : ControllerBase
 	public async Task<IActionResult> AddDestination(
 		[FromRoute] [Required] Guid settingsId,
 		[FromBody] [Required] AddRepostDestinationRequest request,
-		CancellationToken ct)
+		CancellationToken ct
+	)
 	{
 		var command = new AddRepostDestinationCommand(settingsId, request.ChatIdentifier);
 		var result = await sender.Send(command, ct);
@@ -182,7 +185,8 @@ public sealed class RepostController(ISender sender) : ControllerBase
 	public async Task<IActionResult> UpdateDestination(
 		[FromRoute] [Required] Guid id,
 		[FromBody] [Required] UpdateRepostDestinationRequest request,
-		CancellationToken ct)
+		CancellationToken ct
+	)
 	{
 		var command = new UpdateRepostDestinationCommand(
 			id,

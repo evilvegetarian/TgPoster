@@ -17,7 +17,7 @@ public class UpdateParseChannelStorageShould : IClassFixture<StorageTestFixture>
 	public UpdateParseChannelStorageShould(StorageTestFixture fixture)
 	{
 		_context = fixture.GetDbContext();
-		sut = new(_context);
+		sut = new UpdateParseChannelStorage(_context);
 	}
 
 	[Fact]

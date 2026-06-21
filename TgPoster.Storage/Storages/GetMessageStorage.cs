@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using TgPoster.API.Domain.UseCases.Messages.GetMessageById;
 using TgPoster.API.Domain.UseCases.Messages.ListMessage;
 using TgPoster.Storage.Data;
+using TgPoster.Storage.Data.Enum;
 
 namespace TgPoster.Storage.Storages;
 
@@ -30,7 +31,7 @@ internal class GetMessageStorage(PosterContext context) : IGetMessageStorage
 						IsInS3 = file.IsInS3,
 						Duration = file.Duration,
 						Previews = file.Thumbnails
-							.Where(x => x.FileType != Data.Enum.FileTypes.VideoClip)
+							.Where(x => x.FileType != FileTypes.VideoClip)
 							.Select(x => new PreviewDto
 							{
 								Id = x.Id,
@@ -38,7 +39,7 @@ internal class GetMessageStorage(PosterContext context) : IGetMessageStorage
 								IsInS3 = x.IsInS3
 							}).ToList(),
 						VideoClip = file.Thumbnails
-							.Where(x => x.FileType == Data.Enum.FileTypes.VideoClip)
+							.Where(x => x.FileType == FileTypes.VideoClip)
 							.Select(x => new PreviewDto
 							{
 								Id = x.Id,

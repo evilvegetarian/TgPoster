@@ -1,6 +1,5 @@
 using Microsoft.EntityFrameworkCore;
 using Shared.Enums;
-using TgPoster.Telegram;
 using TgPoster.Storage.Data;
 using TgPoster.Telegram.Abstractions;
 using TgPoster.Telegram.Models;
@@ -10,13 +9,13 @@ namespace TgPoster.Storage.Repositories;
 internal sealed class TelegramSessionRepository(PosterContext context)
 	: ITelegramSessionRepository, ITelegramAuthRepository
 {
-	public Task<Guid?> GetByTelegramSessionPurpose(TelegramSessionPurpose purpose, CancellationToken ct) 
+	public Task<Guid?> GetByTelegramSessionPurpose(TelegramSessionPurpose purpose, CancellationToken ct)
 		=> context.TelegramSessions
 			.Where(s => s.IsActive
 			            && s.Purposes.Contains(purpose))
 			.Select(s => (Guid?)s.Id)
 			.FirstOrDefaultAsync(ct);
-	
+
 	public async Task UpdateSessionDataAsync(Guid sessionId, string sessionData, CancellationToken ct)
 	{
 		var session = await context.TelegramSessions.FirstAsync(s => s.Id == sessionId, ct);

@@ -48,7 +48,10 @@ public interface ITelegramChatService
 	/// <param name="ct">Токен отмены</param>
 	/// <returns>Tuple: ID привязанной группы (0 если нет) и её access_hash</returns>
 	Task<(long LinkedChatId, long? DiscussionAccessHash)> GetLinkedDiscussionGroupAsync(
-		Guid sessionId, TelegramChatInfo chatInfo, CancellationToken ct = default);
+		Guid sessionId,
+		TelegramChatInfo chatInfo,
+		CancellationToken ct = default
+	);
 
 	/// <summary>
 	///     Получает общее количество сообщений в канале

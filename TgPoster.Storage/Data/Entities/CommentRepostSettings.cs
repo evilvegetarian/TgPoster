@@ -1,5 +1,3 @@
-using TgPoster.Storage.Data.Enum;
-
 namespace TgPoster.Storage.Data.Entities;
 
 /// <summary>

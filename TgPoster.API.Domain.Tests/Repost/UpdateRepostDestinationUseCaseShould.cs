@@ -1,7 +1,6 @@
 using Moq;
 using Moq.Language.Flow;
 using Shouldly;
-using TgPoster.Exceptions;
 using TgPoster.API.Domain.UseCases.Repost.UpdateRepostDestination;
 using TgPoster.Exceptions.BadRequest;
 using TgPoster.Exceptions.NotFound;
@@ -10,8 +9,8 @@ namespace TgPoster.API.Domain.Tests.Repost;
 
 public class UpdateRepostDestinationUseCaseShould
 {
-	private readonly Mock<IUpdateRepostDestinationStorage> storage;
 	private readonly ISetup<IUpdateRepostDestinationStorage, Task<bool>> existsSetup;
+	private readonly Mock<IUpdateRepostDestinationStorage> storage;
 	private readonly UpdateRepostDestinationUseCase sut;
 
 	public UpdateRepostDestinationUseCaseShould()
@@ -44,8 +43,8 @@ public class UpdateRepostDestinationUseCaseShould
 
 		var command = new UpdateRepostDestinationCommand(Guid.NewGuid(), true, 0, 0, 1, 0, null);
 
-		await Should.ThrowAsync<RepostDestinationNotFoundException>(
-			async () => await sut.Handle(command, CancellationToken.None));
+		await Should.ThrowAsync<RepostDestinationNotFoundException>(async () =>
+			await sut.Handle(command, CancellationToken.None));
 	}
 
 	[Fact]
@@ -53,8 +52,8 @@ public class UpdateRepostDestinationUseCaseShould
 	{
 		var command = new UpdateRepostDestinationCommand(Guid.NewGuid(), true, -1, 60, 1, 0, null);
 
-		await Should.ThrowAsync<InvalidRepostSettingsException>(
-			async () => await sut.Handle(command, CancellationToken.None));
+		await Should.ThrowAsync<InvalidRepostSettingsException>(async () =>
+			await sut.Handle(command, CancellationToken.None));
 	}
 
 	[Fact]
@@ -62,8 +61,8 @@ public class UpdateRepostDestinationUseCaseShould
 	{
 		var command = new UpdateRepostDestinationCommand(Guid.NewGuid(), true, 60, 10, 1, 0, null);
 
-		await Should.ThrowAsync<InvalidRepostSettingsException>(
-			async () => await sut.Handle(command, CancellationToken.None));
+		await Should.ThrowAsync<InvalidRepostSettingsException>(async () =>
+			await sut.Handle(command, CancellationToken.None));
 	}
 
 	[Fact]
@@ -71,8 +70,8 @@ public class UpdateRepostDestinationUseCaseShould
 	{
 		var command = new UpdateRepostDestinationCommand(Guid.NewGuid(), true, 0, 60, 0, 0, null);
 
-		await Should.ThrowAsync<InvalidRepostSettingsException>(
-			async () => await sut.Handle(command, CancellationToken.None));
+		await Should.ThrowAsync<InvalidRepostSettingsException>(async () =>
+			await sut.Handle(command, CancellationToken.None));
 	}
 
 	[Fact]
@@ -80,8 +79,8 @@ public class UpdateRepostDestinationUseCaseShould
 	{
 		var command = new UpdateRepostDestinationCommand(Guid.NewGuid(), true, 0, 60, 1, -1, null);
 
-		await Should.ThrowAsync<InvalidRepostSettingsException>(
-			async () => await sut.Handle(command, CancellationToken.None));
+		await Should.ThrowAsync<InvalidRepostSettingsException>(async () =>
+			await sut.Handle(command, CancellationToken.None));
 	}
 
 	[Fact]
@@ -89,8 +88,8 @@ public class UpdateRepostDestinationUseCaseShould
 	{
 		var command = new UpdateRepostDestinationCommand(Guid.NewGuid(), true, 0, 60, 1, 101, null);
 
-		await Should.ThrowAsync<InvalidRepostSettingsException>(
-			async () => await sut.Handle(command, CancellationToken.None));
+		await Should.ThrowAsync<InvalidRepostSettingsException>(async () =>
+			await sut.Handle(command, CancellationToken.None));
 	}
 
 	[Fact]
@@ -98,8 +97,8 @@ public class UpdateRepostDestinationUseCaseShould
 	{
 		var command = new UpdateRepostDestinationCommand(Guid.NewGuid(), true, 0, 60, 1, 0, 0);
 
-		await Should.ThrowAsync<InvalidRepostSettingsException>(
-			async () => await sut.Handle(command, CancellationToken.None));
+		await Should.ThrowAsync<InvalidRepostSettingsException>(async () =>
+			await sut.Handle(command, CancellationToken.None));
 	}
 
 	[Fact]
@@ -121,8 +120,8 @@ public class UpdateRepostDestinationUseCaseShould
 	{
 		var command = new UpdateRepostDestinationCommand(Guid.NewGuid(), true, -1, 60, 1, 0, null);
 
-		await Should.ThrowAsync<InvalidRepostSettingsException>(
-			async () => await sut.Handle(command, CancellationToken.None));
+		await Should.ThrowAsync<InvalidRepostSettingsException>(async () =>
+			await sut.Handle(command, CancellationToken.None));
 
 		storage.Verify(s => s.DestinationExistsAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()), Times.Never);
 		storage.Verify(s => s.UpdateDestinationAsync(

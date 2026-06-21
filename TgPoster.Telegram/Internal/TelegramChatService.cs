@@ -90,7 +90,7 @@ internal sealed partial class TelegramChatService(ITelegramClientResolver client
 			if (chatBase != null)
 			{
 				using var ms = new MemoryStream();
-				await client.DownloadProfilePhotoAsync(chatBase, ms, big: false);
+				await client.DownloadProfilePhotoAsync(chatBase, ms, false);
 				if (ms.Length > 0)
 				{
 					avatar = ms.ToArray();
@@ -118,7 +118,7 @@ internal sealed partial class TelegramChatService(ITelegramClientResolver client
 		TelegramChatInfo info;
 		try
 		{
-			info = await GetChatInfoAsync(sessionId, chatId.ToString(), autoJoin: false);
+			info = await GetChatInfoAsync(sessionId, chatId.ToString(), false);
 		}
 		catch (TelegramChatForbidden)
 		{
@@ -157,7 +157,10 @@ internal sealed partial class TelegramChatService(ITelegramClientResolver client
 	}
 
 	public async Task<(long LinkedChatId, long? DiscussionAccessHash)> GetLinkedDiscussionGroupAsync(
-		Guid sessionId, TelegramChatInfo chatInfo, CancellationToken ct = default)
+		Guid sessionId,
+		TelegramChatInfo chatInfo,
+		CancellationToken ct = default
+	)
 	{
 		var client = await ResolveClientAsync(sessionId);
 		var fullChannel = await client.Channels_GetFullChannel(
@@ -249,8 +252,10 @@ internal sealed partial class TelegramChatService(ITelegramClientResolver client
 		{
 			var resolve = await client.Contacts_ResolveUsername(username);
 
-			if (resolve.Chat is Channel channel && autoJoin
-			    && resolve.chats.TryGetValue(channel.ID, out var chatBase) && chatBase is Channel)
+			if (resolve.Chat is Channel channel
+			    && autoJoin
+			    && resolve.chats.TryGetValue(channel.ID, out var chatBase)
+			    && chatBase is Channel)
 			{
 				await client.Channels_JoinChannel(channel);
 			}
@@ -372,7 +377,8 @@ internal sealed partial class TelegramChatService(ITelegramClientResolver client
 	[GeneratedRegex(@"(?:https?:\/\/)?t\.me\/c\/(?<id>\d+)(?:\/\d+)?", RegexOptions.IgnoreCase)]
 	private static partial Regex PrivateChannelLinkRegex();
 
-	[GeneratedRegex(@"(?:https?:\/\/)?t\.me\/(?<username>[a-zA-Z][a-zA-Z0-9_]{4,31})(?:\/.*)?$", RegexOptions.IgnoreCase)]
+	[GeneratedRegex(@"(?:https?:\/\/)?t\.me\/(?<username>[a-zA-Z][a-zA-Z0-9_]{4,31})(?:\/.*)?$",
+		RegexOptions.IgnoreCase)]
 	private static partial Regex PublicLinkRegex();
 
 	[GeneratedRegex(@"^@?(?<username>[a-zA-Z][a-zA-Z0-9_]{4,31})$", RegexOptions.IgnoreCase)]

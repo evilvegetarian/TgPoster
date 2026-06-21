@@ -1,6 +1,5 @@
 using System.Net;
 using System.Text.Json;
-using TgPoster.Exceptions;
 using Shared.OpenRouter.Extensions;
 using Shared.OpenRouter.Models.Request;
 using Shared.OpenRouter.Models.Response;

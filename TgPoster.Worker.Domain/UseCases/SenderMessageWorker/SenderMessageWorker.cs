@@ -87,7 +87,9 @@ public class SenderMessageWorker(
 				medias[0].ParseMode = ParseMode.Html;
 			}
 
-			var result = await telegramExecuteServices.SendMediaGroupAsync(bot, chatId, medias.Select(x => (IAlbumInputMedia)x), ct);
+			var result =
+				await telegramExecuteServices.SendMediaGroupAsync(bot, chatId, medias.Select(x => (IAlbumInputMedia)x),
+					ct);
 			if (!result.IsSuccess)
 			{
 				await storage.UpdateErrorStatusMessageAsync(messageId, ct);
@@ -100,7 +102,8 @@ public class SenderMessageWorker(
 			{
 				var captionResult = await telegramExecuteServices.SendTextAsync(bot, chatId, captionText, ct);
 				if (!captionResult.IsSuccess)
-					logger.LogWarning("Не удалось отправить подпись к медиа-группе для сообщения {MessageId}", messageId);
+					logger.LogWarning("Не удалось отправить подпись к медиа-группе для сообщения {MessageId}",
+						messageId);
 			}
 		}
 		else

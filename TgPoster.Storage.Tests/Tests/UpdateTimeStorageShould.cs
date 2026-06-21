@@ -14,7 +14,7 @@ public class UpdateTimeStorageShould : IClassFixture<StorageTestFixture>
 	public UpdateTimeStorageShould(StorageTestFixture fixture)
 	{
 		context = fixture.GetDbContext();
-		sut = new(context, new GuidFactory());
+		sut = new UpdateTimeStorage(context, new GuidFactory());
 	}
 
 	[Fact]

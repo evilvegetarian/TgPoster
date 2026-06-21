@@ -5,11 +5,11 @@ using Microsoft.AspNetCore.Mvc;
 using TgPoster.API.Common;
 using TgPoster.API.Domain.UseCases.TelegramSessions.CreateTelegramSession;
 using TgPoster.API.Domain.UseCases.TelegramSessions.DeleteTelegramSession;
+using TgPoster.API.Domain.UseCases.TelegramSessions.ImportTelegramSession;
 using TgPoster.API.Domain.UseCases.TelegramSessions.ListTelegramSessions;
 using TgPoster.API.Domain.UseCases.TelegramSessions.SendPassword;
 using TgPoster.API.Domain.UseCases.TelegramSessions.StartAuth;
 using TgPoster.API.Domain.UseCases.TelegramSessions.UpdateTelegramSession;
-using TgPoster.API.Domain.UseCases.TelegramSessions.ImportTelegramSession;
 using TgPoster.API.Domain.UseCases.TelegramSessions.VerifyCode;
 using TgPoster.API.Models;
 

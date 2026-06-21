@@ -6,7 +6,14 @@ namespace TgPoster.Storage.Storages;
 
 internal sealed class UpdateScheduleStorage(PosterContext context) : IUpdateScheduleStorage
 {
-	public async Task UpdateScheduleAsync(Guid id, Guid userId, string? name, Guid? youTubeAccountId, Guid? telegramBotId, CancellationToken ct)
+	public async Task UpdateScheduleAsync(
+		Guid id,
+		Guid userId,
+		string? name,
+		Guid? youTubeAccountId,
+		Guid? telegramBotId,
+		CancellationToken ct
+	)
 	{
 		var schedule = await context.Schedules
 			.FirstOrDefaultAsync(x => x.Id == id && x.UserId == userId, ct);

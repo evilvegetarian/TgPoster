@@ -3,7 +3,6 @@ using Moq;
 using Moq.Language.Flow;
 using Security.Authentication;
 using Shouldly;
-using TgPoster.Exceptions;
 using TgPoster.API.Domain.Models;
 using TgPoster.API.Domain.UseCases.Accounts.SignIn;
 using TgPoster.Exceptions.BadRequest;

@@ -7,22 +7,22 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="10.0.2" />
-        <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="10.0.2" />
-        <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.3" />
-        <PackageReference Include="UUIDNext" Version="4.1.0" />
+        <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="10.0.2"/>
+        <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="10.0.2"/>
+        <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.3"/>
+        <PackageReference Include="UUIDNext" Version="4.1.0"/>
     </ItemGroup>
 
     <ItemGroup>
-        <InternalsVisibleTo Include="TgPoster.API.Tests" />
-        <InternalsVisibleTo Include="TgPoster.E2E" />
+        <InternalsVisibleTo Include="TgPoster.API.Tests"/>
+        <InternalsVisibleTo Include="TgPoster.E2E"/>
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\Security\Security.csproj" />
-        <ProjectReference Include="..\TgPoster.API.Domain\TgPoster.API.Domain.csproj" />
-        <ProjectReference Include="..\TgPoster.Worker.Domain\TgPoster.Worker.Domain.csproj" />
-        <ProjectReference Include="..\TgPoster.Telegram\TgPoster.Telegram.csproj" />
+        <ProjectReference Include="..\Security\Security.csproj"/>
+        <ProjectReference Include="..\TgPoster.API.Domain\TgPoster.API.Domain.csproj"/>
+        <ProjectReference Include="..\TgPoster.Worker.Domain\TgPoster.Worker.Domain.csproj"/>
+        <ProjectReference Include="..\TgPoster.Telegram\TgPoster.Telegram.csproj"/>
     </ItemGroup>
 
 </Project>

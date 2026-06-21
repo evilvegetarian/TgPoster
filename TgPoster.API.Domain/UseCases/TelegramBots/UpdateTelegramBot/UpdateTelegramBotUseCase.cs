@@ -1,7 +1,6 @@
 using MediatR;
 using Shared.Telegram;
 using Telegram.Bot;
-using TgPoster.Exceptions;
 using TgPoster.API.Domain.Services;
 using TgPoster.Exceptions.NotFound;
 

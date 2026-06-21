@@ -17,7 +17,8 @@ internal sealed class TelegramMessageService(
 		Guid sessionId,
 		string username,
 		CancellationToken ct = default,
-		bool waitOnFloodWait = false)
+		bool waitOnFloodWait = false
+	)
 	{
 		var raw = await ExecuteWithClientAsync(
 			sessionId,
@@ -43,7 +44,8 @@ internal sealed class TelegramMessageService(
 	public async Task<TelegramOperationResult<IReadOnlyList<TelegramChatInfo>>> GetAllDialogsAsync(
 		Guid sessionId,
 		CancellationToken ct = default,
-		bool waitOnFloodWait = true)
+		bool waitOnFloodWait = true
+	)
 	{
 		var raw = await ExecuteWithClientAsync(
 			sessionId,
@@ -75,7 +77,8 @@ internal sealed class TelegramMessageService(
 		DateTime? offsetDate = null,
 		int minId = 0,
 		CancellationToken ct = default,
-		bool waitOnFloodWait = true)
+		bool waitOnFloodWait = true
+	)
 	{
 		var raw = await ExecuteWithClientAsync(
 			sessionId,
@@ -104,23 +107,24 @@ internal sealed class TelegramMessageService(
 		int maxId = 0,
 		string query = "",
 		CancellationToken ct = default,
-		bool waitOnFloodWait = true)
+		bool waitOnFloodWait = true
+	)
 	{
 		var rawFilter = FilterMapper.ToMessagesFilter(filter);
 		var raw = await ExecuteWithClientAsync(
 			sessionId,
 			client => client.Messages_Search(
-				peer: PeerMapper.ToInputPeer(peer),
-				q: query,
-				filter: rawFilter,
-				min_date: default,
-				max_date: default,
-				offset_id: offsetId,
-				add_offset: 0,
-				limit: limit,
-				max_id: maxId,
-				min_id: minId,
-				hash: 0),
+				PeerMapper.ToInputPeer(peer),
+				query,
+				rawFilter,
+				default,
+				default,
+				offsetId,
+				0,
+				limit,
+				maxId,
+				minId,
+				0),
 			$"SearchMessages({filter})",
 			waitOnFloodWait,
 			ct);
@@ -135,7 +139,8 @@ internal sealed class TelegramMessageService(
 		TelegramPeer channel,
 		int messageId,
 		CancellationToken ct = default,
-		bool waitOnFloodWait = false)
+		bool waitOnFloodWait = false
+	)
 	{
 		var raw = await ExecuteWithClientAsync(
 			sessionId,
@@ -159,15 +164,16 @@ internal sealed class TelegramMessageService(
 		TelegramPeer to,
 		int messageId,
 		CancellationToken ct = default,
-		bool waitOnFloodWait = false)
+		bool waitOnFloodWait = false
+	)
 	{
 		return await ExecuteWithClientAsync(
 			sessionId,
 			async client =>
 			{
 				var result = await client.Messages_ForwardMessages(
-					from_peer: PeerMapper.ToInputPeer(from),
-					id: [messageId],
+					PeerMapper.ToInputPeer(from),
+					[messageId],
 					to_peer: PeerMapper.ToInputPeer(to),
 					random_id: [Random.Shared.NextInt64()]);
 
@@ -184,7 +190,8 @@ internal sealed class TelegramMessageService(
 		string text,
 		int? replyToMsgId = null,
 		CancellationToken ct = default,
-		bool waitOnFloodWait = false)
+		bool waitOnFloodWait = false
+	)
 	{
 		return await ExecuteWithClientAsync(
 			sessionId,
@@ -195,8 +202,8 @@ internal sealed class TelegramMessageService(
 					: null;
 
 				var result = await client.Messages_SendMessage(
-					peer: PeerMapper.ToInputPeer(peer),
-					message: text,
+					PeerMapper.ToInputPeer(peer),
+					text,
 					reply_to: replyTo,
 					random_id: Random.Shared.NextInt64());
 
@@ -212,14 +219,16 @@ internal sealed class TelegramMessageService(
 		TelegramPeer channelPeer,
 		int postId,
 		CancellationToken ct = default,
-		bool waitOnFloodWait = false)
+		bool waitOnFloodWait = false
+	)
 	{
 		return await ExecuteWithClientAsync(
 			sessionId,
 			async client =>
 			{
-				var discussion = await client.Messages_GetDiscussionMessage(PeerMapper.ToInputPeer(channelPeer), postId);
-				return (int?)discussion.messages.FirstOrDefault()?.ID;
+				var discussion =
+					await client.Messages_GetDiscussionMessage(PeerMapper.ToInputPeer(channelPeer), postId);
+				return discussion.messages.FirstOrDefault()?.ID;
 			},
 			$"GetDiscussionMessage({postId})",
 			waitOnFloodWait,
@@ -231,7 +240,8 @@ internal sealed class TelegramMessageService(
 		TelegramPeer channel,
 		int messageId,
 		CancellationToken ct = default,
-		bool waitOnFloodWait = false)
+		bool waitOnFloodWait = false
+	)
 	{
 		return await ExecuteWithClientAsync(
 			sessionId,
@@ -249,7 +259,8 @@ internal sealed class TelegramMessageService(
 		Guid sessionId,
 		TelegramPeer channel,
 		CancellationToken ct = default,
-		bool waitOnFloodWait = false)
+		bool waitOnFloodWait = false
+	)
 	{
 		return await ExecuteWithClientAsync(
 			sessionId,
@@ -270,7 +281,8 @@ internal sealed class TelegramMessageService(
 		TelegramMessageMedia media,
 		Stream target,
 		CancellationToken ct = default,
-		bool waitOnFloodWait = true)
+		bool waitOnFloodWait = true
+	)
 	{
 		if (media.Source is null)
 		{
@@ -330,12 +342,14 @@ internal sealed class TelegramMessageService(
 		Func<Client, Task<T>> action,
 		string operation,
 		bool waitOnFloodWait,
-		CancellationToken ct)
+		CancellationToken ct
+	)
 	{
 		var client = await clientResolver.GetClientAsync(sessionId, ct);
 		if (client is null)
 		{
-			logger.LogWarning("Telegram {Operation}: не удалось получить клиент для сессии {SessionId}", operation, sessionId);
+			logger.LogWarning("Telegram {Operation}: не удалось получить клиент для сессии {SessionId}", operation,
+				sessionId);
 			return TelegramOperationResult<T>.Failed(TelegramOperationStatus.SessionNotFound,
 				$"Сессия {sessionId} не найдена или неактивна");
 		}
@@ -343,8 +357,12 @@ internal sealed class TelegramMessageService(
 		return await ExecuteAsync(() => action(client), operation, waitOnFloodWait, ct);
 	}
 
-	private async Task<TelegramOperationResult<T>> ExecuteAsync<T>(Func<Task<T>> action, string operation,
-		bool waitOnFloodWait, CancellationToken ct)
+	private async Task<TelegramOperationResult<T>> ExecuteAsync<T>(
+		Func<Task<T>> action,
+		string operation,
+		bool waitOnFloodWait,
+		CancellationToken ct
+	)
 	{
 		while (true)
 		{
@@ -359,7 +377,8 @@ internal sealed class TelegramMessageService(
 			}
 			catch (OperationCanceledException ex)
 			{
-				logger.LogWarning("Telegram {Operation}: внутренний таймаут WTelegram ({Error})", operation, ex.Message);
+				logger.LogWarning("Telegram {Operation}: внутренний таймаут WTelegram ({Error})", operation,
+					ex.Message);
 				return TelegramOperationResult<T>.Failed(TelegramOperationStatus.Timeout, ex.Message);
 			}
 			catch (RpcException ex) when (ex.Message is "USERNAME_NOT_OCCUPIED" or "USERNAME_INVALID")
@@ -371,7 +390,8 @@ internal sealed class TelegramMessageService(
 				                              or "CHAT_WRITE_FORBIDDEN" or "CHAT_RESTRICTED"
 				                              or "CHAT_SEND_PLAIN_FORBIDDEN")
 			{
-				logger.LogWarning("Telegram {Operation}: доступ к каналу заблокирован ({Error})", operation, ex.Message);
+				logger.LogWarning("Telegram {Operation}: доступ к каналу заблокирован ({Error})", operation,
+					ex.Message);
 				return TelegramOperationResult<T>.Failed(TelegramOperationStatus.ChannelBanned, ex.Message);
 			}
 			catch (RpcException ex) when (ex.Message.StartsWith("FLOOD_WAIT"))

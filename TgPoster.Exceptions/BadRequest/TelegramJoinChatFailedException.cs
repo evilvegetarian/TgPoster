@@ -7,4 +7,4 @@ namespace TgPoster.Exceptions.BadRequest;
 /// </summary>
 /// <param name="reason">Причина отказа</param>
 public sealed class TelegramJoinChatFailedException(string reason)
-    : DomainException($"Не удалось вступить в чат: {reason}");
+	: DomainException($"Не удалось вступить в чат: {reason}");

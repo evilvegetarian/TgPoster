@@ -108,8 +108,8 @@ public sealed class AddRepostDestinationStorageShould(StorageTestFixture fixture
 			username,
 			500,
 			ChatType.Channel,
-			canSendMessages: true,
-			canSendMedia: false,
+			true,
+			false,
 			CancellationToken.None);
 
 		var discovered = await context.DiscoveredChannels
@@ -151,8 +151,8 @@ public sealed class AddRepostDestinationStorageShould(StorageTestFixture fixture
 			username,
 			999,
 			ChatType.Channel,
-			canSendMessages: true,
-			canSendMedia: true,
+			true,
+			true,
 			CancellationToken.None);
 
 		discoveredId.ShouldBe(existing.Id);

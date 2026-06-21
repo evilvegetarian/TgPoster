@@ -39,8 +39,12 @@ public interface IWorkerJobStatusStorage
 	/// <param name="cooldownUntil">Время окончания таймаута</param>
 	/// <param name="nextRunAt">Время следующего запуска по расписанию</param>
 	/// <param name="ct">Токен отмены</param>
-	Task ReportCooldownAsync(string jobName, DateTimeOffset cooldownUntil, DateTimeOffset? nextRunAt,
-		CancellationToken ct);
+	Task ReportCooldownAsync(
+		string jobName,
+		DateTimeOffset cooldownUntil,
+		DateTimeOffset? nextRunAt,
+		CancellationToken ct
+	);
 
 	/// <summary>
 	///     Зафиксировать успешное завершение запуска: статус Idle

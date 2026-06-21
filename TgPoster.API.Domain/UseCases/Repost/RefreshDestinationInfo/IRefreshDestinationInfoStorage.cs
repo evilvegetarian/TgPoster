@@ -25,5 +25,6 @@ public interface IRefreshDestinationInfoStorage
 		ChatType chatType,
 		ChatStatus chatStatus,
 		string? avatarBase64,
-		CancellationToken ct);
+		CancellationToken ct
+	);
 }

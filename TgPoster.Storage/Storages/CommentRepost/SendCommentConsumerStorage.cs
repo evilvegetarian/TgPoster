@@ -14,7 +14,8 @@ internal sealed class SendCommentConsumerStorage(PosterContext context, GuidFact
 		int? forwardedMessageId,
 		int? commentMessageId,
 		string? error,
-		CancellationToken ct)
+		CancellationToken ct
+	)
 	{
 		var log = new CommentRepostLog
 		{

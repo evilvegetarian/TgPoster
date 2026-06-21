@@ -4,7 +4,6 @@ using Security.IdentityServices;
 using Shared.Telegram;
 using Telegram.Bot;
 using TgPoster.API.Domain.ConfigModels;
-using TgPoster.Exceptions;
 using TgPoster.Exceptions.NotFound;
 
 namespace TgPoster.API.Domain.UseCases.TelegramBots.CreateTelegramBot;

@@ -9,7 +9,7 @@ public class AuthenticationMiddleware(RequestDelegate next)
 {
 	public async Task InvokeAsync(HttpContext context, IIdentityProvider identityProvider)
 	{
-		string userIdForLog = "unknown";
+		var userIdForLog = "unknown";
 
 		if (context.User.Identity?.IsAuthenticated == true)
 		{

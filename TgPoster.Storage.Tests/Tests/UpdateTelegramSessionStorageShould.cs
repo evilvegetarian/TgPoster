@@ -14,7 +14,7 @@ public sealed class UpdateTelegramSessionStorageShould : IClassFixture<StorageTe
 	public UpdateTelegramSessionStorageShould(StorageTestFixture fixture)
 	{
 		context = fixture.GetDbContext();
-		sut = new(context);
+		sut = new UpdateTelegramSessionStorage(context);
 	}
 
 	[Fact]

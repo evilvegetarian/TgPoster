@@ -4,7 +4,6 @@ using Shared.OpenRouter;
 using Shared.OpenRouter.Models.Request;
 using Shared.Telegram;
 using TgPoster.API.Domain.ConfigModels;
-using TgPoster.Exceptions;
 using TgPoster.API.Domain.Services;
 using TgPoster.Exceptions.NotFound;
 

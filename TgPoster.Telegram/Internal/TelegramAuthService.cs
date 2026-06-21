@@ -1,4 +1,5 @@
 using System.Net.Sockets;
+using System.Security.Cryptography;
 using System.Text;
 using Microsoft.Extensions.Logging;
 using Shared.Enums;
@@ -19,106 +20,8 @@ internal sealed class TelegramAuthService(
 	SessionDataDebouncer sessionDebouncer,
 	TelegramClientManager clientManager) : ITelegramAuthService, ITelegramClientResolver
 {
-	public void Dispose()
-	{
-	}
-
 	public Task<Guid?> GetSessionIdForPurposeAsync(TelegramSessionPurpose purpose, CancellationToken ct = default)
 		=> authRepository.GetByTelegramSessionPurpose(purpose, ct);
-
-	public async Task<Client?> GetClientAsync(TelegramSessionPurpose purpose, CancellationToken ct = default)
-	{
-		var sessionId=await authRepository.GetByTelegramSessionPurpose(purpose, ct);
-		if (sessionId == null)
-			return null;
-		return await GetClientAsync(sessionId.Value, ct);
-	}
-
-	/// <summary>
-	///     Получает или создает WTelegram клиент для указанной сессии.
-	/// </summary>
-	/// <param name="sessionId">ID Telegram сессии.</param>
-	/// <param name="ct">Токен отмены.</param>
-	/// <returns>Готовый к работе Client.</returns>
-	public async Task<Client?> GetClientAsync(Guid sessionId, CancellationToken ct = default)
-	{
-		if (clientManager.TryGetActiveClient(sessionId, out var existingClient))
-		{
-			return existingClient;
-		}
-
-		var session = await authRepository.GetByIdAsync(sessionId, ct);
-		if (session == null)
-			throw new TelegramSessionNotFoundException(sessionId);
-
-		if (!session.IsActive)
-			throw new TelegramSessionInactiveException(sessionId);
-
-		if (session.SessionData == null)
-			throw new TelegramSessionNotAuthorizedException(sessionId);
-
-		string? Config(string key)
-		{
-			return key switch
-			{
-				"api_id" => session.ApiId,
-				"api_hash" => session.ApiHash,
-				"phone_number" => session.PhoneNumber,
-				_ => null
-			};
-		}
-
-		var sessionBytes = Convert.FromBase64String(session.SessionData);
-		var client = new Client(Config, sessionBytes, data =>
-		{
-			sessionDebouncer.Update(sessionId, data);
-		});
-		client.MaxAutoReconnects = 10;
-
-		SetupProxy(client, session.Proxy);
-		try
-		{
-			var user = await client.LoginUserIfNeeded();
-			clientManager.AddActiveClient(sessionId, client);
-			logger.LogInformation("Успешный вход в Telegram для сессии {SessionId}, пользователь: {Username}",
-				sessionId, user.username ?? user.first_name);
-			await client.Account_SetContentSettings(true);
-			return client;
-		}
-		catch (RpcException ex) when (ex.Code == 401)
-		{
-			logger.LogWarning(ex, "Требуется повторная авторизация для сессии {SessionId}", sessionId);
-			await client.DisposeAsync();
-			throw new TelegramReauthorizationRequiredException(sessionId, ex);
-		}
-		catch (RpcException ex) when (ex.Message == "AUTH_KEY_DUPLICATED")
-		{
-			logger.LogWarning(
-				ex,
-				"Ключ авторизации дублирован (AUTH_KEY_DUPLICATED) для сессии {SessionId}. Сессия будет деактивирована",
-				sessionId);
-			await client.DisposeAsync();
-			await authRepository.DeactivateSessionAsync(sessionId, ct);
-			throw new TelegramAuthKeyDuplicatedException(sessionId, ex);
-		}
-		catch (NullReferenceException ex)
-		{
-			logger.LogWarning(
-				ex,
-				"Обнаружены повреждённые данные сессии {SessionId} — WTelegram упал при подключении. Сессия будет деактивирована",
-				sessionId);
-			await client.DisposeAsync();
-			await authRepository.DeactivateSessionAsync(sessionId, ct);
-			throw new TelegramSessionCorruptedException(sessionId, ex);
-		}
-		catch (Exception ex)
-		{
-			logger.LogError(ex, "Не удалось войти в Telegram для сессии {SessionId}", sessionId);
-			await client.DisposeAsync();
-			await authRepository.DeactivateSessionAsync(sessionId, ct);
-			throw;
-		}
-	}
 
 	/// <summary>
 	///     Удаляет клиент из кеша (например, при деактивации сессии).
@@ -154,7 +57,7 @@ internal sealed class TelegramAuthService(
 			throw new TelegramSessionCorruptedException(sessionId);
 		}
 
-		Client client = new Client(Config, null, data =>
+		var client = new Client(Config, null, data =>
 		{
 			sessionDebouncer.Update(sessionId, data);
 		});
@@ -341,7 +244,7 @@ internal sealed class TelegramAuthService(
 				ErrorMessage = "Сессия не авторизована или истекла. Требуется повторная авторизация."
 			};
 		}
-		catch (WTException ex) when (ex.InnerException is System.Security.Cryptography.CryptographicException)
+		catch (WTException ex) when (ex.InnerException is CryptographicException)
 		{
 			logger.LogWarning(ex, "Не удалось расшифровать файл сессии — неверные api_id/api_hash");
 			return new ImportSessionResult
@@ -365,6 +268,104 @@ internal sealed class TelegramAuthService(
 			if (client != null)
 				await client.DisposeAsync();
 		}
+	}
+
+	public async Task<Client?> GetClientAsync(TelegramSessionPurpose purpose, CancellationToken ct = default)
+	{
+		var sessionId = await authRepository.GetByTelegramSessionPurpose(purpose, ct);
+		if (sessionId == null)
+			return null;
+		return await GetClientAsync(sessionId.Value, ct);
+	}
+
+	/// <summary>
+	///     Получает или создает WTelegram клиент для указанной сессии.
+	/// </summary>
+	/// <param name="sessionId">ID Telegram сессии.</param>
+	/// <param name="ct">Токен отмены.</param>
+	/// <returns>Готовый к работе Client.</returns>
+	public async Task<Client?> GetClientAsync(Guid sessionId, CancellationToken ct = default)
+	{
+		if (clientManager.TryGetActiveClient(sessionId, out var existingClient))
+		{
+			return existingClient;
+		}
+
+		var session = await authRepository.GetByIdAsync(sessionId, ct);
+		if (session == null)
+			throw new TelegramSessionNotFoundException(sessionId);
+
+		if (!session.IsActive)
+			throw new TelegramSessionInactiveException(sessionId);
+
+		if (session.SessionData == null)
+			throw new TelegramSessionNotAuthorizedException(sessionId);
+
+		string? Config(string key)
+		{
+			return key switch
+			{
+				"api_id" => session.ApiId,
+				"api_hash" => session.ApiHash,
+				"phone_number" => session.PhoneNumber,
+				_ => null
+			};
+		}
+
+		var sessionBytes = Convert.FromBase64String(session.SessionData);
+		var client = new Client(Config, sessionBytes, data =>
+		{
+			sessionDebouncer.Update(sessionId, data);
+		});
+		client.MaxAutoReconnects = 10;
+
+		SetupProxy(client, session.Proxy);
+		try
+		{
+			var user = await client.LoginUserIfNeeded();
+			clientManager.AddActiveClient(sessionId, client);
+			logger.LogInformation("Успешный вход в Telegram для сессии {SessionId}, пользователь: {Username}",
+				sessionId, user.username ?? user.first_name);
+			await client.Account_SetContentSettings(true);
+			return client;
+		}
+		catch (RpcException ex) when (ex.Code == 401)
+		{
+			logger.LogWarning(ex, "Требуется повторная авторизация для сессии {SessionId}", sessionId);
+			await client.DisposeAsync();
+			throw new TelegramReauthorizationRequiredException(sessionId, ex);
+		}
+		catch (RpcException ex) when (ex.Message == "AUTH_KEY_DUPLICATED")
+		{
+			logger.LogWarning(
+				ex,
+				"Ключ авторизации дублирован (AUTH_KEY_DUPLICATED) для сессии {SessionId}. Сессия будет деактивирована",
+				sessionId);
+			await client.DisposeAsync();
+			await authRepository.DeactivateSessionAsync(sessionId, ct);
+			throw new TelegramAuthKeyDuplicatedException(sessionId, ex);
+		}
+		catch (NullReferenceException ex)
+		{
+			logger.LogWarning(
+				ex,
+				"Обнаружены повреждённые данные сессии {SessionId} — WTelegram упал при подключении. Сессия будет деактивирована",
+				sessionId);
+			await client.DisposeAsync();
+			await authRepository.DeactivateSessionAsync(sessionId, ct);
+			throw new TelegramSessionCorruptedException(sessionId, ex);
+		}
+		catch (Exception ex)
+		{
+			logger.LogError(ex, "Не удалось войти в Telegram для сессии {SessionId}", sessionId);
+			await client.DisposeAsync();
+			await authRepository.DeactivateSessionAsync(sessionId, ct);
+			throw;
+		}
+	}
+
+	public void Dispose()
+	{
 	}
 
 	/// <summary>
@@ -434,7 +435,7 @@ internal sealed class TelegramAuthService(
 		await tcpClient.ConnectAsync(proxy.Host, proxy.Port);
 		var stream = tcpClient.GetStream();
 
-		bool hasAuth = proxy.Username != null && proxy.Password != null;
+		var hasAuth = proxy.Username != null && proxy.Password != null;
 		byte[] greeting = hasAuth ? [0x05, 0x02, 0x00, 0x02] : [0x05, 0x01, 0x00];
 		await stream.WriteAsync(greeting);
 
@@ -447,7 +448,8 @@ internal sealed class TelegramAuthService(
 		{
 			var usernameBytes = Encoding.UTF8.GetBytes(proxy.Username!);
 			var passwordBytes = Encoding.UTF8.GetBytes(proxy.Password!);
-			byte[] authRequest = [0x01, (byte)usernameBytes.Length, ..usernameBytes, (byte)passwordBytes.Length, ..passwordBytes];
+			byte[] authRequest =
+				[0x01, (byte)usernameBytes.Length, ..usernameBytes, (byte)passwordBytes.Length, ..passwordBytes];
 			await stream.WriteAsync(authRequest);
 
 			var authResponse = new byte[2];
@@ -461,7 +463,8 @@ internal sealed class TelegramAuthService(
 		}
 
 		var hostBytes = Encoding.ASCII.GetBytes(host);
-		byte[] connectRequest = [
+		byte[] connectRequest =
+		[
 			0x05, 0x01, 0x00, 0x03,
 			(byte)hostBytes.Length, ..hostBytes,
 			(byte)(port >> 8), (byte)(port & 0xFF)
@@ -476,13 +479,13 @@ internal sealed class TelegramAuthService(
 		// Пропускаем адрес привязки в ответе
 		switch (connectHeader[3])
 		{
-			case 0x01: await stream.ReadExactlyAsync(new byte[6]); break;   // IPv4 + port
+			case 0x01: await stream.ReadExactlyAsync(new byte[6]); break; // IPv4 + port
 			case 0x03:
 				var domainLenBuf = new byte[1];
 				await stream.ReadExactlyAsync(domainLenBuf);
 				await stream.ReadExactlyAsync(new byte[domainLenBuf[0] + 2]);
 				break;
-			case 0x04: await stream.ReadExactlyAsync(new byte[18]); break;  // IPv6 + port
+			case 0x04: await stream.ReadExactlyAsync(new byte[18]); break; // IPv6 + port
 		}
 
 		return tcpClient;
@@ -509,7 +512,7 @@ internal sealed class TelegramAuthService(
 
 		// Читаем ответ побайтово до \r\n\r\n чтобы не захватить лишних байт потока
 		var headerBytes = new List<byte>(256);
-		byte[] singleByte = new byte[1];
+		var singleByte = new byte[1];
 		while (true)
 		{
 			await stream.ReadExactlyAsync(singleByte);

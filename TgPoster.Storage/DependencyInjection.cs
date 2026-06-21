@@ -2,7 +2,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using TgPoster.Telegram;
 using TgPoster.Storage.ConfigModels;
 using TgPoster.Storage.Data;
 using TgPoster.Storage.Repositories;
@@ -12,7 +11,11 @@ namespace TgPoster.Storage;
 
 public static class DependencyInjection
 {
-	public static IServiceCollection AddStorage(this IServiceCollection services, IConfiguration configuration, IHostEnvironment environment)
+	public static IServiceCollection AddStorage(
+		this IServiceCollection services,
+		IConfiguration configuration,
+		IHostEnvironment environment
+	)
 	{
 		var dataBase = configuration.GetSection(nameof(DataBase)).Get<DataBase>()!;
 
