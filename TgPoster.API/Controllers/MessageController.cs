@@ -14,6 +14,7 @@ using TgPoster.API.Domain.UseCases.Messages.GetMessageById;
 using TgPoster.API.Domain.UseCases.Messages.GetTime;
 using TgPoster.API.Domain.UseCases.Messages.ListMessage;
 using TgPoster.API.Domain.UseCases.Messages.LoadFilesMessage;
+using TgPoster.API.Domain.UseCases.Messages.ShuffleMessages;
 using TgPoster.API.Domain.UseCases.Messages.UpdateAllTime;
 using TgPoster.API.Mapper;
 using TgPoster.API.Models;
@@ -249,6 +250,23 @@ public class MessageController(ISender sender) : ControllerBase
 	public async Task<IActionResult> UpdateAllTime([Required] [FromRoute] Guid scheduleId, CancellationToken ct)
 	{
 		await sender.Send(new UpdateAllTimeCommand(scheduleId), ct);
+		return NoContent();
+	}
+
+	/// <summary>
+	///     Перетасовать сообщения расписания.
+	///     Набор времён публикации остаётся прежним, но привязка сообщений к слотам меняется случайно.
+	/// </summary>
+	/// <param name="scheduleId">Идентификатор расписания</param>
+	/// <param name="ct">Токен отмены операции</param>
+	/// <returns>Результат выполнения операции</returns>
+	[HttpPost(Routes.Message.Shuffle)]
+	[ProducesResponseType(StatusCodes.Status204NoContent)]
+	[ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
+	[ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
+	public async Task<IActionResult> Shuffle([FromRoute] [Required] Guid scheduleId, CancellationToken ct)
+	{
+		await sender.Send(new ShuffleMessagesCommand(scheduleId), ct);
 		return NoContent();
 	}
 }

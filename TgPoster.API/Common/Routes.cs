@@ -61,6 +61,7 @@ internal static class Routes
 		internal const string GenerateAiContent = Root + "/{messageId:guid}/ai-content";
 		internal const string GetTime = Root + "/{scheduleId:guid}/time";
 		internal const string UpdateAllTime = Root + "/{scheduleId:guid}/times";
+		internal const string Shuffle = Root + "/{scheduleId:guid}/shuffle";
 	}
 
 	internal static class File

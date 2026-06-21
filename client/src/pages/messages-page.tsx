@@ -1,5 +1,5 @@
 import {useCallback, useEffect, useMemo, useState} from "react"
-import {AlertCircle, Check, Loader2, MessageSquarePlus, Trash2} from "lucide-react"
+import {AlertCircle, Check, Loader2, MessageSquarePlus, Shuffle, Trash2} from "lucide-react"
 import type {DateRange} from "react-day-picker"
 import {toast} from "sonner"
 import {useQueryClient} from "@tanstack/react-query"
@@ -24,7 +24,8 @@ import {MessageSortBy, MessageStatus, SortDirection} from "@/api/endpoints/tgPos
 import {
     useDeleteApiV1Message,
     useGetApiV1MessageScheduleIdTime,
-    usePatchApiV1Message
+    usePatchApiV1Message,
+    usePostApiV1MessageScheduleIdShuffle
 } from "@/api/endpoints/message/message"
 
 import {FiltersPanel} from "@/components/message/filters-panel.tsx"
@@ -132,6 +133,17 @@ export function MessagesPage() {
         },
     })
 
+    const shuffleMessages = usePostApiV1MessageScheduleIdShuffle({
+        mutation: {
+            onSuccess: () => {
+                toast.success("Успех", {description: "Сообщения перетасованы"})
+                queryClient.invalidateQueries({queryKey: ["/api/v1/message"]})
+                if (scheduleId) refetchTimes()
+            },
+            onError: (error) => toast("Ошибка", {description: error.title || "Не удалось перетасовать сообщения"}),
+        },
+    })
+
     // Сброс выделения и обновление времени при смене фильтров
     useEffect(() => {
         setSelectedMessageIds([])
@@ -156,6 +168,9 @@ export function MessagesPage() {
     // Обработчики действий
     const handleConfirmSelected = () => confirmMessages.mutate({data: {messagesIds: selectedMessageIds}})
     const handleDeleteSelected = () => deleteMessages.mutate({data: selectedMessageIds})
+    const handleShuffle = () => {
+        if (scheduleId) shuffleMessages.mutate({scheduleId})
+    }
 
     // Сброс фильтров
     const handleResetFilters = useCallback(() => {
@@ -179,12 +194,40 @@ export function MessagesPage() {
         <div className="container mx-auto p-6 space-y-6">
             <div className="flex items-center justify-between">
                 <h1 className="text-3xl font-bold">Управление сообщениями</h1>
-                {scheduleId &&
-                    <CreateMessageDialog
-                        scheduleId={scheduleId}
-                        availableTimes={availableTimes}
-                        onTimeSelect={handleTimeSelect}
-                    />}
+                {scheduleId && (
+                    <div className="flex items-center gap-2">
+                        <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                                <Button variant="outline" disabled={shuffleMessages.isPending}>
+                                    {shuffleMessages.isPending
+                                        ? <Loader2 className="h-4 w-4 mr-2 animate-spin"/>
+                                        : <Shuffle className="h-4 w-4 mr-2"/>}
+                                    Перетасовать
+                                </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                                <AlertDialogHeader>
+                                    <AlertDialogTitle>Перетасовать сообщения?</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                        Времена публикации останутся прежними, но порядок сообщений по слотам
+                                        изменится случайным образом. Затронет все запланированные сообщения расписания.
+                                    </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                    <AlertDialogCancel>Отмена</AlertDialogCancel>
+                                    <AlertDialogAction onClick={handleShuffle}>
+                                        Перетасовать
+                                    </AlertDialogAction>
+                                </AlertDialogFooter>
+                            </AlertDialogContent>
+                        </AlertDialog>
+                        <CreateMessageDialog
+                            scheduleId={scheduleId}
+                            availableTimes={availableTimes}
+                            onTimeSelect={handleTimeSelect}
+                        />
+                    </div>
+                )}
             </div>
 
             <FiltersPanel

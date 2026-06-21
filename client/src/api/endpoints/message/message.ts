@@ -942,4 +942,68 @@ export const usePutApiV1MessageScheduleIdTimes = <TError = ProblemDetails,
 
       return useMutation(mutationOptions, queryClient);
     }
+    /**
+ * @summary Перетасовать сообщения расписания.
+Набор времён публикации остаётся прежним, но привязка сообщений к слотам меняется случайно.
+ */
+export const postApiV1MessageScheduleIdShuffle = (
+    scheduleId: string,
+ signal?: AbortSignal
+) => {
+      
+      
+      return customInstance<void>(
+      {url: `/api/v1/message/${scheduleId}/shuffle`, method: 'POST', signal
+    },
+      );
+    }
+  
+
+
+export const getPostApiV1MessageScheduleIdShuffleMutationOptions = <TError = ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postApiV1MessageScheduleIdShuffle>>, TError,{scheduleId: string}, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof postApiV1MessageScheduleIdShuffle>>, TError,{scheduleId: string}, TContext> => {
+
+const mutationKey = ['postApiV1MessageScheduleIdShuffle'];
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof postApiV1MessageScheduleIdShuffle>>, {scheduleId: string}> = (props) => {
+          const {scheduleId} = props ?? {};
+
+          return  postApiV1MessageScheduleIdShuffle(scheduleId,)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type PostApiV1MessageScheduleIdShuffleMutationResult = NonNullable<Awaited<ReturnType<typeof postApiV1MessageScheduleIdShuffle>>>
+    
+    export type PostApiV1MessageScheduleIdShuffleMutationError = ProblemDetails
+
+    /**
+ * @summary Перетасовать сообщения расписания.
+Набор времён публикации остаётся прежним, но привязка сообщений к слотам меняется случайно.
+ */
+export const usePostApiV1MessageScheduleIdShuffle = <TError = ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postApiV1MessageScheduleIdShuffle>>, TError,{scheduleId: string}, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof postApiV1MessageScheduleIdShuffle>>,
+        TError,
+        {scheduleId: string},
+        TContext
+      > => {
+
+      const mutationOptions = getPostApiV1MessageScheduleIdShuffleMutationOptions(options);
+
+      return useMutation(mutationOptions, queryClient);
+    }
     
