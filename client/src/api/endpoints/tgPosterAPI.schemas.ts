@@ -18,6 +18,7 @@ export interface AddRepostDestinationRequest {
 
 export interface AddRepostDestinationResponse {
   id: string;
+  discoveredChannelId: string;
 }
 
 /**
@@ -731,6 +732,8 @@ export interface RepostDestinationDto {
   avatarBase64?: string | null;
   /** @nullable */
   infoUpdatedAt?: string | null;
+  /** @nullable */
+  discoveredChannelId?: string | null;
   delayMinSeconds?: number;
   delayMaxSeconds?: number;
   repostEveryNth?: number;
@@ -779,6 +782,8 @@ export interface ScheduleResponse {
   youTubeAccountId?: string | null;
   postCount: number;
   pendingPostCount: number;
+  /** @nullable */
+  lastPostDate?: string | null;
 }
 
 export interface ScrapeChannelsCommand {

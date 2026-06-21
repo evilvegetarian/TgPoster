@@ -56,6 +56,11 @@ public sealed record ScheduleResponse
 	///     Количество постов, которые ещё только будут запощены
 	/// </summary>
 	public required int PendingPostCount { get; init; }
+
+	/// <summary>
+	///     Дата последнего запланированного поста
+	/// </summary>
+	public DateTimeOffset? LastPostDate { get; init; }
 }
 
 public sealed record ScheduleListResponse

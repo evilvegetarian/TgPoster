@@ -1,4 +1,6 @@
 ﻿import {useEffect, useMemo, useState} from "react"
+import {format} from "date-fns"
+import {ru} from "date-fns/locale"
 import {Button} from "@/components/ui/button.tsx"
 import {Card, CardContent, CardDescription, CardHeader, CardTitle} from "@/components/ui/card.tsx"
 import {Input} from "@/components/ui/input.tsx"
@@ -482,6 +484,16 @@ export function SchedulePage() {
                                     </span>
                                     <Badge variant="outline">{schedule.pendingPostCount}</Badge>
                                 </div>
+
+                                {schedule.lastPostDate && (
+                                    <div className="flex items-center justify-between text-sm">
+                                        <span className="text-muted-foreground flex items-center gap-1">
+                                            <Calendar className="h-3.5 w-3.5"/>
+                                            Последний пост:
+                                        </span>
+                                        <span>{format(new Date(schedule.lastPostDate), "dd.MM.yyyy HH:mm", {locale: ru})}</span>
+                                    </div>
+                                )}
 
                                 <div className="space-y-2">
                                     <span className="text-sm text-muted-foreground">Активные дни:</span>

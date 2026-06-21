@@ -22,7 +22,8 @@ internal sealed class ListScheduleStorage(PosterContext context) : IListSchedule
 				PromptId = x.PromptSetting != null ? x.PromptSetting.Id : null,
 				YouTubeAccountId = x.YouTubeAccountId,
 				PostCount = x.Messages.Count,
-				PendingPostCount = x.Messages.Count(m => m.Status == MessageStatus.Register&& m.TimePosting>DateTime.Now)
+				PendingPostCount = x.Messages.Count(m => m.Status == MessageStatus.Register&& m.TimePosting>DateTime.Now),
+				LastPostDate = x.Messages.Max(m => (DateTimeOffset?)m.TimePosting)
 			}).ToListAsync(ct);
 	}
 }
