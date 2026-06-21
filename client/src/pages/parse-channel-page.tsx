@@ -4,7 +4,7 @@ import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card"
 import {Badge} from "@/components/ui/badge"
 import {Input} from "@/components/ui/input"
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select"
-import {Calendar, Edit, Eye, EyeOff, Filter, Hash, Loader2, Plus, RefreshCw, Search, Settings, User} from "lucide-react"
+import {Calendar, Edit, ExternalLink, Eye, EyeOff, Filter, Hash, Loader2, Plus, RefreshCw, Search, Settings, User} from "lucide-react"
 import {toast} from "sonner"
 
 import {
@@ -36,6 +36,11 @@ export function ParseChannelPage() {
 
     const getSessionLabel = (setting: ParseChannelResponse) =>
         setting.telegramSessionName || setting.telegramSessionPhoneNumber || "Сессия не указана"
+
+    const getChannelUrl = (channel: string | null | undefined) => {
+        if (!channel) return null
+        return `https://t.me/${channel.replace(/^@/, "")}`
+    }
 
     const uniqueSchedules = useMemo(() => {
         const map = new Map<string, string>()
@@ -276,8 +281,22 @@ export function ParseChannelPage() {
                             <CardHeader>
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-3">
-                                        <CardTitle
-                                            className="text-xl">{setting.channel || "Канал не указан"}</CardTitle>
+                                        {getChannelUrl(setting.channel) ? (
+                                            <a
+                                                href={getChannelUrl(setting.channel)!}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="inline-flex items-center gap-1.5 group"
+                                                title="Перейти на канал"
+                                            >
+                                                <CardTitle className="text-xl group-hover:text-primary group-hover:underline transition-colors">
+                                                    {setting.channel}
+                                                </CardTitle>
+                                                <ExternalLink className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors"/>
+                                            </a>
+                                        ) : (
+                                            <CardTitle className="text-xl">Канал не указан</CardTitle>
+                                        )}
                                         {getStatusBadge(setting.status, setting.isActive)}
                                     </div>
                                     <div className="flex items-center gap-2">
