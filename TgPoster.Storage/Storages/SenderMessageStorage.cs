@@ -14,6 +14,7 @@ internal class SenderMessageStorage(PosterContext context) : ISenderMessageStora
 		var plusMinute = time.AddMinutes(5);
 
 		return context.Schedules
+			.Where(x=>x.IsActive)
 			.Where(x => x.Messages.Any(m => m.TimePosting > time
 			                                && m.TimePosting <= plusMinute
 			                                && m.Status == MessageStatus.Register))
