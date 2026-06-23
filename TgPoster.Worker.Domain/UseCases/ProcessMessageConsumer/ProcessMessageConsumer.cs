@@ -248,11 +248,6 @@ internal sealed class ProcessMessageConsumer(
 			messageDto.TimePosting = postingTime.First();
 			await storage.CreateMessageAsync(messageDto, ct);
 		}
-		else
-		{
-			logger.LogWarning("Пост для ScheduleId {ScheduleId} оказался пустым после обработки и не был сохранен.",
-				scheduleId);
-		}
 	}
 
 	private sealed class DownloadedMedia : IAsyncDisposable
