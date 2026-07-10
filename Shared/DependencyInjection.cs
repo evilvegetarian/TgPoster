@@ -1,3 +1,4 @@
+using System.Net;
 using Microsoft.Extensions.DependencyInjection;
 using Shared.OpenRouter;
 using Shared.Services;
@@ -17,6 +18,19 @@ public static class DependencyInjection
 	{
 		services.AddHttpClient();
 		services.AddSingleton<TelegramBotManager>();
+
+		services.AddHttpClient(OpenRouterClient.HttpClientName)
+			.ConfigurePrimaryHttpMessageHandler(sp =>
+			{
+				var proxy = sp.GetService<IWebProxy>();
+				return new SocketsHttpHandler
+				{
+					AutomaticDecompression = DecompressionMethods.All,
+					PooledConnectionLifetime = TimeSpan.FromMinutes(2),
+					Proxy = proxy,
+					UseProxy = proxy is not null
+				};
+			});
 
 		services.AddScoped<IOpenRouterClient, OpenRouterClient>();
 		services.AddScoped<ITgStatScrapingService, TgStatScrapingService>();

@@ -12,6 +12,11 @@ namespace Shared.OpenRouter;
 /// </summary>
 public sealed class OpenRouterClient(IHttpClientFactory httpClientFactory) : IOpenRouterClient
 {
+	/// <summary>
+	///     Имя HttpClient для запросов к OpenRouter (настроен с прокси из БД)
+	/// </summary>
+	public const string HttpClientName = "openrouter";
+
 	private const string ApiUrl = "https://openrouter.ai/api/v1/chat/completions";
 
 	/// <inheritdoc />
@@ -59,7 +64,7 @@ public sealed class OpenRouterClient(IHttpClientFactory httpClientFactory) : IOp
 		CancellationToken cancellationToken
 	)
 	{
-		using var client = httpClientFactory.CreateClient();
+		using var client = httpClientFactory.CreateClient(HttpClientName);
 		client.DefaultRequestHeaders.Add("Authorization", $"Bearer {apiKey}");
 
 		var requestData = new ChatRequest { Model = model, Messages = messages };
