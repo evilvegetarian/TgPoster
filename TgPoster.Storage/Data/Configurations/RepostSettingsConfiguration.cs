@@ -19,6 +19,18 @@ internal sealed class RepostSettingsConfiguration : BaseEntityConfiguration<Repo
 		builder.Property(x => x.IsActive)
 			.HasDefaultValue(true);
 
+		builder.Property(x => x.DefaultDelayMinSeconds)
+			.HasDefaultValue(0);
+
+		builder.Property(x => x.DefaultDelayMaxSeconds)
+			.HasDefaultValue(0);
+
+		builder.Property(x => x.DefaultRepostEveryNth)
+			.HasDefaultValue(1);
+
+		builder.Property(x => x.DefaultSkipProbability)
+			.HasDefaultValue(0);
+
 		builder.HasOne(x => x.Schedule)
 			.WithMany(x => x.RepostSettings)
 			.HasForeignKey(x => x.ScheduleId)

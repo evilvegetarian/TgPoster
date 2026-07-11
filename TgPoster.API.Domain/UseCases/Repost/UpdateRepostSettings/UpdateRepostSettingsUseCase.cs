@@ -14,6 +14,14 @@ internal sealed class UpdateRepostSettingsUseCase(
 		if (!await storage.SettingsExistsAsync(request.Id, identity.Current.UserId, ct))
 			throw new RepostSettingsNotFoundException(request.Id);
 
-		await storage.UpdateSettingsAsync(request.Id, request.IsActive, ct);
+		await storage.UpdateSettingsAsync(
+			request.Id,
+			request.IsActive,
+			request.DefaultDelayMinSeconds,
+			request.DefaultDelayMaxSeconds,
+			request.DefaultRepostEveryNth,
+			request.DefaultSkipProbability,
+			request.DefaultMaxRepostsPerDay,
+			ct);
 	}
 }

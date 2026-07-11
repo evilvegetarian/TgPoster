@@ -34,9 +34,12 @@ public class UpdateRepostSettingsUseCaseShould
 		var id = Guid.NewGuid();
 		existsSetup.ReturnsAsync(true);
 
-		await sut.Handle(new UpdateRepostSettingsCommand(id, false), CancellationToken.None);
+		await sut.Handle(
+			new UpdateRepostSettingsCommand(id, false, 10, 60, 2, 30, 5),
+			CancellationToken.None);
 
-		storage.Verify(s => s.UpdateSettingsAsync(id, false, It.IsAny<CancellationToken>()), Times.Once);
+		storage.Verify(s => s.UpdateSettingsAsync(id, false, 10, 60, 2, 30, 5, It.IsAny<CancellationToken>()),
+			Times.Once);
 	}
 
 	[Fact]
@@ -46,9 +49,13 @@ public class UpdateRepostSettingsUseCaseShould
 		existsSetup.ReturnsAsync(false);
 
 		await Should.ThrowAsync<RepostSettingsNotFoundException>(async () =>
-			await sut.Handle(new UpdateRepostSettingsCommand(id, true), CancellationToken.None));
+			await sut.Handle(
+				new UpdateRepostSettingsCommand(id, true, 0, 0, 1, 0, null),
+				CancellationToken.None));
 
-		storage.Verify(s => s.UpdateSettingsAsync(It.IsAny<Guid>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()),
+		storage.Verify(s => s.UpdateSettingsAsync(
+				It.IsAny<Guid>(), It.IsAny<bool>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>(),
+				It.IsAny<int>(), It.IsAny<int?>(), It.IsAny<CancellationToken>()),
 			Times.Never);
 	}
 
@@ -58,7 +65,9 @@ public class UpdateRepostSettingsUseCaseShould
 		var id = Guid.NewGuid();
 		existsSetup.ReturnsAsync(true);
 
-		await sut.Handle(new UpdateRepostSettingsCommand(id, true), CancellationToken.None);
+		await sut.Handle(
+			new UpdateRepostSettingsCommand(id, true, 0, 0, 1, 0, null),
+			CancellationToken.None);
 
 		storage.Verify(s => s.SettingsExistsAsync(id, userId, It.IsAny<CancellationToken>()), Times.Once);
 	}

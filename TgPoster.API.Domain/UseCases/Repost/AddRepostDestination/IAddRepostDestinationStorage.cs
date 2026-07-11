@@ -5,9 +5,12 @@ namespace TgPoster.API.Domain.UseCases.Repost.AddRepostDestination;
 public interface IAddRepostDestinationStorage
 {
 	/// <summary>
-	///     Получает TelegramSessionId для RepostSettings.
+	///     Получает сессию и общие настройки RepostSettings, копируемые на новый канал.
 	/// </summary>
-	Task<Guid?> GetTelegramSessionIdAsync(Guid repostSettingsId, CancellationToken ct);
+	/// <param name="repostSettingsId">Id настроек репоста.</param>
+	/// <param name="ct">Токен отмены.</param>
+	/// <returns>Информация о настройках репоста или null, если настройки не найдены.</returns>
+	Task<RepostSettingsInfo?> GetSettingsInfoAsync(Guid repostSettingsId, CancellationToken ct);
 
 	/// <summary>
 	///     Проверяет существует ли уже destination с таким ChatIdentifier для данного RepostSettings.
@@ -50,6 +53,11 @@ public interface IAddRepostDestinationStorage
 	/// <param name="chatStatus">Статус доступа к чату.</param>
 	/// <param name="avatarBase64">Аватарка в формате base64 data URI.</param>
 	/// <param name="discoveredChannelId">Id связанной записи Discover.</param>
+	/// <param name="delayMinSeconds">Минимальная задержка перед репостом (секунды).</param>
+	/// <param name="delayMaxSeconds">Максимальная задержка перед репостом (секунды).</param>
+	/// <param name="repostEveryNth">Репостить каждое N-е сообщение (1 = каждое).</param>
+	/// <param name="skipProbability">Вероятность пропуска репоста (0-100%).</param>
+	/// <param name="maxRepostsPerDay">Максимальное количество репостов в день (null = без лимита).</param>
 	/// <param name="ct">Токен отмены.</param>
 	/// <returns>Id созданного destination.</returns>
 	Task<Guid> AddDestinationAsync(
@@ -62,6 +70,11 @@ public interface IAddRepostDestinationStorage
 		ChatStatus chatStatus,
 		string? avatarBase64,
 		Guid discoveredChannelId,
+		int delayMinSeconds,
+		int delayMaxSeconds,
+		int repostEveryNth,
+		int skipProbability,
+		int? maxRepostsPerDay,
 		CancellationToken ct
 	);
 }

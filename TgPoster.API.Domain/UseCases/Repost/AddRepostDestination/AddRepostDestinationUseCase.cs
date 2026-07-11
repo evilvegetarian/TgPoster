@@ -13,14 +13,14 @@ internal sealed class AddRepostDestinationUseCase(
 {
 	public async Task<AddRepostDestinationResponse> Handle(AddRepostDestinationCommand request, CancellationToken ct)
 	{
-		var telegramSessionId = await storage.GetTelegramSessionIdAsync(request.RepostSettingsId, ct);
-		if (telegramSessionId == null)
+		var settingsInfo = await storage.GetSettingsInfoAsync(request.RepostSettingsId, ct);
+		if (settingsInfo == null)
 		{
 			throw new RepostSettingsNotFoundException(request.RepostSettingsId);
 		}
 
-		var info = await chatService.GetChatInfoAsync(telegramSessionId.Value, request.ChatIdentifier);
-		var fullInfo = await chatService.GetFullChannelInfoAsync(telegramSessionId.Value, info);
+		var info = await chatService.GetChatInfoAsync(settingsInfo.TelegramSessionId, request.ChatIdentifier);
+		var fullInfo = await chatService.GetFullChannelInfoAsync(settingsInfo.TelegramSessionId, info);
 
 		var chatType = info.IsChannel ? ChatType.Channel
 			: info.IsGroup ? ChatType.Group
@@ -54,6 +54,7 @@ internal sealed class AddRepostDestinationUseCase(
 			? "data:image/jpeg;base64," + Convert.ToBase64String(fullInfo.AvatarThumbnail)
 			: null;
 
+		// Новый канал наследует общие настройки RepostSettings, дальше настраивается индивидуально
 		var destinationId = await storage.AddDestinationAsync(
 			request.RepostSettingsId,
 			info.Id,
@@ -64,6 +65,11 @@ internal sealed class AddRepostDestinationUseCase(
 			ChatStatus.Active,
 			avatarBase64,
 			discoveredChannelId,
+			settingsInfo.DefaultDelayMinSeconds,
+			settingsInfo.DefaultDelayMaxSeconds,
+			settingsInfo.DefaultRepostEveryNth,
+			settingsInfo.DefaultSkipProbability,
+			settingsInfo.DefaultMaxRepostsPerDay,
 			ct);
 
 		return new AddRepostDestinationResponse

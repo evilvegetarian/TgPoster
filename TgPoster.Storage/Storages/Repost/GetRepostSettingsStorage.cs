@@ -19,6 +19,11 @@ internal sealed class GetRepostSettingsStorage(PosterContext context) : IGetRepo
 				TelegramSessionId = x.TelegramSessionId,
 				TelegramSessionName = x.TelegramSession.Name,
 				IsActive = x.IsActive,
+				DefaultDelayMinSeconds = x.DefaultDelayMinSeconds,
+				DefaultDelayMaxSeconds = x.DefaultDelayMaxSeconds,
+				DefaultRepostEveryNth = x.DefaultRepostEveryNth,
+				DefaultSkipProbability = x.DefaultSkipProbability,
+				DefaultMaxRepostsPerDay = x.DefaultMaxRepostsPerDay,
 				Created = x.Created!.Value,
 				Destinations = x.Destinations.Select(d => new RepostDestinationDto
 				{

@@ -7,6 +7,7 @@ import {Loader2, Plus, RefreshCw, Settings, Trash2, X} from "lucide-react";
 import {toast} from "sonner";
 import {AddDestinationDialog} from "@/pages/repostpage/add-destination-dialog.tsx";
 import {DestinationSettingsDialog} from "@/pages/repostpage/destination-settings-dialog.tsx";
+import {RepostDefaultsDialog} from "@/pages/repostpage/repost-defaults-dialog.tsx";
 import {
     useGetApiV1RepostSettingsId,
     useDeleteApiV1RepostDestinationsId,
@@ -57,6 +58,7 @@ function formatMemberCount(count: number): string {
 
 export function RepostSettingsCard({settings}: RepostSettingsCardProps) {
     const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+    const [isDefaultsDialogOpen, setIsDefaultsDialogOpen] = useState(false);
     const [settingsDialogDestId, setSettingsDialogDestId] = useState<string | null>(null);
     const queryClient = useQueryClient();
     const {mutate: deleteSettings} = useDeleteApiV1RepostSettingsId({
@@ -188,15 +190,27 @@ export function RepostSettingsCard({settings}: RepostSettingsCardProps) {
                     <h4 className="text-sm font-semibold">
                         Целевые каналы ({settings.destinationsCount})
                     </h4>
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setIsAddDialogOpen(true)}
-                        className="gap-1"
-                    >
-                        <Plus className="h-3 w-3"/>
-                        Добавить канал
-                    </Button>
+                    <div className="flex items-center gap-2">
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setIsDefaultsDialogOpen(true)}
+                            className="gap-1"
+                            disabled={!detailedSettings}
+                        >
+                            <Settings className="h-3 w-3"/>
+                            Общие настройки
+                        </Button>
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setIsAddDialogOpen(true)}
+                            className="gap-1"
+                        >
+                            <Plus className="h-3 w-3"/>
+                            Добавить канал
+                        </Button>
+                    </div>
                 </div>
 
                 {isLoading ? (
@@ -328,6 +342,18 @@ export function RepostSettingsCard({settings}: RepostSettingsCardProps) {
                 onOpenChange={setIsAddDialogOpen}
                 onSuccess={handleDestinationAdded}
             />
+
+            {detailedSettings && (
+                <RepostDefaultsDialog
+                    settings={detailedSettings}
+                    open={isDefaultsDialogOpen}
+                    onOpenChange={setIsDefaultsDialogOpen}
+                    onSuccess={() => {
+                        void refetchDetails();
+                        onRefresh();
+                    }}
+                />
+            )}
 
             {settingsDialogDestId && (() => {
                 const dest = destinations.find(d => d.id === settingsDialogDestId);

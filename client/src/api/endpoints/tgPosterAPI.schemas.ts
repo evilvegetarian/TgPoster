@@ -759,6 +759,12 @@ export interface RepostSettingsResponse {
   /** @nullable */
   telegramSessionName: string | null;
   isActive: boolean;
+  defaultDelayMinSeconds: number;
+  defaultDelayMaxSeconds: number;
+  defaultRepostEveryNth: number;
+  defaultSkipProbability: number;
+  /** @nullable */
+  defaultMaxRepostsPerDay: number | null;
   created: string;
   destinations: RepostDestinationDto[];
 }
@@ -979,16 +985,34 @@ export interface UpdateProxyRequest {
 export interface UpdateRepostDestinationRequest {
   /** Активен ли целевой канал. */
   isActive: boolean;
-  /** Минимальная задержка перед репостом (секунды). */
+  /**
+   * Минимальная задержка перед репостом (секунды).
+   * @minimum 0
+   * @maximum 2147483647
+   */
   delayMinSeconds?: number;
-  /** Максимальная задержка перед репостом (секунды). */
+  /**
+   * Максимальная задержка перед репостом (секунды).
+   * @minimum 0
+   * @maximum 2147483647
+   */
   delayMaxSeconds?: number;
-  /** Репостить каждое N-е сообщение (1 = каждое). */
+  /**
+   * Репостить каждое N-е сообщение (1 = каждое).
+   * @minimum 1
+   * @maximum 2147483647
+   */
   repostEveryNth?: number;
-  /** Вероятность пропуска репоста (0-100%). */
+  /**
+   * Вероятность пропуска репоста (0-100%).
+   * @minimum 0
+   * @maximum 100
+   */
   skipProbability?: number;
   /**
    * Максимальное количество репостов в день (null = без лимита).
+   * @minimum 1
+   * @maximum 2147483647
    * @nullable
    */
   maxRepostsPerDay?: number | null;
@@ -1000,6 +1024,37 @@ export interface UpdateRepostDestinationRequest {
 export interface UpdateRepostSettingsRequest {
   /** Активность настроек репоста. */
   isActive: boolean;
+  /**
+   * Общая минимальная задержка перед репостом (секунды), копируется на новые каналы
+   * @minimum 0
+   * @maximum 2147483647
+   */
+  defaultDelayMinSeconds?: number;
+  /**
+   * Общая максимальная задержка перед репостом (секунды), копируется на новые каналы
+   * @minimum 0
+   * @maximum 2147483647
+   */
+  defaultDelayMaxSeconds?: number;
+  /**
+   * Общая настройка "репостить каждое N-е сообщение" (1 = каждое), копируется на новые каналы
+   * @minimum 1
+   * @maximum 2147483647
+   */
+  defaultRepostEveryNth?: number;
+  /**
+   * Общая вероятность пропуска репоста (0-100%), копируется на новые каналы
+   * @minimum 0
+   * @maximum 100
+   */
+  defaultSkipProbability?: number;
+  /**
+   * Общий лимит репостов в день (null = без лимита), копируется на новые каналы
+   * @minimum 1
+   * @maximum 2147483647
+   * @nullable
+   */
+  defaultMaxRepostsPerDay?: number | null;
 }
 
 /**

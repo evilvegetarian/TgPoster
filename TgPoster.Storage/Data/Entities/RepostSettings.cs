@@ -21,6 +21,31 @@ public sealed class RepostSettings : BaseEntity
 	/// </summary>
 	public bool IsActive { get; set; } = true;
 
+	/// <summary>
+	///     Общая минимальная задержка перед репостом (секунды), копируется на новые каналы
+	/// </summary>
+	public int DefaultDelayMinSeconds { get; set; }
+
+	/// <summary>
+	///     Общая максимальная задержка перед репостом (секунды), копируется на новые каналы
+	/// </summary>
+	public int DefaultDelayMaxSeconds { get; set; }
+
+	/// <summary>
+	///     Общая настройка "репостить каждое N-е сообщение" (1 = каждое), копируется на новые каналы
+	/// </summary>
+	public int DefaultRepostEveryNth { get; set; } = 1;
+
+	/// <summary>
+	///     Общая вероятность пропуска репоста (0-100%), копируется на новые каналы
+	/// </summary>
+	public int DefaultSkipProbability { get; set; }
+
+	/// <summary>
+	///     Общий лимит репостов в день (null = без лимита), копируется на новые каналы
+	/// </summary>
+	public int? DefaultMaxRepostsPerDay { get; set; }
+
 	#region Navigation Properties
 
 	/// <summary>

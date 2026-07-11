@@ -36,12 +36,19 @@ internal sealed class CreateRepostSettingsStorage(PosterContext context, GuidFac
 
 		await context.AddAsync(settings, ct);
 
+		// Каналы наследуют общие настройки создаваемых RepostSettings — тем же правилом,
+		// что и при добавлении канала в существующие настройки
 		var destinationEntities = destinations.Select(d => new RepostDestination
 		{
 			Id = guidFactory.New(),
 			RepostSettingsId = settingsId,
 			ChatId = d,
-			IsActive = true
+			IsActive = true,
+			DelayMinSeconds = settings.DefaultDelayMinSeconds,
+			DelayMaxSeconds = settings.DefaultDelayMaxSeconds,
+			RepostEveryNth = settings.DefaultRepostEveryNth,
+			SkipProbability = settings.DefaultSkipProbability,
+			MaxRepostsPerDay = settings.DefaultMaxRepostsPerDay
 		}).ToList();
 
 		await context.AddRangeAsync(destinationEntities, ct);

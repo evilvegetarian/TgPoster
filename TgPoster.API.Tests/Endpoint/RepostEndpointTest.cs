@@ -145,6 +145,37 @@ public sealed class RepostEndpointTest(EndpointTestFixture fixture) : IClassFixt
 	}
 
 	[Fact]
+	public async Task UpdateSettings_WithDelayMaxLessThanMin_ShouldReturnBadRequest()
+	{
+		var created = await CreateRepostSettings();
+		var updateRequest = new UpdateRepostSettingsRequest
+		{
+			IsActive = true,
+			DefaultDelayMinSeconds = 60,
+			DefaultDelayMaxSeconds = 10
+		};
+
+		var response = await client.PutAsJsonAsync($"{SettingsUrl}/{created.Id}", updateRequest);
+
+		response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+	}
+
+	[Fact]
+	public async Task UpdateSettings_WithNegativeSkipProbability_ShouldReturnBadRequest()
+	{
+		var created = await CreateRepostSettings();
+		var updateRequest = new UpdateRepostSettingsRequest
+		{
+			IsActive = true,
+			DefaultSkipProbability = -1
+		};
+
+		var response = await client.PutAsJsonAsync($"{SettingsUrl}/{created.Id}", updateRequest);
+
+		response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+	}
+
+	[Fact]
 	public async Task DeleteSettings_WithExistingSettings_ShouldReturnNoContent()
 	{
 		var created = await CreateRepostSettings();

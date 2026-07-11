@@ -41,6 +41,11 @@ public class GetRepostSettingsUseCaseShould
 			TelegramSessionId = Guid.NewGuid(),
 			TelegramSessionName = "Test Session",
 			IsActive = true,
+			DefaultDelayMinSeconds = 0,
+			DefaultDelayMaxSeconds = 0,
+			DefaultRepostEveryNth = 1,
+			DefaultSkipProbability = 0,
+			DefaultMaxRepostsPerDay = null,
 			Created = DateTimeOffset.UtcNow,
 			Destinations = []
 		};
@@ -81,6 +86,11 @@ public class GetRepostSettingsUseCaseShould
 			TelegramSessionId = Guid.NewGuid(),
 			TelegramSessionName = null,
 			IsActive = true,
+			DefaultDelayMinSeconds = 0,
+			DefaultDelayMaxSeconds = 0,
+			DefaultRepostEveryNth = 1,
+			DefaultSkipProbability = 0,
+			DefaultMaxRepostsPerDay = null,
 			Created = DateTimeOffset.UtcNow,
 			Destinations = []
 		};
@@ -109,6 +119,11 @@ public class GetRepostSettingsUseCaseShould
 			TelegramSessionId = Guid.NewGuid(),
 			TelegramSessionName = "Session",
 			IsActive = true,
+			DefaultDelayMinSeconds = 0,
+			DefaultDelayMaxSeconds = 0,
+			DefaultRepostEveryNth = 1,
+			DefaultSkipProbability = 0,
+			DefaultMaxRepostsPerDay = null,
 			Created = DateTimeOffset.UtcNow,
 			Destinations = destinations
 		};

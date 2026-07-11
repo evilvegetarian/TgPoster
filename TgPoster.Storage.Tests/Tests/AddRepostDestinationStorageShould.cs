@@ -17,25 +17,31 @@ public sealed class AddRepostDestinationStorageShould(StorageTestFixture fixture
 	private readonly AddRepostDestinationStorage sut = new(fixture.GetDbContext(), new GuidFactory());
 
 	[Fact]
-	public async Task GetTelegramSessionIdAsync_WithExistingSettings_ShouldReturnSessionId()
+	public async Task GetSettingsInfoAsync_WithExistingSettings_ShouldReturnSessionIdAndDefaults()
 	{
 		var session = await new TelegramSessionBuilder(context).CreateAsync();
 		var settings = await new RepostSettingsBuilder(context)
 			.WithTelegramSessionId(session.Id)
+			.WithDefaultSettings(15, 120, 3, 40, 7)
 			.CreateAsync();
 
-		var result = await sut.GetTelegramSessionIdAsync(settings.Id, CancellationToken.None);
+		var result = await sut.GetSettingsInfoAsync(settings.Id, CancellationToken.None);
 
 		result.ShouldNotBeNull();
-		result.ShouldBe(session.Id);
+		result.TelegramSessionId.ShouldBe(session.Id);
+		result.DefaultDelayMinSeconds.ShouldBe(15);
+		result.DefaultDelayMaxSeconds.ShouldBe(120);
+		result.DefaultRepostEveryNth.ShouldBe(3);
+		result.DefaultSkipProbability.ShouldBe(40);
+		result.DefaultMaxRepostsPerDay.ShouldBe(7);
 	}
 
 	[Fact]
-	public async Task GetTelegramSessionIdAsync_WithNonExistingSettings_ShouldReturnNull()
+	public async Task GetSettingsInfoAsync_WithNonExistingSettings_ShouldReturnNull()
 	{
 		var nonExistingId = Guid.NewGuid();
 
-		var result = await sut.GetTelegramSessionIdAsync(nonExistingId, CancellationToken.None);
+		var result = await sut.GetSettingsInfoAsync(nonExistingId, CancellationToken.None);
 
 		result.ShouldBeNull();
 	}
@@ -84,6 +90,11 @@ public sealed class AddRepostDestinationStorageShould(StorageTestFixture fixture
 			ChatStatus.Active,
 			null,
 			discoveredId,
+			15,
+			120,
+			3,
+			40,
+			7,
 			CancellationToken.None);
 
 		var createdDestination = await context.RepostDestinations
@@ -94,6 +105,11 @@ public sealed class AddRepostDestinationStorageShould(StorageTestFixture fixture
 		createdDestination.IsActive.ShouldBeTrue();
 		createdDestination.RepostSettingsId.ShouldBe(settings.Id);
 		createdDestination.DiscoveredChannelId.ShouldBe(discoveredId);
+		createdDestination.DelayMinSeconds.ShouldBe(15);
+		createdDestination.DelayMaxSeconds.ShouldBe(120);
+		createdDestination.RepostEveryNth.ShouldBe(3);
+		createdDestination.SkipProbability.ShouldBe(40);
+		createdDestination.MaxRepostsPerDay.ShouldBe(7);
 	}
 
 	[Fact]

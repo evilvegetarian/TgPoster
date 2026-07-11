@@ -10,11 +10,17 @@ namespace TgPoster.Storage.Storages.Repost;
 internal sealed class AddRepostDestinationStorage(PosterContext context, GuidFactory guidFactory)
 	: IAddRepostDestinationStorage
 {
-	public Task<Guid?> GetTelegramSessionIdAsync(Guid repostSettingsId, CancellationToken ct)
+	public Task<RepostSettingsInfo?> GetSettingsInfoAsync(Guid repostSettingsId, CancellationToken ct)
 	{
 		return context.Set<RepostSettings>()
 			.Where(x => x.Id == repostSettingsId)
-			.Select(x => (Guid?)x.TelegramSessionId)
+			.Select(x => new RepostSettingsInfo(
+				x.TelegramSessionId,
+				x.DefaultDelayMinSeconds,
+				x.DefaultDelayMaxSeconds,
+				x.DefaultRepostEveryNth,
+				x.DefaultSkipProbability,
+				x.DefaultMaxRepostsPerDay))
 			.FirstOrDefaultAsync(ct);
 	}
 
@@ -113,6 +119,11 @@ internal sealed class AddRepostDestinationStorage(PosterContext context, GuidFac
 		ChatStatus chatStatus,
 		string? avatarBase64,
 		Guid discoveredChannelId,
+		int delayMinSeconds,
+		int delayMaxSeconds,
+		int repostEveryNth,
+		int skipProbability,
+		int? maxRepostsPerDay,
 		CancellationToken ct
 	)
 	{
@@ -129,7 +140,12 @@ internal sealed class AddRepostDestinationStorage(PosterContext context, GuidFac
 			ChatStatus = chatStatus,
 			AvatarBase64 = avatarBase64,
 			InfoUpdatedAt = DateTimeOffset.UtcNow,
-			DiscoveredChannelId = discoveredChannelId
+			DiscoveredChannelId = discoveredChannelId,
+			DelayMinSeconds = delayMinSeconds,
+			DelayMaxSeconds = delayMaxSeconds,
+			RepostEveryNth = repostEveryNth,
+			SkipProbability = skipProbability,
+			MaxRepostsPerDay = maxRepostsPerDay
 		};
 
 		await context.AddAsync(destination, ct);

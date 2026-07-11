@@ -63,4 +63,20 @@ internal sealed class RepostSettingsBuilder(PosterContext context)
 		settings.IsActive = isActive;
 		return this;
 	}
+
+	public RepostSettingsBuilder WithDefaultSettings(
+		int delayMinSeconds,
+		int delayMaxSeconds,
+		int repostEveryNth,
+		int skipProbability,
+		int? maxRepostsPerDay
+	)
+	{
+		settings.DefaultDelayMinSeconds = delayMinSeconds;
+		settings.DefaultDelayMaxSeconds = delayMaxSeconds;
+		settings.DefaultRepostEveryNth = repostEveryNth;
+		settings.DefaultSkipProbability = skipProbability;
+		settings.DefaultMaxRepostsPerDay = maxRepostsPerDay;
+		return this;
+	}
 }

@@ -118,7 +118,14 @@ public sealed class RepostController(ISender sender) : ControllerBase
 		CancellationToken ct
 	)
 	{
-		var command = new UpdateRepostSettingsCommand(id, request.IsActive);
+		var command = new UpdateRepostSettingsCommand(
+			id,
+			request.IsActive,
+			request.DefaultDelayMinSeconds,
+			request.DefaultDelayMaxSeconds,
+			request.DefaultRepostEveryNth,
+			request.DefaultSkipProbability,
+			request.DefaultMaxRepostsPerDay);
 
 		await sender.Send(command, ct);
 

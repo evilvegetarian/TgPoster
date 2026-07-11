@@ -22,8 +22,8 @@ public class AddRepostDestinationUseCaseShould
 		storage = new Mock<IAddRepostDestinationStorage>();
 		chatService = new Mock<ITelegramChatService>();
 
-		storage.Setup(s => s.GetTelegramSessionIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
-			.ReturnsAsync(sessionId);
+		storage.Setup(s => s.GetSettingsInfoAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+			.ReturnsAsync(new RepostSettingsInfo(sessionId, 0, 0, 1, 0, null));
 
 		storage.Setup(s => s.UpsertDiscoveredChannelAsync(
 				It.IsAny<long>(), It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<int?>(),
@@ -36,8 +36,8 @@ public class AddRepostDestinationUseCaseShould
 	[Fact]
 	public async Task ThrowRepostSettingsNotFoundException_WhenSettingsMissing()
 	{
-		storage.Setup(s => s.GetTelegramSessionIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
-			.ReturnsAsync((Guid?)null);
+		storage.Setup(s => s.GetSettingsInfoAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+			.ReturnsAsync((RepostSettingsInfo?)null);
 
 		var command = new AddRepostDestinationCommand(Guid.NewGuid(), "@channel");
 
@@ -95,7 +95,8 @@ public class AddRepostDestinationUseCaseShould
 		storage.Setup(s => s.AddDestinationAsync(
 				It.IsAny<Guid>(), It.IsAny<long>(), It.IsAny<string?>(), It.IsAny<string?>(),
 				It.IsAny<int?>(), It.IsAny<ChatType>(), It.IsAny<ChatStatus>(), It.IsAny<string?>(),
-				It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+				It.IsAny<Guid>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>(),
+				It.IsAny<int?>(), It.IsAny<CancellationToken>()))
 			.ReturnsAsync(destinationId);
 
 		var command = new AddRepostDestinationCommand(Guid.NewGuid(), "@channel");
@@ -107,7 +108,24 @@ public class AddRepostDestinationUseCaseShould
 		storage.Verify(s => s.AddDestinationAsync(
 			It.IsAny<Guid>(), It.IsAny<long>(), It.IsAny<string?>(), It.IsAny<string?>(),
 			It.IsAny<int?>(), It.IsAny<ChatType>(), It.IsAny<ChatStatus>(), It.IsAny<string?>(),
-			discoveredId, It.IsAny<CancellationToken>()), Times.Once);
+			discoveredId, It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>(),
+			It.IsAny<int?>(), It.IsAny<CancellationToken>()), Times.Once);
+	}
+
+	[Fact]
+	public async Task CopyDefaultSettingsToNewDestination()
+	{
+		storage.Setup(s => s.GetSettingsInfoAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+			.ReturnsAsync(new RepostSettingsInfo(sessionId, 15, 120, 3, 40, 7));
+		SetupChat(true, true);
+
+		var command = new AddRepostDestinationCommand(Guid.NewGuid(), "@channel");
+		await sut.Handle(command, CancellationToken.None);
+
+		storage.Verify(s => s.AddDestinationAsync(
+			It.IsAny<Guid>(), It.IsAny<long>(), It.IsAny<string?>(), It.IsAny<string?>(),
+			It.IsAny<int?>(), It.IsAny<ChatType>(), It.IsAny<ChatStatus>(), It.IsAny<string?>(),
+			It.IsAny<Guid>(), 15, 120, 3, 40, 7, It.IsAny<CancellationToken>()), Times.Once);
 	}
 
 	private TelegramChatInfo SetupChat(bool canSendMessages, bool canSendMedia)
@@ -145,5 +163,6 @@ public class AddRepostDestinationUseCaseShould
 		storage.Verify(s => s.AddDestinationAsync(
 			It.IsAny<Guid>(), It.IsAny<long>(), It.IsAny<string?>(), It.IsAny<string?>(),
 			It.IsAny<int?>(), It.IsAny<ChatType>(), It.IsAny<ChatStatus>(), It.IsAny<string?>(),
-			It.IsAny<Guid>(), It.IsAny<CancellationToken>()), Times.Never);
+			It.IsAny<Guid>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>(),
+			It.IsAny<int?>(), It.IsAny<CancellationToken>()), Times.Never);
 }

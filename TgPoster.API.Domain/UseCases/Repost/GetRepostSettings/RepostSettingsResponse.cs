@@ -36,6 +36,31 @@ public sealed record RepostSettingsResponse
 	public required bool IsActive { get; init; }
 
 	/// <summary>
+	///     Общая минимальная задержка перед репостом (секунды), копируется на новые каналы
+	/// </summary>
+	public required int DefaultDelayMinSeconds { get; init; }
+
+	/// <summary>
+	///     Общая максимальная задержка перед репостом (секунды), копируется на новые каналы
+	/// </summary>
+	public required int DefaultDelayMaxSeconds { get; init; }
+
+	/// <summary>
+	///     Общая настройка "репостить каждое N-е сообщение" (1 = каждое), копируется на новые каналы
+	/// </summary>
+	public required int DefaultRepostEveryNth { get; init; }
+
+	/// <summary>
+	///     Общая вероятность пропуска репоста (0-100%), копируется на новые каналы
+	/// </summary>
+	public required int DefaultSkipProbability { get; init; }
+
+	/// <summary>
+	///     Общий лимит репостов в день (null = без лимита), копируется на новые каналы
+	/// </summary>
+	public required int? DefaultMaxRepostsPerDay { get; init; }
+
+	/// <summary>
 	///     Дата создания.
 	/// </summary>
 	public required DateTimeOffset Created { get; init; }
