@@ -85,6 +85,7 @@ builder.Services.AddMassTransit(x =>
 	x.ConfigureMassTransient(dataBase.ConnectionString);
 });
 var app = builder.Build();
+await app.Services.MigrateDatabaseAsync();
 app.UseTgPosterExceptionHandling();
 app.UseHttpsRedirection();
 app.UseSwagger();
