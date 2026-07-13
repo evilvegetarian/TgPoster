@@ -60,12 +60,18 @@ internal sealed class RepostMessageConsumerStorage(PosterContext context) : IRep
 		await context.SaveChangesAsync(ct);
 	}
 
-	public async Task UpdateDestinationStatusAsync(Guid destinationId, ChatStatus chatStatus, CancellationToken ct)
+	public async Task UpdateDestinationStatusAsync(
+		Guid destinationId,
+		ChatStatus chatStatus,
+		bool isActive,
+		CancellationToken ct
+	)
 	{
 		var destination = await context.Set<RepostDestination>()
 			.FirstAsync(x => x.Id == destinationId, ct);
 
 		destination.ChatStatus = chatStatus;
+		destination.IsActive = isActive;
 		destination.InfoUpdatedAt = DateTimeOffset.UtcNow;
 
 		await context.SaveChangesAsync(ct);

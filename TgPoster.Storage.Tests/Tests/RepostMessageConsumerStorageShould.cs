@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Shared.Enums;
 using Shouldly;
 using TgPoster.Storage.Data;
 using TgPoster.Storage.Data.Entities;
@@ -244,6 +245,30 @@ public sealed class RepostMessageConsumerStorageShould(StorageTestFixture fixtur
 		log.Status.ShouldBe(RepostStatus.Failed);
 		log.RepostedAt.ShouldBeNull();
 		log.Error.ShouldBe(errorMessage);
+	}
+
+	[Fact]
+	public async Task UpdateDestinationStatusAsync_WithBannedStatus_ShouldDeactivateDestination()
+	{
+		var schedule = await new ScheduleBuilder(context).CreateAsync();
+		var session = await new TelegramSessionBuilder(context).CreateAsync();
+		var settings = await new RepostSettingsBuilder(context)
+			.WithScheduleId(schedule.Id)
+			.WithTelegramSessionId(session.Id)
+			.CreateAsync();
+		var destination = await new RepostDestinationBuilder(context)
+			.WithRepostSettingsId(settings.Id)
+			.WithIsActive(true)
+			.CreateAsync();
+
+		await sut.UpdateDestinationStatusAsync(destination.Id, ChatStatus.Banned, false, CancellationToken.None);
+
+		var updated = await context.Set<RepostDestination>()
+			.AsNoTracking()
+			.FirstAsync(x => x.Id == destination.Id);
+		updated.ChatStatus.ShouldBe(ChatStatus.Banned);
+		updated.IsActive.ShouldBeFalse();
+		updated.InfoUpdatedAt.ShouldNotBeNull();
 	}
 
 	[Fact]

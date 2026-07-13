@@ -15,9 +15,13 @@ public interface IRepostMessageConsumerStorage
 	);
 
 	/// <summary>
-	///     Обновляет статус доступа к целевому каналу.
+	///     Обновляет статус доступа к целевому каналу и его активность
 	/// </summary>
-	Task UpdateDestinationStatusAsync(Guid destinationId, ChatStatus chatStatus, CancellationToken ct);
+	/// <param name="destinationId">Идентификатор направления репоста</param>
+	/// <param name="chatStatus">Новый статус доступа к чату</param>
+	/// <param name="isActive">Активно ли направление репоста</param>
+	/// <param name="ct">Токен отмены</param>
+	Task UpdateDestinationStatusAsync(Guid destinationId, ChatStatus chatStatus, bool isActive, CancellationToken ct);
 
 	/// <summary>
 	///     Инкрементирует счётчик репостов для destination и возвращает новое значение.

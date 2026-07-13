@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Shared.Enums;
 using Shared.YouTube;
 using TgPoster.Storage.Data;
 using TgPoster.Storage.Data.Enum;
@@ -140,6 +141,7 @@ internal class SenderMessageStorage(PosterContext context) : ISenderMessageStora
 					TelegramSessionId = rs.TelegramSessionId,
 					Destinations = rs.Destinations
 						.Where(d => d.IsActive)
+						.Where(x=>x.ChatStatus ==ChatStatus.Active)
 						.Select(d => new RepostDestinationDto
 						{
 							Id = d.Id,

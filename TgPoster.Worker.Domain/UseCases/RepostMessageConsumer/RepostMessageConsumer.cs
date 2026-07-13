@@ -109,9 +109,10 @@ internal sealed class RepostMessageConsumer(
 
 			if (forwardResult.Status == TelegramOperationStatus.ChannelBanned)
 			{
-				logger.LogWarning("Аккаунт заблокирован в канале {ChatId}: {Error}",
+				logger.LogWarning(
+					"Аккаунт заблокирован в канале {ChatId}: {Error}. Направление репоста отключено",
 					destination.Id, forwardResult.ErrorMessage);
-				await storage.UpdateDestinationStatusAsync(dest.Id, ChatStatus.Banned, ct);
+				await storage.UpdateDestinationStatusAsync(dest.Id, ChatStatus.Banned, false, ct);
 			}
 			else
 			{
