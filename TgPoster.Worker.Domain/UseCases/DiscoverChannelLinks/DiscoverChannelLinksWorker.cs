@@ -730,7 +730,16 @@ internal sealed partial class DiscoverChannelLinksWorker(
 
 		foreach (Match match in InviteLinkRegex().Matches(text))
 		{
-			inviteHashes.Add(match.Groups[1].Value);
+			var hash = match.Groups[1].Value;
+
+			// t.me/+79633081622 — диплинк на пользователя по номеру телефона, а не инвайт:
+			// настоящие инвайт-хеши всегда содержат буквы
+			if (hash.All(char.IsAsciiDigit))
+			{
+				continue;
+			}
+
+			inviteHashes.Add(hash);
 		}
 
 		foreach (Match match in PrivateChannelLinkRegex().Matches(text))

@@ -154,4 +154,66 @@ public sealed class TelegramPublicLookupHtmlParserShould
 
 		info.MembersCount.ShouldBe(expected);
 	}
+
+	[Fact]
+	public void ParseInvite_ChannelPreview_ReturnsChannelWithFields()
+	{
+		const string html = """
+		                    <html><body>
+		                      <div class="tgme_page_title"><span>Secret Channel</span></div>
+		                      <div class="tgme_page_description">Private news.</div>
+		                      <div class="tgme_page_extra">1 500 subscribers</div>
+		                    </body></html>
+		                    """;
+
+		var info = TelegramPublicLookupHtmlParser.ParseInvite(html);
+
+		info.Username.ShouldBeNull();
+		info.Type.ShouldBe(TelegramEntityType.Channel);
+		info.Title.ShouldBe("Secret Channel");
+		info.Description.ShouldBe("Private news.");
+		info.MembersCount.ShouldBe(1500);
+	}
+
+	[Fact]
+	public void ParseInvite_GroupPreview_ReturnsGroup()
+	{
+		const string html = """
+		                    <html><body>
+		                      <div class="tgme_page_title"><span>Secret Group</span></div>
+		                      <div class="tgme_page_extra">77 members</div>
+		                    </body></html>
+		                    """;
+
+		var info = TelegramPublicLookupHtmlParser.ParseInvite(html);
+
+		info.Type.ShouldBe(TelegramEntityType.Group);
+		info.Title.ShouldBe("Secret Group");
+		info.MembersCount.ShouldBe(77);
+	}
+
+	[Fact]
+	public void ParseInvite_PhoneContactPage_ReturnsNotFound()
+	{
+		const string html = """
+		                    <html><body>
+		                      <div class="tgme_page_title"><span>Chat with +7 963 308 16 22</span></div>
+		                      <div class="tgme_page_description">If you have Telegram, you can contact them right away.</div>
+		                    </body></html>
+		                    """;
+
+		var info = TelegramPublicLookupHtmlParser.ParseInvite(html);
+
+		info.Type.ShouldBe(TelegramEntityType.NotFound);
+		info.Title.ShouldBeNull();
+		info.Description.ShouldBeNull();
+	}
+
+	[Fact]
+	public void ParseInvite_EmptyHtml_ReturnsNotFound()
+	{
+		var info = TelegramPublicLookupHtmlParser.ParseInvite(string.Empty);
+
+		info.Type.ShouldBe(TelegramEntityType.NotFound);
+	}
 }

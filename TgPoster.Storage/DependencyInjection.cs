@@ -22,7 +22,10 @@ public static class DependencyInjection
 		services.AddDbContext<PosterContext>(db =>
 		{
 			db.UseNpgsql(dataBase.ConnectionString, o =>
-				o.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery));
+			{
+				o.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery);
+				o.EnableRetryOnFailure();
+			});
 
 			if (environment.IsDevelopment())
 				db.EnableSensitiveDataLogging();

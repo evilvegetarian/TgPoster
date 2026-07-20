@@ -73,7 +73,8 @@ internal static partial class TelegramPublicLookupHtmlParser
 	/// <returns>
 	///     Описание сущности. <see cref="TelegramPublicEntityInfo.Username" /> всегда <c>null</c> (на странице инвайта
 	///     публичного username нет). <see cref="TelegramPublicEntityInfo.Type" /> — <c>Channel</c>, <c>Group</c>
-	///     или <c>NotFound</c>, если HTML не похож на превью.
+	///     или <c>NotFound</c>, если HTML не похож на превью либо не содержит признаков канала/группы
+	///     (счётчика подписчиков или участников)
 	/// </returns>
 	public static TelegramPublicEntityInfo ParseInvite(string html)
 	{
@@ -90,6 +91,17 @@ internal static partial class TelegramPublicLookupHtmlParser
 		var extraText = extraMatch.Success ? DecodeAndTrim(StripTags(extraMatch.Groups["body"].Value)) : null;
 
 		var type = DetermineInviteType(extraText);
+
+		// Без счётчика подписчиков/учасников это не превью инвайта: по адресу t.me/+<hash>
+		// может открыться и страница пользователя по номеру телефона («Chat with +7 ...»)
+		if (type is TelegramEntityType.NotFound)
+		{
+			return new TelegramPublicEntityInfo
+			{
+				Username = null,
+				Type = TelegramEntityType.NotFound
+			};
+		}
 
 		var titleMatch = TitleRegex().Match(html);
 		var title = titleMatch.Success ? DecodeAndTrim(StripTags(titleMatch.Groups["body"].Value)) : null;
@@ -143,7 +155,7 @@ internal static partial class TelegramPublicLookupHtmlParser
 				return TelegramEntityType.Group;
 		}
 
-		return TelegramEntityType.Channel;
+		return TelegramEntityType.NotFound;
 	}
 
 	private static long? ParseMembersCount(string extraText)
