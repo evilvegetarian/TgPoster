@@ -388,7 +388,7 @@ internal sealed class TelegramMessageService(
 			}
 			catch (RpcException ex) when (ex.Message is "CHANNEL_PRIVATE" or "USER_BANNED_IN_CHANNEL"
 				                              or "CHAT_WRITE_FORBIDDEN" or "CHAT_RESTRICTED"
-				                              or "CHAT_SEND_PLAIN_FORBIDDEN")
+				                              or "CHAT_SEND_PLAIN_FORBIDDEN" or "CHAT_SEND_PHOTOS_FORBIDDEN")
 			{
 				logger.LogWarning("Telegram {Operation}: доступ к каналу заблокирован ({Error})", operation,
 					ex.Message);

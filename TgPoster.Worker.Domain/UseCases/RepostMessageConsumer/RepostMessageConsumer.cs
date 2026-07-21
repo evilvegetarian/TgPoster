@@ -147,9 +147,6 @@ internal sealed class RepostMessageConsumer(
 
 		if (dest.SkipProbability > 0 && Random.Shared.Next(100) < dest.SkipProbability)
 		{
-			logger.LogInformation(
-				"Репост случайно пропущен для канала {DestId}: вероятность {Probability}%",
-				dest.Id, dest.SkipProbability);
 			return false;
 		}
 
