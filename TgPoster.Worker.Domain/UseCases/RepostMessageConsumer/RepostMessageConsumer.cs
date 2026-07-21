@@ -139,9 +139,6 @@ internal sealed class RepostMessageConsumer(
 
 		if (dest.RepostEveryNth > 1 && counter % dest.RepostEveryNth != 0)
 		{
-			logger.LogInformation(
-				"Репост пропущен для канала {DestId}: счётчик {Counter}, каждое {N}-е",
-				dest.Id, counter, dest.RepostEveryNth);
 			return false;
 		}
 
@@ -155,9 +152,6 @@ internal sealed class RepostMessageConsumer(
 			var todayCount = await storage.GetTodayRepostCountAsync(dest.Id, ct);
 			if (todayCount >= dest.MaxRepostsPerDay.Value)
 			{
-				logger.LogInformation(
-					"Репост пропущен для канала {DestId}: дневной лимит {Limit} исчерпан ({Count})",
-					dest.Id, dest.MaxRepostsPerDay.Value, todayCount);
 				return false;
 			}
 		}
