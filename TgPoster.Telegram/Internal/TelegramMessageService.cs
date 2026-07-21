@@ -13,6 +13,27 @@ internal sealed class TelegramMessageService(
 {
 	private const int MaxFloodWaitSeconds = 60;
 
+	/// <summary>
+	///     Ошибка означает, что отправка/пересылка в канал запрещена (нет прав, бан, ограничение)
+	/// </summary>
+	/// <param name="message">Текст RPC-ошибки Telegram</param>
+	/// <returns>true, если доступ к отправке заблокирован</returns>
+	private static bool IsSendForbidden(string message) =>
+		message is "CHANNEL_PRIVATE" or "USER_BANNED_IN_CHANNEL"
+			or "CHAT_WRITE_FORBIDDEN" or "CHAT_RESTRICTED"
+		|| message.StartsWith("CHAT_SEND_", StringComparison.Ordinal)
+		&& message.EndsWith("_FORBIDDEN", StringComparison.Ordinal)
+		|| message.StartsWith("ALLOW_PAYMENT_REQUIRED", StringComparison.Ordinal);
+
+	/// <summary>
+	///     Ошибка означает, что сессия недействительна и требует переавторизации
+	/// </summary>
+	/// <param name="message">Текст RPC-ошибки Telegram</param>
+	/// <returns>true, если сессия «мертва»</returns>
+	private static bool IsSessionDead(string message) =>
+		message is "AUTH_KEY_UNREGISTERED" or "SESSION_REVOKED" or "SESSION_EXPIRED"
+			or "USER_DEACTIVATED" or "USER_DEACTIVATED_BAN";
+
 	public async Task<TelegramOperationResult<TelegramChatInfo>> ResolveChannelAsync(
 		Guid sessionId,
 		string username,
@@ -386,14 +407,28 @@ internal sealed class TelegramMessageService(
 				logger.LogWarning("Telegram {Operation}: username не найден ({Error})", operation, ex.Message);
 				return TelegramOperationResult<T>.Failed(TelegramOperationStatus.UsernameNotFound, ex.Message);
 			}
-			catch (RpcException ex) when (ex.Message is "CHANNEL_PRIVATE" or "USER_BANNED_IN_CHANNEL"
-				                              or "CHAT_WRITE_FORBIDDEN" or "CHAT_RESTRICTED"
-				                              or "CHAT_SEND_PLAIN_FORBIDDEN" or "CHAT_SEND_PHOTOS_FORBIDDEN"
-				                              || ex.Message.StartsWith("ALLOW_PAYMENT_REQUIRED"))
+			catch (RpcException ex) when (IsSessionDead(ex.Message))
+			{
+				logger.LogWarning("Telegram {Operation}: сессия недействительна ({Error})", operation, ex.Message);
+				return TelegramOperationResult<T>.Failed(TelegramOperationStatus.SessionNotFound, ex.Message);
+			}
+			catch (RpcException ex) when (IsSendForbidden(ex.Message))
 			{
 				logger.LogWarning("Telegram {Operation}: доступ к каналу заблокирован ({Error})", operation,
 					ex.Message);
 				return TelegramOperationResult<T>.Failed(TelegramOperationStatus.ChannelBanned, ex.Message);
+			}
+			catch (RpcException ex) when (ex.Message is "CHAT_FORWARDS_RESTRICTED")
+			{
+				logger.LogWarning("Telegram {Operation}: пересылка из источника запрещена ({Error})", operation,
+					ex.Message);
+				return TelegramOperationResult<T>.Failed(TelegramOperationStatus.ForwardsRestricted, ex.Message);
+			}
+			catch (RpcException ex) when (ex.Message is "PEER_FLOOD")
+			{
+				logger.LogWarning("Telegram {Operation}: аккаунт ограничен за спам ({Error})", operation,
+					ex.Message);
+				return TelegramOperationResult<T>.Failed(TelegramOperationStatus.SpamRestricted, ex.Message);
 			}
 			catch (RpcException ex) when (ex.Message.StartsWith("FLOOD_WAIT"))
 			{
@@ -408,8 +443,14 @@ internal sealed class TelegramMessageService(
 					operation, ex.X);
 				return TelegramOperationResult<T>.Failed(TelegramOperationStatus.FloodWait, ex.Message, ex.X);
 			}
+			catch (RpcException ex) when (ex.Message.StartsWith("SLOWMODE_WAIT"))
+			{
+				logger.LogWarning("Telegram {Operation}: SLOWMODE_WAIT {Seconds}s, возвращаем SlowMode",
+					operation, ex.X);
+				return TelegramOperationResult<T>.Failed(TelegramOperationStatus.SlowMode, ex.Message, ex.X);
+			}
 			catch (RpcException ex) when (ex.Message is "CHANNEL_INVALID" or "PEER_ID_INVALID"
-				                              or "CHAT_ADMIN_REQUIRED")
+										  or "CHAT_ADMIN_REQUIRED" or "MESSAGE_ID_INVALID")
 			{
 				logger.LogWarning("Telegram {Operation}: доступ запрещён ({Error})", operation, ex.Message);
 				return TelegramOperationResult<T>.Failed(TelegramOperationStatus.AccessDenied, ex.Message);

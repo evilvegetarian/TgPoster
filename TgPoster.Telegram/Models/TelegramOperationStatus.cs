@@ -12,5 +12,20 @@ public enum TelegramOperationStatus
 	AccessDenied,
 	Timeout,
 	SessionNotFound,
+
+	/// <summary>
+	///     Медленный режим (slow mode): нужно подождать перед следующей отправкой
+	/// </summary>
+	SlowMode,
+
+	/// <summary>
+	///     Аккаунт временно ограничен за спам (PEER_FLOOD)
+	/// </summary>
+	SpamRestricted,
+
+	/// <summary>
+	///     В канале-источнике включена защита контента — пересылка запрещена
+	/// </summary>
+	ForwardsRestricted,
 	UnknownError
 }
