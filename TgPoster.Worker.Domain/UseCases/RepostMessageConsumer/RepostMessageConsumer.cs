@@ -100,10 +100,6 @@ internal sealed class RepostMessageConsumer(
 					null,
 					ct);
 
-				logger.LogInformation(
-					"Сообщение {MessageId} успешно репостнуто в {ChatIdentifier}",
-					command.MessageId,
-					destination.Id);
 				continue;
 			}
 
