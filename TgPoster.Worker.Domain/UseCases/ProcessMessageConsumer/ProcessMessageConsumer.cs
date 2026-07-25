@@ -135,12 +135,14 @@ internal sealed class ProcessMessageConsumer(
 
 				if (photos.Count > 1)
 				{
-					var album = photos
-						.Select(p => (IAlbumInputMedia)new InputMediaPhoto(new InputFileStream(p.Stream)))
-						.ToList();
-
 					var botMessages = await telegramExecuteServices.SendMedia(
-						telegramBot, chatId, album, 5, ct);
+						telegramBot,
+						chatId,
+						() => photos
+							.Select(p => (IAlbumInputMedia)new InputMediaPhoto(new InputFileStream(p.OpenRead())))
+							.ToList(),
+						5,
+						ct);
 
 					foreach (var msg in botMessages)
 					{
@@ -160,7 +162,7 @@ internal sealed class ProcessMessageConsumer(
 				{
 					var photo = photos[0];
 					var photoMessage = await telegramExecuteServices.SendPhoto(
-						telegramBot, chatId, new InputFileStream(photo.Stream), 5, ct);
+						telegramBot, chatId, () => new InputFileStream(photo.OpenRead()), 5, ct);
 
 					var photoId = photoMessage.Photo?
 						.OrderByDescending(x => x.FileSize)
@@ -185,14 +187,19 @@ internal sealed class ProcessMessageConsumer(
 					var previews = await videoService.ExtractScreenshotsAsync(video.Stream, 3);
 					video.Stream.Position = 0;
 
-					var inputFile = new InputFileStream(video.Stream, "video.mp4");
-					List<IAlbumInputMedia> album = [new InputMediaVideo(inputFile)];
-					album.AddRange(
-						previews.Select<MemoryStream, InputMediaPhoto>(preview =>
-							new InputMediaPhoto(preview)));
-
 					var botMessages = await telegramExecuteServices.SendMedia(
-						telegramBot, chatId, album, 5, ct);
+						telegramBot,
+						chatId,
+						() =>
+						{
+							List<IAlbumInputMedia> album =
+								[new InputMediaVideo(new InputFileStream(video.OpenRead(), "video.mp4"))];
+							album.AddRange(previews.Select(preview =>
+								(IAlbumInputMedia)new InputMediaPhoto(new InputFileStream(OpenRead(preview)))));
+							return album;
+						},
+						5,
+						ct);
 
 					var previewPhotoIds = botMessages
 						.Select(m => m.Photo?
@@ -250,6 +257,18 @@ internal sealed class ProcessMessageConsumer(
 		}
 	}
 
+	/// <summary>
+	///     Создаёт одноразовую обёртку для чтения поверх буфера исходного потока.
+	///     HttpClient закрывает переданные ему потоки после завершения запроса, поэтому каждая попытка
+	///     отправки должна получать собственную обёртку. Копирования данных не происходит — буфер общий
+	/// </summary>
+	/// <param name="source">Исходный поток с содержимым медиа</param>
+	/// <returns>Поток только для чтения поверх того же буфера</returns>
+	private static MemoryStream OpenRead(MemoryStream source)
+	{
+		return new MemoryStream(source.GetBuffer(), 0, (int)source.Length, false, true);
+	}
+
 	private sealed class DownloadedMedia : IAsyncDisposable
 	{
 		public required MemoryStream Stream { get; init; }
@@ -258,5 +277,11 @@ internal sealed class ProcessMessageConsumer(
 		public required string MimeType { get; init; }
 
 		public ValueTask DisposeAsync() => Stream.DisposeAsync();
+
+		/// <summary>
+		///     Возвращает свежий поток для чтения содержимого — по одному на каждую попытку отправки
+		/// </summary>
+		/// <returns>Поток только для чтения поверх буфера скачанного медиа</returns>
+		public MemoryStream OpenRead() => ProcessMessageConsumer.OpenRead(Stream);
 	}
 }

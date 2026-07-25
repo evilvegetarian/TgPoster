@@ -13,30 +13,54 @@ public sealed record TelegramSendResult(bool IsSuccess, int? MessageId = null)
 
 public class TelegramExecuteServices(ILogger<TelegramExecuteServices> logger)
 {
+	/// <summary>
+	///     Отправляет медиа-группу с повтором при ошибках Telegram API
+	/// </summary>
+	/// <param name="telegramBot">Клиент бота</param>
+	/// <param name="chatId">Идентификатор чата</param>
+	/// <param name="albumFactory">
+	///     Фабрика альбома. Вызывается заново перед каждой попыткой, поэтому обязана возвращать свежие
+	///     потоки: HttpClient закрывает переданные потоки после завершения запроса
+	/// </param>
+	/// <param name="maxRetries">Максимальное количество повторов</param>
+	/// <param name="ct">Токен отмены</param>
+	/// <returns>Отправленные сообщения</returns>
 	public Task<Message[]> SendMedia(
 		TelegramBotClient telegramBot,
 		long chatId,
-		List<IAlbumInputMedia> album,
+		Func<List<IAlbumInputMedia>> albumFactory,
 		int maxRetries,
 		CancellationToken ct
 	)
 	{
 		return ExecuteWithRetryAsync(
-			() => telegramBot.SendMediaGroup(chatId, album,
+			() => telegramBot.SendMediaGroup(chatId, albumFactory(),
 				disableNotification: true, cancellationToken: ct),
 			maxRetries, ct);
 	}
 
+	/// <summary>
+	///     Отправляет фото с повтором при ошибках Telegram API
+	/// </summary>
+	/// <param name="telegramBot">Клиент бота</param>
+	/// <param name="chatId">Идентификатор чата</param>
+	/// <param name="photoFactory">
+	///     Фабрика фото. Вызывается заново перед каждой попыткой, поэтому обязана возвращать свежий
+	///     поток: HttpClient закрывает переданный поток после завершения запроса
+	/// </param>
+	/// <param name="maxRetries">Максимальное количество повторов</param>
+	/// <param name="ct">Токен отмены</param>
+	/// <returns>Отправленное сообщение</returns>
 	public Task<Message> SendPhoto(
 		TelegramBotClient telegramBot,
 		long chatId,
-		InputFileStream photoStream,
+		Func<InputFileStream> photoFactory,
 		int maxRetries,
 		CancellationToken ct
 	)
 	{
 		return ExecuteWithRetryAsync(
-			() => telegramBot.SendPhoto(chatId, photoStream, cancellationToken: ct),
+			() => telegramBot.SendPhoto(chatId, photoFactory(), cancellationToken: ct),
 			maxRetries, ct);
 	}
 
@@ -105,6 +129,14 @@ public class TelegramExecuteServices(ILogger<TelegramExecuteServices> logger)
 			{
 				return await apiCall();
 			}
+			catch (Exception ex) when (HasDisposedStream(ex))
+			{
+				// Контент запроса одноразовый: HttpClient закрывает потоки после завершения запроса.
+				// Повтор с тем же контентом бессмысленен — пробрасываем, чтобы дефект был виден
+				logger.LogError(ex,
+					"Контент запроса к Telegram API уже освобождён. Фабрика контента обязана создавать новые потоки на каждую попытку");
+				throw;
+			}
 			catch (ApiRequestException ex) when (ex.ErrorCode == 429)
 			{
 				retryCount++;
@@ -141,5 +173,19 @@ public class TelegramExecuteServices(ILogger<TelegramExecuteServices> logger)
 
 				await Task.Delay(waitTime, ct);
 			}
+	}
+
+	/// <summary>
+	///     Проверяет, вызвана ли ошибка обращением к уже закрытому потоку
+	/// </summary>
+	/// <param name="exception">Проверяемое исключение</param>
+	/// <returns><c>true</c>, если в цепочке исключений есть <see cref="ObjectDisposedException" /></returns>
+	private static bool HasDisposedStream(Exception exception)
+	{
+		for (var current = exception; current is not null; current = current.InnerException)
+			if (current is ObjectDisposedException)
+				return true;
+
+		return false;
 	}
 }
