@@ -78,7 +78,7 @@ internal sealed class RepostMessageConsumer(
 			if (dest.DelayMaxSeconds > 0)
 			{
 				var delaySec = Random.Shared.Next(dest.DelayMinSeconds, dest.DelayMaxSeconds + 1);
-				logger.LogInformation(
+				logger.LogDebug(
 					"Задержка {Delay} сек. перед репостом в {ChatId}",
 					delaySec, destination.Id);
 				await Task.Delay(TimeSpan.FromSeconds(delaySec), ct);
