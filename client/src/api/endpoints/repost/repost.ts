@@ -24,6 +24,8 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  AddDestinationsFromDiscoverRequest,
+  AddDestinationsFromDiscoverResponse,
   AddRepostDestinationRequest,
   AddRepostDestinationResponse,
   CreateRepostSettingsRequest,
@@ -475,6 +477,71 @@ export const usePostApiV1RepostSettingsSettingsIdDestinations = <TError = Proble
       > => {
 
       const mutationOptions = getPostApiV1RepostSettingsSettingsIdDestinationsMutationOptions(options);
+
+      return useMutation(mutationOptions, queryClient);
+    }
+    /**
+ * @summary Массовое добавление целевых каналов из Discover.
+ */
+export const postApiV1RepostSettingsSettingsIdDestinationsFromDiscover = (
+    settingsId: string,
+    addDestinationsFromDiscoverRequest: AddDestinationsFromDiscoverRequest,
+ signal?: AbortSignal
+) => {
+      
+      
+      return customInstance<AddDestinationsFromDiscoverResponse>(
+      {url: `/api/v1/repost/settings/${settingsId}/destinations/from-discover`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: addDestinationsFromDiscoverRequest, signal
+    },
+      );
+    }
+  
+
+
+export const getPostApiV1RepostSettingsSettingsIdDestinationsFromDiscoverMutationOptions = <TError = ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postApiV1RepostSettingsSettingsIdDestinationsFromDiscover>>, TError,{settingsId: string;data: AddDestinationsFromDiscoverRequest}, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof postApiV1RepostSettingsSettingsIdDestinationsFromDiscover>>, TError,{settingsId: string;data: AddDestinationsFromDiscoverRequest}, TContext> => {
+
+const mutationKey = ['postApiV1RepostSettingsSettingsIdDestinationsFromDiscover'];
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof postApiV1RepostSettingsSettingsIdDestinationsFromDiscover>>, {settingsId: string;data: AddDestinationsFromDiscoverRequest}> = (props) => {
+          const {settingsId,data} = props ?? {};
+
+          return  postApiV1RepostSettingsSettingsIdDestinationsFromDiscover(settingsId,data,)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type PostApiV1RepostSettingsSettingsIdDestinationsFromDiscoverMutationResult = NonNullable<Awaited<ReturnType<typeof postApiV1RepostSettingsSettingsIdDestinationsFromDiscover>>>
+    export type PostApiV1RepostSettingsSettingsIdDestinationsFromDiscoverMutationBody = AddDestinationsFromDiscoverRequest
+    export type PostApiV1RepostSettingsSettingsIdDestinationsFromDiscoverMutationError = ProblemDetails
+
+    /**
+ * @summary Массовое добавление целевых каналов из Discover.
+ */
+export const usePostApiV1RepostSettingsSettingsIdDestinationsFromDiscover = <TError = ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postApiV1RepostSettingsSettingsIdDestinationsFromDiscover>>, TError,{settingsId: string;data: AddDestinationsFromDiscoverRequest}, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof postApiV1RepostSettingsSettingsIdDestinationsFromDiscover>>,
+        TError,
+        {settingsId: string;data: AddDestinationsFromDiscoverRequest},
+        TContext
+      > => {
+
+      const mutationOptions = getPostApiV1RepostSettingsSettingsIdDestinationsFromDiscoverMutationOptions(options);
 
       return useMutation(mutationOptions, queryClient);
     }

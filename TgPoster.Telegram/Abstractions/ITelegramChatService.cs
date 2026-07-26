@@ -19,6 +19,20 @@ public interface ITelegramChatService
 	Task<TelegramChatInfo> GetChatInfoAsync(Guid sessionId, string input, bool autoJoin = true);
 
 	/// <summary>
+	///     Получает информацию о чате/канале, не бросая исключение при ошибке. Предназначен для
+	///     массовых операций, где падение одного канала не должно ломать всю пачку
+	/// </summary>
+	/// <param name="sessionId">Идентификатор Telegram-сессии</param>
+	/// <param name="input">Входная строка</param>
+	/// <param name="autoJoin">Автоматически вступать в чат</param>
+	/// <returns>Результат со статусом: при успехе — информация о чате, иначе причина отказа</returns>
+	Task<TelegramOperationResult<TelegramChatInfo>> TryGetChatInfoAsync(
+		Guid sessionId,
+		string input,
+		bool autoJoin = true
+	);
+
+	/// <summary>
 	///     Проверяет, что в чате можно отправлять сообщения, иначе бросает исключение
 	/// </summary>
 	/// <param name="chatInfo">Информация о чате</param>

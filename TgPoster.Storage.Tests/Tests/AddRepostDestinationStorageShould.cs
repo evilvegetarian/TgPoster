@@ -180,6 +180,7 @@ public sealed class AddRepostDestinationStorageShould(StorageTestFixture fixture
 
 		var refreshed = await context.DiscoveredChannels
 			.IgnoreQueryFilters()
+			.AsNoTracking()
 			.FirstAsync(x => x.Id == existing.Id);
 		refreshed.Title.ShouldBe("Fresh Title");
 		refreshed.ParticipantsCount.ShouldBe(999);

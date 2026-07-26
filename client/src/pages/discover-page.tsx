@@ -1,12 +1,14 @@
 import {useState} from "react"
-import {ExternalLink, Loader2, Search, Users} from "lucide-react"
+import {ExternalLink, Loader2, Search, Send, Users} from "lucide-react"
 import {useGetApiV1Discover, useGetApiV1DiscoverCategories} from "@/api/endpoints/discover/discover"
 import {Badge} from "@/components/ui/badge"
 import {Button} from "@/components/ui/button"
 import {Card, CardContent} from "@/components/ui/card"
+import {Checkbox} from "@/components/ui/checkbox"
 import {Input} from "@/components/ui/input"
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select"
 import {Skeleton} from "@/components/ui/skeleton"
+import {AddFromDiscoverDialog} from "@/pages/repostpage/add-from-discover-dialog"
 import type {DiscoverChannelResponse, DiscoverSortBy, SortDirection} from "@/api/endpoints/tgPosterAPI.schemas"
 
 const PAGE_SIZE = 20
@@ -29,7 +31,13 @@ function parseCount(value: string): number | undefined {
     return Number.isNaN(parsed) ? undefined : parsed
 }
 
-function ChannelCard({channel}: {channel: DiscoverChannelResponse}) {
+interface ChannelCardProps {
+    channel: DiscoverChannelResponse
+    selected: boolean
+    onSelectedChange: (selected: boolean) => void
+}
+
+function ChannelCard({channel, selected, onSelectedChange}: ChannelCardProps) {
     const tgLink = channel.tgUrl
         ?? (channel.username ? `https://t.me/${channel.username}` : null)
 
@@ -37,6 +45,13 @@ function ChannelCard({channel}: {channel: DiscoverChannelResponse}) {
         <Card>
             <CardContent className="pt-5">
                 <div className="flex gap-4">
+                    <div className="flex-shrink-0 flex items-center">
+                        <Checkbox
+                            checked={selected}
+                            onCheckedChange={(value) => onSelectedChange(value === true)}
+                            aria-label={`Выбрать ${channel.title ?? channel.username ?? "канал"}`}
+                        />
+                    </div>
                     <div className="flex-shrink-0">
                         {channel.avatarUrl ? (
                             <img
@@ -131,6 +146,7 @@ function ChannelCardSkeleton() {
         <Card>
             <CardContent className="pt-5">
                 <div className="flex gap-4">
+                    <Skeleton className="w-4 h-4 rounded flex-shrink-0 mt-4"/>
                     <Skeleton className="w-12 h-12 rounded-full flex-shrink-0"/>
                     <div className="flex-1 space-y-2">
                         <Skeleton className="h-4 w-48"/>
@@ -156,6 +172,8 @@ export function DiscoverPage() {
     const [sortBy, setSortBy] = useState<DiscoverSortBy>("Participants")
     const [sortDirection, setSortDirection] = useState<SortDirection>("Desc")
     const [page, setPage] = useState(1)
+    const [selectedIds, setSelectedIds] = useState<string[]>([])
+    const [isAddToRepostOpen, setIsAddToRepostOpen] = useState(false)
 
     const apiCategory = category === "all" ? undefined : category
     const apiPeerType = peerType === "all" ? undefined : peerType
@@ -213,6 +231,22 @@ export function DiscoverPage() {
     const handleSortDirectionChange = (value: string) => {
         setSortDirection(value as SortDirection)
         setPage(1)
+    }
+
+    const pageChannelIds = channels.map((channel) => channel.id)
+    const allOnPageSelected = pageChannelIds.length > 0
+        && pageChannelIds.every((id) => selectedIds.includes(id))
+
+    const handleSelectedChange = (channelId: string, selected: boolean) => {
+        setSelectedIds((prev) => selected
+            ? [...prev, channelId]
+            : prev.filter((id) => id !== channelId))
+    }
+
+    const handleSelectAllOnPage = (selected: boolean) => {
+        setSelectedIds((prev) => selected
+            ? [...new Set([...prev, ...pageChannelIds])]
+            : prev.filter((id) => !pageChannelIds.includes(id)))
     }
 
     return (
@@ -321,11 +355,41 @@ export function DiscoverPage() {
                     <p>Каналы не найдены. Попробуйте изменить фильтры.</p>
                 </div>
             ) : (
-                <div className="space-y-3">
-                    {channels.map((channel) => (
-                        <ChannelCard key={channel.id} channel={channel}/>
-                    ))}
-                </div>
+                <>
+                    <div className="flex items-center justify-between gap-4 mb-3">
+                        <label className="flex items-center gap-2 text-sm text-muted-foreground cursor-pointer">
+                            <Checkbox
+                                checked={allOnPageSelected}
+                                onCheckedChange={(value) => handleSelectAllOnPage(value === true)}
+                            />
+                            Выбрать все на странице
+                        </label>
+                        {selectedIds.length > 0 && (
+                            <div className="flex items-center gap-2">
+                                <span className="text-sm text-muted-foreground">
+                                    Выбрано: {selectedIds.length}
+                                </span>
+                                <Button variant="ghost" size="sm" onClick={() => setSelectedIds([])}>
+                                    Сбросить
+                                </Button>
+                                <Button size="sm" className="gap-1.5" onClick={() => setIsAddToRepostOpen(true)}>
+                                    <Send className="h-3.5 w-3.5"/>
+                                    Добавить в репост
+                                </Button>
+                            </div>
+                        )}
+                    </div>
+                    <div className="space-y-3">
+                        {channels.map((channel) => (
+                            <ChannelCard
+                                key={channel.id}
+                                channel={channel}
+                                selected={selectedIds.includes(channel.id)}
+                                onSelectedChange={(selected) => handleSelectedChange(channel.id, selected)}
+                            />
+                        ))}
+                    </div>
+                </>
             )}
 
             {totalPages > 1 && (
@@ -351,6 +415,13 @@ export function DiscoverPage() {
                     </Button>
                 </div>
             )}
+
+            <AddFromDiscoverDialog
+                selectedChannelIds={selectedIds}
+                open={isAddToRepostOpen}
+                onOpenChange={setIsAddToRepostOpen}
+                onAdded={() => setSelectedIds([])}
+            />
         </div>
     )
 }

@@ -168,6 +168,9 @@ internal static class Routes
 		internal const string DeleteSettings = Root + "/settings/{id:guid}";
 		internal const string UpdateSettings = Root + "/settings/{id:guid}";
 		internal const string AddDestination = Root + "/settings/{settingsId:guid}/destinations";
+
+		internal const string AddDestinationsFromDiscover =
+			Root + "/settings/{settingsId:guid}/destinations/from-discover";
 		internal const string DeleteDestination = Root + "/destinations/{id:guid}";
 		internal const string ListDestinations = Root + "/settings/{settingsId:guid}/destinations";
 		internal const string UpdateDestination = Root + "/destinations/{id:guid}";

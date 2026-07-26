@@ -4,6 +4,52 @@
  * TgPoster.API
  * OpenAPI spec version: 1.0
  */
+export type AddDestinationOutcome = typeof AddDestinationOutcome[keyof typeof AddDestinationOutcome];
+
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const AddDestinationOutcome = {
+  Added: 'Added',
+  AlreadyAdded: 'AlreadyAdded',
+  SourceChannel: 'SourceChannel',
+  NoWritePermission: 'NoWritePermission',
+  NoMediaPermission: 'NoMediaPermission',
+  NotResolved: 'NotResolved',
+  RateLimited: 'RateLimited',
+} as const;
+
+export interface AddDestinationResultDto {
+  discoveredChannelId: string;
+  /** @minLength 1 */
+  title: string;
+  outcome: AddDestinationOutcome;
+  /** @nullable */
+  destinationId?: string | null;
+  /** @nullable */
+  error?: string | null;
+}
+
+/**
+ * Массовое добавление целевых каналов репоста из Discover
+ */
+export interface AddDestinationsFromDiscoverRequest {
+  /**
+   * Id обнаруженных каналов из Discover
+   * @minItems 1
+   * @maxItems 20
+   */
+  discoveredChannelIds: string[];
+  /** Вступать в канал, если аккаунт ещё не участник. Без вступления репост в канал не работает */
+  autoJoin?: boolean;
+}
+
+export interface AddDestinationsFromDiscoverResponse {
+  results: AddDestinationResultDto[];
+  addedCount: number;
+  skippedCount: number;
+  rateLimited: boolean;
+}
+
 /**
  * Добавление целевого канала для репоста.
  */

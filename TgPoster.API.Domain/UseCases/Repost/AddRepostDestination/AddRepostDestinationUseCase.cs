@@ -38,6 +38,11 @@ internal sealed class AddRepostDestinationUseCase(
 			info.CanSendMedia,
 			ct);
 
+		if (await storage.DestinationExistsAsync(request.RepostSettingsId, info.Id, ct))
+		{
+			throw new RepostDestinationAlreadyExistsException(fullInfo.Title ?? request.ChatIdentifier);
+		}
+
 		// Репост пересылает контент с медиа/видео, поэтому требуем права и на сообщения, и на медиа.
 		// Иначе пересылка упадёт в рантайме с CHAT_SEND_*_FORBIDDEN
 		if (!info.CanSendMessages)

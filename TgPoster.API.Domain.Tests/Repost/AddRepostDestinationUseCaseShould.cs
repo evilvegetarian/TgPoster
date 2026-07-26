@@ -46,6 +46,21 @@ public class AddRepostDestinationUseCaseShould
 	}
 
 	[Fact]
+	public async Task ThrowRepostDestinationAlreadyExists_WhenChannelAlreadyAdded()
+	{
+		var info = SetupChat(true, true);
+		storage.Setup(s => s.DestinationExistsAsync(It.IsAny<Guid>(), info.Id, It.IsAny<CancellationToken>()))
+			.ReturnsAsync(true);
+
+		var command = new AddRepostDestinationCommand(Guid.NewGuid(), "@channel");
+
+		await Should.ThrowAsync<RepostDestinationAlreadyExistsException>(async () =>
+			await sut.Handle(command, CancellationToken.None));
+
+		VerifyAddDestinationNeverCalled();
+	}
+
+	[Fact]
 	public async Task ThrowNoWritePermission_WhenCannotSendMessages()
 	{
 		SetupChat(false, false);

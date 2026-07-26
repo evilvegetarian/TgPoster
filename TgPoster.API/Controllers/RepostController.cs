@@ -3,6 +3,7 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TgPoster.API.Common;
+using TgPoster.API.Domain.UseCases.Repost.AddDestinationsFromDiscover;
 using TgPoster.API.Domain.UseCases.Repost.AddRepostDestination;
 using TgPoster.API.Domain.UseCases.Repost.CreateRepostSettings;
 using TgPoster.API.Domain.UseCases.Repost.DeleteRepostDestination;
@@ -157,6 +158,34 @@ public sealed class RepostController(ISender sender) : ControllerBase
 			nameof(ListSettings),
 			null,
 			result);
+	}
+
+	/// <summary>
+	///     Массовое добавление целевых каналов из Discover.
+	/// </summary>
+	/// <param name="settingsId">ID настроек репоста</param>
+	/// <param name="request">Выбранные каналы Discover</param>
+	/// <param name="ct">Токен отмены операции</param>
+	/// <returns>Результат по каждому каналу: добавлен, пропущен или не обработан</returns>
+	[HttpPost(Routes.Repost.AddDestinationsFromDiscover)]
+	[ProducesResponseType(StatusCodes.Status200OK, Type = typeof(AddDestinationsFromDiscoverResponse))]
+	[ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
+	[ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
+	[ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
+	public async Task<IActionResult> AddDestinationsFromDiscover(
+		[FromRoute] [Required] Guid settingsId,
+		[FromBody] [Required] AddDestinationsFromDiscoverRequest request,
+		CancellationToken ct
+	)
+	{
+		var command = new AddDestinationsFromDiscoverCommand(
+			settingsId,
+			request.DiscoveredChannelIds,
+			request.AutoJoin);
+
+		var result = await sender.Send(command, ct);
+
+		return Ok(result);
 	}
 
 	/// <summary>

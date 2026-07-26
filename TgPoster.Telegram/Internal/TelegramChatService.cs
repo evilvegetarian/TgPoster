@@ -1,4 +1,5 @@
 using System.Text.RegularExpressions;
+using Microsoft.Extensions.Logging;
 using Shared.Enums;
 using TgPoster.Exceptions.BadRequest;
 using TgPoster.Telegram.Abstractions;
@@ -26,7 +27,9 @@ internal enum ChatInputType
 /// </summary>
 internal sealed record ChatInputParseResult(ChatInputType Type, string Value);
 
-internal sealed partial class TelegramChatService(ITelegramClientResolver clientResolver) : ITelegramChatService
+internal sealed partial class TelegramChatService(
+	ITelegramClientResolver clientResolver,
+	ILogger<TelegramChatService> logger) : ITelegramChatService
 {
 	public async Task<TelegramChatInfo> GetChatInfoAsync(Guid sessionId, string input, bool autoJoin = true)
 	{
@@ -43,6 +46,55 @@ internal sealed partial class TelegramChatService(ITelegramClientResolver client
 				await GetChatByIdAsync(client, id),
 			_ => throw new TelegramInvalidChatLinkException(input)
 		};
+	}
+
+	public async Task<TelegramOperationResult<TelegramChatInfo>> TryGetChatInfoAsync(
+		Guid sessionId,
+		string input,
+		bool autoJoin = true
+	)
+	{
+		try
+		{
+			var info = await GetChatInfoAsync(sessionId, input, autoJoin);
+			return TelegramOperationResult<TelegramChatInfo>.Success(info);
+		}
+		catch (TelegramAuthSessionNotFoundException ex)
+		{
+			return Failed(TelegramOperationStatus.SessionNotFound, input, ex.Message);
+		}
+		catch (Exception ex) when (ex is TelegramChatNotFoundException or TelegramInvalidChatLinkException)
+		{
+			return Failed(TelegramOperationStatus.UsernameNotFound, input, ex.Message);
+		}
+		catch (TelegramChatForbidden ex)
+		{
+			return Failed(TelegramOperationStatus.ChannelBanned, input, ex.Message);
+		}
+		catch (TelegramJoinChatFailedException ex)
+		{
+			return Failed(TelegramOperationStatus.AccessDenied, input, ex.Message);
+		}
+		catch (RpcException ex) when (ex.Message is "PEER_FLOOD")
+		{
+			return Failed(TelegramOperationStatus.SpamRestricted, input, ex.Message);
+		}
+		catch (RpcException ex) when (ex.Message.StartsWith("FLOOD_WAIT"))
+		{
+			return Failed(TelegramOperationStatus.FloodWait, input, ex.Message, ex.X);
+		}
+		catch (RpcException ex) when (ex.Message is "CHANNELS_TOO_MUCH")
+		{
+			return Failed(TelegramOperationStatus.AccessDenied, input, ex.Message);
+		}
+		catch (RpcException ex)
+		{
+			return Failed(TelegramOperationStatus.UnknownError, input, ex.Message);
+		}
+		catch (Exception ex)
+		{
+			return Failed(TelegramOperationStatus.UnknownError, input, ex.Message);
+		}
 	}
 
 	public void EnsureCanSendMessages(TelegramChatInfo chatInfo)
@@ -197,6 +249,17 @@ internal sealed partial class TelegramChatService(ITelegramClientResolver client
 			limit: 1);
 
 		return history.Count;
+	}
+
+	private TelegramOperationResult<TelegramChatInfo> Failed(
+		TelegramOperationStatus status,
+		string input,
+		string? error,
+		int? floodWaitSeconds = null
+	)
+	{
+		logger.LogWarning("Telegram TryGetChatInfo({Input}): {Status} ({Error})", input, status, error);
+		return TelegramOperationResult<TelegramChatInfo>.Failed(status, error, floodWaitSeconds);
 	}
 
 	private async Task<Client> ResolveClientAsync(Guid sessionId)
