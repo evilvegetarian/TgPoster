@@ -3,23 +3,15 @@ using Shared.Enums;
 namespace TgPoster.API.Domain.UseCases.Repost.AddDestinationsFromDiscover;
 
 /// <summary>
-///     Настройки репоста, нужные для массового добавления каналов
+///     Настройки репоста, нужные для постановки каналов в очередь
 /// </summary>
 /// <param name="TelegramSessionId">Id телеграм сессии для выполнения репостов</param>
 /// <param name="SourceChannelId">Id канала-источника из расписания</param>
-/// <param name="DefaultDelayMinSeconds">Общая минимальная задержка перед репостом (секунды)</param>
-/// <param name="DefaultDelayMaxSeconds">Общая максимальная задержка перед репостом (секунды)</param>
-/// <param name="DefaultRepostEveryNth">Общая настройка "репостить каждое N-е сообщение"</param>
-/// <param name="DefaultSkipProbability">Общая вероятность пропуска репоста (0-100%)</param>
-/// <param name="DefaultMaxRepostsPerDay">Общий лимит репостов в день (null = без лимита)</param>
+/// <param name="SessionFloodWaitUntil">До какого момента Telegram ограничил сессию (null — ограничений нет)</param>
 public sealed record RepostSettingsDefaults(
 	Guid TelegramSessionId,
 	long SourceChannelId,
-	int DefaultDelayMinSeconds,
-	int DefaultDelayMaxSeconds,
-	int DefaultRepostEveryNth,
-	int DefaultSkipProbability,
-	int? DefaultMaxRepostsPerDay);
+	DateTimeOffset? SessionFloodWaitUntil);
 
 /// <summary>
 ///     Канал из Discover, выбранный для добавления в репост
@@ -29,14 +21,29 @@ public sealed record RepostSettingsDefaults(
 /// <param name="Username">Username без @ (null для приватных каналов)</param>
 /// <param name="Title">Название канала</param>
 /// <param name="InviteHash">Хеш инвайт-ссылки для приватных каналов</param>
-/// <param name="ParticipantsCount">Количество подписчиков по данным Discover</param>
+/// <param name="CanSendMessages">Известное из прошлых проверок право на отправку сообщений (null — не проверялось)</param>
+/// <param name="CanSendMedia">Известное из прошлых проверок право на отправку медиа (null — не проверялось)</param>
 public sealed record DiscoverCandidate(
 	Guid Id,
 	long? TelegramId,
 	string? Username,
 	string? Title,
 	string? InviteHash,
-	int? ParticipantsCount);
+	bool? CanSendMessages,
+	bool? CanSendMedia);
+
+/// <summary>
+///     Канал, попадающий в задание на массовое добавление
+/// </summary>
+/// <param name="DiscoveredChannelId">Id записи в Discover</param>
+/// <param name="Title">Название канала для отображения в интерфейсе</param>
+/// <param name="Outcome">Стартовый итог: Pending — ждёт фоновой обработки, остальное — решено сразу</param>
+/// <param name="Error">Причина отказа, если канал отбракован сразу</param>
+public sealed record ImportJobItemDto(
+	Guid DiscoveredChannelId,
+	string Title,
+	AddDestinationOutcome Outcome,
+	string? Error);
 
 public interface IAddDestinationsFromDiscoverStorage
 {
@@ -66,57 +73,17 @@ public interface IAddDestinationsFromDiscoverStorage
 	Task<List<long>> GetExistingChatIdsAsync(Guid repostSettingsId, CancellationToken ct);
 
 	/// <summary>
-	///     Обновить в Discover данные канала, полученные из Telegram
-	/// </summary>
-	/// <param name="discoveredChannelId">Id записи в Discover</param>
-	/// <param name="telegramId">Числовой Id канала в Telegram</param>
-	/// <param name="title">Название канала</param>
-	/// <param name="username">Username без @</param>
-	/// <param name="chatType">Тип чата</param>
-	/// <param name="canSendMessages">Можно ли отправлять сообщения</param>
-	/// <param name="canSendMedia">Можно ли отправлять медиа</param>
-	/// <param name="ct">Токен отмены</param>
-	Task UpdateDiscoveredChannelAsync(
-		Guid discoveredChannelId,
-		long telegramId,
-		string? title,
-		string? username,
-		ChatType chatType,
-		bool canSendMessages,
-		bool canSendMedia,
-		CancellationToken ct
-	);
-
-	/// <summary>
-	///     Создать целевой канал репоста
+	///     Создать задание на массовое добавление каналов вместе со всеми его каналами
 	/// </summary>
 	/// <param name="repostSettingsId">Id настроек репоста</param>
-	/// <param name="chatId">Числовой Id канала в Telegram</param>
-	/// <param name="title">Название канала</param>
-	/// <param name="username">Username без @</param>
-	/// <param name="memberCount">Количество подписчиков</param>
-	/// <param name="chatType">Тип чата</param>
-	/// <param name="discoveredChannelId">Id связанной записи в Discover</param>
-	/// <param name="delayMinSeconds">Минимальная задержка перед репостом (секунды)</param>
-	/// <param name="delayMaxSeconds">Максимальная задержка перед репостом (секунды)</param>
-	/// <param name="repostEveryNth">Репостить каждое N-е сообщение</param>
-	/// <param name="skipProbability">Вероятность пропуска репоста (0-100%)</param>
-	/// <param name="maxRepostsPerDay">Лимит репостов в день (null = без лимита)</param>
+	/// <param name="autoJoin">Вступать ли автоматически в приватные каналы</param>
+	/// <param name="items">Каналы задания с уже определённым стартовым итогом</param>
 	/// <param name="ct">Токен отмены</param>
-	/// <returns>Id созданного целевого канала</returns>
-	Task<Guid> AddDestinationAsync(
+	/// <returns>Id созданного задания</returns>
+	Task<Guid> CreateImportJobAsync(
 		Guid repostSettingsId,
-		long chatId,
-		string? title,
-		string? username,
-		int? memberCount,
-		ChatType chatType,
-		Guid discoveredChannelId,
-		int delayMinSeconds,
-		int delayMaxSeconds,
-		int repostEveryNth,
-		int skipProbability,
-		int? maxRepostsPerDay,
+		bool autoJoin,
+		IReadOnlyList<ImportJobItemDto> items,
 		CancellationToken ct
 	);
 }

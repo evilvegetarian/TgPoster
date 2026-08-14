@@ -8,6 +8,7 @@ using TgPoster.API.Domain.UseCases.Repost.AddRepostDestination;
 using TgPoster.API.Domain.UseCases.Repost.CreateRepostSettings;
 using TgPoster.API.Domain.UseCases.Repost.DeleteRepostDestination;
 using TgPoster.API.Domain.UseCases.Repost.DeleteRepostSettings;
+using TgPoster.API.Domain.UseCases.Repost.GetRepostImportJob;
 using TgPoster.API.Domain.UseCases.Repost.GetRepostSettings;
 using TgPoster.API.Domain.UseCases.Repost.ListRepostSettings;
 using TgPoster.API.Domain.UseCases.Repost.RefreshDestinationInfo;
@@ -161,14 +162,15 @@ public sealed class RepostController(ISender sender) : ControllerBase
 	}
 
 	/// <summary>
-	///     Массовое добавление целевых каналов из Discover.
+	///     Массовое добавление целевых каналов из Discover. Каналы обрабатываются фоново по одному,
+	///     прогресс опрашивается через GetImportJob.
 	/// </summary>
 	/// <param name="settingsId">ID настроек репоста</param>
 	/// <param name="request">Выбранные каналы Discover</param>
 	/// <param name="ct">Токен отмены операции</param>
-	/// <returns>Результат по каждому каналу: добавлен, пропущен или не обработан</returns>
+	/// <returns>Созданное задание: каналы в очереди и уже отбракованные по данным БД</returns>
 	[HttpPost(Routes.Repost.AddDestinationsFromDiscover)]
-	[ProducesResponseType(StatusCodes.Status200OK, Type = typeof(AddDestinationsFromDiscoverResponse))]
+	[ProducesResponseType(StatusCodes.Status202Accepted, Type = typeof(RepostImportJobResponse))]
 	[ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
 	[ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
 	[ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
@@ -184,6 +186,26 @@ public sealed class RepostController(ISender sender) : ControllerBase
 			request.AutoJoin);
 
 		var result = await sender.Send(command, ct);
+
+		return Accepted(result);
+	}
+
+	/// <summary>
+	///     Состояние задания на массовое добавление целевых каналов.
+	/// </summary>
+	/// <param name="jobId">ID задания</param>
+	/// <param name="ct">Токен отмены операции</param>
+	/// <returns>Прогресс задания и результат по каждому каналу</returns>
+	[HttpGet(Routes.Repost.GetImportJob)]
+	[ProducesResponseType(StatusCodes.Status200OK, Type = typeof(RepostImportJobResponse))]
+	[ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
+	[ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
+	public async Task<IActionResult> GetImportJob(
+		[FromRoute] [Required] Guid jobId,
+		CancellationToken ct
+	)
+	{
+		var result = await sender.Send(new GetRepostImportJobQuery(jobId), ct);
 
 		return Ok(result);
 	}

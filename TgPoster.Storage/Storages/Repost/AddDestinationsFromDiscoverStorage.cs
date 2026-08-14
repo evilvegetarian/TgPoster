@@ -20,11 +20,7 @@ internal sealed class AddDestinationsFromDiscoverStorage(PosterContext context, 
 			.Select(x => new RepostSettingsDefaults(
 				x.TelegramSessionId,
 				x.Schedule.ChannelId,
-				x.DefaultDelayMinSeconds,
-				x.DefaultDelayMaxSeconds,
-				x.DefaultRepostEveryNth,
-				x.DefaultSkipProbability,
-				x.DefaultMaxRepostsPerDay))
+				x.TelegramSession.FloodWaitUntil))
 			.FirstOrDefaultAsync(ct);
 	}
 
@@ -41,7 +37,8 @@ internal sealed class AddDestinationsFromDiscoverStorage(PosterContext context, 
 				x.Username,
 				x.Title,
 				x.InviteHash,
-				x.ParticipantsCount))
+				x.CanSendMessages,
+				x.CanSendMedia))
 			.ToListAsync(ct);
 	}
 
@@ -53,93 +50,40 @@ internal sealed class AddDestinationsFromDiscoverStorage(PosterContext context, 
 			.ToListAsync(ct);
 	}
 
-	public async Task UpdateDiscoveredChannelAsync(
-		Guid discoveredChannelId,
-		long telegramId,
-		string? title,
-		string? username,
-		ChatType chatType,
-		bool canSendMessages,
-		bool canSendMedia,
-		CancellationToken ct
-	)
-	{
-		var channel = await context.DiscoveredChannels
-			.IgnoreQueryFilters()
-			.FirstAsync(x => x.Id == discoveredChannelId, ct);
-
-		var normalizedUsername = string.IsNullOrWhiteSpace(username) ? null : username;
-
-		channel.TelegramId = telegramId;
-
-		if (title != null)
-		{
-			channel.Title = title;
-		}
-
-		if (normalizedUsername != null)
-		{
-			channel.Username = normalizedUsername;
-			channel.TgUrl ??= $"https://t.me/{normalizedUsername}";
-		}
-
-		var peerType = chatType switch
-		{
-			ChatType.Channel => "channel",
-			ChatType.Group => "chat",
-			_ => null
-		};
-
-		if (peerType != null)
-		{
-			channel.PeerType = peerType;
-		}
-
-		channel.CanSendMessages = canSendMessages;
-		channel.CanSendMedia = canSendMedia;
-
-		await context.SaveChangesAsync(ct);
-	}
-
-	public async Task<Guid> AddDestinationAsync(
+	public async Task<Guid> CreateImportJobAsync(
 		Guid repostSettingsId,
-		long chatId,
-		string? title,
-		string? username,
-		int? memberCount,
-		ChatType chatType,
-		Guid discoveredChannelId,
-		int delayMinSeconds,
-		int delayMaxSeconds,
-		int repostEveryNth,
-		int skipProbability,
-		int? maxRepostsPerDay,
+		bool autoJoin,
+		IReadOnlyList<ImportJobItemDto> items,
 		CancellationToken ct
 	)
 	{
-		var destination = new RepostDestination
+		var now = DateTimeOffset.UtcNow;
+
+		var job = new RepostImportJob
 		{
 			Id = guidFactory.New(),
 			RepostSettingsId = repostSettingsId,
-			ChatId = chatId,
-			IsActive = true,
-			Title = title,
-			Username = username,
-			MemberCount = memberCount,
-			ChatType = chatType,
-			ChatStatus = ChatStatus.Active,
-			InfoUpdatedAt = DateTimeOffset.UtcNow,
-			DiscoveredChannelId = discoveredChannelId,
-			DelayMinSeconds = delayMinSeconds,
-			DelayMaxSeconds = delayMaxSeconds,
-			RepostEveryNth = repostEveryNth,
-			SkipProbability = skipProbability,
-			MaxRepostsPerDay = maxRepostsPerDay
+			AutoJoin = autoJoin,
+			Status = RepostImportStatus.Pending
 		};
 
-		await context.AddAsync(destination, ct);
+		job.Items = items
+			.Select((x, index) => new RepostImportJobItem
+			{
+				Id = guidFactory.New(),
+				RepostImportJobId = job.Id,
+				DiscoveredChannelId = x.DiscoveredChannelId,
+				Title = x.Title,
+				Order = index,
+				Outcome = x.Outcome,
+				Error = x.Error,
+				ProcessedAt = x.Outcome == AddDestinationOutcome.Pending ? null : now
+			})
+			.ToList();
+
+		await context.AddAsync(job, ct);
 		await context.SaveChangesAsync(ct);
 
-		return destination.Id;
+		return job.Id;
 	}
 }

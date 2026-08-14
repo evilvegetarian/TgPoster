@@ -1,4 +1,5 @@
 using MediatR;
+using TgPoster.API.Domain.UseCases.Repost.GetRepostImportJob;
 
 namespace TgPoster.API.Domain.UseCases.Repost.AddDestinationsFromDiscover;
 
@@ -11,4 +12,4 @@ namespace TgPoster.API.Domain.UseCases.Repost.AddDestinationsFromDiscover;
 public sealed record AddDestinationsFromDiscoverCommand(
 	Guid RepostSettingsId,
 	IReadOnlyList<Guid> DiscoveredChannelIds,
-	bool AutoJoin) : IRequest<AddDestinationsFromDiscoverResponse>;
+	bool AutoJoin) : IRequest<RepostImportJobResponse>;

@@ -14,6 +14,7 @@ using TgPoster.Worker.Domain.UseCases.ClassifyChannel;
 using TgPoster.Worker.Domain.UseCases.CleanupS3Files;
 using TgPoster.Worker.Domain.UseCases.CommentRepostMonitor;
 using TgPoster.Worker.Domain.UseCases.DiscoverChannelLinks;
+using TgPoster.Worker.Domain.UseCases.ImportRepostDestinations;
 using TgPoster.Worker.Domain.UseCases.ParseChannel;
 using TgPoster.Worker.Domain.UseCases.ParseChannelConsumer;
 using TgPoster.Worker.Domain.UseCases.ParseChannelWorker;
@@ -32,6 +33,10 @@ public static class DependencyInjection
 	{
 		var telegramOptions = configuration.GetSection(nameof(TelegramOptions)).Get<TelegramOptions>()!;
 		services.AddSingleton(telegramOptions);
+
+		var repostImportOptions = configuration.GetSection(nameof(RepostImportOptions)).Get<RepostImportOptions>()
+		                          ?? new RepostImportOptions();
+		services.AddSingleton(repostImportOptions);
 
 		var s3Options = configuration.GetSection(nameof(S3Options)).Get<S3Options>()!;
 		services.AddSingleton(s3Options);
@@ -62,6 +67,7 @@ public static class DependencyInjection
 		services.AddScoped<ClassifyChannelWorker>();
 		services.AddScoped<UpdateChannelStatsWorker>();
 		services.AddScoped<CleanupS3FilesWorker>();
+		services.AddScoped<ResumeRepostImportJobsWorker>();
 		services.AddScoped<HangfireNextRunProvider>();
 
 		return services;
@@ -85,6 +91,10 @@ public static class DependencyInjection
 				opt.ConcurrentMessageLimit = 1;
 			});
 			x.AddConsumer<SendCommentConsumer>(opt =>
+			{
+				opt.ConcurrentMessageLimit = 1;
+			});
+			x.AddConsumer<ImportRepostDestinationsConsumer>(opt =>
 			{
 				opt.ConcurrentMessageLimit = 1;
 			});
@@ -147,6 +157,11 @@ public static class DependencyInjection
 			WorkerJobNames.CleanupS3Files,
 			worker => worker.CleanupAsync(),
 			Cron.Weekly());
+
+		recurringJobManager.AddOrUpdate<ResumeRepostImportJobsWorker>(
+			"resume-repost-import-job",
+			worker => worker.ResumeAsync(),
+			Cron.Minutely());
 
 		var statusStorage = scope.ServiceProvider.GetRequiredService<IWorkerJobStatusStorage>();
 		var nextRunProvider = scope.ServiceProvider.GetRequiredService<HangfireNextRunProvider>();

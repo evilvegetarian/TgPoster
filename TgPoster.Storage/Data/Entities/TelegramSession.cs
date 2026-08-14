@@ -49,6 +49,12 @@ public sealed class TelegramSession : BaseEntity
 	public TelegramSessionPurpose[] Purposes { get; set; } = [];
 
 	/// <summary>
+	///     До какого момента Telegram ограничил сессию (FLOOD_WAIT/PEER_FLOOD).
+	///     Null — ограничений не было
+	/// </summary>
+	public DateTimeOffset? FloodWaitUntil { get; set; }
+
+	/// <summary>
 	///     Id владельца сессии.
 	/// </summary>
 	public required Guid UserId { get; set; }

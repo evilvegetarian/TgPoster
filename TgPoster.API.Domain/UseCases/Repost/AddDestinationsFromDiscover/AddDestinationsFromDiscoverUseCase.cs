@@ -1,18 +1,19 @@
+using MassTransit;
 using MediatR;
 using Security.IdentityServices;
 using Shared.Enums;
+using Shared.Telegram;
+using TgPoster.API.Domain.UseCases.Repost.GetRepostImportJob;
 using TgPoster.Exceptions.BadRequest;
 using TgPoster.Exceptions.NotFound;
-using TgPoster.Telegram.Abstractions;
-using TgPoster.Telegram.Models;
 
 namespace TgPoster.API.Domain.UseCases.Repost.AddDestinationsFromDiscover;
 
 internal sealed class AddDestinationsFromDiscoverUseCase(
 	IAddDestinationsFromDiscoverStorage storage,
-	ITelegramChatService chatService,
+	IBus bus,
 	IIdentityProvider identity)
-	: IRequestHandler<AddDestinationsFromDiscoverCommand, AddDestinationsFromDiscoverResponse>
+	: IRequestHandler<AddDestinationsFromDiscoverCommand, RepostImportJobResponse>
 {
 	/// <summary>
 	///     Ограничение на размер пачки: каждый канал — это резолв и вступление,
@@ -20,7 +21,7 @@ internal sealed class AddDestinationsFromDiscoverUseCase(
 	/// </summary>
 	private const int MaxChannelsPerRequest = 20;
 
-	public async Task<AddDestinationsFromDiscoverResponse> Handle(
+	public async Task<RepostImportJobResponse> Handle(
 		AddDestinationsFromDiscoverCommand request,
 		CancellationToken ct
 	)
@@ -45,133 +46,87 @@ internal sealed class AddDestinationsFromDiscoverUseCase(
 			throw new RepostSettingsNotFoundException(request.RepostSettingsId);
 		}
 
-		var candidates = await storage.GetCandidatesAsync(request.DiscoveredChannelIds, ct);
+		var requestedIds = request.DiscoveredChannelIds.Distinct().ToList();
+
+		var candidates = (await storage.GetCandidatesAsync(requestedIds, ct))
+			.ToDictionary(x => x.Id);
 		var existingChatIds = (await storage.GetExistingChatIdsAsync(request.RepostSettingsId, ct)).ToHashSet();
 
-		var results = new List<AddDestinationResultDto>(candidates.Count);
-		var rateLimited = false;
+		// Telegram здесь не трогаем: раскладываем каналы на "уже всё понятно по данным БД"
+		// и "нужен резолв" — второе уедет в фоновую обработку по одному каналу
+		var items = requestedIds
+			.Select(id => candidates.TryGetValue(id, out var candidate)
+				? BuildItem(candidate, settings.SourceChannelId, existingChatIds)
+				: new ImportJobItemDto(id, id.ToString(), AddDestinationOutcome.NotResolved,
+					"Канал не найден в Discover"))
+			.ToList();
 
-		foreach (var candidate in candidates)
+		var jobId = await storage.CreateImportJobAsync(
+			request.RepostSettingsId,
+			request.AutoJoin,
+			items,
+			ct);
+
+		var pendingCount = items.Count(x => x.Outcome == AddDestinationOutcome.Pending);
+		if (pendingCount > 0)
 		{
-			if (rateLimited)
-			{
-				results.Add(Result(candidate, AddDestinationOutcome.RateLimited,
-					"Обработка прервана из-за ограничений Telegram"));
-				continue;
-			}
-
-			var skipReason = GetSkipOutcome(candidate.TelegramId, settings.SourceChannelId, existingChatIds);
-			if (skipReason != null)
-			{
-				results.Add(Result(candidate, skipReason.Value));
-				continue;
-			}
-
-			var identifier = BuildIdentifier(candidate);
-			if (identifier == null)
-			{
-				results.Add(Result(candidate, AddDestinationOutcome.NotResolved,
-					"У канала нет ни username, ни инвайт-ссылки"));
-				continue;
-			}
-
-			var chatResult = await chatService.TryGetChatInfoAsync(
-				settings.TelegramSessionId,
-				identifier,
-				request.AutoJoin);
-
-			if (!chatResult.IsSuccess)
-			{
-				if (chatResult.Status is TelegramOperationStatus.FloodWait
-				    or TelegramOperationStatus.SpamRestricted)
-				{
-					rateLimited = true;
-					results.Add(Result(candidate, AddDestinationOutcome.RateLimited, chatResult.ErrorMessage));
-					continue;
-				}
-
-				results.Add(Result(candidate, AddDestinationOutcome.NotResolved, chatResult.ErrorMessage));
-				continue;
-			}
-
-			var info = chatResult.Value!;
-			var chatType = info.IsChannel ? ChatType.Channel
-				: info.IsGroup ? ChatType.Group
-				: ChatType.Unknown;
-
-			// В Discover Telegram-id мог быть пустым или устаревшим — фиксируем актуальные данные и права
-			await storage.UpdateDiscoveredChannelAsync(
-				candidate.Id,
-				info.Id,
-				info.Title,
-				info.Username,
-				chatType,
-				info.CanSendMessages,
-				info.CanSendMedia,
-				ct);
-
-			// Повторная проверка уже по фактическому id из Telegram
-			skipReason = GetSkipOutcome(info.Id, settings.SourceChannelId, existingChatIds);
-			if (skipReason != null)
-			{
-				results.Add(Result(candidate, skipReason.Value));
-				continue;
-			}
-
-			if (!info.CanSendMessages)
-			{
-				results.Add(Result(candidate, AddDestinationOutcome.NoWritePermission));
-				continue;
-			}
-
-			if (!info.CanSendMedia)
-			{
-				results.Add(Result(candidate, AddDestinationOutcome.NoMediaPermission));
-				continue;
-			}
-
-			// Аватарку не тянем: на пачке каналов это лишние тяжёлые запросы,
-			// её подтянет обновление информации о канале
-			var destinationId = await storage.AddDestinationAsync(
-				request.RepostSettingsId,
-				info.Id,
-				info.Title,
-				info.Username,
-				candidate.ParticipantsCount,
-				chatType,
-				candidate.Id,
-				settings.DefaultDelayMinSeconds,
-				settings.DefaultDelayMaxSeconds,
-				settings.DefaultRepostEveryNth,
-				settings.DefaultSkipProbability,
-				settings.DefaultMaxRepostsPerDay,
-				ct);
-
-			existingChatIds.Add(info.Id);
-			results.Add(Result(candidate, AddDestinationOutcome.Added) with { DestinationId = destinationId });
+			await bus.Publish(new ImportRepostDestinationsContract { JobId = jobId }, ct);
 		}
 
-		// Каналы, которых нет в Discover, в candidates не попали — сообщаем о них отдельно
-		var foundIds = candidates.Select(x => x.Id).ToHashSet();
-		results.AddRange(request.DiscoveredChannelIds
-			.Where(id => !foundIds.Contains(id))
-			.Select(id => new AddDestinationResultDto
-			{
-				DiscoveredChannelId = id,
-				Title = id.ToString(),
-				Outcome = AddDestinationOutcome.NotResolved,
-				Error = "Канал не найден в Discover"
-			}));
+		var floodWaitSeconds = GetRetryAfterSeconds(settings.SessionFloodWaitUntil);
 
-		var addedCount = results.Count(x => x.Outcome == AddDestinationOutcome.Added);
-
-		return new AddDestinationsFromDiscoverResponse
+		return new RepostImportJobResponse
 		{
-			Results = results,
-			AddedCount = addedCount,
-			SkippedCount = results.Count - addedCount,
-			RateLimited = rateLimited
+			JobId = jobId,
+			Status = pendingCount > 0 ? RepostImportStatus.Pending : RepostImportStatus.Completed,
+			TotalCount = items.Count,
+			AddedCount = 0,
+			SkippedCount = items.Count - pendingCount,
+			PendingCount = pendingCount,
+			RetryAfterSeconds = pendingCount > 0 ? floodWaitSeconds : null,
+			Results = items
+				.Select(x => new AddDestinationResultDto
+				{
+					DiscoveredChannelId = x.DiscoveredChannelId,
+					Title = x.Title,
+					Outcome = x.Outcome,
+					Error = x.Error
+				})
+				.ToList()
 		};
+	}
+
+	private static ImportJobItemDto BuildItem(
+		DiscoverCandidate candidate,
+		long sourceChannelId,
+		HashSet<long> existingChatIds
+	)
+	{
+		var title = BuildTitle(candidate);
+
+		var skipOutcome = GetSkipOutcome(candidate.TelegramId, sourceChannelId, existingChatIds);
+		if (skipOutcome != null)
+		{
+			return new ImportJobItemDto(candidate.Id, title, skipOutcome.Value, null);
+		}
+
+		// Права из прошлых проверок: если писать нельзя — нет смысла резолвить и вступать
+		if (candidate.CanSendMessages == false)
+		{
+			return new ImportJobItemDto(candidate.Id, title, AddDestinationOutcome.NoWritePermission,
+				"По данным последней проверки в канал нельзя писать");
+		}
+
+		if (candidate.CanSendMedia == false)
+		{
+			return new ImportJobItemDto(candidate.Id, title, AddDestinationOutcome.NoMediaPermission,
+				"По данным последней проверки в канал нельзя отправлять медиа");
+		}
+
+		return HasIdentifier(candidate)
+			? new ImportJobItemDto(candidate.Id, title, AddDestinationOutcome.Pending, null)
+			: new ImportJobItemDto(candidate.Id, title, AddDestinationOutcome.NotResolved,
+				"У канала нет ни username, ни инвайт-ссылки");
 	}
 
 	private static AddDestinationOutcome? GetSkipOutcome(
@@ -195,36 +150,26 @@ internal sealed class AddDestinationsFromDiscoverUseCase(
 			: null;
 	}
 
-	private static string? BuildIdentifier(DiscoverCandidate candidate)
+	private static bool HasIdentifier(DiscoverCandidate candidate) =>
+		!string.IsNullOrWhiteSpace(candidate.Username)
+		|| !string.IsNullOrWhiteSpace(candidate.InviteHash)
+		|| candidate.TelegramId != null;
+
+	private static string BuildTitle(DiscoverCandidate candidate) =>
+		candidate.Title
+		?? (candidate.Username != null ? "@" + candidate.Username : null)
+		?? candidate.TelegramId?.ToString()
+		?? candidate.Id.ToString();
+
+	private static int? GetRetryAfterSeconds(DateTimeOffset? floodWaitUntil)
 	{
-		if (!string.IsNullOrWhiteSpace(candidate.Username))
+		if (floodWaitUntil == null)
 		{
-			return "@" + candidate.Username;
+			return null;
 		}
 
-		if (!string.IsNullOrWhiteSpace(candidate.InviteHash))
-		{
-			return "https://t.me/+" + candidate.InviteHash;
-		}
+		var seconds = (int)Math.Ceiling((floodWaitUntil.Value - DateTimeOffset.UtcNow).TotalSeconds);
 
-		// Числовой id резолвится только по диалогам сессии — сработает,
-		// если аккаунт уже состоит в канале
-		return candidate.TelegramId?.ToString();
+		return seconds > 0 ? seconds : null;
 	}
-
-	private static AddDestinationResultDto Result(
-		DiscoverCandidate candidate,
-		AddDestinationOutcome outcome,
-		string? error = null
-	) =>
-		new()
-		{
-			DiscoveredChannelId = candidate.Id,
-			Title = candidate.Title
-			        ?? (candidate.Username != null ? "@" + candidate.Username : null)
-			        ?? candidate.TelegramId?.ToString()
-			        ?? candidate.Id.ToString(),
-			Outcome = outcome,
-			Error = error
-		};
 }

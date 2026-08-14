@@ -1,20 +1,21 @@
+using MassTransit;
 using Moq;
 using Security.IdentityServices;
 using Shared.Enums;
+using Shared.Telegram;
 using Shouldly;
 using TgPoster.API.Domain.UseCases.Repost.AddDestinationsFromDiscover;
+using TgPoster.API.Domain.UseCases.Repost.GetRepostImportJob;
 using TgPoster.Exceptions.BadRequest;
 using TgPoster.Exceptions.NotFound;
-using TgPoster.Telegram.Abstractions;
-using TgPoster.Telegram.Models;
 
 namespace TgPoster.API.Domain.Tests.Repost;
 
 public class AddDestinationsFromDiscoverUseCaseShould
 {
 	private const long SourceChannelId = 777;
-	private readonly Mock<ITelegramChatService> chatService;
-	private readonly Guid destinationId = Guid.NewGuid();
+	private readonly Mock<IBus> bus;
+	private readonly Guid jobId = Guid.NewGuid();
 	private readonly Guid sessionId = Guid.NewGuid();
 	private readonly Guid settingsId = Guid.NewGuid();
 	private readonly Mock<IAddDestinationsFromDiscoverStorage> storage;
@@ -24,24 +25,22 @@ public class AddDestinationsFromDiscoverUseCaseShould
 	public AddDestinationsFromDiscoverUseCaseShould()
 	{
 		storage = new Mock<IAddDestinationsFromDiscoverStorage>();
-		chatService = new Mock<ITelegramChatService>();
+		bus = new Mock<IBus>();
 		var identityProvider = new Mock<IIdentityProvider>();
 		identityProvider.Setup(x => x.Current).Returns(new Identity(userId));
 
 		storage.Setup(s => s.GetSettingsDefaultsAsync(settingsId, userId, It.IsAny<CancellationToken>()))
-			.ReturnsAsync(new RepostSettingsDefaults(sessionId, SourceChannelId, 10, 60, 2, 30, 5));
+			.ReturnsAsync(new RepostSettingsDefaults(sessionId, SourceChannelId, null));
 
 		storage.Setup(s => s.GetExistingChatIdsAsync(settingsId, It.IsAny<CancellationToken>()))
 			.ReturnsAsync([]);
 
-		storage.Setup(s => s.AddDestinationAsync(
-				It.IsAny<Guid>(), It.IsAny<long>(), It.IsAny<string?>(), It.IsAny<string?>(),
-				It.IsAny<int?>(), It.IsAny<ChatType>(), It.IsAny<Guid>(), It.IsAny<int>(),
-				It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int?>(),
+		storage.Setup(s => s.CreateImportJobAsync(
+				It.IsAny<Guid>(), It.IsAny<bool>(), It.IsAny<IReadOnlyList<ImportJobItemDto>>(),
 				It.IsAny<CancellationToken>()))
-			.ReturnsAsync(destinationId);
+			.ReturnsAsync(jobId);
 
-		sut = new AddDestinationsFromDiscoverUseCase(storage.Object, chatService.Object, identityProvider.Object);
+		sut = new AddDestinationsFromDiscoverUseCase(storage.Object, bus.Object, identityProvider.Object);
 	}
 
 	[Fact]
@@ -76,22 +75,59 @@ public class AddDestinationsFromDiscoverUseCaseShould
 	}
 
 	[Fact]
-	public async Task AddChannelWithDefaultsFromSettings()
+	public async Task QueueChannelForBackgroundProcessing()
 	{
 		var candidate = SetupCandidate(username: "targetchan");
-		SetupChat(candidate, 12345, true, true);
 
 		var response = await Handle(candidate);
 
-		response.AddedCount.ShouldBe(1);
+		response.JobId.ShouldBe(jobId);
+		response.Status.ShouldBe(RepostImportStatus.Pending);
+		response.TotalCount.ShouldBe(1);
+		response.PendingCount.ShouldBe(1);
 		response.SkippedCount.ShouldBe(0);
-		response.RateLimited.ShouldBeFalse();
-		response.Results.Single().Outcome.ShouldBe(AddDestinationOutcome.Added);
-		response.Results.Single().DestinationId.ShouldBe(destinationId);
+		response.AddedCount.ShouldBe(0);
+		response.Results.Single().Outcome.ShouldBe(AddDestinationOutcome.Pending);
 
-		storage.Verify(s => s.AddDestinationAsync(
-			settingsId, 12345, It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<int?>(),
-			ChatType.Channel, candidate.Id, 10, 60, 2, 30, 5, It.IsAny<CancellationToken>()), Times.Once);
+		bus.Verify(b => b.Publish(
+			It.Is<ImportRepostDestinationsContract>(c => c.JobId == jobId),
+			It.IsAny<CancellationToken>()), Times.Once);
+	}
+
+	[Fact]
+	public async Task SkipChannelBannedFromWriting_WithoutQueueing()
+	{
+		var candidate = SetupCandidate(username: "readonlychan", canSendMessages: false);
+
+		var response = await Handle(candidate);
+
+		response.PendingCount.ShouldBe(0);
+		response.SkippedCount.ShouldBe(1);
+		response.Status.ShouldBe(RepostImportStatus.Completed);
+		response.Results.Single().Outcome.ShouldBe(AddDestinationOutcome.NoWritePermission);
+		VerifyNothingPublished();
+	}
+
+	[Fact]
+	public async Task SkipChannelBannedFromMedia_WithoutQueueing()
+	{
+		var candidate = SetupCandidate(username: "nomediachan", canSendMedia: false);
+
+		var response = await Handle(candidate);
+
+		response.PendingCount.ShouldBe(0);
+		response.Results.Single().Outcome.ShouldBe(AddDestinationOutcome.NoMediaPermission);
+		VerifyNothingPublished();
+	}
+
+	[Fact]
+	public async Task QueueChannel_WhenPermissionsWereNeverChecked()
+	{
+		var candidate = SetupCandidate(username: "unknownchan");
+
+		var response = await Handle(candidate);
+
+		response.Results.Single().Outcome.ShouldBe(AddDestinationOutcome.Pending);
 	}
 
 	[Fact]
@@ -101,9 +137,9 @@ public class AddDestinationsFromDiscoverUseCaseShould
 
 		var response = await Handle(candidate);
 
-		response.AddedCount.ShouldBe(0);
+		response.PendingCount.ShouldBe(0);
 		response.Results.Single().Outcome.ShouldBe(AddDestinationOutcome.SourceChannel);
-		VerifyNoDestinationAdded();
+		VerifyNothingPublished();
 	}
 
 	[Fact]
@@ -116,56 +152,19 @@ public class AddDestinationsFromDiscoverUseCaseShould
 		var response = await Handle(candidate);
 
 		response.Results.Single().Outcome.ShouldBe(AddDestinationOutcome.AlreadyAdded);
-		VerifyNoDestinationAdded();
-	}
-
-	[Fact]
-	public async Task SkipChannelWithoutWritePermission()
-	{
-		var candidate = SetupCandidate(username: "readonlychan");
-		SetupChat(candidate, 4242, false, false);
-
-		var response = await Handle(candidate);
-
-		response.Results.Single().Outcome.ShouldBe(AddDestinationOutcome.NoWritePermission);
-		VerifyNoDestinationAdded();
-	}
-
-	[Fact]
-	public async Task SkipChannelWithoutMediaPermission()
-	{
-		var candidate = SetupCandidate(username: "nomediachan");
-		SetupChat(candidate, 4243, true, false);
-
-		var response = await Handle(candidate);
-
-		response.Results.Single().Outcome.ShouldBe(AddDestinationOutcome.NoMediaPermission);
-		VerifyNoDestinationAdded();
-	}
-
-	[Fact]
-	public async Task RecordPermissionsInDiscover_EvenWhenChannelRejected()
-	{
-		var candidate = SetupCandidate(username: "readonlychan");
-		SetupChat(candidate, 4242, true, false);
-
-		await Handle(candidate);
-
-		storage.Verify(s => s.UpdateDiscoveredChannelAsync(
-			candidate.Id, 4242, It.IsAny<string?>(), It.IsAny<string?>(), ChatType.Channel,
-			true, false, It.IsAny<CancellationToken>()), Times.Once);
+		VerifyNothingPublished();
 	}
 
 	[Fact]
 	public async Task ReportNotResolved_WhenChannelHasNoIdentifier()
 	{
-		var candidate = new DiscoverCandidate(Guid.NewGuid(), null, null, "Приватный канал", null, 100);
+		var candidate = new DiscoverCandidate(Guid.NewGuid(), null, null, "Приватный канал", null, null, null);
 		SetupCandidates(candidate);
 
 		var response = await Handle(candidate);
 
 		response.Results.Single().Outcome.ShouldBe(AddDestinationOutcome.NotResolved);
-		VerifyNoDestinationAdded();
+		VerifyNothingPublished();
 	}
 
 	[Fact]
@@ -183,59 +182,76 @@ public class AddDestinationsFromDiscoverUseCaseShould
 	}
 
 	[Fact]
-	public async Task StopProcessing_WhenTelegramRateLimits()
+	public async Task QueueOnlyChannelsThatNeedTelegram()
 	{
-		var first = new DiscoverCandidate(Guid.NewGuid(), null, "floodchan", "Первый", null, 10);
-		var second = new DiscoverCandidate(Guid.NewGuid(), null, "secondchan", "Второй", null, 20);
-		SetupCandidates(first, second);
-
-		chatService.Setup(c => c.TryGetChatInfoAsync(sessionId, "@floodchan", It.IsAny<bool>()))
-			.ReturnsAsync(TelegramOperationResult<TelegramChatInfo>.Failed(
-				TelegramOperationStatus.FloodWait, "FLOOD_WAIT_600", 600));
+		var writable = new DiscoverCandidate(Guid.NewGuid(), null, "goodchan", "Хороший", null, null, null);
+		var restricted = new DiscoverCandidate(Guid.NewGuid(), null, "badchan", "Плохой", null, false, null);
+		SetupCandidates(writable, restricted);
 
 		var response = await sut.Handle(
-			new AddDestinationsFromDiscoverCommand(settingsId, [first.Id, second.Id], true),
+			new AddDestinationsFromDiscoverCommand(settingsId, [writable.Id, restricted.Id], true),
 			CancellationToken.None);
 
-		response.RateLimited.ShouldBeTrue();
-		response.AddedCount.ShouldBe(0);
-		response.Results.ShouldAllBe(x => x.Outcome == AddDestinationOutcome.RateLimited);
-		chatService.Verify(c => c.TryGetChatInfoAsync(sessionId, "@secondchan", It.IsAny<bool>()), Times.Never);
+		response.TotalCount.ShouldBe(2);
+		response.PendingCount.ShouldBe(1);
+		response.SkippedCount.ShouldBe(1);
+		response.Results.First(x => x.DiscoveredChannelId == writable.Id).Outcome
+			.ShouldBe(AddDestinationOutcome.Pending);
+		response.Results.First(x => x.DiscoveredChannelId == restricted.Id).Outcome
+			.ShouldBe(AddDestinationOutcome.NoWritePermission);
 	}
 
 	[Fact]
-	public async Task PassAutoJoinFlagToTelegram()
+	public async Task ReportRetryAfter_WhenSessionIsUnderFloodWait()
+	{
+		storage.Setup(s => s.GetSettingsDefaultsAsync(settingsId, userId, It.IsAny<CancellationToken>()))
+			.ReturnsAsync(new RepostSettingsDefaults(sessionId, SourceChannelId,
+				DateTimeOffset.UtcNow.AddMinutes(10)));
+		var candidate = SetupCandidate(username: "targetchan");
+
+		var response = await Handle(candidate);
+
+		response.RetryAfterSeconds.ShouldNotBeNull();
+		response.RetryAfterSeconds!.Value.ShouldBeGreaterThan(0);
+	}
+
+	[Fact]
+	public async Task PassAutoJoinFlagToJob()
 	{
 		var candidate = SetupCandidate(username: "targetchan");
-		SetupChat(candidate, 12345, true, true);
 
 		await sut.Handle(
 			new AddDestinationsFromDiscoverCommand(settingsId, [candidate.Id], false),
 			CancellationToken.None);
 
-		chatService.Verify(c => c.TryGetChatInfoAsync(sessionId, "@targetchan", false), Times.Once);
-	}
-
-	[Fact]
-	public async Task ResolvePrivateChannelByInviteHash()
-	{
-		var candidate = new DiscoverCandidate(Guid.NewGuid(), null, null, "Приватный", "AbCdEf", 50);
-		SetupCandidates(candidate);
-		SetupChat(candidate, 9999, true, true, "https://t.me/+AbCdEf");
-
-		var response = await Handle(candidate);
-
-		response.AddedCount.ShouldBe(1);
-		chatService.Verify(c => c.TryGetChatInfoAsync(sessionId, "https://t.me/+AbCdEf", It.IsAny<bool>()),
+		storage.Verify(s => s.CreateImportJobAsync(
+			settingsId, false, It.IsAny<IReadOnlyList<ImportJobItemDto>>(), It.IsAny<CancellationToken>()),
 			Times.Once);
 	}
 
-	private Task<AddDestinationsFromDiscoverResponse> Handle(DiscoverCandidate candidate) =>
+	[Fact]
+	public async Task DeduplicateRequestedChannels()
+	{
+		var candidate = SetupCandidate(username: "targetchan");
+
+		var response = await sut.Handle(
+			new AddDestinationsFromDiscoverCommand(settingsId, [candidate.Id, candidate.Id], true),
+			CancellationToken.None);
+
+		response.TotalCount.ShouldBe(1);
+	}
+
+	private Task<RepostImportJobResponse> Handle(DiscoverCandidate candidate) =>
 		sut.Handle(
 			new AddDestinationsFromDiscoverCommand(settingsId, [candidate.Id], true),
 			CancellationToken.None);
 
-	private DiscoverCandidate SetupCandidate(string? username = null, long? telegramId = null)
+	private DiscoverCandidate SetupCandidate(
+		string? username = null,
+		long? telegramId = null,
+		bool? canSendMessages = null,
+		bool? canSendMedia = null
+	)
 	{
 		var candidate = new DiscoverCandidate(
 			Guid.NewGuid(),
@@ -243,8 +259,10 @@ public class AddDestinationsFromDiscoverUseCaseShould
 			username,
 			"Тестовый канал",
 			null,
-			1000);
+			canSendMessages,
+			canSendMedia);
 		SetupCandidates(candidate);
+
 		return candidate;
 	}
 
@@ -252,38 +270,8 @@ public class AddDestinationsFromDiscoverUseCaseShould
 		storage.Setup(s => s.GetCandidatesAsync(It.IsAny<IReadOnlyList<Guid>>(), It.IsAny<CancellationToken>()))
 			.ReturnsAsync(candidates.ToList());
 
-	private void SetupChat(
-		DiscoverCandidate candidate,
-		long chatId,
-		bool canSendMessages,
-		bool canSendMedia,
-		string? identifier = null
-	)
-	{
-		var info = new TelegramChatInfo
-		{
-			Id = chatId,
-			AccessHash = 1,
-			Title = candidate.Title ?? "Канал",
-			Username = candidate.Username,
-			IsChannel = true,
-			IsGroup = false,
-			CanSendMessages = canSendMessages,
-			CanSendMedia = canSendMedia,
-			Peer = TelegramPeer.Channel(chatId, 1)
-		};
-
-		chatService.Setup(c => c.TryGetChatInfoAsync(
-				sessionId,
-				identifier ?? "@" + candidate.Username,
-				It.IsAny<bool>()))
-			.ReturnsAsync(TelegramOperationResult<TelegramChatInfo>.Success(info));
-	}
-
-	private void VerifyNoDestinationAdded() =>
-		storage.Verify(s => s.AddDestinationAsync(
-			It.IsAny<Guid>(), It.IsAny<long>(), It.IsAny<string?>(), It.IsAny<string?>(),
-			It.IsAny<int?>(), It.IsAny<ChatType>(), It.IsAny<Guid>(), It.IsAny<int>(),
-			It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int?>(),
+	private void VerifyNothingPublished() =>
+		bus.Verify(b => b.Publish(
+			It.IsAny<ImportRepostDestinationsContract>(),
 			It.IsAny<CancellationToken>()), Times.Never);
 }

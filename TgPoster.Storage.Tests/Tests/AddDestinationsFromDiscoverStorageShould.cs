@@ -7,6 +7,7 @@ using TgPoster.Storage.Data.Entities;
 using TgPoster.Storage.Data.Enum;
 using TgPoster.Storage.Storages.Repost;
 using TgPoster.Storage.Tests.Builders;
+using TgPoster.API.Domain.UseCases.Repost.AddDestinationsFromDiscover;
 
 namespace TgPoster.Storage.Tests.Tests;
 
@@ -34,11 +35,29 @@ public sealed class AddDestinationsFromDiscoverStorageShould(StorageTestFixture 
 		result.ShouldNotBeNull();
 		result.TelegramSessionId.ShouldBe(session.Id);
 		result.SourceChannelId.ShouldBe(schedule.ChannelId);
-		result.DefaultDelayMinSeconds.ShouldBe(15);
-		result.DefaultDelayMaxSeconds.ShouldBe(120);
-		result.DefaultRepostEveryNth.ShouldBe(3);
-		result.DefaultSkipProbability.ShouldBe(40);
-		result.DefaultMaxRepostsPerDay.ShouldBe(7);
+		result.SessionFloodWaitUntil.ShouldBeNull();
+	}
+
+	[Fact]
+	public async Task GetSettingsDefaultsAsync_WithRestrictedSession_ShouldReturnFloodWait()
+	{
+		var user = await new UserBuilder(context).CreateAsync();
+		var schedule = await new ScheduleBuilder(context).WithUserId(user.Id).CreateAsync();
+		var session = await new TelegramSessionBuilder(context).CreateAsync();
+		var settings = await new RepostSettingsBuilder(context)
+			.WithScheduleId(schedule.Id)
+			.WithTelegramSessionId(session.Id)
+			.CreateAsync();
+
+		var floodWaitUntil = DateTimeOffset.UtcNow.AddMinutes(30);
+		var tracked = await context.TelegramSessions.FirstAsync(x => x.Id == session.Id);
+		tracked.FloodWaitUntil = floodWaitUntil;
+		await context.SaveChangesAsync();
+
+		var result = await sut.GetSettingsDefaultsAsync(settings.Id, user.Id, CancellationToken.None);
+
+		result.ShouldNotBeNull();
+		result.SessionFloodWaitUntil.ShouldNotBeNull();
 	}
 
 	[Fact]
@@ -65,6 +84,17 @@ public sealed class AddDestinationsFromDiscoverStorageShould(StorageTestFixture 
 		result[0].Username.ShouldBe(requested.Username);
 		result[0].InviteHash.ShouldBe(requested.InviteHash);
 		result.ShouldNotContain(x => x.Id == other.Id);
+	}
+
+	[Fact]
+	public async Task GetCandidatesAsync_ShouldReturnKnownSendPermissions()
+	{
+		var channel = await CreateDiscoveredChannelAsync(canSendMessages: false, canSendMedia: true);
+
+		var result = await sut.GetCandidatesAsync([channel.Id], CancellationToken.None);
+
+		result.Single().CanSendMessages.ShouldBe(false);
+		result.Single().CanSendMedia.ShouldBe(true);
 	}
 
 	[Fact]
@@ -95,73 +125,46 @@ public sealed class AddDestinationsFromDiscoverStorageShould(StorageTestFixture 
 	}
 
 	[Fact]
-	public async Task UpdateDiscoveredChannelAsync_ShouldRefreshInfoAndPermissions()
-	{
-		var channel = await CreateDiscoveredChannelAsync();
-		var telegramId = faker.Random.Long(1_000_000_000, 9_000_000_000);
-
-		await sut.UpdateDiscoveredChannelAsync(
-			channel.Id,
-			telegramId,
-			"Свежее название",
-			channel.Username,
-			ChatType.Channel,
-			true,
-			false,
-			CancellationToken.None);
-
-		var refreshed = await context.DiscoveredChannels
-			.IgnoreQueryFilters()
-			.AsNoTracking()
-			.FirstAsync(x => x.Id == channel.Id);
-
-		refreshed.TelegramId.ShouldBe(telegramId);
-		refreshed.Title.ShouldBe("Свежее название");
-		refreshed.PeerType.ShouldBe("channel");
-		refreshed.CanSendMessages.ShouldBe(true);
-		refreshed.CanSendMedia.ShouldBe(false);
-	}
-
-	[Fact]
-	public async Task AddDestinationAsync_ShouldCreateActiveDestinationLinkedToDiscover()
+	public async Task CreateImportJobAsync_ShouldStoreJobWithAllItemsInOrder()
 	{
 		var settings = await new RepostSettingsBuilder(context).CreateAsync();
-		var channel = await CreateDiscoveredChannelAsync();
-		var chatId = faker.Random.Long(1_000_000_000, 9_000_000_000);
+		var first = Guid.NewGuid();
+		var second = Guid.NewGuid();
 
-		var destinationId = await sut.AddDestinationAsync(
+		var jobId = await sut.CreateImportJobAsync(
 			settings.Id,
-			chatId,
-			"Целевой канал",
-			"targetchan",
-			1000,
-			ChatType.Channel,
-			channel.Id,
-			15,
-			120,
-			3,
-			40,
-			7,
+			false,
+			[
+				new ImportJobItemDto(first, "Первый", AddDestinationOutcome.Pending, null),
+				new ImportJobItemDto(second, "Второй", AddDestinationOutcome.NoWritePermission, "Нельзя писать")
+			],
 			CancellationToken.None);
 
-		var destination = await context.RepostDestinations.FirstOrDefaultAsync(x => x.Id == destinationId);
+		var job = await context.RepostImportJobs
+			.Include(x => x.Items)
+			.AsNoTracking()
+			.FirstAsync(x => x.Id == jobId);
 
-		destination.ShouldNotBeNull();
-		destination.RepostSettingsId.ShouldBe(settings.Id);
-		destination.ChatId.ShouldBe(chatId);
-		destination.IsActive.ShouldBeTrue();
-		destination.ChatStatus.ShouldBe(ChatStatus.Active);
-		destination.ChatType.ShouldBe(ChatType.Channel);
-		destination.DiscoveredChannelId.ShouldBe(channel.Id);
-		destination.MemberCount.ShouldBe(1000);
-		destination.DelayMinSeconds.ShouldBe(15);
-		destination.DelayMaxSeconds.ShouldBe(120);
-		destination.RepostEveryNth.ShouldBe(3);
-		destination.SkipProbability.ShouldBe(40);
-		destination.MaxRepostsPerDay.ShouldBe(7);
+		job.RepostSettingsId.ShouldBe(settings.Id);
+		job.AutoJoin.ShouldBeFalse();
+		job.Status.ShouldBe(RepostImportStatus.Pending);
+
+		var items = job.Items.OrderBy(x => x.Order).ToList();
+		items.Count.ShouldBe(2);
+		items[0].DiscoveredChannelId.ShouldBe(first);
+		items[0].Outcome.ShouldBe(AddDestinationOutcome.Pending);
+		items[0].ProcessedAt.ShouldBeNull();
+		items[1].DiscoveredChannelId.ShouldBe(second);
+		items[1].Outcome.ShouldBe(AddDestinationOutcome.NoWritePermission);
+		items[1].Error.ShouldBe("Нельзя писать");
+		items[1].ProcessedAt.ShouldNotBeNull();
 	}
 
-	private async Task<DiscoveredChannel> CreateDiscoveredChannelAsync(bool isBanned = false)
+	private async Task<DiscoveredChannel> CreateDiscoveredChannelAsync(
+		bool isBanned = false,
+		bool? canSendMessages = null,
+		bool? canSendMedia = null
+	)
 	{
 		var channel = new DiscoveredChannel
 		{
@@ -172,6 +175,8 @@ public sealed class AddDestinationsFromDiscoverStorageShould(StorageTestFixture 
 			InviteHash = faker.Random.AlphaNumeric(16),
 			ParticipantsCount = faker.Random.Number(100, 10000),
 			Status = DiscoveryStatus.Completed,
+			CanSendMessages = canSendMessages,
+			CanSendMedia = canSendMedia,
 			IsBanned = isBanned
 		};
 
