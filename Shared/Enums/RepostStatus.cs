@@ -1,4 +1,4 @@
-namespace TgPoster.Storage.Data.Enum;
+namespace Shared.Enums;
 
 /// <summary>
 ///     Статус репоста сообщения.
@@ -18,5 +18,10 @@ public enum RepostStatus
 	/// <summary>
 	///     Ошибка при репосте.
 	/// </summary>
-	Failed = 2
+	Failed = 2,
+
+	/// <summary>
+	///     Репост осознанно пропущен по настройкам рандомизации или лимитам.
+	/// </summary>
+	Skipped = 3
 }

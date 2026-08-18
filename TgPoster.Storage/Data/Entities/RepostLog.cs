@@ -1,4 +1,4 @@
-using TgPoster.Storage.Data.Enum;
+using Shared.Enums;
 
 namespace TgPoster.Storage.Data.Entities;
 
@@ -21,6 +21,11 @@ public sealed class RepostLog : BaseEntity
 	///     Статус репоста.
 	/// </summary>
 	public RepostStatus Status { get; set; }
+
+	/// <summary>
+	///     Детальная причина статуса: почему репост пропущен или чем именно завершился неудачей.
+	/// </summary>
+	public RepostLogReason Reason { get; set; }
 
 	/// <summary>
 	///     ID сообщения в Telegram целевого канала.

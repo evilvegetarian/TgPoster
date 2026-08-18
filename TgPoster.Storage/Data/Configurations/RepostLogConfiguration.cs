@@ -19,12 +19,18 @@ internal sealed class RepostLogConfiguration : BaseEntityConfiguration<RepostLog
 		builder.Property(x => x.Status)
 			.IsRequired();
 
+		builder.Property(x => x.Reason)
+			.HasConversion<string>()
+			.HasMaxLength(64)
+			.IsRequired();
+
 		builder.Property(x => x.Error)
 			.HasMaxLength(2000);
 
 		builder.HasIndex(x => x.MessageId);
 		builder.HasIndex(x => x.RepostDestinationId);
 		builder.HasIndex(x => x.Status);
+		builder.HasIndex(x => x.Created);
 
 		builder.HasOne(x => x.Message)
 			.WithMany(x => x.RepostLogs)

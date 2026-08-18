@@ -1,6 +1,6 @@
+using Shared.Enums;
 using TgPoster.Storage.Data;
 using TgPoster.Storage.Data.Entities;
-using TgPoster.Storage.Data.Enum;
 using TgPoster.Worker.Domain.UseCases.SendCommentConsumer;
 
 namespace TgPoster.Storage.Storages.CommentRepost;

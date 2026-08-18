@@ -1,4 +1,4 @@
-using TgPoster.Storage.Data.Enum;
+using Shared.Enums;
 
 namespace TgPoster.Storage.Data.Entities;
 

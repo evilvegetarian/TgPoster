@@ -6,13 +6,12 @@ public interface IRepostMessageConsumerStorage
 {
 	Task<RepostDataDto?> GetRepostDataAsync(Guid messageId, Guid repostSettingsId, CancellationToken ct);
 
-	Task CreateRepostLogAsync(
-		Guid messageId,
-		Guid repostDestinationId,
-		int? telegramMessageId,
-		string? error,
-		CancellationToken ct
-	);
+	/// <summary>
+	///     Пишет в журнал результат репоста по каждому целевому каналу
+	/// </summary>
+	/// <param name="entries">Записи журнала: успех, пропуск или ошибка по конкретному направлению</param>
+	/// <param name="ct">Токен отмены</param>
+	Task CreateRepostLogsAsync(IReadOnlyCollection<RepostLogEntry> entries, CancellationToken ct);
 
 	/// <summary>
 	///     Обновляет статус доступа к целевому каналу и его активность
@@ -32,6 +31,42 @@ public interface IRepostMessageConsumerStorage
 	///     Возвращает количество успешных репостов за сегодня для destination.
 	/// </summary>
 	Task<int> GetTodayRepostCountAsync(Guid destinationId, CancellationToken ct);
+}
+
+/// <summary>
+///     Одна запись журнала репостов
+/// </summary>
+public sealed record RepostLogEntry
+{
+	/// <summary>
+	///     Сообщение, которое репостили
+	/// </summary>
+	public required Guid MessageId { get; init; }
+
+	/// <summary>
+	///     Направление репоста, к которому относится запись
+	/// </summary>
+	public required Guid RepostDestinationId { get; init; }
+
+	/// <summary>
+	///     Чем закончилась попытка репоста
+	/// </summary>
+	public required RepostStatus Status { get; init; }
+
+	/// <summary>
+	///     Детальная причина статуса
+	/// </summary>
+	public required RepostLogReason Reason { get; init; }
+
+	/// <summary>
+	///     Id пересланного сообщения в целевом канале, если репост удался
+	/// </summary>
+	public int? TelegramMessageId { get; init; }
+
+	/// <summary>
+	///     Текст ошибки или пояснение к пропуску
+	/// </summary>
+	public string? Error { get; init; }
 }
 
 public sealed class RepostDataDto

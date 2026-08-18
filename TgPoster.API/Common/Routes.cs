@@ -177,5 +177,7 @@ internal static class Routes
 		internal const string ListDestinations = Root + "/settings/{settingsId:guid}/destinations";
 		internal const string UpdateDestination = Root + "/destinations/{id:guid}";
 		internal const string RefreshDestination = Root + "/destinations/{id:guid}/refresh";
+		internal const string ListLogs = Root + "/logs";
+		internal const string LogsSummary = Root + "/logs/summary";
 	}
 }

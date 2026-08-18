@@ -2,13 +2,15 @@ using Microsoft.EntityFrameworkCore;
 using Shared.Enums;
 using TgPoster.Storage.Data;
 using TgPoster.Storage.Data.Entities;
-using TgPoster.Storage.Data.Enum;
 using TgPoster.Worker.Domain.UseCases.RepostMessageConsumer;
 
 namespace TgPoster.Storage.Storages.Repost;
 
-internal sealed class RepostMessageConsumerStorage(PosterContext context) : IRepostMessageConsumerStorage
+internal sealed class RepostMessageConsumerStorage(PosterContext context, GuidFactory guidFactory)
+	: IRepostMessageConsumerStorage
 {
+	private const int MaxErrorLength = 2000;
+
 	public Task<RepostDataDto?> GetRepostDataAsync(Guid messageId, Guid repostSettingsId, CancellationToken ct)
 	{
 		return context.Set<RepostSettings>()
@@ -37,26 +39,26 @@ internal sealed class RepostMessageConsumerStorage(PosterContext context) : IRep
 			.FirstOrDefaultAsync(ct);
 	}
 
-	public async Task CreateRepostLogAsync(
-		Guid messageId,
-		Guid repostDestinationId,
-		int? telegramMessageId,
-		string? error,
-		CancellationToken ct
-	)
+	public async Task CreateRepostLogsAsync(IReadOnlyCollection<RepostLogEntry> entries, CancellationToken ct)
 	{
-		var log = new RepostLog
+		if (entries.Count == 0)
 		{
-			Id = Guid.NewGuid(),
-			MessageId = messageId,
-			RepostDestinationId = repostDestinationId,
-			TelegramMessageId = telegramMessageId,
-			Status = error == null ? RepostStatus.Success : RepostStatus.Failed,
-			RepostedAt = error == null ? DateTime.UtcNow : null,
-			Error = error
-		};
+			return;
+		}
 
-		context.Set<RepostLog>().Add(log);
+		var logs = entries.Select(entry => new RepostLog
+		{
+			Id = guidFactory.New(),
+			MessageId = entry.MessageId,
+			RepostDestinationId = entry.RepostDestinationId,
+			TelegramMessageId = entry.TelegramMessageId,
+			Status = entry.Status,
+			Reason = entry.Reason,
+			RepostedAt = entry.Status == RepostStatus.Success ? DateTime.UtcNow : null,
+			Error = Truncate(entry.Error)
+		});
+
+		await context.Set<RepostLog>().AddRangeAsync(logs, ct);
 		await context.SaveChangesAsync(ct);
 	}
 
@@ -99,4 +101,7 @@ internal sealed class RepostMessageConsumerStorage(PosterContext context) : IRep
 			            && l.RepostedAt.Value >= todayUtc)
 			.CountAsync(ct);
 	}
+
+	private static string? Truncate(string? error) =>
+		error is { Length: > MaxErrorLength } ? error[..MaxErrorLength] : error;
 }

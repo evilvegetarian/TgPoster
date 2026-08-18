@@ -1,9 +1,10 @@
 import {useState} from "react";
+import {Link} from "react-router-dom";
 import {Badge} from "@/components/ui/badge";
 import {Button} from "@/components/ui/button";
 import {Card, CardContent, CardHeader, CardTitle, CardDescription} from "@/components/ui/card";
 import {Switch} from "@/components/ui/switch";
-import {Loader2, Plus, RefreshCw, Settings, Trash2, X} from "lucide-react";
+import {Loader2, Plus, RefreshCw, ScrollText, Settings, Trash2, X} from "lucide-react";
 import {toast} from "sonner";
 import {AddDestinationDialog} from "@/pages/repostpage/add-destination-dialog.tsx";
 import {DestinationSettingsDialog} from "@/pages/repostpage/destination-settings-dialog.tsx";
@@ -191,6 +192,12 @@ export function RepostSettingsCard({settings}: RepostSettingsCardProps) {
                         Целевые каналы ({settings.destinationsCount})
                     </h4>
                     <div className="flex items-center gap-2">
+                        <Link to={`/repost-logs?settingsId=${settings.id}`}>
+                            <Button variant="outline" size="sm" className="gap-1">
+                                <ScrollText className="h-3 w-3"/>
+                                Логи
+                            </Button>
+                        </Link>
                         <Button
                             variant="outline"
                             size="sm"

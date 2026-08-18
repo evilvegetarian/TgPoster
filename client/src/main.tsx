@@ -21,6 +21,7 @@ import {OpenRouterPage} from "@/pages/openrouterpage/open-router-page.tsx";
 import {YouTubeAccountPage} from "@/pages/youtube-account-page.tsx";
 import TelegramAccountPage from "@/pages/telegram-account-page.tsx";
 import {RepostSettingsPage} from "@/pages/repostpage/repost-settings-page.tsx";
+import {RepostLogsPage} from "@/pages/repostpage/repost-logs-page.tsx";
 import {CommentRepostPage} from "@/pages/commentrepostpage/comment-repost-page.tsx";
 import ProxyPage from "@/pages/proxy-page.tsx"
 import {DiscoverPage} from "@/pages/discover-page.tsx";
@@ -97,6 +98,10 @@ const router = createBrowserRouter([
                             {
                                 path: "/repost-settings",
                                 element: <RepostSettingsPage/>,
+                            },
+                            {
+                                path: "/repost-logs",
+                                element: <RepostLogsPage/>,
                             },
                             {
                                 path: "/comment-repost",

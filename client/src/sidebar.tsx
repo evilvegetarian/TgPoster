@@ -9,6 +9,7 @@ import {
     MessageSquareShare,
     Network,
     Repeat2,
+    ScrollText,
     Settings,
     SignatureIcon,
     Smartphone,
@@ -91,6 +92,11 @@ export function SideBar() {
                 title: "Настройки репоста",
                 path: "/repost-settings",
                 icon: Repeat2
+            },
+            {
+                title: "Логи репостов",
+                path: "/repost-logs",
+                icon: ScrollText
             },
             {
                 title: "Комментирующий репост",

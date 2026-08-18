@@ -3,17 +3,21 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TgPoster.API.Common;
+using TgPoster.API.Domain.UseCases.Messages.ListMessage;
 using TgPoster.API.Domain.UseCases.Repost.AddDestinationsFromDiscover;
 using TgPoster.API.Domain.UseCases.Repost.AddRepostDestination;
 using TgPoster.API.Domain.UseCases.Repost.CreateRepostSettings;
 using TgPoster.API.Domain.UseCases.Repost.DeleteRepostDestination;
 using TgPoster.API.Domain.UseCases.Repost.DeleteRepostSettings;
 using TgPoster.API.Domain.UseCases.Repost.GetRepostImportJob;
+using TgPoster.API.Domain.UseCases.Repost.GetRepostLogsSummary;
 using TgPoster.API.Domain.UseCases.Repost.GetRepostSettings;
+using TgPoster.API.Domain.UseCases.Repost.ListRepostLogs;
 using TgPoster.API.Domain.UseCases.Repost.ListRepostSettings;
 using TgPoster.API.Domain.UseCases.Repost.RefreshDestinationInfo;
 using TgPoster.API.Domain.UseCases.Repost.UpdateRepostDestination;
 using TgPoster.API.Domain.UseCases.Repost.UpdateRepostSettings;
+using TgPoster.API.Mapper;
 using TgPoster.API.Models;
 
 namespace TgPoster.API.Controllers;
@@ -273,5 +277,37 @@ public sealed class RepostController(ISender sender) : ControllerBase
 	{
 		await sender.Send(new RefreshDestinationInfoCommand(id), ct);
 		return NoContent();
+	}
+
+	/// <summary>
+	///     Журнал репостов: куда репостили каждое сообщение и чем это закончилось.
+	/// </summary>
+	/// <param name="request">Фильтры и параметры пагинации</param>
+	/// <param name="ct">Токен отмены операции</param>
+	/// <returns>Страница записей журнала репостов</returns>
+	[HttpGet(Routes.Repost.ListLogs)]
+	[ProducesResponseType(StatusCodes.Status200OK, Type = typeof(PagedResponse<RepostLogDto>))]
+	[ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
+	[ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
+	public async Task<IActionResult> ListLogs([FromQuery] ListRepostLogsRequest request, CancellationToken ct)
+	{
+		var response = await sender.Send(request.ToDomain(), ct);
+		return Ok(response);
+	}
+
+	/// <summary>
+	///     Сводка по журналу репостов: сколько дошло, сколько пропущено и по каким причинам.
+	/// </summary>
+	/// <param name="request">Фильтры выборки</param>
+	/// <param name="ct">Токен отмены операции</param>
+	/// <returns>Количество записей по статусам и разбивка по причинам</returns>
+	[HttpGet(Routes.Repost.LogsSummary)]
+	[ProducesResponseType(StatusCodes.Status200OK, Type = typeof(RepostLogsSummaryResponse))]
+	[ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
+	[ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
+	public async Task<IActionResult> GetLogsSummary([FromQuery] RepostLogsSummaryRequest request, CancellationToken ct)
+	{
+		var response = await sender.Send(request.ToDomain(), ct);
+		return Ok(response);
 	}
 }

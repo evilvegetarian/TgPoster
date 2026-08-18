@@ -6,13 +6,14 @@ using TgPoster.Storage.Data.Entities;
 using TgPoster.Storage.Data.Enum;
 using TgPoster.Storage.Storages.Repost;
 using TgPoster.Storage.Tests.Builders;
+using TgPoster.Worker.Domain.UseCases.RepostMessageConsumer;
 
 namespace TgPoster.Storage.Tests.Tests;
 
 public sealed class RepostMessageConsumerStorageShould(StorageTestFixture fixture) : IClassFixture<StorageTestFixture>
 {
 	private readonly PosterContext context = fixture.GetDbContext();
-	private readonly RepostMessageConsumerStorage sut = new(fixture.GetDbContext());
+	private readonly RepostMessageConsumerStorage sut = new(fixture.GetDbContext(), new GuidFactory());
 
 	[Fact]
 	public async Task GetRepostDataAsync_WithActiveSettings_ShouldReturnRepostData()
@@ -168,7 +169,7 @@ public sealed class RepostMessageConsumerStorageShould(StorageTestFixture fixtur
 	}
 
 	[Fact]
-	public async Task CreateRepostLogAsync_WithSuccess_ShouldCreateLogWithSuccessStatus()
+	public async Task CreateRepostLogsAsync_WithSuccess_ShouldCreateLogWithSuccessStatus()
 	{
 		var schedule = await new ScheduleBuilder(context).CreateAsync();
 		var msg = new Message
@@ -195,7 +196,16 @@ public sealed class RepostMessageConsumerStorageShould(StorageTestFixture fixtur
 
 		var telegramMessageId = 54321;
 
-		await sut.CreateRepostLogAsync(msg.Id, destination.Id, telegramMessageId, null, CancellationToken.None);
+		await sut.CreateRepostLogsAsync([
+			new RepostLogEntry
+			{
+				MessageId = msg.Id,
+				RepostDestinationId = destination.Id,
+				Status = RepostStatus.Success,
+				Reason = RepostLogReason.None,
+				TelegramMessageId = telegramMessageId
+			}
+		], CancellationToken.None);
 
 		var log = await context.Set<RepostLog>()
 			.FirstOrDefaultAsync(l => l.MessageId == msg.Id && l.RepostDestinationId == destination.Id);
@@ -203,12 +213,13 @@ public sealed class RepostMessageConsumerStorageShould(StorageTestFixture fixtur
 		log.ShouldNotBeNull();
 		log.TelegramMessageId.ShouldBe(telegramMessageId);
 		log.Status.ShouldBe(RepostStatus.Success);
+		log.Reason.ShouldBe(RepostLogReason.None);
 		log.RepostedAt.ShouldNotBeNull();
 		log.Error.ShouldBeNull();
 	}
 
 	[Fact]
-	public async Task CreateRepostLogAsync_WithError_ShouldCreateLogWithFailedStatus()
+	public async Task CreateRepostLogsAsync_WithError_ShouldCreateLogWithFailedStatus()
 	{
 		var schedule = await new ScheduleBuilder(context).CreateAsync();
 		var msg = new Message
@@ -235,7 +246,16 @@ public sealed class RepostMessageConsumerStorageShould(StorageTestFixture fixtur
 
 		var errorMessage = "Failed to repost";
 
-		await sut.CreateRepostLogAsync(msg.Id, destination.Id, null, errorMessage, CancellationToken.None);
+		await sut.CreateRepostLogsAsync([
+			new RepostLogEntry
+			{
+				MessageId = msg.Id,
+				RepostDestinationId = destination.Id,
+				Status = RepostStatus.Failed,
+				Reason = RepostLogReason.ForwardFailed,
+				Error = errorMessage
+			}
+		], CancellationToken.None);
 
 		var log = await context.Set<RepostLog>()
 			.FirstOrDefaultAsync(l => l.MessageId == msg.Id && l.RepostDestinationId == destination.Id);
@@ -243,6 +263,7 @@ public sealed class RepostMessageConsumerStorageShould(StorageTestFixture fixtur
 		log.ShouldNotBeNull();
 		log.TelegramMessageId.ShouldBeNull();
 		log.Status.ShouldBe(RepostStatus.Failed);
+		log.Reason.ShouldBe(RepostLogReason.ForwardFailed);
 		log.RepostedAt.ShouldBeNull();
 		log.Error.ShouldBe(errorMessage);
 	}
@@ -272,7 +293,7 @@ public sealed class RepostMessageConsumerStorageShould(StorageTestFixture fixtur
 	}
 
 	[Fact]
-	public async Task CreateRepostLogAsync_ShouldCreateMultipleLogsForSameMessage()
+	public async Task CreateRepostLogsAsync_ShouldCreateMultipleLogsForSameMessage()
 	{
 		var schedule = await new ScheduleBuilder(context).CreateAsync();
 		var msg = new Message
@@ -304,8 +325,24 @@ public sealed class RepostMessageConsumerStorageShould(StorageTestFixture fixtur
 			.WithChatIdentifier(channel2)
 			.CreateAsync();
 
-		await sut.CreateRepostLogAsync(msg.Id, destination1.Id, 111, null, CancellationToken.None);
-		await sut.CreateRepostLogAsync(msg.Id, destination2.Id, 222, null, CancellationToken.None);
+		await sut.CreateRepostLogsAsync([
+			new RepostLogEntry
+			{
+				MessageId = msg.Id,
+				RepostDestinationId = destination1.Id,
+				Status = RepostStatus.Success,
+				Reason = RepostLogReason.None,
+				TelegramMessageId = 111
+			},
+			new RepostLogEntry
+			{
+				MessageId = msg.Id,
+				RepostDestinationId = destination2.Id,
+				Status = RepostStatus.Success,
+				Reason = RepostLogReason.None,
+				TelegramMessageId = 222
+			}
+		], CancellationToken.None);
 
 		var logs = await context.Set<RepostLog>()
 			.Where(l => l.MessageId == msg.Id)
@@ -314,5 +351,120 @@ public sealed class RepostMessageConsumerStorageShould(StorageTestFixture fixtur
 		logs.Count.ShouldBe(2);
 		logs.ShouldContain(l => l.RepostDestinationId == destination1.Id && l.TelegramMessageId == 111);
 		logs.ShouldContain(l => l.RepostDestinationId == destination2.Id && l.TelegramMessageId == 222);
+	}
+
+	[Fact]
+	public async Task CreateRepostLogsAsync_WithSkippedEntry_ShouldCreateLogWithoutRepostedAt()
+	{
+		var schedule = await new ScheduleBuilder(context).CreateAsync();
+		var msg = new Message
+		{
+			Id = Guid.NewGuid(),
+			ScheduleId = schedule.Id,
+			TimePosting = DateTimeOffset.UtcNow.AddMinutes(1),
+			Status = MessageStatus.Send,
+			TextMessage = "test",
+			IsTextMessage = false
+		};
+		await context.Messages.AddAsync(msg);
+		await context.SaveChangesAsync();
+
+		var session = await new TelegramSessionBuilder(context).CreateAsync();
+		var settings = await new RepostSettingsBuilder(context)
+			.WithScheduleId(schedule.Id)
+			.WithTelegramSessionId(session.Id)
+			.CreateAsync();
+		var destination = await new RepostDestinationBuilder(context)
+			.WithRepostSettingsId(settings.Id)
+			.CreateAsync();
+
+		await sut.CreateRepostLogsAsync([
+			new RepostLogEntry
+			{
+				MessageId = msg.Id,
+				RepostDestinationId = destination.Id,
+				Status = RepostStatus.Skipped,
+				Reason = RepostLogReason.DailyLimit,
+				Error = "Достигнут дневной лимит 5 репостов"
+			}
+		], CancellationToken.None);
+
+		var log = await context.Set<RepostLog>()
+			.FirstOrDefaultAsync(l => l.MessageId == msg.Id && l.RepostDestinationId == destination.Id);
+
+		log.ShouldNotBeNull();
+		log.Status.ShouldBe(RepostStatus.Skipped);
+		log.Reason.ShouldBe(RepostLogReason.DailyLimit);
+		log.RepostedAt.ShouldBeNull();
+		log.TelegramMessageId.ShouldBeNull();
+		log.Error.ShouldBe("Достигнут дневной лимит 5 репостов");
+	}
+
+	[Fact]
+	public async Task CreateRepostLogsAsync_WithTooLongError_ShouldTruncateToColumnLength()
+	{
+		var schedule = await new ScheduleBuilder(context).CreateAsync();
+		var msg = new Message
+		{
+			Id = Guid.NewGuid(),
+			ScheduleId = schedule.Id,
+			TimePosting = DateTimeOffset.UtcNow.AddMinutes(1),
+			Status = MessageStatus.Send,
+			TextMessage = "test",
+			IsTextMessage = false
+		};
+		await context.Messages.AddAsync(msg);
+		await context.SaveChangesAsync();
+
+		var session = await new TelegramSessionBuilder(context).CreateAsync();
+		var settings = await new RepostSettingsBuilder(context)
+			.WithScheduleId(schedule.Id)
+			.WithTelegramSessionId(session.Id)
+			.CreateAsync();
+		var destination = await new RepostDestinationBuilder(context)
+			.WithRepostSettingsId(settings.Id)
+			.CreateAsync();
+
+		await sut.CreateRepostLogsAsync([
+			new RepostLogEntry
+			{
+				MessageId = msg.Id,
+				RepostDestinationId = destination.Id,
+				Status = RepostStatus.Failed,
+				Reason = RepostLogReason.ForwardFailed,
+				Error = new string('x', 5000)
+			}
+		], CancellationToken.None);
+
+		var log = await context.Set<RepostLog>()
+			.FirstOrDefaultAsync(l => l.MessageId == msg.Id && l.RepostDestinationId == destination.Id);
+
+		log.ShouldNotBeNull();
+		log.Error!.Length.ShouldBe(2000);
+	}
+
+	[Fact]
+	public async Task CreateRepostLogsAsync_WithEmptyEntries_ShouldNotCreateLogs()
+	{
+		var schedule = await new ScheduleBuilder(context).CreateAsync();
+		var msg = new Message
+		{
+			Id = Guid.NewGuid(),
+			ScheduleId = schedule.Id,
+			TimePosting = DateTimeOffset.UtcNow.AddMinutes(1),
+			Status = MessageStatus.Send,
+			TextMessage = "test",
+			IsTextMessage = false
+		};
+		await context.Messages.AddAsync(msg);
+		await context.SaveChangesAsync();
+
+		await sut.CreateRepostLogsAsync([], CancellationToken.None);
+
+		var logs = await context.Set<RepostLog>()
+			.Where(l => l.MessageId == msg.Id)
+			.ToListAsync();
+
+		logs.ShouldBeEmpty();
 	}
 }

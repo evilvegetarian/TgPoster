@@ -30,8 +30,12 @@ import type {
   AddRepostDestinationResponse,
   CreateRepostSettingsRequest,
   CreateRepostSettingsResponse,
+  GetApiV1RepostLogsParams,
+  GetApiV1RepostLogsSummaryParams,
   ListRepostSettingsResponse,
   ProblemDetails,
+  RepostLogDtoPagedResponse,
+  RepostLogsSummaryResponse,
   RepostSettingsResponse,
   UpdateRepostDestinationRequest,
   UpdateRepostSettingsRequest
@@ -733,3 +737,184 @@ export const usePostApiV1RepostDestinationsIdRefresh = <TError = ProblemDetails,
       return useMutation(mutationOptions, queryClient);
     }
     
+/**
+ * @summary Журнал репостов: куда репостили каждое сообщение и чем это закончилось.
+ */
+export const getApiV1RepostLogs = (
+    params?: GetApiV1RepostLogsParams,
+ signal?: AbortSignal
+) => {
+
+
+      return customInstance<RepostLogDtoPagedResponse>(
+      {url: `/api/v1/repost/logs`, method: 'GET',
+        params, signal
+    },
+      );
+    }
+
+
+
+
+export const getGetApiV1RepostLogsQueryKey = (params?: GetApiV1RepostLogsParams,) => {
+    return [
+    `/api/v1/repost/logs`, ...(params ? [params]: [])
+    ] as const;
+    }
+
+
+export const getGetApiV1RepostLogsQueryOptions = <TData = Awaited<ReturnType<typeof getApiV1RepostLogs>>, TError = ProblemDetails>(params?: GetApiV1RepostLogsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1RepostLogs>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetApiV1RepostLogsQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getApiV1RepostLogs>>> = ({ signal }) => getApiV1RepostLogs(params, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getApiV1RepostLogs>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetApiV1RepostLogsQueryResult = NonNullable<Awaited<ReturnType<typeof getApiV1RepostLogs>>>
+export type GetApiV1RepostLogsQueryError = ProblemDetails
+
+
+export function useGetApiV1RepostLogs<TData = Awaited<ReturnType<typeof getApiV1RepostLogs>>, TError = ProblemDetails>(
+ params: undefined |  GetApiV1RepostLogsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1RepostLogs>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getApiV1RepostLogs>>,
+          TError,
+          Awaited<ReturnType<typeof getApiV1RepostLogs>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetApiV1RepostLogs<TData = Awaited<ReturnType<typeof getApiV1RepostLogs>>, TError = ProblemDetails>(
+ params?: GetApiV1RepostLogsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1RepostLogs>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getApiV1RepostLogs>>,
+          TError,
+          Awaited<ReturnType<typeof getApiV1RepostLogs>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetApiV1RepostLogs<TData = Awaited<ReturnType<typeof getApiV1RepostLogs>>, TError = ProblemDetails>(
+ params?: GetApiV1RepostLogsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1RepostLogs>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Журнал репостов: куда репостили каждое сообщение и чем это закончилось.
+ */
+
+export function useGetApiV1RepostLogs<TData = Awaited<ReturnType<typeof getApiV1RepostLogs>>, TError = ProblemDetails>(
+ params?: GetApiV1RepostLogsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1RepostLogs>>, TError, TData>>, }
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetApiV1RepostLogsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+/**
+ * @summary Сводка по журналу репостов: сколько дошло, сколько пропущено и по каким причинам.
+ */
+export const getApiV1RepostLogsSummary = (
+    params?: GetApiV1RepostLogsSummaryParams,
+ signal?: AbortSignal
+) => {
+
+
+      return customInstance<RepostLogsSummaryResponse>(
+      {url: `/api/v1/repost/logs/summary`, method: 'GET',
+        params, signal
+    },
+      );
+    }
+
+
+
+
+export const getGetApiV1RepostLogsSummaryQueryKey = (params?: GetApiV1RepostLogsSummaryParams,) => {
+    return [
+    `/api/v1/repost/logs/summary`, ...(params ? [params]: [])
+    ] as const;
+    }
+
+
+export const getGetApiV1RepostLogsSummaryQueryOptions = <TData = Awaited<ReturnType<typeof getApiV1RepostLogsSummary>>, TError = ProblemDetails>(params?: GetApiV1RepostLogsSummaryParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1RepostLogsSummary>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetApiV1RepostLogsSummaryQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getApiV1RepostLogsSummary>>> = ({ signal }) => getApiV1RepostLogsSummary(params, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getApiV1RepostLogsSummary>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetApiV1RepostLogsSummaryQueryResult = NonNullable<Awaited<ReturnType<typeof getApiV1RepostLogsSummary>>>
+export type GetApiV1RepostLogsSummaryQueryError = ProblemDetails
+
+
+export function useGetApiV1RepostLogsSummary<TData = Awaited<ReturnType<typeof getApiV1RepostLogsSummary>>, TError = ProblemDetails>(
+ params: undefined |  GetApiV1RepostLogsSummaryParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1RepostLogsSummary>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getApiV1RepostLogsSummary>>,
+          TError,
+          Awaited<ReturnType<typeof getApiV1RepostLogsSummary>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetApiV1RepostLogsSummary<TData = Awaited<ReturnType<typeof getApiV1RepostLogsSummary>>, TError = ProblemDetails>(
+ params?: GetApiV1RepostLogsSummaryParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1RepostLogsSummary>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getApiV1RepostLogsSummary>>,
+          TError,
+          Awaited<ReturnType<typeof getApiV1RepostLogsSummary>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetApiV1RepostLogsSummary<TData = Awaited<ReturnType<typeof getApiV1RepostLogsSummary>>, TError = ProblemDetails>(
+ params?: GetApiV1RepostLogsSummaryParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1RepostLogsSummary>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Сводка по журналу репостов: сколько дошло, сколько пропущено и по каким причинам.
+ */
+
+export function useGetApiV1RepostLogsSummary<TData = Awaited<ReturnType<typeof getApiV1RepostLogsSummary>>, TError = ProblemDetails>(
+ params?: GetApiV1RepostLogsSummaryParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1RepostLogsSummary>>, TError, TData>>, }
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetApiV1RepostLogsSummaryQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}

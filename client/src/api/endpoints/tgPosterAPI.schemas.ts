@@ -788,6 +788,130 @@ export interface RepostDestinationDto {
   maxRepostsPerDay?: number | null;
 }
 
+/**
+ * Запись журнала репостов: что и куда репостили и чем это закончилось.
+ */
+export interface RepostLogDto {
+  /** Id записи журнала. */
+  id: string;
+  /** Дата и время записи. */
+  createdAt: string;
+  /** Id настроек репоста. */
+  repostSettingsId: string;
+  /** Название расписания, к которому привязаны настройки репоста. */
+  scheduleName: string;
+  /** Канал-источник, из которого делался репост. */
+  sourceChannelName: string;
+  /** Id репостнутого сообщения. */
+  messageId: string;
+  /**
+   * Начало текста сообщения для быстрого опознания поста.
+   * @nullable
+   */
+  messagePreview?: string | null;
+  /** Время публикации сообщения в канале-источнике. */
+  messageTimePosting: string;
+  /** Id целевого канала в системе. */
+  destinationId: string;
+  /** Id целевого чата в Telegram. */
+  destinationChatId: number;
+  /**
+   * Название целевого канала.
+   * @nullable
+   */
+  destinationTitle?: string | null;
+  /**
+   * Username целевого канала (без @).
+   * @nullable
+   */
+  destinationUsername?: string | null;
+  status: RepostStatus;
+  reason: RepostLogReason;
+  /**
+   * Id пересланного сообщения в целевом канале.
+   * @nullable
+   */
+  telegramMessageId?: number | null;
+  /**
+   * Текст ошибки или пояснение к пропуску.
+   * @nullable
+   */
+  error?: string | null;
+  /**
+   * Дата и время успешного репоста.
+   * @nullable
+   */
+  repostedAt?: string | null;
+}
+
+export interface RepostLogDtoPagedResponse {
+  currentPage?: number;
+  readonly totalPages?: number;
+  pageSize?: number;
+  totalCount?: number;
+  readonly hasPreviousPage?: boolean;
+  readonly hasNextPage?: boolean;
+  data?: RepostLogDto[];
+}
+
+export type RepostLogReason = typeof RepostLogReason[keyof typeof RepostLogReason];
+
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const RepostLogReason = {
+  None: 'None',
+  EveryNth: 'EveryNth',
+  SkipProbability: 'SkipProbability',
+  DailyLimit: 'DailyLimit',
+  MessageNotPublished: 'MessageNotPublished',
+  DialogsUnavailable: 'DialogsUnavailable',
+  SourceChannelNotResolved: 'SourceChannelNotResolved',
+  DestinationNotAvailable: 'DestinationNotAvailable',
+  Banned: 'Banned',
+  ForwardFailed: 'ForwardFailed',
+} as const;
+
+/**
+ * Количество записей журнала с одной и той же причиной.
+ */
+export interface RepostLogReasonCount {
+  reason: RepostLogReason;
+  /** Количество таких записей. */
+  count: number;
+}
+
+/**
+ * Сводка по журналу репостов: сколько дошло, сколько пропущено и сколько упало.
+ */
+export interface RepostLogsSummaryResponse {
+  /** Всего записей журнала под фильтр. */
+  total: number;
+  /** Успешных репостов. */
+  success: number;
+  /** Репостов, завершившихся ошибкой. */
+  failed: number;
+  /** Репостов, пропущенных по настройкам рандомизации и лимитам. */
+  skipped: number;
+  /**
+   * Время последнего успешного репоста.
+   * @nullable
+   */
+  lastSuccessAt?: string | null;
+  /** Разбивка неуспешных записей по причинам. */
+  reasons: RepostLogReasonCount[];
+}
+
+export type RepostStatus = typeof RepostStatus[keyof typeof RepostStatus];
+
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const RepostStatus = {
+  Pending: 'Pending',
+  Success: 'Success',
+  Failed: 'Failed',
+  Skipped: 'Skipped',
+} as const;
+
 export interface RepostSettingsItemDto {
   id: string;
   scheduleId: string;
@@ -1368,3 +1492,61 @@ state?: string;
 error?: string;
 };
 
+
+export type GetApiV1RepostLogsParams = {
+/**
+ * Показать только записи этих настроек репоста
+ */
+RepostSettingsId?: string;
+/**
+ * Показать только записи по конкретному целевому каналу
+ */
+DestinationId?: string;
+/**
+ * Показать только записи по конкретному сообщению
+ */
+MessageId?: string;
+/**
+ * Фильтр по статусу репоста
+ */
+Status?: RepostStatus;
+/**
+ * Начало периода (включительно)
+ */
+From?: string;
+/**
+ * Конец периода (включительно)
+ */
+To?: string;
+/**
+ * Номер страницы.
+ */
+PageNumber?: number;
+/**
+ * Размер страницы.
+ */
+PageSize?: number;
+};
+
+export type GetApiV1RepostLogsSummaryParams = {
+/**
+ * Считать только по этим настройкам репоста
+ */
+RepostSettingsId?: string;
+/**
+ * Считать только по конкретному целевому каналу
+ */
+DestinationId?: string;
+/**
+ * Считать только по конкретному сообщению
+ */
+MessageId?: string;
+/**
+ * Начало периода (включительно)
+ */
+From?: string;
+/**
+ * Конец периода (включительно)
+ */
+To?: string;
+};
