@@ -16,6 +16,17 @@ internal sealed class TelegramSessionRepository(PosterContext context)
 			.Select(s => (Guid?)s.Id)
 			.FirstOrDefaultAsync(ct);
 
+	public Task<List<Guid>> GetSessionIdsByTelegramSessionPurpose(
+		TelegramSessionPurpose purpose,
+		CancellationToken ct
+	)
+		=> context.TelegramSessions
+			.Where(s => s.IsActive
+			            && s.Purposes.Contains(purpose))
+			.OrderBy(s => s.Created)
+			.Select(s => s.Id)
+			.ToListAsync(ct);
+
 	public async Task UpdateSessionDataAsync(Guid sessionId, string sessionData, CancellationToken ct)
 	{
 		var session = await context.TelegramSessions.FirstAsync(s => s.Id == sessionId, ct);

@@ -23,6 +23,12 @@ internal sealed class TelegramAuthService(
 	public Task<Guid?> GetSessionIdForPurposeAsync(TelegramSessionPurpose purpose, CancellationToken ct = default)
 		=> authRepository.GetByTelegramSessionPurpose(purpose, ct);
 
+	public Task<List<Guid>> GetSessionIdsForPurposeAsync(
+		TelegramSessionPurpose purpose,
+		CancellationToken ct = default
+	)
+		=> authRepository.GetSessionIdsByTelegramSessionPurpose(purpose, ct);
+
 	/// <summary>
 	///     Удаляет клиент из кеша (например, при деактивации сессии).
 	/// </summary>

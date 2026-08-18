@@ -24,6 +24,15 @@ public interface ITelegramAuthService
 	Task<Guid?> GetSessionIdForPurposeAsync(TelegramSessionPurpose purpose, CancellationToken ct = default);
 
 	/// <summary>
+	///     Возвращает идентификаторы всех активных сессий, помеченных для указанного назначения.
+	///     Нужен воркерам, которые умеют распараллеливать работу по нескольким аккаунтам
+	/// </summary>
+	/// <param name="purpose">Назначение сессии</param>
+	/// <param name="ct">Токен отмены</param>
+	/// <returns>Список ID сессий; пустой список, если подходящих сессий нет</returns>
+	Task<List<Guid>> GetSessionIdsForPurposeAsync(TelegramSessionPurpose purpose, CancellationToken ct = default);
+
+	/// <summary>
 	///     Начинает процесс авторизации: высылает код подтверждения на номер телефона
 	/// </summary>
 	/// <param name="sessionId">Идентификатор сессии</param>

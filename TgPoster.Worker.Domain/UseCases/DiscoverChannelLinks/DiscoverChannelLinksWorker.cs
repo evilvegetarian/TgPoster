@@ -1,4 +1,5 @@
 using System.Text.RegularExpressions;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Shared.Enums;
@@ -11,21 +12,24 @@ namespace TgPoster.Worker.Domain.UseCases.DiscoverChannelLinks;
 internal sealed partial class DiscoverChannelLinksWorker(
 	IDiscoverChannelLinksStorage storage,
 	ITelegramAuthService authService,
-	ITelegramMessageService tgMessages,
-	ITelegramPublicLookupService publicLookup,
 	IWorkerJobStatusStorage statusStorage,
+	IServiceScopeFactory scopeFactory,
 	HangfireNextRunProvider nextRun,
 	ILogger<DiscoverChannelLinksWorker> logger,
 	IHostApplicationLifetime lifetime)
 {
 	private const int MessageBatchSize = 100;
-	private const int ChannelBatchSize = 1;
+	private const int ChannelsPerSession = 1;
 	private static readonly TimeSpan InterBatchDelay = TimeSpan.FromMilliseconds(1500);
 	private static readonly TimeSpan InviteLookupDelay = TimeSpan.FromMilliseconds(500);
 	private static readonly TimeSpan HeartbeatInterval = TimeSpan.FromSeconds(20);
 	private static readonly SemaphoreSlim ParseLock = new(1, 1);
 
-	private DateTimeOffset lastHeartbeat;
+	// Ветки разных сессий работают параллельно, но storage и statusStorage живут в одном
+	// scope и делят один DbContext — обращения к нему сериализуем
+	private readonly SemaphoreSlim dbLock = new(1, 1);
+
+	private long lastHeartbeatTicks;
 	private int progressCurrent;
 	private int progressTotal;
 
@@ -81,40 +85,94 @@ internal sealed partial class DiscoverChannelLinksWorker(
 		}
 	}
 
+	/// <summary>
+	///     Разложить каналы по доступным Discover-сессиям и обработать их параллельно:
+	///     за каждой сессией стоит отдельный Telegram-аккаунт со своими лимитами
+	/// </summary>
+	/// <param name="ct">Токен отмены</param>
+	/// <returns>Секунды FloodWait-таймаута, если ни одна сессия не смогла отработать, иначе null</returns>
 	private async Task<int?> ProcessChannelsCoreAsync(CancellationToken ct)
 	{
-		var channels = await storage.GetChannelsToProcessAsync(ChannelBatchSize, ct);
+		var sessionIds = await authService.GetSessionIdsForPurposeAsync(TelegramSessionPurpose.Discover, ct);
+		if (sessionIds.Count == 0)
+		{
+			logger.LogWarning("Нет активных Telegram-сессий с назначением Discover");
+			return null;
+		}
+
+		var channels = await storage.GetChannelsToProcessAsync(ChannelsPerSession * sessionIds.Count, ct);
 		if (channels.Count == 0)
 		{
 			logger.LogInformation("Нет каналов для обработки DiscoverChannelLinks");
 			return null;
 		}
 
-		var sessionId = await authService.GetSessionIdForPurposeAsync(TelegramSessionPurpose.Discover, ct);
-		if (sessionId is null)
-		{
-			return null;
-		}
-
 		progressTotal = channels.Count;
+		progressCurrent = 0;
+
+		// Раскладываем каналы по сессиям round-robin: если каналов меньше, чем сессий,
+		// лишние аккаунты просто не задействуются
+		var buckets = channels
+			.Select((channel, index) => (channel, sessionId: sessionIds[index % sessionIds.Count]))
+			.GroupBy(x => x.sessionId, x => x.channel)
+			.ToList();
+
+		logger.LogInformation("DiscoverChannelLinks: {ChannelCount} каналов на {SessionCount} сессий",
+			channels.Count, buckets.Count);
+
+		await ReportProgressAsync($"Обработка {channels.Count} каналов в {buckets.Count} потоков", ct, true);
+
+		var tasks = buckets
+			.Select(bucket => ProcessSessionChannelsAsync(bucket.Key, bucket.ToList(), ct))
+			.ToArray();
+
+		var floodWaits = await Task.WhenAll(tasks);
+
+		// Кулдаун имеет смысл, только если FloodWait поймали все сессии: пока свободен
+		// хотя бы один аккаунт, следующий запуск снова принесёт результат
+		return floodWaits.All(x => x is not null)
+			? floodWaits.Min()
+			: null;
+	}
+
+	/// <summary>
+	///     Последовательно обработать каналы, закреплённые за одной сессией
+	/// </summary>
+	/// <param name="sessionId">ID сессии Telegram</param>
+	/// <param name="channels">Каналы этой сессии</param>
+	/// <param name="ct">Токен отмены</param>
+	/// <returns>Секунды FloodWait-таймаута, если Telegram ограничил сессию, иначе null</returns>
+	private async Task<int?> ProcessSessionChannelsAsync(
+		Guid sessionId,
+		IReadOnlyList<DiscoverChannelDto> channels,
+		CancellationToken ct
+	)
+	{
+		// Свой scope на ветку: Telegram-слой ходит в БД за данными сессии, а один DbContext
+		// нельзя использовать из нескольких потоков одновременно
+		using var scope = scopeFactory.CreateScope();
+		var session = new SessionScope(
+			sessionId,
+			scope.ServiceProvider.GetRequiredService<ITelegramMessageService>(),
+			scope.ServiceProvider.GetRequiredService<ITelegramPublicLookupService>());
+
 		foreach (var channelDto in channels)
 		{
-			await ReportProgressAsync(
-				$"@{channelDto.Username ?? channelDto.TelegramId?.ToString()}", ct, true);
+			await ReportProgressAsync($"@{channelDto.Username ?? channelDto.TelegramId?.ToString()}", ct);
 
 			int? floodWaitSeconds;
 			try
 			{
-				floodWaitSeconds = await ProcessChannelAsync(sessionId.Value, channelDto, ct);
+				floodWaitSeconds = await ProcessChannelAsync(session, channelDto, ct);
 			}
 			catch (Exception ex)
 			{
-				logger.LogError(ex, "Ошибка при обработке канала {Channel}",
-					channelDto.Username ?? channelDto.TelegramId?.ToString());
+				logger.LogError(ex, "Ошибка при обработке канала {Channel} сессией {SessionId}",
+					channelDto.Username ?? channelDto.TelegramId?.ToString(), sessionId);
 				throw;
 			}
 
-			progressCurrent++;
+			Interlocked.Increment(ref progressCurrent);
 			if (floodWaitSeconds is not null)
 			{
 				return floodWaitSeconds;
@@ -127,17 +185,17 @@ internal sealed partial class DiscoverChannelLinksWorker(
 	/// <summary>
 	///     Обработать один канал: найти ссылки в истории и сохранить обнаруженные пиры
 	/// </summary>
-	/// <param name="sessionId">ID сессии Telegram</param>
+	/// <param name="session">Telegram-сервисы ветки вместе с ID сессии</param>
 	/// <param name="channelDto">Канал для обработки</param>
 	/// <param name="ct">Токен отмены</param>
 	/// <returns>Секунды FloodWait-таймаута, если Telegram его вернул, иначе null</returns>
 	private async Task<int?> ProcessChannelAsync(
-		Guid sessionId,
+		SessionScope session,
 		DiscoverChannelDto channelDto,
 		CancellationToken ct
 	)
 	{
-		var channel = await ResolveChannelAsync(sessionId, channelDto, ct);
+		var channel = await ResolveChannelAsync(session, channelDto, ct);
 
 		if (channel is null)
 		{
@@ -146,7 +204,7 @@ internal sealed partial class DiscoverChannelLinksWorker(
 			return null;
 		}
 
-		var fetch = await GetAllHistoryAsync(sessionId, channel, channelDto.LastParsedId, ct);
+		var fetch = await GetAllHistoryAsync(session, channel, channelDto.LastParsedId, ct);
 		var scan = ScanChannelHistoryAsync(fetch.Pages);
 
 		foreach (var privId in scan.PrivateChannelIds)
@@ -158,13 +216,13 @@ internal sealed partial class DiscoverChannelLinksWorker(
 			});
 		}
 
-		var resolvedTextPeers = await ResolveAllChatPeersAsync(scan.TextUsernames, ct);
+		var resolvedTextPeers = await ResolveAllChatPeersAsync(session, scan.TextUsernames, ct);
 		foreach (var resolvedPeer in resolvedTextPeers.Values)
 		{
 			scan.PublicPeers.TryAdd(resolvedPeer.Username!, resolvedPeer);
 		}
 
-		var resolvedInvites = await ResolveInviteLinksAsync(scan.InviteHashes, ct);
+		var resolvedInvites = await ResolveInviteLinksAsync(session, scan.InviteHashes, ct);
 
 		DeduplicateResolvedInvites(scan.PublicPeers, scan.PrivatePeers, resolvedInvites);
 		DeduplicateByTitle(scan.PublicPeers, scan.PrivatePeers, resolvedInvites);
@@ -185,7 +243,7 @@ internal sealed partial class DiscoverChannelLinksWorker(
 	}
 
 	private async Task<TelegramChatInfo?> ResolveChannelAsync(
-		Guid sessionId,
+		SessionScope session,
 		DiscoverChannelDto channelDto,
 		CancellationToken ct
 	)
@@ -193,9 +251,10 @@ internal sealed partial class DiscoverChannelLinksWorker(
 		if (!string.IsNullOrEmpty(channelDto.Username))
 		{
 			logger.LogInformation("Поиск TG-ссылок в канале @{Channel}", channelDto.Username);
-			var resolved = await tgMessages.ResolveChannelAsync(sessionId, channelDto.Username, ct);
+			var resolved = await session.Messages.ResolveChannelAsync(session.SessionId, channelDto.Username, ct);
 
-			if (await resolved.HandleChannelUnavailableAsync(() => storage.ChannelBanned(channelDto.Id, ct)))
+			if (await resolved.HandleChannelUnavailableAsync(
+				    () => WithDbLockAsync(() => storage.ChannelBanned(channelDto.Id, ct), ct)))
 			{
 				logger.LogError("Канал {channel} забанен", channelDto.Username);
 				return null;
@@ -215,7 +274,7 @@ internal sealed partial class DiscoverChannelLinksWorker(
 		if (channelDto.TelegramId.HasValue)
 		{
 			logger.LogInformation("Поиск TG-ссылок в приватном канале ID={TelegramId}", channelDto.TelegramId);
-			var dialogsResult = await tgMessages.GetAllDialogsAsync(sessionId, ct);
+			var dialogsResult = await session.Messages.GetAllDialogsAsync(session.SessionId, ct);
 			if (!dialogsResult.IsSuccess)
 			{
 				logger.LogError("Не удалось получить диалоги: {Status} {Error}",
@@ -231,7 +290,7 @@ internal sealed partial class DiscoverChannelLinksWorker(
 	}
 
 	private async Task<HistoryFetchResult> GetAllHistoryAsync(
-		Guid sessionId,
+		SessionScope session,
 		TelegramChatInfo channel,
 		int? lastParsedId,
 		CancellationToken ct
@@ -246,8 +305,8 @@ internal sealed partial class DiscoverChannelLinksWorker(
 		{
 			ct.ThrowIfCancellationRequested();
 
-			var historyResult = await tgMessages.SearchMessagesAsync(
-				sessionId,
+			var historyResult = await session.Messages.SearchMessagesAsync(
+				session.SessionId,
 				channel.Peer,
 				TelegramMessageFilter.Url,
 				MessageBatchSize,
@@ -421,21 +480,27 @@ internal sealed partial class DiscoverChannelLinksWorker(
 			});
 		}
 
-		await storage.BulkUpsertAsync(batch, ct);
-
-		await storage.UpsertAsync(new DiscoveredPeerUpsert
+		// Обе записи делаем под одной блокировкой: пока идёт запись, соседняя ветка
+		// не должна читать наполовину сохранённую картину и плодить дубли
+		await WithDbLockAsync(async () =>
 		{
-			Username = channelDto.Username,
-			LastParsedId = scan.LastParsedId,
-			TelegramId = channel.Id,
-			PeerType = ResolvePeerType(channel),
-			Title = channel.Title,
-			ParticipantsCount = channel.ParticipantsCount,
-			MarkAsCompleted = true
+			await storage.BulkUpsertAsync(batch, ct);
+
+			await storage.UpsertAsync(new DiscoveredPeerUpsert
+			{
+				Username = channelDto.Username,
+				LastParsedId = scan.LastParsedId,
+				TelegramId = channel.Id,
+				PeerType = ResolvePeerType(channel),
+				Title = channel.Title,
+				ParticipantsCount = channel.ParticipantsCount,
+				MarkAsCompleted = true
+			}, ct);
 		}, ct);
 	}
 
 	private async Task<Dictionary<string, DiscoveredPeerInfo>> ResolveAllChatPeersAsync(
+		SessionScope session,
 		HashSet<string> usernames,
 		CancellationToken ct
 	)
@@ -448,7 +513,7 @@ internal sealed partial class DiscoverChannelLinksWorker(
 
 			await ReportProgressAsync($"HTTP-lookup @{username}", ct);
 
-			var peerInfo = await ResolveChatPeersAsync(username, ct);
+			var peerInfo = await ResolveChatPeersAsync(session, username, ct);
 			if (peerInfo.HasValue)
 			{
 				chats.TryAdd(username, peerInfo.Value);
@@ -461,11 +526,12 @@ internal sealed partial class DiscoverChannelLinksWorker(
 	}
 
 	private async Task<DiscoveredPeerInfo?> ResolveChatPeersAsync(
+		SessionScope session,
 		string username,
 		CancellationToken ct
 	)
 	{
-		var result = await publicLookup.LookupAsync(username, ct);
+		var result = await session.PublicLookup.LookupAsync(username, ct);
 		if (!result.IsSuccess || result.Value is null)
 		{
 			logger.LogDebug("HTTP-lookup не удался для @{Username} ({Status}), пропускаем",
@@ -493,6 +559,7 @@ internal sealed partial class DiscoverChannelLinksWorker(
 	}
 
 	private async Task<Dictionary<string, DiscoveredPeerInfo>> ResolveInviteLinksAsync(
+		SessionScope session,
 		HashSet<string> hashes,
 		CancellationToken ct
 	)
@@ -505,7 +572,7 @@ internal sealed partial class DiscoverChannelLinksWorker(
 
 			await ReportProgressAsync($"HTTP-lookup инвайта {hash}", ct);
 
-			var result = await publicLookup.LookupInviteAsync(hash, ct);
+			var result = await session.PublicLookup.LookupInviteAsync(hash, ct);
 			if (!result.IsSuccess || result.Value is null)
 			{
 				logger.LogDebug("HTTP-lookup инвайта {Hash} не удался ({Status}), пропускаем",
@@ -638,22 +705,58 @@ internal sealed partial class DiscoverChannelLinksWorker(
 
 	/// <summary>
 	///     Обновить heartbeat и прогресс задачи в хранилище статусов. Записи троттлятся,
-	///     чтобы не спамить БД из частых циклов
+	///     чтобы не спамить БД из частых циклов; вызывается из параллельных веток, поэтому
+	///     отметка последней записи обновляется атомарно
 	/// </summary>
 	/// <param name="message">Человекочитаемое описание текущего этапа</param>
 	/// <param name="ct">Токен отмены</param>
 	/// <param name="force">Записать без учёта троттлинга</param>
 	private async Task ReportProgressAsync(string? message, CancellationToken ct, bool force = false)
 	{
-		var now = DateTimeOffset.UtcNow;
-		if (!force && now - lastHeartbeat < HeartbeatInterval)
+		var nowTicks = DateTimeOffset.UtcNow.UtcTicks;
+		if (force)
 		{
-			return;
+			Interlocked.Exchange(ref lastHeartbeatTicks, nowTicks);
+		}
+		else
+		{
+			// Право на запись получает та ветка, которая первой перебила отметку:
+			// остальные в этом окне просто выходят
+			var last = Interlocked.Read(ref lastHeartbeatTicks);
+			if (nowTicks - last < HeartbeatInterval.Ticks
+			    || Interlocked.CompareExchange(ref lastHeartbeatTicks, nowTicks, last) != last)
+			{
+				return;
+			}
 		}
 
-		lastHeartbeat = now;
-		await TryReportAsync(() => statusStorage.ReportHeartbeatAsync(
-			WorkerJobNames.DiscoverChannelLinks, progressCurrent, progressTotal, message, ct));
+		await TryReportAsync(() => WithDbLockAsync(
+			() => statusStorage.ReportHeartbeatAsync(
+				WorkerJobNames.DiscoverChannelLinks,
+				Volatile.Read(ref progressCurrent),
+				progressTotal,
+				message,
+				ct),
+			ct));
+	}
+
+	/// <summary>
+	///     Выполнить обращение к БД под общей блокировкой: параллельные ветки делят
+	///     один DbContext, а он не расчитан на одновременное использование
+	/// </summary>
+	/// <param name="action">Операция с хранилищем</param>
+	/// <param name="ct">Токен отмены</param>
+	private async Task WithDbLockAsync(Func<Task> action, CancellationToken ct)
+	{
+		await dbLock.WaitAsync(ct);
+		try
+		{
+			await action();
+		}
+		finally
+		{
+			dbLock.Release();
+		}
 	}
 
 	/// <summary>
@@ -762,6 +865,18 @@ internal sealed partial class DiscoverChannelLinksWorker(
 
 	[GeneratedRegex(@"(?:https?://)?t\.me/c/(\d+)(?:/\d+)?", RegexOptions.Compiled)]
 	private static partial Regex PrivateChannelLinkRegex();
+
+	/// <summary>
+	///     Telegram-сервисы одной ветки вместе с сессией, от имени которой она работает.
+	///     Живут в собственном DI-scope, поэтому не пересекаются с соседними ветками
+	/// </summary>
+	/// <param name="SessionId">ID сессии Telegram</param>
+	/// <param name="Messages">Сервис работы с сообщениями</param>
+	/// <param name="PublicLookup">Сервис HTTP-lookup публичных страниц t.me</param>
+	private sealed record SessionScope(
+		Guid SessionId,
+		ITelegramMessageService Messages,
+		ITelegramPublicLookupService PublicLookup);
 
 	private sealed record HistoryFetchResult(
 		List<TelegramHistoryPage> Pages,
