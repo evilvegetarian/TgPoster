@@ -17,6 +17,7 @@ import { Button } from "@/components/ui/button";
 import {
     Form,
     FormControl,
+    FormDescription,
     FormField,
     FormItem,
     FormLabel,
@@ -32,6 +33,7 @@ import {
 } from "@/components/ui/select";
 import { usePostApiV1TelegramSession, getGetApiV1TelegramSessionQueryKey } from "@/api/endpoints/telegram-session/telegram-session";
 import { useGetApiV1Proxy, getGetApiV1ProxyQueryKey } from "@/api/endpoints/proxy/proxy";
+import { useGetApiV1TelegramBot } from "@/api/endpoints/telegram-bot/telegram-bot";
 import { useQueryClient } from "@tanstack/react-query";
 import type { CreateTelegramSessionRequest } from "@/api/endpoints/tgPosterAPI.schemas";
 import { ProxyCreateDialog } from "@/components/proxy/proxy-create-dialog";
@@ -42,6 +44,7 @@ const formSchema = z.object({
     phoneNumber: z.string().min(10, "Номер телефона должен содержать минимум 10 символов"),
     name: z.string().optional(),
     proxyId: z.string().uuid().nullable().optional(),
+    notificationBotId: z.string().uuid().nullable().optional(),
 });
 
 type CreateTelegramAccountForm = z.infer<typeof formSchema>;
@@ -54,6 +57,9 @@ export function TelegramAccountCreateDialog() {
     const { data: proxiesData } = useGetApiV1Proxy();
     const proxies = proxiesData?.items ?? [];
 
+    const { data: botsData } = useGetApiV1TelegramBot();
+    const bots = botsData?.items ?? [];
+
     const form = useForm<CreateTelegramAccountForm>({
         resolver: zodResolver(formSchema),
         defaultValues: {
@@ -62,6 +68,7 @@ export function TelegramAccountCreateDialog() {
             phoneNumber: "",
             name: "",
             proxyId: null,
+            notificationBotId: null,
         },
     });
 
@@ -88,6 +95,7 @@ export function TelegramAccountCreateDialog() {
             phoneNumber: values.phoneNumber,
             name: values.name || null,
             proxyId: values.proxyId || null,
+            notificationBotId: values.notificationBotId || null,
         };
         createAccount({ data: request });
     }
@@ -200,6 +208,37 @@ export function TelegramAccountCreateDialog() {
                                                 </SelectItem>
                                             </SelectContent>
                                         </Select>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="notificationBotId"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Бот для оповещений (опционально)</FormLabel>
+                                        <Select
+                                            onValueChange={(v) => field.onChange(v === "__none__" ? null : v)}
+                                            value={field.value ?? "__none__"}
+                                        >
+                                            <FormControl>
+                                                <SelectTrigger>
+                                                    <SelectValue placeholder="Без оповещений" />
+                                                </SelectTrigger>
+                                            </FormControl>
+                                            <SelectContent>
+                                                <SelectItem value="__none__">Без оповещений</SelectItem>
+                                                {bots.map((b) => (
+                                                    <SelectItem key={b.id} value={b.id}>
+                                                        {b.name}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                        <FormDescription>
+                                            Бот напишет в чат, если с аккаунтом возникнут проблемы
+                                        </FormDescription>
                                         <FormMessage />
                                     </FormItem>
                                 )}

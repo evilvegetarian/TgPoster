@@ -10,5 +10,6 @@ public sealed record ImportTelegramSessionCommand(
 	string ApiId,
 	string ApiHash,
 	IFormFile SessionFile,
-	string? Name
+	string? Name,
+	Guid? NotificationBotId
 ) : IRequest<ImportTelegramSessionResponse>;

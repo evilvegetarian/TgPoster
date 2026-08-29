@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { AlertCircle, Network, Pencil, Smartphone, Trash2, MoreVertical } from "lucide-react";
+import { AlertCircle, Bell, Network, Pencil, Smartphone, Trash2, MoreVertical } from "lucide-react";
 import { toast } from "sonner";
 import {
     Card,
@@ -173,6 +173,12 @@ export function TelegramAccountListComponent() {
                                                 <Badge variant="outline" className="gap-1">
                                                     <Network className="h-3 w-3" />
                                                     {account.proxyName}
+                                                </Badge>
+                                            )}
+                                            {account.notificationBotName && (
+                                                <Badge variant="outline" className="gap-1">
+                                                    <Bell className="h-3 w-3" />
+                                                    {account.notificationBotName}
                                                 </Badge>
                                             )}
                                         </div>

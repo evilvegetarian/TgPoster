@@ -9,7 +9,8 @@ namespace TgPoster.Telegram.Internal;
 
 internal sealed class TelegramMessageService(
 	ILogger<TelegramMessageService> logger,
-	ITelegramClientResolver clientResolver) : ITelegramMessageService
+	ITelegramClientResolver clientResolver,
+	ITelegramSessionAlertService alertService) : ITelegramMessageService
 {
 	private const int MaxFloodWaitSeconds = 60;
 
@@ -375,10 +376,11 @@ internal sealed class TelegramMessageService(
 				$"Сессия {sessionId} не найдена или неактивна");
 		}
 
-		return await ExecuteAsync(() => action(client), operation, waitOnFloodWait, ct);
+		return await ExecuteAsync(sessionId, () => action(client), operation, waitOnFloodWait, ct);
 	}
 
 	private async Task<TelegramOperationResult<T>> ExecuteAsync<T>(
+		Guid sessionId,
 		Func<Task<T>> action,
 		string operation,
 		bool waitOnFloodWait,
@@ -410,6 +412,7 @@ internal sealed class TelegramMessageService(
 			catch (RpcException ex) when (IsSessionDead(ex.Message))
 			{
 				logger.LogWarning("Telegram {Operation}: сессия недействительна ({Error})", operation, ex.Message);
+				await alertService.NotifyAsync(sessionId, TelegramSessionProblem.AuthorizationRevoked, ex.Message, ct);
 				return TelegramOperationResult<T>.Failed(TelegramOperationStatus.SessionNotFound, ex.Message);
 			}
 			catch (RpcException ex) when (IsSendForbidden(ex.Message))
@@ -428,6 +431,7 @@ internal sealed class TelegramMessageService(
 			{
 				logger.LogWarning("Telegram {Operation}: аккаунт ограничен за спам ({Error})", operation,
 					ex.Message);
+				await alertService.NotifyAsync(sessionId, TelegramSessionProblem.SpamRestricted, ex.Message, ct);
 				return TelegramOperationResult<T>.Failed(TelegramOperationStatus.SpamRestricted, ex.Message);
 			}
 			catch (RpcException ex) when (ex.Message.StartsWith("FLOOD_WAIT"))
@@ -441,6 +445,8 @@ internal sealed class TelegramMessageService(
 
 				logger.LogWarning("Telegram {Operation}: FLOOD_WAIT {Seconds}s, возвращаем FloodWait",
 					operation, ex.X);
+				await alertService.NotifyAsync(
+					sessionId, TelegramSessionProblem.FloodWait, $"FLOOD_WAIT {ex.X} сек.", ct);
 				return TelegramOperationResult<T>.Failed(TelegramOperationStatus.FloodWait, ex.Message, ex.X);
 			}
 			catch (RpcException ex) when (ex.Message.StartsWith("SLOWMODE_WAIT"))

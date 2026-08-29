@@ -18,7 +18,8 @@ internal sealed class TelegramAuthService(
 	ILogger<TelegramAuthService> logger,
 	ITelegramAuthRepository authRepository,
 	SessionDataDebouncer sessionDebouncer,
-	TelegramClientManager clientManager) : ITelegramAuthService, ITelegramClientResolver
+	TelegramClientManager clientManager,
+	ITelegramSessionAlertService alertService) : ITelegramAuthService, ITelegramClientResolver
 {
 	public Task<Guid?> GetSessionIdForPurposeAsync(TelegramSessionPurpose purpose, CancellationToken ct = default)
 		=> authRepository.GetByTelegramSessionPurpose(purpose, ct);
@@ -339,6 +340,7 @@ internal sealed class TelegramAuthService(
 		{
 			logger.LogWarning(ex, "Требуется повторная авторизация для сессии {SessionId}", sessionId);
 			await client.DisposeAsync();
+			await alertService.NotifyAsync(sessionId, TelegramSessionProblem.AuthorizationRevoked, ex.Message, ct);
 			throw new TelegramReauthorizationRequiredException(sessionId, ex);
 		}
 		catch (RpcException ex) when (ex.Message == "AUTH_KEY_DUPLICATED")
@@ -349,6 +351,7 @@ internal sealed class TelegramAuthService(
 				sessionId);
 			await client.DisposeAsync();
 			await authRepository.DeactivateSessionAsync(sessionId, ct);
+			await alertService.NotifyAsync(sessionId, TelegramSessionProblem.AuthKeyDuplicated, ex.Message, ct);
 			throw new TelegramAuthKeyDuplicatedException(sessionId, ex);
 		}
 		catch (NullReferenceException ex)
@@ -359,6 +362,7 @@ internal sealed class TelegramAuthService(
 				sessionId);
 			await client.DisposeAsync();
 			await authRepository.DeactivateSessionAsync(sessionId, ct);
+			await alertService.NotifyAsync(sessionId, TelegramSessionProblem.SessionCorrupted, ct: ct);
 			throw new TelegramSessionCorruptedException(sessionId, ex);
 		}
 		catch (Exception ex)
@@ -366,6 +370,7 @@ internal sealed class TelegramAuthService(
 			logger.LogError(ex, "Не удалось войти в Telegram для сессии {SessionId}", sessionId);
 			await client.DisposeAsync();
 			await authRepository.DeactivateSessionAsync(sessionId, ct);
+			await alertService.NotifyAsync(sessionId, TelegramSessionProblem.LoginFailed, ex.Message, ct);
 			throw;
 		}
 	}

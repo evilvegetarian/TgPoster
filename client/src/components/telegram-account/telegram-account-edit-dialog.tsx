@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import {
     Form,
     FormControl,
+    FormDescription,
     FormField,
     FormItem,
     FormLabel,
@@ -33,6 +34,7 @@ import {
     getGetApiV1TelegramSessionQueryKey,
 } from "@/api/endpoints/telegram-session/telegram-session";
 import { useGetApiV1Proxy, getGetApiV1ProxyQueryKey } from "@/api/endpoints/proxy/proxy";
+import { useGetApiV1TelegramBot } from "@/api/endpoints/telegram-bot/telegram-bot";
 import { useQueryClient } from "@tanstack/react-query";
 import type { TelegramSessionResponse } from "@/api/endpoints/tgPosterAPI.schemas";
 import { ProxyCreateDialog } from "@/components/proxy/proxy-create-dialog";
@@ -41,6 +43,7 @@ const formSchema = z.object({
     name: z.string().optional(),
     isActive: z.boolean(),
     proxyId: z.string().uuid().nullable().optional(),
+    notificationBotId: z.string().uuid().nullable().optional(),
 });
 
 type EditForm = z.infer<typeof formSchema>;
@@ -58,12 +61,16 @@ export function TelegramAccountEditDialog({ account, onOpenChange }: TelegramAcc
     const { data: proxiesData } = useGetApiV1Proxy();
     const proxies = proxiesData?.items ?? [];
 
+    const { data: botsData } = useGetApiV1TelegramBot();
+    const bots = botsData?.items ?? [];
+
     const form = useForm<EditForm>({
         resolver: zodResolver(formSchema),
         defaultValues: {
             name: "",
             isActive: true,
             proxyId: null,
+            notificationBotId: null,
         },
     });
 
@@ -73,6 +80,7 @@ export function TelegramAccountEditDialog({ account, onOpenChange }: TelegramAcc
                 name: account.name ?? "",
                 isActive: account.isActive ?? true,
                 proxyId: account.proxyId ?? null,
+                notificationBotId: account.notificationBotId ?? null,
             });
         }
     }, [account, form]);
@@ -100,6 +108,7 @@ export function TelegramAccountEditDialog({ account, onOpenChange }: TelegramAcc
                 name: values.name || null,
                 isActive: values.isActive,
                 proxyId: values.proxyId || null,
+                notificationBotId: values.notificationBotId || null,
             },
         });
     }
@@ -191,6 +200,37 @@ export function TelegramAccountEditDialog({ account, onOpenChange }: TelegramAcc
                                                 </SelectItem>
                                             </SelectContent>
                                         </Select>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="notificationBotId"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Бот для оповещений (опционально)</FormLabel>
+                                        <Select
+                                            onValueChange={(v) => field.onChange(v === "__none__" ? null : v)}
+                                            value={field.value ?? "__none__"}
+                                        >
+                                            <FormControl>
+                                                <SelectTrigger>
+                                                    <SelectValue placeholder="Без оповещений" />
+                                                </SelectTrigger>
+                                            </FormControl>
+                                            <SelectContent>
+                                                <SelectItem value="__none__">Без оповещений</SelectItem>
+                                                {bots.map((b) => (
+                                                    <SelectItem key={b.id} value={b.id}>
+                                                        {b.name}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                        <FormDescription>
+                                            Бот напишет в чат, если с аккаунтом возникнут проблемы
+                                        </FormDescription>
                                         <FormMessage />
                                     </FormItem>
                                 )}

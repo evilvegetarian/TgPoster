@@ -10,7 +10,9 @@ public sealed record TelegramSessionResponse(
 	TelegramSessionStatus Status,
 	DateTimeOffset? Created,
 	Guid? ProxyId,
-	string? ProxyName
+	string? ProxyName,
+	Guid? NotificationBotId,
+	string? NotificationBotName
 );
 
 public sealed record TelegramSessionListResponse

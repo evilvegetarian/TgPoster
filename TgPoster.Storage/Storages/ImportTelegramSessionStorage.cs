@@ -15,6 +15,7 @@ internal sealed class ImportTelegramSessionStorage(PosterContext context, GuidFa
 		string phoneNumber,
 		string? name,
 		string sessionData,
+		Guid? notificationBotId,
 		CancellationToken ct
 	)
 	{
@@ -28,7 +29,8 @@ internal sealed class ImportTelegramSessionStorage(PosterContext context, GuidFa
 			UserId = userId,
 			IsActive = true,
 			Status = TelegramSessionStatus.Authorized,
-			SessionData = sessionData
+			SessionData = sessionData,
+			NotificationBotId = notificationBotId
 		};
 
 		await context.TelegramSessions.AddAsync(session, ct);

@@ -73,4 +73,14 @@ public sealed class TelegramSession : BaseEntity
 	///     Прокси для маршрутизации трафика.
 	/// </summary>
 	public Proxy? Proxy { get; set; }
+
+	/// <summary>
+	///     Id бота, через которого отправляются оповещения о проблемах с аккаунтом (опционально)
+	/// </summary>
+	public Guid? NotificationBotId { get; set; }
+
+	/// <summary>
+	///     Бот для оповещений о проблемах с сессией
+	/// </summary>
+	public TelegramBot? NotificationBot { get; set; }
 }

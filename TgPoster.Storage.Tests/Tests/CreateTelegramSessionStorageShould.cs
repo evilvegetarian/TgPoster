@@ -27,6 +27,7 @@ public sealed class CreateTelegramSessionStorageShould(StorageTestFixture fixtur
 			phoneNumber,
 			name,
 			null,
+			null,
 			CancellationToken.None);
 
 		result.Id.ShouldNotBe(Guid.Empty);
@@ -56,6 +57,7 @@ public sealed class CreateTelegramSessionStorageShould(StorageTestFixture fixtur
 			phoneNumber,
 			null,
 			null,
+			null,
 			CancellationToken.None);
 
 		result.Name.ShouldBe(phoneNumber);
@@ -73,11 +75,32 @@ public sealed class CreateTelegramSessionStorageShould(StorageTestFixture fixtur
 			"+79991234567",
 			"Test",
 			null,
+			null,
 			CancellationToken.None);
 
 		result.IsActive.ShouldBeTrue();
 
 		var session = await context.TelegramSessions.FindAsync(result.Id);
 		session!.IsActive.ShouldBeTrue();
+	}
+
+	[Fact]
+	public async Task CreateAsync_WithNotificationBot_ShouldLinkBot()
+	{
+		var user = await new UserBuilder(context).CreateAsync();
+		var bot = await new TelegramBotBuilder(context).WithOwnerId(user.Id).CreateAsync();
+
+		var result = await sut.CreateAsync(
+			user.Id,
+			"123456",
+			"test_hash",
+			"+79991234567",
+			"Test",
+			null,
+			bot.Id,
+			CancellationToken.None);
+
+		var session = await context.TelegramSessions.FindAsync(result.Id);
+		session!.NotificationBotId.ShouldBe(bot.Id);
 	}
 }

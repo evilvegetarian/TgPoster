@@ -1,6 +1,7 @@
 using MediatR;
 using Security.IdentityServices;
 using TgPoster.API.Domain.UseCases.Proxies.ListProxies;
+using TgPoster.API.Domain.UseCases.TelegramBots.ListTelegramBot;
 using TgPoster.Exceptions.NotFound;
 using TgPoster.Telegram.Abstractions;
 
@@ -9,6 +10,7 @@ namespace TgPoster.API.Domain.UseCases.TelegramSessions.CreateTelegramSession;
 internal sealed class CreateTelegramSessionUseCase(
 	ICreateTelegramSessionStorage storage,
 	IListProxiesStorage proxyStorage,
+	IListTelegramBotStorage botStorage,
 	IIdentityProvider provider,
 	ITelegramAuthService authService
 ) : IRequestHandler<CreateTelegramSessionCommand, CreateTelegramSessionResponse>
@@ -26,6 +28,14 @@ internal sealed class CreateTelegramSessionUseCase(
 				throw new ProxyNotFoundException(request.ProxyId.Value);
 		}
 
+		if (request.NotificationBotId.HasValue)
+		{
+			var ownsBot = await botStorage.BelongsToUserAsync(
+				provider.Current.UserId, request.NotificationBotId.Value, ct);
+			if (!ownsBot)
+				throw new TelegramBotNotFoundException(request.NotificationBotId.Value);
+		}
+
 		var createResponse = await storage.CreateAsync(
 			provider.Current.UserId,
 			request.ApiId,
@@ -33,6 +43,7 @@ internal sealed class CreateTelegramSessionUseCase(
 			request.PhoneNumber,
 			request.Name,
 			request.ProxyId,
+			request.NotificationBotId,
 			ct
 		);
 

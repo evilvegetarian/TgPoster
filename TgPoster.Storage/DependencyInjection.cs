@@ -19,6 +19,9 @@ public static class DependencyInjection
 	{
 		var dataBase = configuration.GetSection(nameof(DataBase)).Get<DataBase>()!;
 
+		var telegramSecret = configuration.GetSection("TelegramOptions").Get<TelegramSecretOptions>()!;
+		services.AddSingleton(telegramSecret);
+
 		services.AddDbContext<PosterContext>(db =>
 		{
 			db.UseNpgsql(dataBase.ConnectionString, o =>
@@ -35,6 +38,7 @@ public static class DependencyInjection
 		services.AddScoped<ITelegramSessionRepository, TelegramSessionRepository>();
 		services.AddScoped<ITelegramAuthRepository, TelegramSessionRepository>();
 		services.AddScoped<ITelegramHttpProxyRepository, TelegramHttpProxyRepository>();
+		services.AddScoped<ITelegramSessionAlertRepository, TelegramSessionAlertRepository>();
 		services.RegisterStorage();
 
 		return services;

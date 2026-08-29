@@ -8,10 +8,12 @@ namespace TgPoster.API.Models;
 /// <param name="PhoneNumber">Номер телефона</param>
 /// <param name="Name">Название сессии (опционально)</param>
 /// <param name="ProxyId">ID прокси для маршрутизации трафика сессии (опционально)</param>
+/// <param name="NotificationBotId">ID бота, который оповещает о проблемах с аккаунтом (опционально)</param>
 public sealed record CreateTelegramSessionRequest(
 	string ApiId,
 	string ApiHash,
 	string PhoneNumber,
 	string? Name,
-	Guid? ProxyId
+	Guid? ProxyId,
+	Guid? NotificationBotId
 );

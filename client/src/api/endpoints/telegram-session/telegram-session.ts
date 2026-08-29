@@ -214,6 +214,9 @@ formData.append(`SessionFile`, postApiV1TelegramSessionImportBody.SessionFile)
 if(postApiV1TelegramSessionImportBody.Name !== undefined) {
  formData.append(`Name`, postApiV1TelegramSessionImportBody.Name)
  }
+if(postApiV1TelegramSessionImportBody.NotificationBotId !== undefined) {
+ formData.append(`NotificationBotId`, postApiV1TelegramSessionImportBody.NotificationBotId)
+ }
 
       return customInstance<ImportTelegramSessionResponse>(
       {url: `/api/v1/telegram-session/import`, method: 'POST',

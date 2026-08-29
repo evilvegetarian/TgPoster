@@ -17,16 +17,25 @@ import { Button } from "@/components/ui/button";
 import {
     Form,
     FormControl,
+    FormDescription,
     FormField,
     FormItem,
     FormLabel,
     FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
 import { getGetApiV1TelegramSessionQueryKey } from "@/api/endpoints/telegram-session/telegram-session";
 import { usePostApiV1TelegramSessionImport } from "@/api/endpoints/telegram-session/import-telegram-session";
 import type { ImportTelegramSessionRequest } from "@/api/endpoints/telegram-session/import-telegram-session";
 import { useQueryClient } from "@tanstack/react-query";
+import { useGetApiV1TelegramBot } from "@/api/endpoints/telegram-bot/telegram-bot";
 
 const formSchema = z.object({
     apiId: z.string().min(1, "API ID обязателен"),
@@ -35,6 +44,7 @@ const formSchema = z.object({
         .instanceof(File, { message: "Файл сессии обязателен" })
         .refine((file) => file.size > 0, "Файл не должен быть пустым"),
     name: z.string().optional(),
+    notificationBotId: z.string().uuid().nullable().optional(),
 });
 
 type ImportTelegramAccountForm = z.infer<typeof formSchema>;
@@ -44,6 +54,9 @@ export function TelegramAccountImportDialog() {
     const queryClient = useQueryClient();
     const fileInputRef = useRef<HTMLInputElement>(null);
 
+    const { data: botsData } = useGetApiV1TelegramBot();
+    const bots = botsData?.items ?? [];
+
     const form = useForm<ImportTelegramAccountForm>({
         resolver: zodResolver(formSchema),
         defaultValues: {
@@ -51,6 +64,7 @@ export function TelegramAccountImportDialog() {
             apiHash: "",
             sessionFile: undefined,
             name: "",
+            notificationBotId: null,
         },
     });
 
@@ -89,6 +103,7 @@ export function TelegramAccountImportDialog() {
             apiHash: values.apiHash,
             sessionFile: values.sessionFile,
             name: values.name || null,
+            notificationBotId: values.notificationBotId || null,
         };
         importSession({ data: request });
     }
@@ -213,6 +228,37 @@ export function TelegramAccountImportDialog() {
                                             {...field}
                                         />
                                     </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <FormField
+                            control={form.control}
+                            name="notificationBotId"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Бот для оповещений (опционально)</FormLabel>
+                                    <Select
+                                        onValueChange={(v) => field.onChange(v === "__none__" ? null : v)}
+                                        value={field.value ?? "__none__"}
+                                    >
+                                        <FormControl>
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="Без оповещений" />
+                                            </SelectTrigger>
+                                        </FormControl>
+                                        <SelectContent>
+                                            <SelectItem value="__none__">Без оповещений</SelectItem>
+                                            {bots.map((b) => (
+                                                <SelectItem key={b.id} value={b.id}>
+                                                    {b.name}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                    <FormDescription>
+                                        Бот напишет в чат, если с аккаунтом возникнут проблемы
+                                    </FormDescription>
                                     <FormMessage />
                                 </FormItem>
                             )}

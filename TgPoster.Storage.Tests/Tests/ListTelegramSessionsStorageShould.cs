@@ -106,4 +106,23 @@ public sealed class ListTelegramSessionsStorageShould(StorageTestFixture fixture
 		dto.IsActive.ShouldBeTrue();
 		dto.Status.ShouldBe(Telegram.Models.TelegramSessionStatus.Authorized);
 	}
+
+	[Fact]
+	public async Task GetByUserIdAsync_WithNotificationBot_ShouldReturnBotIdAndName()
+	{
+		var user = await new UserBuilder(context).CreateAsync();
+		var bot = await new TelegramBotBuilder(context).WithOwnerId(user.Id).CreateAsync();
+		var session = await new TelegramSessionBuilder(context)
+			.WithUserId(user.Id)
+			.WithNotificationBotId(bot.Id)
+			.CreateAsync();
+
+		var result = await sut.GetByUserIdAsync(user.Id, CancellationToken.None);
+
+		result.Count.ShouldBe(1);
+		var dto = result[0];
+		dto.Id.ShouldBe(session.Id);
+		dto.NotificationBotId.ShouldBe(bot.Id);
+		dto.NotificationBotName.ShouldBe(bot.Name);
+	}
 }

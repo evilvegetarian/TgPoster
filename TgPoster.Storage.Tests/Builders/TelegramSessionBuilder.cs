@@ -69,6 +69,12 @@ internal sealed class TelegramSessionBuilder(PosterContext context)
 		return this;
 	}
 
+	public TelegramSessionBuilder WithNotificationBotId(Guid? notificationBotId)
+	{
+		telegramSession.NotificationBotId = notificationBotId;
+		return this;
+	}
+
 	public TelegramSessionBuilder WithCreated(DateTime created)
 	{
 		telegramSession.Created = created;

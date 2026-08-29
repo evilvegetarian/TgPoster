@@ -21,7 +21,9 @@ internal sealed class ListTelegramSessionsStorage(PosterContext context) : IList
 				s.Status,
 				s.Created,
 				s.ProxyId,
-				ProxyName = s.Proxy != null ? s.Proxy.Name : null
+				ProxyName = s.Proxy != null ? s.Proxy.Name : null,
+				s.NotificationBotId,
+				NotificationBotName = s.NotificationBot != null ? s.NotificationBot.Name : null
 			})
 			.ToListAsync(ct);
 
@@ -33,7 +35,9 @@ internal sealed class ListTelegramSessionsStorage(PosterContext context) : IList
 			(TelegramSessionStatus)s.Status,
 			s.Created,
 			s.ProxyId,
-			s.ProxyName
+			s.ProxyName,
+			s.NotificationBotId,
+			s.NotificationBotName
 		));
 	}
 }

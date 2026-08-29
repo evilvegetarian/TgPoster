@@ -7,5 +7,6 @@ public sealed record CreateTelegramSessionCommand(
 	string ApiHash,
 	string PhoneNumber,
 	string? Name,
-	Guid? ProxyId
+	Guid? ProxyId,
+	Guid? NotificationBotId
 ) : IRequest<CreateTelegramSessionResponse>;

@@ -14,6 +14,7 @@ internal sealed class CreateTelegramSessionStorage(PosterContext context, GuidFa
 		string phoneNumber,
 		string? name,
 		Guid? proxyId,
+		Guid? notificationBotId,
 		CancellationToken ct
 	)
 	{
@@ -26,7 +27,8 @@ internal sealed class CreateTelegramSessionStorage(PosterContext context, GuidFa
 			Name = name,
 			UserId = userId,
 			IsActive = true,
-			ProxyId = proxyId
+			ProxyId = proxyId,
+			NotificationBotId = notificationBotId
 		};
 
 		await context.TelegramSessions.AddAsync(session, ct);

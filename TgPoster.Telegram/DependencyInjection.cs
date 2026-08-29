@@ -27,6 +27,8 @@ public static class DependencyInjection
 		services.AddScoped<ITelegramChatService, TelegramChatService>();
 		services.AddScoped<ITelegramMessageService, TelegramMessageService>();
 		services.AddScoped<ITelegramPublicLookupService, TelegramPublicLookupService>();
+		services.AddSingleton<SessionAlertThrottle>();
+		services.AddScoped<ITelegramSessionAlertService, TelegramSessionAlertService>();
 
 		services.AddOptions<TelegramPublicLookupOptions>().BindConfiguration("TelegramPublicLookup");
 		services.AddSingleton<DbActiveHttpProxy>();

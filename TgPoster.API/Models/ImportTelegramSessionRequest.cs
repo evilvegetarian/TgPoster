@@ -24,4 +24,9 @@ public sealed class ImportTelegramSessionRequest
 	///     Название сессии (опционально)
 	/// </summary>
 	public string? Name { get; set; }
+
+	/// <summary>
+	///     ID бота для оповещений о проблемах с аккаунтом (опционально)
+	/// </summary>
+	public Guid? NotificationBotId { get; set; }
 }

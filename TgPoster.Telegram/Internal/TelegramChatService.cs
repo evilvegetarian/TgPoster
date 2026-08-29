@@ -29,7 +29,8 @@ internal sealed record ChatInputParseResult(ChatInputType Type, string Value);
 
 internal sealed partial class TelegramChatService(
 	ITelegramClientResolver clientResolver,
-	ILogger<TelegramChatService> logger) : ITelegramChatService
+	ILogger<TelegramChatService> logger,
+	ITelegramSessionAlertService alertService) : ITelegramChatService
 {
 	public async Task<TelegramChatInfo> GetChatInfoAsync(Guid sessionId, string input, bool autoJoin = true)
 	{
@@ -77,10 +78,12 @@ internal sealed partial class TelegramChatService(
 		}
 		catch (RpcException ex) when (ex.Message is "PEER_FLOOD")
 		{
+			await alertService.NotifyAsync(sessionId, TelegramSessionProblem.SpamRestricted, ex.Message);
 			return Failed(TelegramOperationStatus.SpamRestricted, input, ex.Message);
 		}
 		catch (RpcException ex) when (ex.Message.StartsWith("FLOOD_WAIT"))
 		{
+			await alertService.NotifyAsync(sessionId, TelegramSessionProblem.FloodWait, ex.Message);
 			return Failed(TelegramOperationStatus.FloodWait, input, ex.Message, ex.X);
 		}
 		catch (RpcException ex) when (ex.Message is "CHANNELS_TOO_MUCH")

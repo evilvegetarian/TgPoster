@@ -1,6 +1,7 @@
 using MediatR;
 using Security.IdentityServices;
 using TgPoster.API.Domain.UseCases.Proxies.ListProxies;
+using TgPoster.API.Domain.UseCases.TelegramBots.ListTelegramBot;
 using TgPoster.Exceptions.NotFound;
 using TgPoster.Telegram.Abstractions;
 
@@ -9,6 +10,7 @@ namespace TgPoster.API.Domain.UseCases.TelegramSessions.UpdateTelegramSession;
 internal sealed class UpdateTelegramSessionUseCase(
 	IUpdateTelegramSessionStorage storage,
 	IListProxiesStorage proxyStorage,
+	IListTelegramBotStorage botStorage,
 	ITelegramAuthService authService,
 	IIdentityProvider identityProvider
 ) : IRequestHandler<UpdateTelegramSessionCommand>
@@ -30,6 +32,14 @@ internal sealed class UpdateTelegramSessionUseCase(
 				throw new ProxyNotFoundException(request.ProxyId.Value);
 		}
 
+		if (request.NotificationBotId.HasValue)
+		{
+			var ownsBot = await botStorage.BelongsToUserAsync(
+				identityProvider.Current.UserId, request.NotificationBotId.Value, ct);
+			if (!ownsBot)
+				throw new TelegramBotNotFoundException(request.NotificationBotId.Value);
+		}
+
 		var proxyChanged = session.ProxyId != request.ProxyId;
 
 		if (!request.IsActive || proxyChanged)
@@ -37,6 +47,12 @@ internal sealed class UpdateTelegramSessionUseCase(
 			await authService.RemoveClientAsync(request.SessionId);
 		}
 
-		await storage.UpdateAsync(request.SessionId, request.Name, request.IsActive, request.ProxyId, ct);
+		await storage.UpdateAsync(
+			request.SessionId,
+			request.Name,
+			request.IsActive,
+			request.ProxyId,
+			request.NotificationBotId,
+			ct);
 	}
 }

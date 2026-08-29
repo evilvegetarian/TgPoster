@@ -12,6 +12,7 @@ export interface ImportTelegramSessionRequest {
     apiHash: string;
     sessionFile: File;
     name?: string | null;
+    notificationBotId?: string | null;
 }
 
 export interface ImportTelegramSessionResponse {
@@ -31,6 +32,9 @@ export const postApiV1TelegramSessionImport = (
     formData.append("SessionFile", request.sessionFile);
     if (request.name) {
         formData.append("Name", request.name);
+    }
+    if (request.notificationBotId) {
+        formData.append("NotificationBotId", request.notificationBotId);
     }
 
     return customInstance<ImportTelegramSessionResponse>({

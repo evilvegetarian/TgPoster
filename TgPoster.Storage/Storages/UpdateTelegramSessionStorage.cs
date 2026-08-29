@@ -15,12 +15,20 @@ internal sealed class UpdateTelegramSessionStorage(PosterContext context) : IUpd
 				Id = s.Id,
 				Name = s.Name,
 				IsActive = s.IsActive,
-				ProxyId = s.ProxyId
+				ProxyId = s.ProxyId,
+				NotificationBotId = s.NotificationBotId
 			})
 			.FirstOrDefaultAsync(ct);
 	}
 
-	public async Task UpdateAsync(Guid sessionId, string? name, bool isActive, Guid? proxyId, CancellationToken ct)
+	public async Task UpdateAsync(
+		Guid sessionId,
+		string? name,
+		bool isActive,
+		Guid? proxyId,
+		Guid? notificationBotId,
+		CancellationToken ct
+	)
 	{
 		var session = await context.TelegramSessions
 			.FirstAsync(s => s.Id == sessionId, ct);
@@ -28,6 +36,7 @@ internal sealed class UpdateTelegramSessionStorage(PosterContext context) : IUpd
 		session.Name = name;
 		session.IsActive = isActive;
 		session.ProxyId = proxyId;
+		session.NotificationBotId = notificationBotId;
 
 		await context.SaveChangesAsync(ct);
 	}

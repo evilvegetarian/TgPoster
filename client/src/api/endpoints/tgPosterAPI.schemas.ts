@@ -16,6 +16,8 @@ export const AddDestinationOutcome = {
   NoMediaPermission: 'NoMediaPermission',
   NotResolved: 'NotResolved',
   RateLimited: 'RateLimited',
+  NotProcessed: 'NotProcessed',
+  Pending: 'Pending',
 } as const;
 
 export interface AddDestinationResultDto {
@@ -41,13 +43,6 @@ export interface AddDestinationsFromDiscoverRequest {
   discoveredChannelIds: string[];
   /** Вступать в канал, если аккаунт ещё не участник. Без вступления репост в канал не работает */
   autoJoin?: boolean;
-}
-
-export interface AddDestinationsFromDiscoverResponse {
-  results: AddDestinationResultDto[];
-  addedCount: number;
-  skippedCount: number;
-  rateLimited: boolean;
 }
 
 /**
@@ -336,6 +331,11 @@ export interface CreateTelegramSessionRequest {
    * @nullable
    */
   proxyId?: string | null;
+  /**
+   * ID бота, который оповещает о проблемах с аккаунтом (опционально)
+   * @nullable
+   */
+  notificationBotId?: string | null;
 }
 
 export interface CreateTelegramSessionResponse {
@@ -788,59 +788,53 @@ export interface RepostDestinationDto {
   maxRepostsPerDay?: number | null;
 }
 
-/**
- * Запись журнала репостов: что и куда репостили и чем это закончилось.
- */
+export interface RepostImportJobResponse {
+  jobId: string;
+  status: RepostImportStatus;
+  totalCount: number;
+  addedCount: number;
+  skippedCount: number;
+  pendingCount: number;
+  /** @nullable */
+  retryAfterSeconds?: number | null;
+  results: AddDestinationResultDto[];
+}
+
+export type RepostImportStatus = typeof RepostImportStatus[keyof typeof RepostImportStatus];
+
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const RepostImportStatus = {
+  Pending: 'Pending',
+  InProgress: 'InProgress',
+  CooldownWait: 'CooldownWait',
+  Completed: 'Completed',
+  Failed: 'Failed',
+} as const;
+
 export interface RepostLogDto {
-  /** Id записи журнала. */
   id: string;
-  /** Дата и время записи. */
   createdAt: string;
-  /** Id настроек репоста. */
   repostSettingsId: string;
-  /** Название расписания, к которому привязаны настройки репоста. */
   scheduleName: string;
-  /** Канал-источник, из которого делался репост. */
   sourceChannelName: string;
-  /** Id репостнутого сообщения. */
   messageId: string;
-  /**
-   * Начало текста сообщения для быстрого опознания поста.
-   * @nullable
-   */
+  /** @nullable */
   messagePreview?: string | null;
-  /** Время публикации сообщения в канале-источнике. */
   messageTimePosting: string;
-  /** Id целевого канала в системе. */
   destinationId: string;
-  /** Id целевого чата в Telegram. */
   destinationChatId: number;
-  /**
-   * Название целевого канала.
-   * @nullable
-   */
+  /** @nullable */
   destinationTitle?: string | null;
-  /**
-   * Username целевого канала (без @).
-   * @nullable
-   */
+  /** @nullable */
   destinationUsername?: string | null;
   status: RepostStatus;
   reason: RepostLogReason;
-  /**
-   * Id пересланного сообщения в целевом канале.
-   * @nullable
-   */
+  /** @nullable */
   telegramMessageId?: number | null;
-  /**
-   * Текст ошибки или пояснение к пропуску.
-   * @nullable
-   */
+  /** @nullable */
   error?: string | null;
-  /**
-   * Дата и время успешного репоста.
-   * @nullable
-   */
+  /** @nullable */
   repostedAt?: string | null;
 }
 
@@ -871,46 +865,20 @@ export const RepostLogReason = {
   ForwardFailed: 'ForwardFailed',
 } as const;
 
-/**
- * Количество записей журнала с одной и той же причиной.
- */
 export interface RepostLogReasonCount {
   reason: RepostLogReason;
-  /** Количество таких записей. */
   count: number;
 }
 
-/**
- * Сводка по журналу репостов: сколько дошло, сколько пропущено и сколько упало.
- */
 export interface RepostLogsSummaryResponse {
-  /** Всего записей журнала под фильтр. */
   total: number;
-  /** Успешных репостов. */
   success: number;
-  /** Репостов, завершившихся ошибкой. */
   failed: number;
-  /** Репостов, пропущенных по настройкам рандомизации и лимитам. */
   skipped: number;
-  /**
-   * Время последнего успешного репоста.
-   * @nullable
-   */
+  /** @nullable */
   lastSuccessAt?: string | null;
-  /** Разбивка неуспешных записей по причинам. */
   reasons: RepostLogReasonCount[];
 }
-
-export type RepostStatus = typeof RepostStatus[keyof typeof RepostStatus];
-
-
-// eslint-disable-next-line @typescript-eslint/no-redeclare
-export const RepostStatus = {
-  Pending: 'Pending',
-  Success: 'Success',
-  Failed: 'Failed',
-  Skipped: 'Skipped',
-} as const;
 
 export interface RepostSettingsItemDto {
   id: string;
@@ -938,6 +906,17 @@ export interface RepostSettingsResponse {
   created: string;
   destinations: RepostDestinationDto[];
 }
+
+export type RepostStatus = typeof RepostStatus[keyof typeof RepostStatus];
+
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const RepostStatus = {
+  Pending: 'Pending',
+  Success: 'Success',
+  Failed: 'Failed',
+  Skipped: 'Skipped',
+} as const;
 
 export interface ScheduleListResponse {
   items: ScheduleResponse[];
@@ -1075,6 +1054,10 @@ export interface TelegramSessionResponse {
   proxyId?: string | null;
   /** @nullable */
   proxyName?: string | null;
+  /** @nullable */
+  notificationBotId?: string | null;
+  /** @nullable */
+  notificationBotName?: string | null;
 }
 
 export type TelegramSessionStatus = typeof TelegramSessionStatus[keyof typeof TelegramSessionStatus];
@@ -1278,6 +1261,11 @@ export interface UpdateTelegramSessionRequest {
    * @nullable
    */
   proxyId?: string | null;
+  /**
+   * ID бота для оповещений о проблемах с аккаунтом (null = без оповещений)
+   * @nullable
+   */
+  notificationBotId?: string | null;
 }
 
 /**
@@ -1457,42 +1445,6 @@ PageNumber?: number;
 PageSize?: number;
 };
 
-export type PostApiV1TelegramSessionImportBody = {
-  /** API ID приложения Telegram */
-  ApiId: string;
-  /** API Hash приложения Telegram */
-  ApiHash: string;
-  /** Файл сессии WTelegram (.session) */
-  SessionFile: Blob;
-  /** Название сессии (опционально) */
-  Name?: string;
-};
-
-export type PostApiV1YoutubeBody = {
-  /** JSON файл с учетными данными */
-  JsonFile?: Blob;
-  /** Идентификатор клиента */
-  ClientId?: string;
-  /** Секретный ключ клиента */
-  ClientSecret?: string;
-};
-
-export type GetApiV1YoutubeCallbackParams = {
-/**
- * Код авторизации от Google
- */
-code?: string;
-/**
- * Идентификатор записи в базе данных
- */
-state?: string;
-/**
- * Сообщение об ошибке (если есть)
- */
-error?: string;
-};
-
-
 export type GetApiV1RepostLogsParams = {
 /**
  * Показать только записи этих настроек репоста
@@ -1550,3 +1502,41 @@ From?: string;
  */
 To?: string;
 };
+
+export type PostApiV1TelegramSessionImportBody = {
+  /** API ID приложения Telegram */
+  ApiId: string;
+  /** API Hash приложения Telegram */
+  ApiHash: string;
+  /** Файл сессии WTelegram (.session) */
+  SessionFile: Blob;
+  /** Название сессии (опционально) */
+  Name?: string;
+  /** ID бота для оповещений о проблемах с аккаунтом (опционально) */
+  NotificationBotId?: string;
+};
+
+export type PostApiV1YoutubeBody = {
+  /** JSON файл с учетными данными */
+  JsonFile?: Blob;
+  /** Идентификатор клиента */
+  ClientId?: string;
+  /** Секретный ключ клиента */
+  ClientSecret?: string;
+};
+
+export type GetApiV1YoutubeCallbackParams = {
+/**
+ * Код авторизации от Google
+ */
+code?: string;
+/**
+ * Идентификатор записи в базе данных
+ */
+state?: string;
+/**
+ * Сообщение об ошибке (если есть)
+ */
+error?: string;
+};
+

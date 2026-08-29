@@ -3,7 +3,15 @@ namespace TgPoster.API.Domain.UseCases.TelegramSessions.UpdateTelegramSession;
 public interface IUpdateTelegramSessionStorage
 {
 	Task<TelegramSessionDto?> GetByIdAsync(Guid userId, Guid sessionId, CancellationToken ct);
-	Task UpdateAsync(Guid sessionId, string? name, bool isActive, Guid? proxyId, CancellationToken ct);
+
+	Task UpdateAsync(
+		Guid sessionId,
+		string? name,
+		bool isActive,
+		Guid? proxyId,
+		Guid? notificationBotId,
+		CancellationToken ct
+	);
 }
 
 public sealed class TelegramSessionDto
@@ -12,4 +20,5 @@ public sealed class TelegramSessionDto
 	public required string? Name { get; init; }
 	public required bool IsActive { get; init; }
 	public required Guid? ProxyId { get; init; }
+	public required Guid? NotificationBotId { get; init; }
 }

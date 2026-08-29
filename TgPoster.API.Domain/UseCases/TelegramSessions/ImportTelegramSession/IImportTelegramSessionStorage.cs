@@ -9,6 +9,7 @@ public interface IImportTelegramSessionStorage
 		string phoneNumber,
 		string? name,
 		string sessionData,
+		Guid? notificationBotId,
 		CancellationToken ct
 	);
 }

@@ -67,7 +67,7 @@ public sealed class UpdateTelegramSessionStorageShould : IClassFixture<StorageTe
 		var newName = "Updated Name";
 		var newIsActive = false;
 
-		await sut.UpdateAsync(session.Id, newName, newIsActive, null, CancellationToken.None);
+		await sut.UpdateAsync(session.Id, newName, newIsActive, null, null, CancellationToken.None);
 		var updated = await context.TelegramSessions
 			.FirstAsync(s => s.Id == session.Id, CancellationToken.None);
 
@@ -83,7 +83,7 @@ public sealed class UpdateTelegramSessionStorageShould : IClassFixture<StorageTe
 			.WithUserId(user.Id)
 			.CreateAsync();
 
-		await sut.UpdateAsync(session.Id, null, true, null, CancellationToken.None);
+		await sut.UpdateAsync(session.Id, null, true, null, null, CancellationToken.None);
 		var updated = await context.TelegramSessions
 			.FirstAsync(s => s.Id == session.Id, CancellationToken.None);
 
@@ -96,7 +96,56 @@ public sealed class UpdateTelegramSessionStorageShould : IClassFixture<StorageTe
 	{
 		await Should.ThrowAsync<InvalidOperationException>(async () =>
 		{
-			await sut.UpdateAsync(Guid.NewGuid(), "Test", true, null, CancellationToken.None);
+			await sut.UpdateAsync(Guid.NewGuid(), "Test", true, null, null, CancellationToken.None);
 		});
+	}
+
+	[Fact]
+	public async Task GetByIdAsync_WithNotificationBot_ShouldReturnBotId()
+	{
+		var user = await new UserBuilder(context).CreateAsync();
+		var bot = await new TelegramBotBuilder(context).WithOwnerId(user.Id).CreateAsync();
+		var session = await new TelegramSessionBuilder(context)
+			.WithUserId(user.Id)
+			.WithNotificationBotId(bot.Id)
+			.CreateAsync();
+
+		var result = await sut.GetByIdAsync(user.Id, session.Id, CancellationToken.None);
+
+		result.ShouldNotBeNull();
+		result.NotificationBotId.ShouldBe(bot.Id);
+	}
+
+	[Fact]
+	public async Task UpdateAsync_WithNotificationBot_ShouldLinkBot()
+	{
+		var user = await new UserBuilder(context).CreateAsync();
+		var bot = await new TelegramBotBuilder(context).WithOwnerId(user.Id).CreateAsync();
+		var session = await new TelegramSessionBuilder(context)
+			.WithUserId(user.Id)
+			.CreateAsync();
+
+		await sut.UpdateAsync(session.Id, "Test", true, null, bot.Id, CancellationToken.None);
+		var updated = await context.TelegramSessions
+			.FirstAsync(s => s.Id == session.Id, CancellationToken.None);
+
+		updated.NotificationBotId.ShouldBe(bot.Id);
+	}
+
+	[Fact]
+	public async Task UpdateAsync_WithoutNotificationBot_ShouldUnlinkBot()
+	{
+		var user = await new UserBuilder(context).CreateAsync();
+		var bot = await new TelegramBotBuilder(context).WithOwnerId(user.Id).CreateAsync();
+		var session = await new TelegramSessionBuilder(context)
+			.WithUserId(user.Id)
+			.WithNotificationBotId(bot.Id)
+			.CreateAsync();
+
+		await sut.UpdateAsync(session.Id, "Test", true, null, null, CancellationToken.None);
+		var updated = await context.TelegramSessions
+			.FirstAsync(s => s.Id == session.Id, CancellationToken.None);
+
+		updated.NotificationBotId.ShouldBeNull();
 	}
 }

@@ -25,7 +25,6 @@ import type {
 
 import type {
   AddDestinationsFromDiscoverRequest,
-  AddDestinationsFromDiscoverResponse,
   AddRepostDestinationRequest,
   AddRepostDestinationResponse,
   CreateRepostSettingsRequest,
@@ -34,6 +33,7 @@ import type {
   GetApiV1RepostLogsSummaryParams,
   ListRepostSettingsResponse,
   ProblemDetails,
+  RepostImportJobResponse,
   RepostLogDtoPagedResponse,
   RepostLogsSummaryResponse,
   RepostSettingsResponse,
@@ -485,7 +485,8 @@ export const usePostApiV1RepostSettingsSettingsIdDestinations = <TError = Proble
       return useMutation(mutationOptions, queryClient);
     }
     /**
- * @summary Массовое добавление целевых каналов из Discover.
+ * @summary Массовое добавление целевых каналов из Discover. Каналы обрабатываются фоново по одному,
+прогресс опрашивается через GetImportJob.
  */
 export const postApiV1RepostSettingsSettingsIdDestinationsFromDiscover = (
     settingsId: string,
@@ -494,7 +495,7 @@ export const postApiV1RepostSettingsSettingsIdDestinationsFromDiscover = (
 ) => {
       
       
-      return customInstance<AddDestinationsFromDiscoverResponse>(
+      return customInstance<RepostImportJobResponse>(
       {url: `/api/v1/repost/settings/${settingsId}/destinations/from-discover`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
       data: addDestinationsFromDiscoverRequest, signal
@@ -534,7 +535,8 @@ const {mutation: mutationOptions} = options ?
     export type PostApiV1RepostSettingsSettingsIdDestinationsFromDiscoverMutationError = ProblemDetails
 
     /**
- * @summary Массовое добавление целевых каналов из Discover.
+ * @summary Массовое добавление целевых каналов из Discover. Каналы обрабатываются фоново по одному,
+прогресс опрашивается через GetImportJob.
  */
 export const usePostApiV1RepostSettingsSettingsIdDestinationsFromDiscover = <TError = ProblemDetails,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postApiV1RepostSettingsSettingsIdDestinationsFromDiscover>>, TError,{settingsId: string;data: AddDestinationsFromDiscoverRequest}, TContext>, }
@@ -550,6 +552,98 @@ export const usePostApiV1RepostSettingsSettingsIdDestinationsFromDiscover = <TEr
       return useMutation(mutationOptions, queryClient);
     }
     /**
+ * @summary Состояние задания на массовое добавление целевых каналов.
+ */
+export const getApiV1RepostImportJobsJobId = (
+    jobId: string,
+ signal?: AbortSignal
+) => {
+      
+      
+      return customInstance<RepostImportJobResponse>(
+      {url: `/api/v1/repost/import-jobs/${jobId}`, method: 'GET', signal
+    },
+      );
+    }
+  
+
+
+
+export const getGetApiV1RepostImportJobsJobIdQueryKey = (jobId?: string,) => {
+    return [
+    `/api/v1/repost/import-jobs/${jobId}`
+    ] as const;
+    }
+
+    
+export const getGetApiV1RepostImportJobsJobIdQueryOptions = <TData = Awaited<ReturnType<typeof getApiV1RepostImportJobsJobId>>, TError = ProblemDetails>(jobId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1RepostImportJobsJobId>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetApiV1RepostImportJobsJobIdQueryKey(jobId);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getApiV1RepostImportJobsJobId>>> = ({ signal }) => getApiV1RepostImportJobsJobId(jobId, signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, enabled: !!(jobId), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getApiV1RepostImportJobsJobId>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetApiV1RepostImportJobsJobIdQueryResult = NonNullable<Awaited<ReturnType<typeof getApiV1RepostImportJobsJobId>>>
+export type GetApiV1RepostImportJobsJobIdQueryError = ProblemDetails
+
+
+export function useGetApiV1RepostImportJobsJobId<TData = Awaited<ReturnType<typeof getApiV1RepostImportJobsJobId>>, TError = ProblemDetails>(
+ jobId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1RepostImportJobsJobId>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getApiV1RepostImportJobsJobId>>,
+          TError,
+          Awaited<ReturnType<typeof getApiV1RepostImportJobsJobId>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetApiV1RepostImportJobsJobId<TData = Awaited<ReturnType<typeof getApiV1RepostImportJobsJobId>>, TError = ProblemDetails>(
+ jobId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1RepostImportJobsJobId>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getApiV1RepostImportJobsJobId>>,
+          TError,
+          Awaited<ReturnType<typeof getApiV1RepostImportJobsJobId>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetApiV1RepostImportJobsJobId<TData = Awaited<ReturnType<typeof getApiV1RepostImportJobsJobId>>, TError = ProblemDetails>(
+ jobId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1RepostImportJobsJobId>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Состояние задания на массовое добавление целевых каналов.
+ */
+
+export function useGetApiV1RepostImportJobsJobId<TData = Awaited<ReturnType<typeof getApiV1RepostImportJobsJobId>>, TError = ProblemDetails>(
+ jobId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1RepostImportJobsJobId>>, TError, TData>>, }
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetApiV1RepostImportJobsJobIdQueryOptions(jobId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+
+/**
  * @summary Удаление целевого канала.
  */
 export const deleteApiV1RepostDestinationsId = (
@@ -736,23 +830,22 @@ export const usePostApiV1RepostDestinationsIdRefresh = <TError = ProblemDetails,
 
       return useMutation(mutationOptions, queryClient);
     }
-    
-/**
+    /**
  * @summary Журнал репостов: куда репостили каждое сообщение и чем это закончилось.
  */
 export const getApiV1RepostLogs = (
     params?: GetApiV1RepostLogsParams,
  signal?: AbortSignal
 ) => {
-
-
+      
+      
       return customInstance<RepostLogDtoPagedResponse>(
       {url: `/api/v1/repost/logs`, method: 'GET',
         params, signal
     },
       );
     }
-
+  
 
 
 
@@ -762,7 +855,7 @@ export const getGetApiV1RepostLogsQueryKey = (params?: GetApiV1RepostLogsParams,
     ] as const;
     }
 
-
+    
 export const getGetApiV1RepostLogsQueryOptions = <TData = Awaited<ReturnType<typeof getApiV1RepostLogs>>, TError = ProblemDetails>(params?: GetApiV1RepostLogsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1RepostLogs>>, TError, TData>>, }
 ) => {
 
@@ -770,13 +863,13 @@ const {query: queryOptions} = options ?? {};
 
   const queryKey =  queryOptions?.queryKey ?? getGetApiV1RepostLogsQueryKey(params);
 
-
+  
 
     const queryFn: QueryFunction<Awaited<ReturnType<typeof getApiV1RepostLogs>>> = ({ signal }) => getApiV1RepostLogs(params, signal);
 
+      
 
-
-
+      
 
    return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getApiV1RepostLogs>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
 }
@@ -815,7 +908,7 @@ export function useGetApiV1RepostLogs<TData = Awaited<ReturnType<typeof getApiV1
 
 export function useGetApiV1RepostLogs<TData = Awaited<ReturnType<typeof getApiV1RepostLogs>>, TError = ProblemDetails>(
  params?: GetApiV1RepostLogsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1RepostLogs>>, TError, TData>>, }
- , queryClient?: QueryClient
+ , queryClient?: QueryClient 
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getGetApiV1RepostLogsQueryOptions(params,options)
@@ -829,6 +922,7 @@ export function useGetApiV1RepostLogs<TData = Awaited<ReturnType<typeof getApiV1
 
 
 
+
 /**
  * @summary Сводка по журналу репостов: сколько дошло, сколько пропущено и по каким причинам.
  */
@@ -836,15 +930,15 @@ export const getApiV1RepostLogsSummary = (
     params?: GetApiV1RepostLogsSummaryParams,
  signal?: AbortSignal
 ) => {
-
-
+      
+      
       return customInstance<RepostLogsSummaryResponse>(
       {url: `/api/v1/repost/logs/summary`, method: 'GET',
         params, signal
     },
       );
     }
-
+  
 
 
 
@@ -854,7 +948,7 @@ export const getGetApiV1RepostLogsSummaryQueryKey = (params?: GetApiV1RepostLogs
     ] as const;
     }
 
-
+    
 export const getGetApiV1RepostLogsSummaryQueryOptions = <TData = Awaited<ReturnType<typeof getApiV1RepostLogsSummary>>, TError = ProblemDetails>(params?: GetApiV1RepostLogsSummaryParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1RepostLogsSummary>>, TError, TData>>, }
 ) => {
 
@@ -862,13 +956,13 @@ const {query: queryOptions} = options ?? {};
 
   const queryKey =  queryOptions?.queryKey ?? getGetApiV1RepostLogsSummaryQueryKey(params);
 
-
+  
 
     const queryFn: QueryFunction<Awaited<ReturnType<typeof getApiV1RepostLogsSummary>>> = ({ signal }) => getApiV1RepostLogsSummary(params, signal);
 
+      
 
-
-
+      
 
    return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getApiV1RepostLogsSummary>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
 }
@@ -907,7 +1001,7 @@ export function useGetApiV1RepostLogsSummary<TData = Awaited<ReturnType<typeof g
 
 export function useGetApiV1RepostLogsSummary<TData = Awaited<ReturnType<typeof getApiV1RepostLogsSummary>>, TError = ProblemDetails>(
  params?: GetApiV1RepostLogsSummaryParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1RepostLogsSummary>>, TError, TData>>, }
- , queryClient?: QueryClient
+ , queryClient?: QueryClient 
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getGetApiV1RepostLogsSummaryQueryOptions(params,options)
@@ -918,3 +1012,7 @@ export function useGetApiV1RepostLogsSummary<TData = Awaited<ReturnType<typeof g
 
   return query;
 }
+
+
+
+

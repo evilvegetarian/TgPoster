@@ -23,6 +23,18 @@ internal class TelegramBotBuilder(PosterContext context)
 		return this;
 	}
 
+	public TelegramBotBuilder WithApiTelegram(string apiTelegram)
+	{
+		telegramBot.ApiTelegram = apiTelegram;
+		return this;
+	}
+
+	public TelegramBotBuilder WithChatId(long chatId)
+	{
+		telegramBot.ChatId = chatId;
+		return this;
+	}
+
 	public TelegramBot Create()
 	{
 		context.TelegramBots.AddRange(telegramBot);

@@ -39,7 +39,7 @@ public class TelegramSessionController(ISender sender) : ControllerBase
 	{
 		var response = await sender.Send(
 			new CreateTelegramSessionCommand(request.ApiId, request.ApiHash, request.PhoneNumber, request.Name,
-				request.ProxyId), ct);
+				request.ProxyId, request.NotificationBotId), ct);
 		return Created(Routes.TelegramSession.Create, response);
 	}
 
@@ -59,7 +59,8 @@ public class TelegramSessionController(ISender sender) : ControllerBase
 	)
 	{
 		var response = await sender.Send(
-			new ImportTelegramSessionCommand(request.ApiId, request.ApiHash, request.SessionFile, request.Name), ct);
+			new ImportTelegramSessionCommand(request.ApiId, request.ApiHash, request.SessionFile, request.Name,
+				request.NotificationBotId), ct);
 		return Created(Routes.TelegramSession.Import, response);
 	}
 
@@ -81,7 +82,9 @@ public class TelegramSessionController(ISender sender) : ControllerBase
 		CancellationToken ct
 	)
 	{
-		await sender.Send(new UpdateTelegramSessionCommand(id, request.Name, request.IsActive, request.ProxyId), ct);
+		await sender.Send(
+			new UpdateTelegramSessionCommand(id, request.Name, request.IsActive, request.ProxyId,
+				request.NotificationBotId), ct);
 		return NoContent();
 	}
 

@@ -16,4 +16,10 @@ internal sealed class ListTelegramBotStorage(PosterContext context) : IListTeleg
 				Name = x.Name
 			}).ToListAsync(ct);
 	}
+
+	public Task<bool> BelongsToUserAsync(Guid userId, Guid botId, CancellationToken ct)
+	{
+		return context.TelegramBots
+			.AnyAsync(x => x.Id == botId && x.OwnerId == userId, ct);
+	}
 }

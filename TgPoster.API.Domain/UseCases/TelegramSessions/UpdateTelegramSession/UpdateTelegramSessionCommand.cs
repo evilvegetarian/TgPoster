@@ -6,5 +6,6 @@ public sealed record UpdateTelegramSessionCommand(
 	Guid SessionId,
 	string? Name,
 	bool IsActive,
-	Guid? ProxyId
+	Guid? ProxyId,
+	Guid? NotificationBotId
 ) : IRequest;
