@@ -22,4 +22,16 @@ public sealed class UpdateScheduleRequest
 	///     Идентификатор Telegram бота (опционально)
 	/// </summary>
 	public Guid? TelegramBotId { get; init; }
+
+	/// <summary>
+	///     Общая подпись, приклеиваемая снизу к каждому посту расписания.
+	///     Поддерживает HTML-разметку Telegram. Пустая строка очищает подпись, null оставляет её без изменений
+	/// </summary>
+	[MaxLength(1024)]
+	public string? SignatureFooter { get; init; }
+
+	/// <summary>
+	///     Признак того, что подпись добавляется к постам (опционально)
+	/// </summary>
+	public bool? SignatureEnabled { get; init; }
 }

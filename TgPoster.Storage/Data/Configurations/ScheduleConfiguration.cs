@@ -35,6 +35,12 @@ internal class ScheduleConfiguration : BaseEntityConfiguration<Schedule>
 		builder.Property(x => x.IsActive)
 			.HasDefaultValue(true);
 
+		builder.Property(x => x.SignatureFooter)
+			.HasMaxLength(1024);
+
+		builder.Property(x => x.SignatureEnabled)
+			.HasDefaultValue(false);
+
 		builder.HasOne(x => x.TelegramBot)
 			.WithMany(x => x.Schedules)
 			.HasForeignKey(x => x.TelegramBotId);

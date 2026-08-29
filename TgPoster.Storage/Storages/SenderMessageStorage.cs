@@ -46,6 +46,7 @@ internal class SenderMessageStorage(PosterContext context) : ISenderMessageStora
 						Id = m.Id,
 						Message = m.TextMessage,
 						TimePosting = m.TimePosting,
+						Signature = x.SignatureEnabled ? x.SignatureFooter : null,
 						File = m.MessageFiles
 							.Where(f => f.ParentFileId == null)
 							.OrderBy(f => f.Order)

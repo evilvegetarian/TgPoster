@@ -78,8 +78,11 @@ public class SenderMessageWorker(
 
 		if (medias.Any())
 		{
-			var captionText = message.Message ?? string.Empty;
-			var isCaptionTooLong = captionText.Length > 1024;
+			// Длинный текст поста и без подписи уходит отдельным сообщением, поэтому лимит выбирается
+			// по самому тексту: подпись не должна превращать такой пост в обрезанный caption
+			var isCaptionTooLong = (message.Message?.Length ?? 0) > TelegramLimits.CaptionLength;
+			var limit = isCaptionTooLong ? TelegramLimits.MessageLength : TelegramLimits.CaptionLength;
+			var captionText = PostSignatureComposer.Compose(message.Message, message.Signature, limit);
 
 			if (!string.IsNullOrWhiteSpace(captionText) && !isCaptionTooLong)
 			{
@@ -100,7 +103,8 @@ public class SenderMessageWorker(
 
 			if (!string.IsNullOrWhiteSpace(captionText) && isCaptionTooLong)
 			{
-				var captionResult = await telegramExecuteServices.SendTextAsync(bot, chatId, captionText, ct);
+				var captionResult =
+					await telegramExecuteServices.SendTextAsync(bot, chatId, captionText, ct, ParseMode.Html);
 				if (!captionResult.IsSuccess)
 					logger.LogWarning("Не удалось отправить подпись к медиа-группе для сообщения {MessageId}",
 						messageId);
@@ -108,7 +112,9 @@ public class SenderMessageWorker(
 		}
 		else
 		{
-			var result = await telegramExecuteServices.SendTextAsync(bot, chatId, message.Message!, ct);
+			var text = PostSignatureComposer.Compose(message.Message, message.Signature,
+				TelegramLimits.MessageLength);
+			var result = await telegramExecuteServices.SendTextAsync(bot, chatId, text, ct, ParseMode.Html);
 			if (!result.IsSuccess)
 			{
 				await storage.UpdateErrorStatusMessageAsync(messageId, ct);

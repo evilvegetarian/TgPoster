@@ -19,6 +19,7 @@ import {
 import {useGetApiV1Day, usePatchApiV1DayTime} from "@/api/endpoints/day/day.ts"
 import type {DayOfWeek, ScheduleResponse} from "@/api/endpoints/tgPosterAPI.schemas.ts"
 import {Switch} from "@/components/ui/switch.tsx"
+import {Textarea} from "@/components/ui/textarea.tsx"
 import {Popover, PopoverContent, PopoverTrigger} from "@/components/ui/popover.tsx"
 import {Tabs, TabsContent, TabsList, TabsTrigger} from "@/components/ui/tabs.tsx"
 import {
@@ -139,6 +140,7 @@ export function SchedulePage() {
     const [popoverOpenForDay, setPopoverOpenForDay] = useState<DayOfWeek | null>(null)
     const [copyFromDay, setCopyFromDay] = useState<DayOfWeek | null>(null)
     const [copyTargetDays, setCopyTargetDays] = useState<DayOfWeek[]>([])
+    const [signatureDraft, setSignatureDraft] = useState("")
 
     const {
         data: scheduleDaysData,
@@ -169,6 +171,10 @@ export function SchedulePage() {
             resetTimeInputs()
         }
     }, [isEditDialogOpen])
+
+    useEffect(() => {
+        setSignatureDraft(editingSchedule?.signatureFooter ?? "")
+    }, [editingSchedule?.id])
 
 
     const resetTimeInputs = () => {
@@ -394,6 +400,38 @@ export function SchedulePage() {
                         telegramBotId: botId,
                         botName: bot?.name || prev.botName,
                     } : null);
+                },
+            }
+        );
+    }
+
+    function updateSignatureEnabled(id: string, enabled: boolean) {
+        updateScheduleMutate(
+            {
+                id: id,
+                data: {signatureEnabled: enabled},
+            },
+            {
+                onSuccess: () => {
+                    refetchSchedules();
+                    setEditingSchedule(prev => prev ? {...prev, signatureEnabled: enabled} : null);
+                },
+            }
+        );
+    }
+
+    function saveSignature(id: string) {
+        const footer = signatureDraft.trim();
+        updateScheduleMutate(
+            {
+                id: id,
+                data: {signatureFooter: footer},
+            },
+            {
+                onSuccess: () => {
+                    toast.success("Подпись сохранена");
+                    refetchSchedules();
+                    setEditingSchedule(prev => prev ? {...prev, signatureFooter: footer || null} : null);
                 },
             }
         );
@@ -645,6 +683,58 @@ export function SchedulePage() {
                                     </Select>
                                 </div>
                             </div>
+
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle className="flex items-center gap-2">
+                                        <FileText className="h-5 w-5"/>
+                                        Подпись постов
+                                    </CardTitle>
+                                    <CardDescription>
+                                        Добавляется снизу к каждому посту этого расписания в момент отправки
+                                    </CardDescription>
+                                </CardHeader>
+                                <CardContent className="space-y-4">
+                                    <div className="flex items-center justify-between rounded-lg border p-4">
+                                        <Label htmlFor="edit-schedule-signature-enabled" className="text-sm">
+                                            Добавлять подпись к постам
+                                        </Label>
+                                        <Switch
+                                            id="edit-schedule-signature-enabled"
+                                            checked={editingSchedule.signatureEnabled}
+                                            onCheckedChange={(checked) => updateSignatureEnabled(editingSchedule.id, checked)}
+                                            disabled={updateSchedulePending}
+                                        />
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <Label htmlFor="edit-schedule-signature">Текст подписи</Label>
+                                        <Textarea
+                                            id="edit-schedule-signature"
+                                            value={signatureDraft}
+                                            onChange={(e) => setSignatureDraft(e.target.value)}
+                                            placeholder={'<a href="https://t.me/mychannel">Подписаться на канал</a>'}
+                                            maxLength={1024}
+                                            rows={4}
+                                        />
+                                        <p className="text-xs text-muted-foreground">
+                                            Допустима HTML-разметка Telegram: b, i, u, s, a, code, pre, span,
+                                            tg-spoiler, blockquote. Все теги должны быть закрыты. Если текст поста
+                                            вместе с подписью не помещается в лимит Telegram, обрезается текст поста.
+                                        </p>
+                                    </div>
+
+                                    <div className="flex justify-end">
+                                        <Button
+                                            onClick={() => saveSignature(editingSchedule.id)}
+                                            disabled={updateSchedulePending || signatureDraft.trim() === (editingSchedule.signatureFooter ?? "")}
+                                        >
+                                            <Save className="h-4 w-4 mr-2"/>
+                                            Сохранить подпись
+                                        </Button>
+                                    </div>
+                                </CardContent>
+                            </Card>
 
                             <Card>
                                 <CardHeader>

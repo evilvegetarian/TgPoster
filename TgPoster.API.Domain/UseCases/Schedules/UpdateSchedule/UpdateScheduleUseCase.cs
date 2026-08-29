@@ -2,9 +2,11 @@ using MediatR;
 using Security.Cryptography;
 using Security.IdentityServices;
 using Shared.Telegram;
+using Shared.Utilities;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using TgPoster.API.Domain.ConfigModels;
+using TgPoster.Exceptions.BadRequest;
 using TgPoster.Exceptions.NotFound;
 
 namespace TgPoster.API.Domain.UseCases.Schedules.UpdateSchedule;
@@ -20,6 +22,11 @@ internal sealed class UpdateScheduleUseCase(
 	public async Task Handle(UpdateScheduleCommand request, CancellationToken ct)
 	{
 		var userId = provider.Current.UserId;
+
+		if (!PostSignatureComposer.IsValidTelegramHtml(request.SignatureFooter))
+		{
+			throw new InvalidSignatureMarkupException();
+		}
 
 		if (request.TelegramBotId is not null)
 		{
@@ -39,6 +46,6 @@ internal sealed class UpdateScheduleUseCase(
 		}
 
 		await storage.UpdateScheduleAsync(request.Id, userId, request.Name, request.YouTubeAccountId,
-			request.TelegramBotId, ct);
+			request.TelegramBotId, request.SignatureFooter, request.SignatureEnabled, ct);
 	}
 }

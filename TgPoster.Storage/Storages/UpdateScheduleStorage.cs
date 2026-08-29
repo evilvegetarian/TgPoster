@@ -12,6 +12,8 @@ internal sealed class UpdateScheduleStorage(PosterContext context) : IUpdateSche
 		string? name,
 		Guid? youTubeAccountId,
 		Guid? telegramBotId,
+		string? signatureFooter,
+		bool? signatureEnabled,
 		CancellationToken ct
 	)
 	{
@@ -28,6 +30,14 @@ internal sealed class UpdateScheduleStorage(PosterContext context) : IUpdateSche
 
 		if (telegramBotId is not null)
 			schedule.TelegramBotId = telegramBotId.Value;
+
+		// Фронт отправляет частичные PUT-запросы, поэтому подпись меняется только когда её реально прислали:
+		// пустая строка очищает подпись, отсутствие поля оставляет её как есть
+		if (signatureFooter is not null)
+			schedule.SignatureFooter = signatureFooter.Length == 0 ? null : signatureFooter;
+
+		if (signatureEnabled is not null)
+			schedule.SignatureEnabled = signatureEnabled.Value;
 
 		schedule.YouTubeAccountId = youTubeAccountId;
 		await context.SaveChangesAsync(ct);

@@ -61,6 +61,16 @@ public sealed record ScheduleResponse
 	///     Дата последнего запланированного поста
 	/// </summary>
 	public DateTimeOffset? LastPostDate { get; init; }
+
+	/// <summary>
+	///     Общая подпись, приклеиваемая снизу к каждому посту расписания
+	/// </summary>
+	public string? SignatureFooter { get; init; }
+
+	/// <summary>
+	///     Признак того, что подпись добавляется к постам
+	/// </summary>
+	public required bool SignatureEnabled { get; init; }
 }
 
 public sealed record ScheduleListResponse

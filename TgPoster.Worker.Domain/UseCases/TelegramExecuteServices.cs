@@ -2,6 +2,7 @@ using Microsoft.Extensions.Logging;
 using Telegram.Bot;
 using Telegram.Bot.Exceptions;
 using Telegram.Bot.Types;
+using Telegram.Bot.Types.Enums;
 
 namespace TgPoster.Worker.Domain.UseCases;
 
@@ -93,13 +94,14 @@ public class TelegramExecuteServices(ILogger<TelegramExecuteServices> logger)
 		ITelegramBotClient bot,
 		long chatId,
 		string text,
-		CancellationToken ct
+		CancellationToken ct,
+		ParseMode parseMode = ParseMode.None
 	)
 	{
 		try
 		{
 			var msg = await ExecuteWithRetryAsync(
-				() => bot.SendMessage(chatId, text, cancellationToken: ct), ct: ct);
+				() => bot.SendMessage(chatId, text, parseMode, cancellationToken: ct), ct: ct);
 			return TelegramSendResult.Success(msg.MessageId);
 		}
 		catch (RequestException ex) when (ex.InnerException is TaskCanceledException)

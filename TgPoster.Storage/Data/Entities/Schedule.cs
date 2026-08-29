@@ -33,6 +33,18 @@ public sealed class Schedule : BaseEntity
 	public required bool IsActive { get; set; }
 
 	/// <summary>
+	///     Общая подпись, приклеиваемая снизу к каждому посту расписания.
+	///     Поддерживает HTML-разметку Telegram
+	/// </summary>
+	public string? SignatureFooter { get; set; }
+
+	/// <summary>
+	///     Признак того, что подпись добавляется к постам.
+	///     Позволяет выключить подпись, не стирая её текст
+	/// </summary>
+	public bool SignatureEnabled { get; set; }
+
+	/// <summary>
 	///     Канал на который будет отправляться сообщения
 	/// </summary>
 	public Guid? YouTubeAccountId { get; set; }

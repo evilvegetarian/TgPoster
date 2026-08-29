@@ -24,7 +24,9 @@ internal sealed class ListScheduleStorage(PosterContext context) : IListSchedule
 				PostCount = x.Messages.Count,
 				PendingPostCount =
 					x.Messages.Count(m => m.Status == MessageStatus.Register && m.TimePosting > DateTime.Now),
-				LastPostDate = x.Messages.Max(m => (DateTimeOffset?)m.TimePosting)
+				LastPostDate = x.Messages.Max(m => (DateTimeOffset?)m.TimePosting),
+				SignatureFooter = x.SignatureFooter,
+				SignatureEnabled = x.SignatureEnabled
 			}).ToListAsync(ct);
 	}
 }

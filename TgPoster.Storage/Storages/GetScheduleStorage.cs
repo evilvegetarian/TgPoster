@@ -22,7 +22,9 @@ internal sealed class GetScheduleStorage(PosterContext context) : IGetScheduleSt
 				TelegramBotId = x.TelegramBotId,
 				PostCount = x.Messages.Count,
 				PendingPostCount =
-					x.Messages.Count(m => m.Status == MessageStatus.Register && m.TimePosting > DateTime.Now)
+					x.Messages.Count(m => m.Status == MessageStatus.Register && m.TimePosting > DateTime.Now),
+				SignatureFooter = x.SignatureFooter,
+				SignatureEnabled = x.SignatureEnabled
 			})
 			.FirstOrDefaultAsync(ct);
 	}
