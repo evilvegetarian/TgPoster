@@ -4,7 +4,9 @@ using Security.IdentityServices;
 using Shared.Enums;
 using Shared.Telegram;
 using Shouldly;
+using TgPoster.API.Domain.UseCases.Discover.ListDiscover;
 using TgPoster.API.Domain.UseCases.Repost.AddDestinationsFromDiscover;
+using SortDirection = TgPoster.API.Domain.UseCases.Discover.ListDiscover.SortDirection;
 using TgPoster.API.Domain.UseCases.Repost.GetRepostImportJob;
 using TgPoster.Exceptions.BadRequest;
 using TgPoster.Exceptions.NotFound;
@@ -14,6 +16,16 @@ namespace TgPoster.API.Domain.Tests.Repost;
 public class AddDestinationsFromDiscoverUseCaseShould
 {
 	private const long SourceChannelId = 777;
+
+	private static readonly DiscoverImportFilter Filter = new(
+		"Технологии",
+		null,
+		"channel",
+		1000,
+		null,
+		DiscoverSortBy.Participants,
+		SortDirection.Desc);
+
 	private readonly Mock<IBus> bus;
 	private readonly Guid jobId = Guid.NewGuid();
 	private readonly Guid sessionId = Guid.NewGuid();
@@ -240,6 +252,91 @@ public class AddDestinationsFromDiscoverUseCaseShould
 
 		response.TotalCount.ShouldBe(1);
 	}
+
+	[Fact]
+	public async Task ThrowInvalidRepostSettings_WhenSettingsAlreadyHaveRunningJob()
+	{
+		storage.Setup(s => s.GetActiveJobIdAsync(settingsId, It.IsAny<CancellationToken>()))
+			.ReturnsAsync(Guid.NewGuid());
+		var candidate = SetupCandidate(username: "targetchan");
+
+		await Should.ThrowAsync<InvalidRepostSettingsException>(async () =>
+			await Handle(candidate));
+
+		VerifyNothingPublished();
+	}
+
+	[Fact]
+	public async Task QueueChannelsMatchingFilter()
+	{
+		var first = new DiscoverCandidate(Guid.NewGuid(), null, "firstchan", "Первый", null, null, null);
+		var second = new DiscoverCandidate(Guid.NewGuid(), null, "secondchan", "Второй", null, null, null);
+		SetupFilterCandidates(first, second);
+
+		var response = await HandleFilter();
+
+		response.TotalCount.ShouldBe(2);
+		response.PendingCount.ShouldBe(2);
+		response.Status.ShouldBe(RepostImportStatus.Pending);
+		response.Results.Select(x => x.DiscoveredChannelId).ShouldBe([first.Id, second.Id]);
+
+		bus.Verify(b => b.Publish(
+			It.Is<ImportRepostDestinationsContract>(c => c.JobId == jobId),
+			It.IsAny<CancellationToken>()), Times.Once);
+	}
+
+	[Fact]
+	public async Task ExcludeSourceChannelAndExistingDestinations_WhenSelectingByFilter()
+	{
+		storage.Setup(s => s.GetExistingChatIdsAsync(settingsId, It.IsAny<CancellationToken>()))
+			.ReturnsAsync([555]);
+		SetupFilterCandidates(new DiscoverCandidate(Guid.NewGuid(), null, "chan", "Канал", null, null, null));
+
+		await HandleFilter();
+
+		storage.Verify(s => s.GetCandidatesByFilterAsync(
+			It.IsAny<DiscoverImportFilter>(),
+			It.Is<IReadOnlyCollection<long>>(x => x.Contains(555L) && x.Contains(SourceChannelId)),
+			200,
+			It.IsAny<CancellationToken>()), Times.Once);
+	}
+
+	[Fact]
+	public async Task ThrowInvalidRepostSettings_WhenFilterMatchesNothing()
+	{
+		SetupFilterCandidates();
+
+		await Should.ThrowAsync<InvalidRepostSettingsException>(async () => await HandleFilter());
+
+		VerifyNothingPublished();
+	}
+
+	[Fact]
+	public async Task SkipRestrictedChannel_WhenSelectingByFilter()
+	{
+		var restricted = new DiscoverCandidate(Guid.NewGuid(), null, "badchan", "Плохой", null, false, null);
+		SetupFilterCandidates(restricted);
+
+		var response = await HandleFilter();
+
+		response.PendingCount.ShouldBe(0);
+		response.SkippedCount.ShouldBe(1);
+		response.Results.Single().Outcome.ShouldBe(AddDestinationOutcome.NoWritePermission);
+		VerifyNothingPublished();
+	}
+
+	private Task<RepostImportJobResponse> HandleFilter() =>
+		sut.Handle(
+			new AddDestinationsFromDiscoverCommand(settingsId, [], true, Filter),
+			CancellationToken.None);
+
+	private void SetupFilterCandidates(params DiscoverCandidate[] candidates) =>
+		storage.Setup(s => s.GetCandidatesByFilterAsync(
+				It.IsAny<DiscoverImportFilter>(),
+				It.IsAny<IReadOnlyCollection<long>>(),
+				It.IsAny<int>(),
+				It.IsAny<CancellationToken>()))
+			.ReturnsAsync(candidates.ToList());
 
 	private Task<RepostImportJobResponse> Handle(DiscoverCandidate candidate) =>
 		sut.Handle(

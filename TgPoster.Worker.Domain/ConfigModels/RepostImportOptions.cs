@@ -20,4 +20,11 @@ public sealed class RepostImportOptions
 	///     Актуально для PEER_FLOOD, где точного времени в ответе нет.
 	/// </summary>
 	public int DefaultCooldownSeconds { get; init; } = 3600;
+
+	/// <summary>
+	///     Сколько каналов обрабатывать за один проход. Остаток уезжает новым сообщением:
+	///     иначе большое задание висит в одном Consume часами и его успевает
+	///     перезапустить ResumeRepostImportJobsWorker.
+	/// </summary>
+	public int MaxItemsPerRun { get; init; } = 20;
 }

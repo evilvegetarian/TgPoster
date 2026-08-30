@@ -29,7 +29,7 @@ public sealed class RepostImportJob : BaseEntity
 	public RepostImportStatus Status { get; set; }
 
 	/// <summary>
-	///     Момент начала обработки.
+	///     Момент начала последнего прохода обработки.
 	/// </summary>
 	public DateTimeOffset? StartedAt { get; set; }
 

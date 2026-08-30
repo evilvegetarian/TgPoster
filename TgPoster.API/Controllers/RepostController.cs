@@ -195,6 +195,30 @@ public sealed class RepostController(ISender sender) : ControllerBase
 	}
 
 	/// <summary>
+	///     Массовое добавление в репост всех каналов Discover, подходящих под фильтр. Каналы обрабатываются
+	///     фоново по одному, прогресс опрашивается через GetImportJob.
+	/// </summary>
+	/// <param name="settingsId">ID настроек репоста</param>
+	/// <param name="request">Фильтр Discover, по которому отбираются каналы</param>
+	/// <param name="ct">Токен отмены операции</param>
+	/// <returns>Созданное задание: каналы в очереди и уже отбракованные по данным БД</returns>
+	[HttpPost(Routes.Repost.AddDestinationsFromDiscoverFilter)]
+	[ProducesResponseType(StatusCodes.Status202Accepted, Type = typeof(RepostImportJobResponse))]
+	[ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
+	[ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
+	[ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
+	public async Task<IActionResult> AddDestinationsFromDiscoverByFilter(
+		[FromRoute] [Required] Guid settingsId,
+		[FromBody] [Required] AddDestinationsFromDiscoverFilterRequest request,
+		CancellationToken ct
+	)
+	{
+		var result = await sender.Send(request.ToDomain(settingsId), ct);
+
+		return Accepted(result);
+	}
+
+	/// <summary>
 	///     Состояние задания на массовое добавление целевых каналов.
 	/// </summary>
 	/// <param name="jobId">ID задания</param>

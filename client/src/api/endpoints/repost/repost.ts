@@ -24,6 +24,7 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  AddDestinationsFromDiscoverFilterRequest,
   AddDestinationsFromDiscoverRequest,
   AddRepostDestinationRequest,
   AddRepostDestinationResponse,
@@ -548,6 +549,73 @@ export const usePostApiV1RepostSettingsSettingsIdDestinationsFromDiscover = <TEr
       > => {
 
       const mutationOptions = getPostApiV1RepostSettingsSettingsIdDestinationsFromDiscoverMutationOptions(options);
+
+      return useMutation(mutationOptions, queryClient);
+    }
+    /**
+ * @summary Массовое добавление в репост всех каналов Discover, подходящих под фильтр. Каналы обрабатываются
+фоново по одному, прогресс опрашивается через GetImportJob.
+ */
+export const postApiV1RepostSettingsSettingsIdDestinationsFromDiscoverFilter = (
+    settingsId: string,
+    addDestinationsFromDiscoverFilterRequest: AddDestinationsFromDiscoverFilterRequest,
+ signal?: AbortSignal
+) => {
+      
+      
+      return customInstance<RepostImportJobResponse>(
+      {url: `/api/v1/repost/settings/${settingsId}/destinations/from-discover-filter`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: addDestinationsFromDiscoverFilterRequest, signal
+    },
+      );
+    }
+  
+
+
+export const getPostApiV1RepostSettingsSettingsIdDestinationsFromDiscoverFilterMutationOptions = <TError = ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postApiV1RepostSettingsSettingsIdDestinationsFromDiscoverFilter>>, TError,{settingsId: string;data: AddDestinationsFromDiscoverFilterRequest}, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof postApiV1RepostSettingsSettingsIdDestinationsFromDiscoverFilter>>, TError,{settingsId: string;data: AddDestinationsFromDiscoverFilterRequest}, TContext> => {
+
+const mutationKey = ['postApiV1RepostSettingsSettingsIdDestinationsFromDiscoverFilter'];
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof postApiV1RepostSettingsSettingsIdDestinationsFromDiscoverFilter>>, {settingsId: string;data: AddDestinationsFromDiscoverFilterRequest}> = (props) => {
+          const {settingsId,data} = props ?? {};
+
+          return  postApiV1RepostSettingsSettingsIdDestinationsFromDiscoverFilter(settingsId,data,)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type PostApiV1RepostSettingsSettingsIdDestinationsFromDiscoverFilterMutationResult = NonNullable<Awaited<ReturnType<typeof postApiV1RepostSettingsSettingsIdDestinationsFromDiscoverFilter>>>
+    export type PostApiV1RepostSettingsSettingsIdDestinationsFromDiscoverFilterMutationBody = AddDestinationsFromDiscoverFilterRequest
+    export type PostApiV1RepostSettingsSettingsIdDestinationsFromDiscoverFilterMutationError = ProblemDetails
+
+    /**
+ * @summary Массовое добавление в репост всех каналов Discover, подходящих под фильтр. Каналы обрабатываются
+фоново по одному, прогресс опрашивается через GetImportJob.
+ */
+export const usePostApiV1RepostSettingsSettingsIdDestinationsFromDiscoverFilter = <TError = ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postApiV1RepostSettingsSettingsIdDestinationsFromDiscoverFilter>>, TError,{settingsId: string;data: AddDestinationsFromDiscoverFilterRequest}, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof postApiV1RepostSettingsSettingsIdDestinationsFromDiscoverFilter>>,
+        TError,
+        {settingsId: string;data: AddDestinationsFromDiscoverFilterRequest},
+        TContext
+      > => {
+
+      const mutationOptions = getPostApiV1RepostSettingsSettingsIdDestinationsFromDiscoverFilterMutationOptions(options);
 
       return useMutation(mutationOptions, queryClient);
     }

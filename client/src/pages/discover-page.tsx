@@ -1,15 +1,22 @@
 import {useState} from "react"
-import {ExternalLink, Loader2, Search, Send, Users} from "lucide-react"
+import {ExternalLink, ListPlus, Loader2, Search, Send, Users} from "lucide-react"
 import {useGetApiV1Discover, useGetApiV1DiscoverCategories} from "@/api/endpoints/discover/discover"
 import {Badge} from "@/components/ui/badge"
 import {Button} from "@/components/ui/button"
 import {Card, CardContent} from "@/components/ui/card"
 import {Checkbox} from "@/components/ui/checkbox"
 import {Input} from "@/components/ui/input"
+import {Progress} from "@/components/ui/progress"
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select"
 import {Skeleton} from "@/components/ui/skeleton"
+import {useRepostImportJob} from "@/hooks/use-repost-import-job"
 import {AddFromDiscoverDialog} from "@/pages/repostpage/add-from-discover-dialog"
-import type {DiscoverChannelResponse, DiscoverSortBy, SortDirection} from "@/api/endpoints/tgPosterAPI.schemas"
+import type {
+    DiscoverChannelResponse,
+    DiscoverSortBy,
+    RepostImportJobResponse,
+    SortDirection,
+} from "@/api/endpoints/tgPosterAPI.schemas"
 
 const PAGE_SIZE = 20
 
@@ -141,6 +148,43 @@ function ChannelCard({channel, selected, onSelectedChange}: ChannelCardProps) {
     )
 }
 
+interface ImportJobBannerProps {
+    job: RepostImportJobResponse
+    onOpen: () => void
+}
+
+function ImportJobBanner({job, onOpen}: ImportJobBannerProps) {
+    const processed = job.totalCount - job.pendingCount
+    const percent = job.totalCount > 0 ? Math.round((processed / job.totalCount) * 100) : 100
+    const isRunning = job.status !== "Completed" && job.status !== "Failed"
+
+    return (
+        <Card className="mb-6">
+            <CardContent className="pt-6 space-y-3">
+                <div className="flex items-center justify-between gap-4">
+                    <div className="flex items-center gap-2 min-w-0">
+                        {isRunning && <Loader2 className="h-4 w-4 animate-spin flex-shrink-0"/>}
+                        <p className="text-sm font-medium truncate">
+                            {isRunning
+                                ? `Добавление каналов в репост: ${processed} из ${job.totalCount}`
+                                : `Добавление завершено: ${job.addedCount} из ${job.totalCount}`}
+                        </p>
+                    </div>
+                    <Button variant="outline" size="sm" onClick={onOpen}>
+                        Подробнее
+                    </Button>
+                </div>
+                <Progress value={percent}/>
+                {job.status === "CooldownWait" && (
+                    <p className="text-sm text-amber-600">
+                        Telegram ограничил сессию, обработка продолжится позже
+                    </p>
+                )}
+            </CardContent>
+        </Card>
+    )
+}
+
 function ChannelCardSkeleton() {
     return (
         <Card>
@@ -174,17 +218,22 @@ export function DiscoverPage() {
     const [page, setPage] = useState(1)
     const [selectedIds, setSelectedIds] = useState<string[]>([])
     const [isAddToRepostOpen, setIsAddToRepostOpen] = useState(false)
+    const [addMode, setAddMode] = useState<"selected" | "filter">("selected")
 
     const apiCategory = category === "all" ? undefined : category
     const apiPeerType = peerType === "all" ? undefined : peerType
     const apiSearch = search.trim() || undefined
+    const apiMinParticipants = parseCount(minParticipants)
+    const apiMaxParticipants = parseCount(maxParticipants)
+
+    const {job, startJob, clearJob} = useRepostImportJob()
 
     const {data, isLoading} = useGetApiV1Discover({
         Category: apiCategory,
         Search: apiSearch,
         PeerType: apiPeerType,
-        MinParticipants: parseCount(minParticipants),
-        MaxParticipants: parseCount(maxParticipants),
+        MinParticipants: apiMinParticipants,
+        MaxParticipants: apiMaxParticipants,
         SortBy: sortBy,
         SortDirection: sortDirection,
         PageNumber: page,
@@ -249,9 +298,14 @@ export function DiscoverPage() {
             : prev.filter((id) => !pageChannelIds.includes(id)))
     }
 
+    const openAddDialog = (mode: "selected" | "filter") => {
+        setAddMode(mode)
+        setIsAddToRepostOpen(true)
+    }
+
     return (
         <div className="container mx-auto p-6 max-w-5xl">
-            <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center justify-between gap-4 mb-6">
                 <div>
                     <h1 className="text-2xl font-bold">Discover каналы</h1>
                     {totalCount > 0 && (
@@ -260,7 +314,20 @@ export function DiscoverPage() {
                         </p>
                     )}
                 </div>
+                <Button
+                    variant="outline"
+                    className="gap-1.5 flex-shrink-0"
+                    disabled={totalCount === 0}
+                    onClick={() => openAddDialog("filter")}
+                >
+                    <ListPlus className="h-4 w-4"/>
+                    Добавить все по фильтру
+                </Button>
             </div>
+
+            {job != null && (
+                <ImportJobBanner job={job} onOpen={() => setIsAddToRepostOpen(true)}/>
+            )}
 
             <Card className="mb-6">
                 <CardContent className="pt-6 space-y-4">
@@ -372,7 +439,7 @@ export function DiscoverPage() {
                                 <Button variant="ghost" size="sm" onClick={() => setSelectedIds([])}>
                                     Сбросить
                                 </Button>
-                                <Button size="sm" className="gap-1.5" onClick={() => setIsAddToRepostOpen(true)}>
+                                <Button size="sm" className="gap-1.5" onClick={() => openAddDialog("selected")}>
                                     <Send className="h-3.5 w-3.5"/>
                                     Добавить в репост
                                 </Button>
@@ -417,10 +484,26 @@ export function DiscoverPage() {
             )}
 
             <AddFromDiscoverDialog
-                selectedChannelIds={selectedIds}
                 open={isAddToRepostOpen}
                 onOpenChange={setIsAddToRepostOpen}
-                onAdded={() => setSelectedIds([])}
+                mode={addMode}
+                selectedChannelIds={selectedIds}
+                filter={{
+                    category: apiCategory,
+                    search: apiSearch,
+                    peerType: apiPeerType,
+                    minParticipants: apiMinParticipants,
+                    maxParticipants: apiMaxParticipants,
+                    sortBy,
+                    sortDirection,
+                }}
+                matchedCount={totalCount}
+                job={job}
+                onJobStarted={(jobId) => {
+                    startJob(jobId)
+                    setSelectedIds([])
+                }}
+                onJobCleared={clearJob}
             />
         </div>
     )

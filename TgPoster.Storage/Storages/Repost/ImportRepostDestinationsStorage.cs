@@ -96,7 +96,8 @@ internal sealed class ImportRepostDestinationsStorage(PosterContext context, Gui
 
 		if (status == RepostImportStatus.InProgress)
 		{
-			job.StartedAt ??= DateTimeOffset.UtcNow;
+			// Отметку обновляем каждым проходом: по ней определяется, что задание зависло
+			job.StartedAt = DateTimeOffset.UtcNow;
 		}
 
 		if (status is RepostImportStatus.Completed or RepostImportStatus.Failed)

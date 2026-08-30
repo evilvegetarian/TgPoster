@@ -32,6 +32,45 @@ export interface AddDestinationResultDto {
 }
 
 /**
+ * Массовое добавление в репост всех каналов Discover, подходящих под фильтр
+ */
+export interface AddDestinationsFromDiscoverFilterRequest {
+  /**
+   * Фильтр по тематике (Category)
+   * @nullable
+   */
+  category?: string | null;
+  /**
+   * Поиск по названию или username
+   * @nullable
+   */
+  search?: string | null;
+  /**
+   * Тип: "channel" (канал) или "chat" (чат). null — без фильтра
+   * @nullable
+   */
+  peerType?: string | null;
+  /**
+   * Минимальное число подписчиков (включительно)
+   * @minimum 0
+   * @maximum 2147483647
+   * @nullable
+   */
+  minParticipants?: number | null;
+  /**
+   * Максимальное число подписчиков (включительно)
+   * @minimum 0
+   * @maximum 2147483647
+   * @nullable
+   */
+  maxParticipants?: number | null;
+  sortBy?: DiscoverSortBy;
+  sortDirection?: SortDirection;
+  /** Вступать в канал, если аккаунт ещё не участник. Без вступления репост в канал не работает */
+  autoJoin?: boolean;
+}
+
+/**
  * Массовое добавление целевых каналов репоста из Discover
  */
 export interface AddDestinationsFromDiscoverRequest {
@@ -939,6 +978,9 @@ export interface ScheduleResponse {
   pendingPostCount: number;
   /** @nullable */
   lastPostDate?: string | null;
+  /** @nullable */
+  signatureFooter?: string | null;
+  signatureEnabled: boolean;
 }
 
 export interface ScrapeChannelsCommand {
@@ -1230,6 +1272,18 @@ export interface UpdateScheduleRequest {
    * @nullable
    */
   telegramBotId?: string | null;
+  /**
+   * Общая подпись, приклеиваемая снизу к каждому посту расписания.
+Поддерживает HTML-разметку Telegram. Пустая строка очищает подпись, null оставляет её без изменений
+   * @maxLength 1024
+   * @nullable
+   */
+  signatureFooter?: string | null;
+  /**
+   * Признак того, что подпись добавляется к постам (опционально)
+   * @nullable
+   */
+  signatureEnabled?: boolean | null;
 }
 
 /**

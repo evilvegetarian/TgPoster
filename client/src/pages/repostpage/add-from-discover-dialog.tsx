@@ -1,6 +1,7 @@
 import {useState} from "react";
-import {AlertTriangle, CheckCircle2, Loader2, XCircle} from "lucide-react";
+import {AlertTriangle, CheckCircle2, Clock, Loader2, XCircle} from "lucide-react";
 import {toast} from "sonner";
+import {Badge} from "@/components/ui/badge";
 import {Button} from "@/components/ui/button";
 import {
     Dialog,
@@ -11,19 +12,27 @@ import {
     DialogTitle,
 } from "@/components/ui/dialog";
 import {Label} from "@/components/ui/label";
+import {Progress} from "@/components/ui/progress";
 import {ScrollArea} from "@/components/ui/scroll-area";
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select";
 import {Switch} from "@/components/ui/switch";
 import {
     useGetApiV1RepostSettings,
     usePostApiV1RepostSettingsSettingsIdDestinationsFromDiscover,
+    usePostApiV1RepostSettingsSettingsIdDestinationsFromDiscoverFilter,
 } from "@/api/endpoints/repost/repost.ts";
+import {RepostImportStatus} from "@/api/endpoints/tgPosterAPI.schemas.ts";
 import type {
     AddDestinationOutcome,
-    AddDestinationsFromDiscoverResponse,
+    AddDestinationsFromDiscoverFilterRequest,
+    ProblemDetails,
+    RepostImportJobResponse,
 } from "@/api/endpoints/tgPosterAPI.schemas.ts";
 
-const MAX_CHANNELS = 20;
+const MAX_SELECTED_CHANNELS = 20;
+const MAX_FILTER_CHANNELS = 200;
+
+export type DiscoverFilterValues = Omit<AddDestinationsFromDiscoverFilterRequest, "autoJoin">;
 
 const OUTCOME_LABELS: Record<AddDestinationOutcome, string> = {
     Added: "Добавлен",
@@ -33,18 +42,39 @@ const OUTCOME_LABELS: Record<AddDestinationOutcome, string> = {
     NoMediaPermission: "Нет прав на медиа",
     NotResolved: "Не удалось открыть",
     RateLimited: "Ограничение Telegram",
+    NotProcessed: "Не обработан",
+    Pending: "В очереди",
+};
+
+const STATUS_LABELS: Record<RepostImportStatus, string> = {
+    Pending: "В очереди",
+    InProgress: "Выполняется",
+    CooldownWait: "Пауза из-за ограничений Telegram",
+    Completed: "Завершено",
+    Failed: "Остановлено с ошибкой",
 };
 
 interface AddFromDiscoverDialogProps {
-    selectedChannelIds: string[];
     open: boolean;
     onOpenChange: (open: boolean) => void;
-    onAdded: () => void;
+    /** selected — выбранные чекбоксами каналы, filter — все каналы под текущие фильтры */
+    mode: "selected" | "filter";
+    selectedChannelIds: string[];
+    filter: DiscoverFilterValues;
+    /** Сколько каналов нашлось по фильтру на странице Discover */
+    matchedCount: number;
+    job: RepostImportJobResponse | undefined;
+    onJobStarted: (jobId: string) => void;
+    onJobCleared: () => void;
 }
 
 function OutcomeIcon({outcome}: {outcome: AddDestinationOutcome}) {
     if (outcome === "Added") {
         return <CheckCircle2 className="h-4 w-4 text-green-600 flex-shrink-0"/>;
+    }
+
+    if (outcome === "Pending") {
+        return <Clock className="h-4 w-4 text-muted-foreground flex-shrink-0"/>;
     }
 
     if (outcome === "RateLimited") {
@@ -54,57 +84,119 @@ function OutcomeIcon({outcome}: {outcome: AddDestinationOutcome}) {
     return <XCircle className="h-4 w-4 text-muted-foreground flex-shrink-0"/>;
 }
 
+function JobProgress({job}: {job: RepostImportJobResponse}) {
+    const processed = job.totalCount - job.pendingCount;
+    const percent = job.totalCount > 0 ? Math.round((processed / job.totalCount) * 100) : 100;
+
+    return (
+        <div className="space-y-4">
+            <div className="space-y-2">
+                <div className="flex items-center justify-between gap-2">
+                    <Badge variant={job.status === "Failed" ? "destructive" : "secondary"}>
+                        {STATUS_LABELS[job.status]}
+                    </Badge>
+                    <span className="text-sm text-muted-foreground">
+                        {processed} из {job.totalCount}
+                    </span>
+                </div>
+                <Progress value={percent}/>
+                <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted-foreground">
+                    <span>Добавлено: {job.addedCount}</span>
+                    <span>Пропущено: {job.skippedCount}</span>
+                    <span>В очереди: {job.pendingCount}</span>
+                </div>
+            </div>
+
+            {job.status === "CooldownWait" && (
+                <p className="text-sm text-amber-600">
+                    Telegram ограничил сессию
+                    {job.retryAfterSeconds
+                        ? `, обработка продолжится примерно через ${Math.ceil(job.retryAfterSeconds / 60)} мин`
+                        : ", обработка продолжится позже"}
+                </p>
+            )}
+
+            <ScrollArea className="max-h-[280px] pr-3">
+                <div className="space-y-2">
+                    {job.results.map((item) => (
+                        <div
+                            key={item.discoveredChannelId}
+                            className="flex items-start gap-2 text-sm border-b pb-2 last:border-b-0"
+                        >
+                            <OutcomeIcon outcome={item.outcome}/>
+                            <div className="min-w-0">
+                                <p className="truncate font-medium">{item.title}</p>
+                                <p className="text-xs text-muted-foreground">
+                                    {OUTCOME_LABELS[item.outcome]}
+                                    {item.error ? ` — ${item.error}` : ""}
+                                </p>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </ScrollArea>
+        </div>
+    );
+}
+
 export function AddFromDiscoverDialog({
-    selectedChannelIds,
     open,
     onOpenChange,
-    onAdded,
+    mode,
+    selectedChannelIds,
+    filter,
+    matchedCount,
+    job,
+    onJobStarted,
+    onJobCleared,
 }: AddFromDiscoverDialogProps) {
     const [settingsId, setSettingsId] = useState<string>("");
     const [autoJoin, setAutoJoin] = useState(true);
-    const [result, setResult] = useState<AddDestinationsFromDiscoverResponse | null>(null);
 
     const {data: settingsData, isLoading: isSettingsLoading} = useGetApiV1RepostSettings({
         query: {enabled: open},
     });
     const settings = settingsData?.items ?? [];
 
-    const tooManyChannels = selectedChannelIds.length > MAX_CHANNELS;
+    const isJobRunning = job != null
+        && job.status !== RepostImportStatus.Completed
+        && job.status !== RepostImportStatus.Failed;
+    const tooManyChannels = mode === "selected" && selectedChannelIds.length > MAX_SELECTED_CHANNELS;
 
-    const {mutate: addFromDiscover, isPending} = usePostApiV1RepostSettingsSettingsIdDestinationsFromDiscover({
-        mutation: {
-            onSuccess: (response) => {
-                setResult(response);
+    function handleJobCreated(response: RepostImportJobResponse) {
+        onJobStarted(response.jobId);
+        toast.success(`Каналов в задаче: ${response.totalCount}`, {
+            description: response.pendingCount > 0
+                ? "Каналы добавляются по одному, прогресс виден здесь и на странице Discover"
+                : "Ни один канал не потребовал обращения к Telegram — задача уже завершена",
+        });
+    }
 
-                if (response.addedCount > 0) {
-                    toast.success(`Добавлено каналов: ${response.addedCount}`, {
-                        description: response.skippedCount > 0
-                            ? `Пропущено: ${response.skippedCount}`
-                            : undefined,
-                    });
-                    onAdded();
-                } else {
-                    toast.warning("Ни один канал не добавлен", {
-                        description: "Проверьте причины в списке ниже",
-                    });
-                }
+    function handleJobError(error: ProblemDetails) {
+        toast.error("Не удалось создать задачу", {
+            description: error.title || "Проверьте настройки репоста и попробуйте ещё раз",
+        });
+    }
 
-                if (response.rateLimited) {
-                    toast.warning("Telegram ограничил аккаунт", {
-                        description: "Часть каналов не обработана, повторите позже",
-                    });
-                }
-            },
-            onError: (error) => {
-                toast.error("Ошибка добавления каналов", {
-                    description: error.title || "Не удалось добавить каналы в репост",
-                });
-            },
-        },
-    });
+    const {mutate: addSelected, isPending: isAddingSelected} =
+        usePostApiV1RepostSettingsSettingsIdDestinationsFromDiscover({
+            mutation: {onSuccess: handleJobCreated, onError: handleJobError},
+        });
+    const {mutate: addByFilter, isPending: isAddingByFilter} =
+        usePostApiV1RepostSettingsSettingsIdDestinationsFromDiscoverFilter({
+            mutation: {onSuccess: handleJobCreated, onError: handleJobError},
+        });
+
+    const isPending = isAddingSelected || isAddingByFilter;
 
     function handleSubmit() {
-        addFromDiscover({
+        if (mode === "filter") {
+            addByFilter({settingsId, data: {...filter, autoJoin}});
+
+            return;
+        }
+
+        addSelected({
             settingsId,
             data: {discoveredChannelIds: selectedChannelIds, autoJoin},
         });
@@ -115,11 +207,12 @@ export function AddFromDiscoverDialog({
             return;
         }
 
-        if (!isOpen) {
-            setResult(null);
-        }
-
         onOpenChange(isOpen);
+    }
+
+    function handleFinish() {
+        onJobCleared();
+        onOpenChange(false);
     }
 
     return (
@@ -128,31 +221,20 @@ export function AddFromDiscoverDialog({
                 <DialogHeader>
                     <DialogTitle>Добавить в репост</DialogTitle>
                     <DialogDescription>
-                        Выбрано каналов: {selectedChannelIds.length}. Каналы получат общие настройки
-                        выбранного репоста, дальше их можно настроить по отдельности
+                        {job != null
+                            ? "Каналы добавляются по одному с паузами, чтобы Telegram не ограничил аккаунт. "
+                              + "Задачу можно свернуть — она продолжит работать"
+                            : mode === "filter"
+                                ? `По текущим фильтрам найдено каналов: ${matchedCount.toLocaleString()}. `
+                                  + `В задачу уйдёт не больше ${MAX_FILTER_CHANNELS}: уже добавленные `
+                                  + "и заведомо недоступные каналы пропускаются"
+                                : `Выбрано каналов: ${selectedChannelIds.length}. Каналы получат общие настройки `
+                                  + "выбранного репоста, дальше их можно настроить по отдельности"}
                     </DialogDescription>
                 </DialogHeader>
 
-                {result ? (
-                    <ScrollArea className="max-h-[320px] pr-3">
-                        <div className="space-y-2">
-                            {result.results.map((item) => (
-                                <div
-                                    key={item.discoveredChannelId}
-                                    className="flex items-start gap-2 text-sm border-b pb-2 last:border-b-0"
-                                >
-                                    <OutcomeIcon outcome={item.outcome}/>
-                                    <div className="min-w-0">
-                                        <p className="truncate font-medium">{item.title}</p>
-                                        <p className="text-xs text-muted-foreground">
-                                            {OUTCOME_LABELS[item.outcome]}
-                                            {item.error ? ` — ${item.error}` : ""}
-                                        </p>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    </ScrollArea>
+                {job != null ? (
+                    <JobProgress job={job}/>
                 ) : (
                     <div className="space-y-4">
                         <div className="space-y-2">
@@ -195,17 +277,24 @@ export function AddFromDiscoverDialog({
 
                         {tooManyChannels && (
                             <p className="text-sm text-destructive">
-                                За один раз можно добавить не больше {MAX_CHANNELS} каналов
+                                За один раз можно добавить не больше {MAX_SELECTED_CHANNELS} выбранных каналов.
+                                Снимите лишние отметки или добавьте все каналы по фильтру
                             </p>
                         )}
                     </div>
                 )}
 
                 <DialogFooter>
-                    {result ? (
-                        <Button type="button" onClick={() => handleOpenChange(false)}>
-                            Готово
-                        </Button>
+                    {job != null ? (
+                        isJobRunning ? (
+                            <Button type="button" onClick={() => onOpenChange(false)}>
+                                Свернуть
+                            </Button>
+                        ) : (
+                            <Button type="button" onClick={handleFinish}>
+                                Готово
+                            </Button>
+                        )
                     ) : (
                         <>
                             <Button
@@ -220,12 +309,13 @@ export function AddFromDiscoverDialog({
                                 type="button"
                                 onClick={handleSubmit}
                                 disabled={isPending || !settingsId || tooManyChannels
-                                    || selectedChannelIds.length === 0}
+                                    || (mode === "selected" && selectedChannelIds.length === 0)
+                                    || (mode === "filter" && matchedCount === 0)}
                             >
                                 {isPending ? (
                                     <>
                                         <Loader2 className="mr-2 h-4 w-4 animate-spin"/>
-                                        Добавление...
+                                        Создание задачи...
                                     </>
                                 ) : (
                                     "Добавить"

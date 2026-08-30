@@ -39,15 +39,25 @@ public class ImportRepostDestinationsConsumerShould
 				It.IsAny<CancellationToken>()))
 			.ReturnsAsync(destinationId);
 
-		// Нулевые задержки: тест не должен спать между каналами
-		var options = new RepostImportOptions { MinDelaySeconds = 0, MaxDelaySeconds = 0 };
+		sut = CreateSut();
+	}
 
-		sut = new ImportRepostDestinationsConsumer(
+	/// <summary>
+	///     Нулевые задержки: тест не должен спать между каналами
+	/// </summary>
+	/// <param name="maxItemsPerRun">Сколько каналов обрабатывать за проход</param>
+	/// <returns>Консьюмер с подменёнными зависимостями</returns>
+	private ImportRepostDestinationsConsumer CreateSut(int maxItemsPerRun = 100) =>
+		new(
 			storage.Object,
 			chatService.Object,
-			options,
+			new RepostImportOptions
+			{
+				MinDelaySeconds = 0,
+				MaxDelaySeconds = 0,
+				MaxItemsPerRun = maxItemsPerRun
+			},
 			NullLogger<ImportRepostDestinationsConsumer>.Instance);
-	}
 
 	[Fact]
 	public async Task AddChannelWithDefaultsFromSettings()
@@ -262,13 +272,52 @@ public class ImportRepostDestinationsConsumerShould
 		VerifyJobStatus(RepostImportStatus.Completed);
 	}
 
-	private Task ConsumeAsync()
+	[Fact]
+	public async Task ProcessOnlyOneBatch_AndRequeueRemainingChannels()
+	{
+		var first = SetupPendingItem(username: "firstchan");
+		var second = SetupPendingItem(username: "secondchan");
+		SetupPendingItems(first, second);
+		SetupChat(first, 1111, true, true);
+		SetupChat(second, 2222, true, true);
+
+		var context = await ConsumeAsync(CreateSut(1));
+
+		VerifyItemOutcome(first, AddDestinationOutcome.Added);
+		storage.Verify(s => s.UpdateItemAsync(
+			second.ItemId, It.IsAny<AddDestinationOutcome>(), It.IsAny<Guid?>(), It.IsAny<string?>(),
+			It.IsAny<CancellationToken>()), Times.Never);
+		context.Verify(c => c.Publish(
+			It.Is<ImportRepostDestinationsContract>(x => x.JobId == jobId),
+			It.IsAny<CancellationToken>()), Times.Once);
+		storage.Verify(s => s.SetJobStatusAsync(
+			jobId, RepostImportStatus.Completed, It.IsAny<string?>(), It.IsAny<CancellationToken>()), Times.Never);
+	}
+
+	[Fact]
+	public async Task NotRequeueJob_WhenBatchCoversAllRemainingChannels()
+	{
+		var item = SetupPendingItem(username: "targetchan");
+		SetupChat(item, 12345, true, true);
+
+		var context = await ConsumeAsync(CreateSut(1));
+
+		VerifyJobStatus(RepostImportStatus.Completed);
+		context.Verify(c => c.Publish(
+			It.IsAny<ImportRepostDestinationsContract>(), It.IsAny<CancellationToken>()), Times.Never);
+	}
+
+	private async Task<Mock<ConsumeContext<ImportRepostDestinationsContract>>> ConsumeAsync(
+		ImportRepostDestinationsConsumer? consumer = null
+	)
 	{
 		var context = new Mock<ConsumeContext<ImportRepostDestinationsContract>>();
 		context.SetupGet(x => x.Message).Returns(new ImportRepostDestinationsContract { JobId = jobId });
 		context.SetupGet(x => x.CancellationToken).Returns(CancellationToken.None);
 
-		return sut.Consume(context.Object);
+		await (consumer ?? sut).Consume(context.Object);
+
+		return context;
 	}
 
 	private void SetupJob(

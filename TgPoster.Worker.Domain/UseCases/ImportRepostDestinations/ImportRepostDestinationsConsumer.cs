@@ -47,8 +47,8 @@ internal sealed class ImportRepostDestinationsConsumer(
 			return;
 		}
 
-		var items = await storage.GetPendingItemsAsync(jobId, ct);
-		if (items.Count == 0)
+		var pendingItems = await storage.GetPendingItemsAsync(jobId, ct);
+		if (pendingItems.Count == 0)
 		{
 			await storage.SetJobStatusAsync(jobId, RepostImportStatus.Completed, null, ct);
 
@@ -56,6 +56,10 @@ internal sealed class ImportRepostDestinationsConsumer(
 		}
 
 		await storage.SetJobStatusAsync(jobId, RepostImportStatus.InProgress, null, ct);
+
+		// За проход берём ограниченную пачку: с паузами между каналами задание на сотни
+		// каналов иначе висит в одном Consume часами
+		var items = pendingItems.Take(options.MaxItemsPerRun).ToList();
 
 		var existingChatIds = (await storage.GetExistingChatIdsAsync(job.RepostSettingsId, ct)).ToHashSet();
 		var needDelay = false;
@@ -158,6 +162,16 @@ internal sealed class ImportRepostDestinationsConsumer(
 
 			existingChatIds.Add(info.Id);
 			await storage.UpdateItemAsync(item.ItemId, AddDestinationOutcome.Added, destinationId, null, ct);
+		}
+
+		if (pendingItems.Count > items.Count)
+		{
+			logger.LogInformation(
+				"Задание {JobId}: обработано {Processed} каналов, остаток уходит в следующий проход",
+				jobId, items.Count);
+			await context.Publish(new ImportRepostDestinationsContract { JobId = jobId }, ct);
+
+			return;
 		}
 
 		await storage.SetJobStatusAsync(jobId, RepostImportStatus.Completed, null, ct);

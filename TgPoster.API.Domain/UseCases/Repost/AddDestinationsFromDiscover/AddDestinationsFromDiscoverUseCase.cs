@@ -21,20 +21,29 @@ internal sealed class AddDestinationsFromDiscoverUseCase(
 	/// </summary>
 	private const int MaxChannelsPerRequest = 20;
 
+	/// <summary>
+	///     Ограничение для добавления по фильтру: каналы отбираются автоматически,
+	///     поэтому потолок выше, но всё равно конечный
+	/// </summary>
+	private const int MaxChannelsPerFilterRequest = 200;
+
 	public async Task<RepostImportJobResponse> Handle(
 		AddDestinationsFromDiscoverCommand request,
 		CancellationToken ct
 	)
 	{
-		if (request.DiscoveredChannelIds.Count == 0)
+		if (request.Filter == null)
 		{
-			throw new InvalidRepostSettingsException("Не выбрано ни одного канала");
-		}
+			if (request.DiscoveredChannelIds.Count == 0)
+			{
+				throw new InvalidRepostSettingsException("Не выбрано ни одного канала");
+			}
 
-		if (request.DiscoveredChannelIds.Count > MaxChannelsPerRequest)
-		{
-			throw new InvalidRepostSettingsException(
-				$"За один раз можно добавить не больше {MaxChannelsPerRequest} каналов");
+			if (request.DiscoveredChannelIds.Count > MaxChannelsPerRequest)
+			{
+				throw new InvalidRepostSettingsException(
+					$"За один раз можно добавить не больше {MaxChannelsPerRequest} каналов");
+			}
 		}
 
 		var settings = await storage.GetSettingsDefaultsAsync(
@@ -46,20 +55,21 @@ internal sealed class AddDestinationsFromDiscoverUseCase(
 			throw new RepostSettingsNotFoundException(request.RepostSettingsId);
 		}
 
-		var requestedIds = request.DiscoveredChannelIds.Distinct().ToList();
+		// Два задания на одну сессию удваивают обращения к Telegram и приближают FLOOD_WAIT
+		var activeJobId = await storage.GetActiveJobIdAsync(request.RepostSettingsId, ct);
+		if (activeJobId != null)
+		{
+			throw new InvalidRepostSettingsException(
+				"Для этих настроек репоста уже выполняется добавление каналов, дождитесь его завершения");
+		}
 
-		var candidates = (await storage.GetCandidatesAsync(requestedIds, ct))
-			.ToDictionary(x => x.Id);
 		var existingChatIds = (await storage.GetExistingChatIdsAsync(request.RepostSettingsId, ct)).ToHashSet();
 
 		// Telegram здесь не трогаем: раскладываем каналы на "уже всё понятно по данным БД"
 		// и "нужен резолв" — второе уедет в фоновую обработку по одному каналу
-		var items = requestedIds
-			.Select(id => candidates.TryGetValue(id, out var candidate)
-				? BuildItem(candidate, settings.SourceChannelId, existingChatIds)
-				: new ImportJobItemDto(id, id.ToString(), AddDestinationOutcome.NotResolved,
-					"Канал не найден в Discover"))
-			.ToList();
+		var items = request.Filter == null
+			? await BuildItemsFromIdsAsync(request, settings.SourceChannelId, existingChatIds, ct)
+			: await BuildItemsFromFilterAsync(request.Filter, settings.SourceChannelId, existingChatIds, ct);
 
 		var jobId = await storage.CreateImportJobAsync(
 			request.RepostSettingsId,
@@ -94,6 +104,49 @@ internal sealed class AddDestinationsFromDiscoverUseCase(
 				})
 				.ToList()
 		};
+	}
+
+	private async Task<List<ImportJobItemDto>> BuildItemsFromIdsAsync(
+		AddDestinationsFromDiscoverCommand request,
+		long sourceChannelId,
+		HashSet<long> existingChatIds,
+		CancellationToken ct
+	)
+	{
+		var requestedIds = request.DiscoveredChannelIds.Distinct().ToList();
+
+		var candidates = (await storage.GetCandidatesAsync(requestedIds, ct))
+			.ToDictionary(x => x.Id);
+
+		return requestedIds
+			.Select(id => candidates.TryGetValue(id, out var candidate)
+				? BuildItem(candidate, sourceChannelId, existingChatIds)
+				: new ImportJobItemDto(id, id.ToString(), AddDestinationOutcome.NotResolved,
+					"Канал не найден в Discover"))
+			.ToList();
+	}
+
+	private async Task<List<ImportJobItemDto>> BuildItemsFromFilterAsync(
+		DiscoverImportFilter filter,
+		long sourceChannelId,
+		HashSet<long> existingChatIds,
+		CancellationToken ct
+	)
+	{
+		var candidates = await storage.GetCandidatesByFilterAsync(
+			filter,
+			[..existingChatIds, sourceChannelId],
+			MaxChannelsPerFilterRequest,
+			ct);
+
+		if (candidates.Count == 0)
+		{
+			throw new InvalidRepostSettingsException("По выбранным фильтрам нет каналов, доступных для добавления");
+		}
+
+		return candidates
+			.Select(candidate => BuildItem(candidate, sourceChannelId, existingChatIds))
+			.ToList();
 	}
 
 	private static ImportJobItemDto BuildItem(

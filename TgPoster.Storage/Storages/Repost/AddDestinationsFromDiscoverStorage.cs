@@ -42,12 +42,58 @@ internal sealed class AddDestinationsFromDiscoverStorage(PosterContext context, 
 			.ToListAsync(ct);
 	}
 
+	public Task<List<DiscoverCandidate>> GetCandidatesByFilterAsync(
+		DiscoverImportFilter filter,
+		IReadOnlyCollection<long> excludedChatIds,
+		int limit,
+		CancellationToken ct
+	)
+	{
+		return context.DiscoveredChannels
+			.ApplyDiscoverFilter(
+				filter.Category,
+				filter.PeerType,
+				filter.Search,
+				filter.MinParticipants,
+				filter.MaxParticipants)
+			// Уже добавленные каналы и канал-источник заняли бы места в задании впустую
+			.Where(x => x.TelegramId == null || !excludedChatIds.Contains(x.TelegramId.Value))
+			// Права из прошлых проверок: писать нельзя — резолвить и вступать незачем
+			.Where(x => x.CanSendMessages != false && x.CanSendMedia != false)
+			// Канал без единого идентификатора в Telegram не открыть
+			.Where(x => x.Username != null || x.InviteHash != null || x.TelegramId != null)
+			.ApplyDiscoverSort(filter.SortBy, filter.SortDirection)
+			.Take(limit)
+			.Select(x => new DiscoverCandidate(
+				x.Id,
+				x.TelegramId,
+				x.Username,
+				x.Title,
+				x.InviteHash,
+				x.CanSendMessages,
+				x.CanSendMedia))
+			.ToListAsync(ct);
+	}
+
 	public Task<List<long>> GetExistingChatIdsAsync(Guid repostSettingsId, CancellationToken ct)
 	{
 		return context.Set<RepostDestination>()
 			.Where(x => x.RepostSettingsId == repostSettingsId)
 			.Select(x => x.ChatId)
 			.ToListAsync(ct);
+	}
+
+	public async Task<Guid?> GetActiveJobIdAsync(Guid repostSettingsId, CancellationToken ct)
+	{
+		var jobId = await context.RepostImportJobs
+			.Where(x => x.RepostSettingsId == repostSettingsId)
+			.Where(x => x.Status == RepostImportStatus.Pending
+			            || x.Status == RepostImportStatus.InProgress
+			            || x.Status == RepostImportStatus.CooldownWait)
+			.Select(x => (Guid?)x.Id)
+			.FirstOrDefaultAsync(ct);
+
+		return jobId;
 	}
 
 	public async Task<Guid> CreateImportJobAsync(

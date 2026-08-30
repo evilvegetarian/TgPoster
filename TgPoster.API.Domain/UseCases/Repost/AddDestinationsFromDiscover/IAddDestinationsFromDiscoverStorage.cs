@@ -65,12 +65,36 @@ public interface IAddDestinationsFromDiscoverStorage
 	Task<List<DiscoverCandidate>> GetCandidatesAsync(IReadOnlyList<Guid> discoveredChannelIds, CancellationToken ct);
 
 	/// <summary>
+	///     Получить каналы Discover, подходящие под фильтр. Заведомо бесполезные кандидаты
+	///     отсекаются здесь же, чтобы лимит задания не расходовался впустую
+	/// </summary>
+	/// <param name="filter">Фильтр и сортировка Discover</param>
+	/// <param name="excludedChatIds">Telegram-идентификаторы, которые брать не нужно: уже добавленные и канал-источник</param>
+	/// <param name="limit">Максимальное количество каналов в задании</param>
+	/// <param name="ct">Токен отмены</param>
+	/// <returns>Каналы в порядке сортировки фильтра</returns>
+	Task<List<DiscoverCandidate>> GetCandidatesByFilterAsync(
+		DiscoverImportFilter filter,
+		IReadOnlyCollection<long> excludedChatIds,
+		int limit,
+		CancellationToken ct
+	);
+
+	/// <summary>
 	///     Получить Telegram-идентификаторы уже добавленных целевых каналов
 	/// </summary>
 	/// <param name="repostSettingsId">Id настроек репоста</param>
 	/// <param name="ct">Токен отмены</param>
 	/// <returns>Список ChatId существующих направлений</returns>
 	Task<List<long>> GetExistingChatIdsAsync(Guid repostSettingsId, CancellationToken ct);
+
+	/// <summary>
+	///     Найти незавершённое задание на добавление каналов для этих настроек репоста
+	/// </summary>
+	/// <param name="repostSettingsId">Id настроек репоста</param>
+	/// <param name="ct">Токен отмены</param>
+	/// <returns>Id активного задания или null, если все задания завершены</returns>
+	Task<Guid?> GetActiveJobIdAsync(Guid repostSettingsId, CancellationToken ct);
 
 	/// <summary>
 	///     Создать задание на массовое добавление каналов вместе со всеми его каналами
