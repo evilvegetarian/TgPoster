@@ -1,4 +1,4 @@
-﻿import {useEffect, useMemo, useState} from "react"
+﻿import {useEffect, useMemo, useRef, useState} from "react"
 import {format} from "date-fns"
 import {ru} from "date-fns/locale"
 import {Button} from "@/components/ui/button.tsx"
@@ -7,7 +7,7 @@ import {Input} from "@/components/ui/input.tsx"
 import {Label} from "@/components/ui/label.tsx"
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select.tsx"
 import {Badge} from "@/components/ui/badge.tsx"
-import {ArrowLeft, Calendar, Clock, Copy, FileText, Loader2, Plus, Power, PowerOff, Save, Settings, Trash2, X, Youtube,} from "lucide-react"
+import {ArrowLeft, Bold, Calendar, Clock, Copy, EyeOff, FileText, Italic, Link2, Loader2, Plus, Power, PowerOff, Save, Settings, Trash2, X, Youtube,} from "lucide-react"
 import {Checkbox} from "@/components/ui/checkbox.tsx"
 import {Separator} from "@/components/ui/separator.tsx"
 import {toast} from "sonner"
@@ -141,6 +141,7 @@ export function SchedulePage() {
     const [copyFromDay, setCopyFromDay] = useState<DayOfWeek | null>(null)
     const [copyTargetDays, setCopyTargetDays] = useState<DayOfWeek[]>([])
     const [signatureDraft, setSignatureDraft] = useState("")
+    const signatureRef = useRef<HTMLTextAreaElement>(null)
 
     const {
         data: scheduleDaysData,
@@ -418,6 +419,19 @@ export function SchedulePage() {
                 },
             }
         );
+    }
+
+    function insertSignatureMarkup(before: string, after: string, placeholder: string) {
+        const textarea = signatureRef.current
+        const start = textarea?.selectionStart ?? signatureDraft.length
+        const end = textarea?.selectionEnd ?? signatureDraft.length
+        const selected = signatureDraft.slice(start, end) || placeholder
+        setSignatureDraft(signatureDraft.slice(0, start) + before + selected + after + signatureDraft.slice(end))
+
+        requestAnimationFrame(() => {
+            textarea?.focus()
+            textarea?.setSelectionRange(start + before.length, start + before.length + selected.length)
+        })
     }
 
     function saveSignature(id: string) {
@@ -709,8 +723,47 @@ export function SchedulePage() {
 
                                     <div className="space-y-2">
                                         <Label htmlFor="edit-schedule-signature">Текст подписи</Label>
+
+                                        <div className="flex flex-wrap gap-2">
+                                            <Button
+                                                type="button"
+                                                variant="secondary"
+                                                size="sm"
+                                                onClick={() => insertSignatureMarkup(
+                                                    `<a href="https://t.me/${editingSchedule.channelName.replace(/^@/, "")}">`,
+                                                    "</a>",
+                                                    "Подписаться на канал",
+                                                )}
+                                            >
+                                                <Link2 className="h-3.5 w-3.5 mr-1"/>
+                                                Ссылка на этот канал
+                                            </Button>
+                                            <Button
+                                                type="button"
+                                                variant="outline"
+                                                size="sm"
+                                                onClick={() => insertSignatureMarkup('<a href="https://">', "</a>", "текст ссылки")}
+                                            >
+                                                <Link2 className="h-3.5 w-3.5 mr-1"/>
+                                                Ссылка
+                                            </Button>
+                                            <Button type="button" variant="outline" size="sm"
+                                                    onClick={() => insertSignatureMarkup("<b>", "</b>", "жирный")}>
+                                                <Bold className="h-3.5 w-3.5"/>
+                                            </Button>
+                                            <Button type="button" variant="outline" size="sm"
+                                                    onClick={() => insertSignatureMarkup("<i>", "</i>", "курсив")}>
+                                                <Italic className="h-3.5 w-3.5"/>
+                                            </Button>
+                                            <Button type="button" variant="outline" size="sm"
+                                                    onClick={() => insertSignatureMarkup("<tg-spoiler>", "</tg-spoiler>", "спойлер")}>
+                                                <EyeOff className="h-3.5 w-3.5"/>
+                                            </Button>
+                                        </div>
+
                                         <Textarea
                                             id="edit-schedule-signature"
+                                            ref={signatureRef}
                                             value={signatureDraft}
                                             onChange={(e) => setSignatureDraft(e.target.value)}
                                             placeholder={'<a href="https://t.me/mychannel">Подписаться на канал</a>'}
@@ -718,9 +771,24 @@ export function SchedulePage() {
                                             rows={4}
                                         />
                                         <p className="text-xs text-muted-foreground">
-                                            Допустима HTML-разметка Telegram: b, i, u, s, a, code, pre, span,
-                                            tg-spoiler, blockquote. Все теги должны быть закрыты. Если текст поста
-                                            вместе с подписью не помещается в лимит Telegram, обрезается текст поста.
+                                            Кнопки вставляют разметку в место курсора и оборачивают выделенный текст.
+                                            Ссылка пишется как
+                                            {" "}
+                                            <code
+                                                className="rounded bg-muted px-1 py-0.5">{'<a href="https://t.me/канал">текст</a>'}</code>
+                                            {" "}
+                                            — в канале будет виден только текст. Допустимы теги b, i, u, s, a, code,
+                                            pre, span, tg-spoiler, blockquote, и все они должны быть закрыты. Если текст
+                                            поста вместе с подписью не помещается в лимит Telegram, обрезается текст
+                                            поста.
+                                        </p>
+                                        <p className="text-xs text-muted-foreground">
+                                            Символы {"<"} и {"&"} вне тегов нужно писать как
+                                            {" "}
+                                            <code className="rounded bg-muted px-1 py-0.5">&amp;lt;</code>
+                                            {" "}и{" "}
+                                            <code className="rounded bg-muted px-1 py-0.5">&amp;amp;</code>
+                                            {" "}— иначе Telegram не примет пост.
                                         </p>
                                     </div>
 
