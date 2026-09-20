@@ -25,6 +25,7 @@ import {RepostLogsPage} from "@/pages/repostpage/repost-logs-page.tsx";
 import {CommentRepostPage} from "@/pages/commentrepostpage/comment-repost-page.tsx";
 import ProxyPage from "@/pages/proxy-page.tsx"
 import {DiscoverPage} from "@/pages/discover-page.tsx";
+import {DiscoverStatsPage} from "@/pages/discover-stats-page.tsx";
 
 const router = createBrowserRouter([
     {
@@ -114,6 +115,10 @@ const router = createBrowserRouter([
                             {
                                 path: "/discover",
                                 element: <DiscoverPage/>,
+                            },
+                            {
+                                path: "/discover/stats",
+                                element: <DiscoverStatsPage/>,
                             }
                         ]
                     }

@@ -1,5 +1,6 @@
 ﻿import {Link, useLocation} from "react-router-dom"
 import {
+    BarChart3,
     Bot,
     BotIcon,
     CalendarDays,
@@ -107,6 +108,11 @@ export function SideBar() {
                 title: "Discover",
                 path: "/discover",
                 icon: Telescope
+            },
+            {
+                title: "Статистика Discover",
+                path: "/discover/stats",
+                icon: BarChart3
             }
         ]
         : [
@@ -141,7 +147,9 @@ export function SideBar() {
                                         asChild
                                         isActive={
                                             location.pathname === item.path ||
-                                            (item.path !== "/" && location.pathname.startsWith(item.path))
+                                            (item.path !== "/"
+                                                && location.pathname.startsWith(item.path + "/")
+                                                && !navItems.some((other) => other.path === location.pathname))
                                         }
                                     >
                                         <Link to={item.path}>

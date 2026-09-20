@@ -21,8 +21,12 @@ import type {
 
 import type {
   DiscoverChannelResponsePagedResponse,
+  DiscoverParseHistoryItemResponsePagedResponse,
+  DiscoverStatsResponse,
   DiscoverStatusResponse,
   GetApiV1DiscoverParams,
+  GetApiV1DiscoverParseHistoryParams,
+  GetApiV1DiscoverStatsParams,
   ProblemDetails
 } from '../tgPosterAPI.schemas';
 
@@ -297,6 +301,192 @@ export function useGetApiV1DiscoverStatus<TData = Awaited<ReturnType<typeof getA
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getGetApiV1DiscoverStatusQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+
+/**
+ * @summary Получить статистику по обнаруженным каналам: итоги, свежесть, разбивки и таймлайны по дням
+ */
+export const getApiV1DiscoverStats = (
+    params?: GetApiV1DiscoverStatsParams,
+ signal?: AbortSignal
+) => {
+      
+      
+      return customInstance<DiscoverStatsResponse>(
+      {url: `/api/v1/discover/stats`, method: 'GET',
+        params, signal
+    },
+      );
+    }
+  
+
+
+
+export const getGetApiV1DiscoverStatsQueryKey = (params?: GetApiV1DiscoverStatsParams,) => {
+    return [
+    `/api/v1/discover/stats`, ...(params ? [params]: [])
+    ] as const;
+    }
+
+    
+export const getGetApiV1DiscoverStatsQueryOptions = <TData = Awaited<ReturnType<typeof getApiV1DiscoverStats>>, TError = ProblemDetails>(params?: GetApiV1DiscoverStatsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1DiscoverStats>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetApiV1DiscoverStatsQueryKey(params);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getApiV1DiscoverStats>>> = ({ signal }) => getApiV1DiscoverStats(params, signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getApiV1DiscoverStats>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetApiV1DiscoverStatsQueryResult = NonNullable<Awaited<ReturnType<typeof getApiV1DiscoverStats>>>
+export type GetApiV1DiscoverStatsQueryError = ProblemDetails
+
+
+export function useGetApiV1DiscoverStats<TData = Awaited<ReturnType<typeof getApiV1DiscoverStats>>, TError = ProblemDetails>(
+ params: undefined |  GetApiV1DiscoverStatsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1DiscoverStats>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getApiV1DiscoverStats>>,
+          TError,
+          Awaited<ReturnType<typeof getApiV1DiscoverStats>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetApiV1DiscoverStats<TData = Awaited<ReturnType<typeof getApiV1DiscoverStats>>, TError = ProblemDetails>(
+ params?: GetApiV1DiscoverStatsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1DiscoverStats>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getApiV1DiscoverStats>>,
+          TError,
+          Awaited<ReturnType<typeof getApiV1DiscoverStats>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetApiV1DiscoverStats<TData = Awaited<ReturnType<typeof getApiV1DiscoverStats>>, TError = ProblemDetails>(
+ params?: GetApiV1DiscoverStatsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1DiscoverStats>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Получить статистику по обнаруженным каналам: итоги, свежесть, разбивки и таймлайны по дням
+ */
+
+export function useGetApiV1DiscoverStats<TData = Awaited<ReturnType<typeof getApiV1DiscoverStats>>, TError = ProblemDetails>(
+ params?: GetApiV1DiscoverStatsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1DiscoverStats>>, TError, TData>>, }
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetApiV1DiscoverStatsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+
+/**
+ * @summary Получить историю парсинга: какие каналы и когда парсились, от самых свежих к старым
+ */
+export const getApiV1DiscoverParseHistory = (
+    params?: GetApiV1DiscoverParseHistoryParams,
+ signal?: AbortSignal
+) => {
+      
+      
+      return customInstance<DiscoverParseHistoryItemResponsePagedResponse>(
+      {url: `/api/v1/discover/parse-history`, method: 'GET',
+        params, signal
+    },
+      );
+    }
+  
+
+
+
+export const getGetApiV1DiscoverParseHistoryQueryKey = (params?: GetApiV1DiscoverParseHistoryParams,) => {
+    return [
+    `/api/v1/discover/parse-history`, ...(params ? [params]: [])
+    ] as const;
+    }
+
+    
+export const getGetApiV1DiscoverParseHistoryQueryOptions = <TData = Awaited<ReturnType<typeof getApiV1DiscoverParseHistory>>, TError = ProblemDetails>(params?: GetApiV1DiscoverParseHistoryParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1DiscoverParseHistory>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetApiV1DiscoverParseHistoryQueryKey(params);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getApiV1DiscoverParseHistory>>> = ({ signal }) => getApiV1DiscoverParseHistory(params, signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getApiV1DiscoverParseHistory>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetApiV1DiscoverParseHistoryQueryResult = NonNullable<Awaited<ReturnType<typeof getApiV1DiscoverParseHistory>>>
+export type GetApiV1DiscoverParseHistoryQueryError = ProblemDetails
+
+
+export function useGetApiV1DiscoverParseHistory<TData = Awaited<ReturnType<typeof getApiV1DiscoverParseHistory>>, TError = ProblemDetails>(
+ params: undefined |  GetApiV1DiscoverParseHistoryParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1DiscoverParseHistory>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getApiV1DiscoverParseHistory>>,
+          TError,
+          Awaited<ReturnType<typeof getApiV1DiscoverParseHistory>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetApiV1DiscoverParseHistory<TData = Awaited<ReturnType<typeof getApiV1DiscoverParseHistory>>, TError = ProblemDetails>(
+ params?: GetApiV1DiscoverParseHistoryParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1DiscoverParseHistory>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getApiV1DiscoverParseHistory>>,
+          TError,
+          Awaited<ReturnType<typeof getApiV1DiscoverParseHistory>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetApiV1DiscoverParseHistory<TData = Awaited<ReturnType<typeof getApiV1DiscoverParseHistory>>, TError = ProblemDetails>(
+ params?: GetApiV1DiscoverParseHistoryParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1DiscoverParseHistory>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Получить историю парсинга: какие каналы и когда парсились, от самых свежих к старым
+ */
+
+export function useGetApiV1DiscoverParseHistory<TData = Awaited<ReturnType<typeof getApiV1DiscoverParseHistory>>, TError = ProblemDetails>(
+ params?: GetApiV1DiscoverParseHistoryParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1DiscoverParseHistory>>, TError, TData>>, }
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetApiV1DiscoverParseHistoryQueryOptions(params,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 

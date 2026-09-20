@@ -1,5 +1,6 @@
 import {useState} from "react"
-import {ExternalLink, ListPlus, Loader2, Search, Send, Users} from "lucide-react"
+import {Link} from "react-router-dom"
+import {BarChart3, ExternalLink, ListPlus, Loader2, Search, Send, Users} from "lucide-react"
 import {useGetApiV1Discover, useGetApiV1DiscoverCategories} from "@/api/endpoints/discover/discover"
 import {Badge} from "@/components/ui/badge"
 import {Button} from "@/components/ui/button"
@@ -314,15 +315,23 @@ export function DiscoverPage() {
                         </p>
                     )}
                 </div>
-                <Button
-                    variant="outline"
-                    className="gap-1.5 flex-shrink-0"
-                    disabled={totalCount === 0}
-                    onClick={() => openAddDialog("filter")}
-                >
-                    <ListPlus className="h-4 w-4"/>
-                    Добавить все по фильтру
-                </Button>
+                <div className="flex items-center gap-2 flex-shrink-0">
+                    <Button variant="outline" className="gap-1.5" asChild>
+                        <Link to="/discover/stats">
+                            <BarChart3 className="h-4 w-4"/>
+                            Статистика
+                        </Link>
+                    </Button>
+                    <Button
+                        variant="outline"
+                        className="gap-1.5"
+                        disabled={totalCount === 0}
+                        onClick={() => openAddDialog("filter")}
+                    >
+                        <ListPlus className="h-4 w-4"/>
+                        Добавить все по фильтру
+                    </Button>
+                </div>
             </div>
 
             {job != null && (

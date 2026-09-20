@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TgPoster.API.Common;
 using TgPoster.API.Domain.UseCases.Discover.GetCategories;
+using TgPoster.API.Domain.UseCases.Discover.GetDiscoverParseHistory;
+using TgPoster.API.Domain.UseCases.Discover.GetDiscoverStats;
 using TgPoster.API.Domain.UseCases.Discover.GetDiscoverStatus;
 using TgPoster.API.Domain.UseCases.Discover.ListDiscover;
 using TgPoster.API.Domain.UseCases.Messages.ListMessage;
@@ -53,5 +55,34 @@ public class DiscoverController(ISender sender) : ControllerBase
 	{
 		var status = await sender.Send(new GetDiscoverStatusQuery(), ct);
 		return Ok(status);
+	}
+
+	/// <summary>
+	///     Получить статистику по обнаруженным каналам: итоги, свежесть, разбивки и таймлайны по дням
+	/// </summary>
+	[HttpGet(Routes.Discover.Stats)]
+	[ProducesResponseType(StatusCodes.Status200OK, Type = typeof(DiscoverStatsResponse))]
+	[ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
+	[ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
+	public async Task<IActionResult> GetStats([FromQuery] GetDiscoverStatsRequest request, CancellationToken ct)
+	{
+		var stats = await sender.Send(new GetDiscoverStatsQuery(request.Days), ct);
+		return Ok(stats);
+	}
+
+	/// <summary>
+	///     Получить историю парсинга: какие каналы и когда парсились, от самых свежих к старым
+	/// </summary>
+	[HttpGet(Routes.Discover.ParseHistory)]
+	[ProducesResponseType(StatusCodes.Status200OK, Type = typeof(PagedResponse<DiscoverParseHistoryItemResponse>))]
+	[ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
+	[ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
+	public async Task<IActionResult> GetParseHistory(
+		[FromQuery] ListDiscoverParseHistoryRequest request,
+		CancellationToken ct
+	)
+	{
+		var response = await sender.Send(request.ToDomain(), ct);
+		return Ok(response);
 	}
 }

@@ -471,6 +471,23 @@ export interface DiscoverChannelResponsePagedResponse {
   data?: DiscoverChannelResponse[];
 }
 
+export type DiscoverChannelStatus = typeof DiscoverChannelStatus[keyof typeof DiscoverChannelStatus];
+
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const DiscoverChannelStatus = {
+  Pending: 'Pending',
+  InProgress: 'InProgress',
+  Completed: 'Completed',
+  Error: 'Error',
+  Skipped: 'Skipped',
+} as const;
+
+export interface DiscoverDailyCount {
+  date: string;
+  count: number;
+}
+
 export type DiscoverJobStatus = typeof DiscoverJobStatus[keyof typeof DiscoverJobStatus];
 
 
@@ -482,6 +499,67 @@ export const DiscoverJobStatus = {
   Failed: 'Failed',
   Unknown: 'Unknown',
 } as const;
+
+export interface DiscoverNamedCount {
+  name: string;
+  count: number;
+}
+
+export interface DiscoverParseHistoryItemResponse {
+  id: string;
+  /** @nullable */
+  username?: string | null;
+  /** @nullable */
+  title?: string | null;
+  /** @nullable */
+  avatarUrl?: string | null;
+  /** @nullable */
+  tgUrl?: string | null;
+  /** @nullable */
+  peerType?: string | null;
+  /** @nullable */
+  category?: string | null;
+  /** @nullable */
+  participantsCount?: number | null;
+  status: DiscoverChannelStatus;
+  parsedAt: string;
+  /** @nullable */
+  foundAt?: string | null;
+  /** @nullable */
+  lastParsedMessageId?: number | null;
+  foundCount: number;
+  /** @nullable */
+  sourceTitle?: string | null;
+  /** @nullable */
+  sourceUsername?: string | null;
+}
+
+export interface DiscoverParseHistoryItemResponsePagedResponse {
+  currentPage?: number;
+  readonly totalPages?: number;
+  pageSize?: number;
+  totalCount?: number;
+  readonly hasPreviousPage?: boolean;
+  readonly hasNextPage?: boolean;
+  data?: DiscoverParseHistoryItemResponse[];
+}
+
+export type DiscoverParticipantsBucket = typeof DiscoverParticipantsBucket[keyof typeof DiscoverParticipantsBucket];
+
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const DiscoverParticipantsBucket = {
+  Unknown: 'Unknown',
+  UpTo1K: 'UpTo1K',
+  From1KTo10K: 'From1KTo10K',
+  From10KTo100K: 'From10KTo100K',
+  Over100K: 'Over100K',
+} as const;
+
+export interface DiscoverParticipantsBucketCount {
+  bucket: DiscoverParticipantsBucket;
+  count: number;
+}
 
 /**
  * Поле для сортировки обнаруженных каналов
@@ -495,6 +573,67 @@ export const DiscoverSortBy = {
   DiscoveredAt: 'DiscoveredAt',
   Title: 'Title',
 } as const;
+
+export interface DiscoverSourceStat {
+  id: string;
+  /** @nullable */
+  username?: string | null;
+  /** @nullable */
+  title?: string | null;
+  /** @nullable */
+  avatarUrl?: string | null;
+  /** @nullable */
+  tgUrl?: string | null;
+  foundCount: number;
+  /** @nullable */
+  lastParsedAt?: string | null;
+  isBanned: boolean;
+}
+
+export interface DiscoverStatsFreshness {
+  parsedLast24Hours: number;
+  parsedLast7Days: number;
+  parsedLast30Days: number;
+  foundLast24Hours: number;
+  foundLast7Days: number;
+  foundLast30Days: number;
+  /** @nullable */
+  firstFoundAt?: string | null;
+  /** @nullable */
+  lastFoundAt?: string | null;
+  /** @nullable */
+  lastParsedAt?: string | null;
+}
+
+export interface DiscoverStatsResponse {
+  totals: DiscoverStatsTotals;
+  freshness: DiscoverStatsFreshness;
+  byStatus: DiscoverStatusCount[];
+  byPeerType: DiscoverNamedCount[];
+  byCategory: DiscoverNamedCount[];
+  byLanguage: DiscoverNamedCount[];
+  byParticipants: DiscoverParticipantsBucketCount[];
+  parsedByDay: DiscoverDailyCount[];
+  foundByDay: DiscoverDailyCount[];
+  topSources: DiscoverSourceStat[];
+}
+
+export interface DiscoverStatsTotals {
+  total: number;
+  parsed: number;
+  notParsed: number;
+  public: number;
+  private: number;
+  classified: number;
+  withParticipants: number;
+  totalParticipants: number;
+  banned: number;
+}
+
+export interface DiscoverStatusCount {
+  status: DiscoverChannelStatus;
+  count: number;
+}
 
 export interface DiscoverStatusResponse {
   status: DiscoverJobStatus;
@@ -1408,6 +1547,38 @@ SortBy?: DiscoverSortBy;
  * Направление сортировки. По умолчанию — по убыванию
  */
 SortDirection?: SortDirection;
+/**
+ * Номер страницы.
+ */
+PageNumber?: number;
+/**
+ * Размер страницы.
+ */
+PageSize?: number;
+};
+
+export type GetApiV1DiscoverStatsParams = {
+/**
+ * Глубина таймлайнов «по дням» в днях, включая сегодня. По умолчанию — 30
+ * @minimum 1
+ * @maximum 365
+ */
+Days?: number;
+};
+
+export type GetApiV1DiscoverParseHistoryParams = {
+/**
+ * Поиск по названию или username
+ */
+Search?: string;
+/**
+ * Начало периода по времени парсинга (включительно)
+ */
+From?: string;
+/**
+ * Конец периода по времени парсинга (включительно)
+ */
+To?: string;
 /**
  * Номер страницы.
  */
