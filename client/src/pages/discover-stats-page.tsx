@@ -619,7 +619,7 @@ export function DiscoverStatsPage() {
     const [days, setDays] = useState("30")
 
     const {data: stats, isLoading, isFetching, refetch} = useGetApiV1DiscoverStats({Days: Number(days)})
-    const {data: status} = useGetApiV1DiscoverStatus(undefined, {query: {refetchInterval: 15_000}})
+    const {data: status} = useGetApiV1DiscoverStatus({query: {refetchInterval: 15_000}})
 
     return (
         <div className="container mx-auto p-6 max-w-6xl space-y-4">
