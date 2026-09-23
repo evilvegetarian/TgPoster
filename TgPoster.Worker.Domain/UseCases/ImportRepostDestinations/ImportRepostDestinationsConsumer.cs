@@ -195,12 +195,14 @@ internal sealed class ImportRepostDestinationsConsumer(
 			DateTimeOffset.UtcNow.AddSeconds(cooldownSeconds),
 			ct);
 
+		// В сыром тексте WTelegram секунды заменены на «X» (FLOOD_WAIT_X), поэтому
+		// в журнал пишем понятную длительность, а не плейсхолдер
 		await storage.UpdateItemAsync(item.ItemId, AddDestinationOutcome.RateLimited, null,
-			chatResult.ErrorMessage, ct);
+			$"ждём {cooldownSeconds} сек.", ct);
 
 		// Остальные каналы остаются Pending — их подхватит ResumeRepostImportJobsWorker
 		await storage.SetJobStatusAsync(job.JobId, RepostImportStatus.CooldownWait,
-			chatResult.ErrorMessage ?? "Telegram ограничил сессию", ct);
+			$"Telegram ограничил сессию, ждём {cooldownSeconds} сек.", ct);
 	}
 
 	private async Task DelayBeforeNextChannelAsync(CancellationToken ct)

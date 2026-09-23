@@ -89,7 +89,7 @@ function JobProgress({job}: {job: RepostImportJobResponse}) {
     const percent = job.totalCount > 0 ? Math.round((processed / job.totalCount) * 100) : 100;
 
     return (
-        <div className="flex min-h-0 flex-col gap-4">
+        <div className="flex min-h-0 min-w-0 flex-col gap-4">
             <div className="space-y-2">
                 <div className="flex items-center justify-between gap-2">
                     <Badge variant={job.status === "Failed" ? "destructive" : "secondary"}>
@@ -116,7 +116,7 @@ function JobProgress({job}: {job: RepostImportJobResponse}) {
                 </p>
             )}
 
-            <ScrollArea className="min-h-0 flex-1 pr-3">
+            <ScrollArea className="min-h-0 min-w-0 flex-1 pr-3">
                 <div className="space-y-2">
                     {job.results.map((item) => (
                         <div
@@ -126,7 +126,7 @@ function JobProgress({job}: {job: RepostImportJobResponse}) {
                             <OutcomeIcon outcome={item.outcome}/>
                             <div className="min-w-0 flex-1">
                                 <p className="truncate font-medium">{item.title}</p>
-                                <p className="text-xs text-muted-foreground">
+                                <p className="text-xs text-muted-foreground break-words">
                                     {OUTCOME_LABELS[item.outcome]}
                                     {item.error ? ` — ${item.error}` : ""}
                                 </p>
