@@ -26,7 +26,7 @@ internal sealed class RepostMessageConsumer(
 
 		if (repostData.Destinations.Count == 0)
 		{
-			logger.LogInformation("Нет активных направлений для репоста сообщения {MessageId}", command.MessageId);
+			logger.LogDebug("Нет активных направлений для репоста сообщения {MessageId}", command.MessageId);
 			return;
 		}
 
@@ -83,9 +83,6 @@ internal sealed class RepostMessageConsumer(
 		{
 			if (!dialogs.TryGetValue(dest.ChatIdentifier, out var destination))
 			{
-				logger.LogWarning(
-					"Целевой канал {ChatId} отсутствует в диалогах сессии {SessionId}",
-					dest.ChatIdentifier, sessionId);
 				await WriteLogAsync(new RepostLogEntry
 				{
 					MessageId = command.MessageId,
@@ -100,9 +97,6 @@ internal sealed class RepostMessageConsumer(
 			var skipReason = await GetSkipReasonAsync(dest, ct);
 			if (skipReason != RepostLogReason.None)
 			{
-				logger.LogInformation(
-					"Репост сообщения {MessageId} в {ChatId} пропущен: {Reason}",
-					command.MessageId, dest.ChatIdentifier, skipReason);
 				await WriteLogAsync(new RepostLogEntry
 				{
 					MessageId = command.MessageId,
@@ -132,8 +126,6 @@ internal sealed class RepostMessageConsumer(
 
 			if (forwardResult.IsSuccess)
 			{
-				logger.LogInformation(
-					"Сообщение {MessageId} репостнуто в {ChatId}", command.MessageId, dest.ChatIdentifier);
 				await WriteLogAsync(new RepostLogEntry
 				{
 					MessageId = command.MessageId,
@@ -146,19 +138,26 @@ internal sealed class RepostMessageConsumer(
 				continue;
 			}
 
-			var reason = RepostLogReason.ForwardFailed;
-			if (forwardResult.Status == TelegramOperationStatus.ChannelBanned)
+			RepostLogReason reason;
+			switch (forwardResult.Status)
 			{
-				logger.LogWarning(
-					"Аккаунт заблокирован в канале {ChatId}: {Error}. Направление репоста отключено",
-					destination.Id, forwardResult.ErrorMessage);
-				await storage.UpdateDestinationStatusAsync(dest.Id, ChatStatus.Banned, false, ct);
-				reason = RepostLogReason.Banned;
-			}
-			else
-			{
-				logger.LogError("Ошибка при репосте в {ChatIdentifier}: {Status} {Error}",
-					destination.Id, forwardResult.Status, forwardResult.ErrorMessage);
+				case TelegramOperationStatus.ChannelBanned:
+					logger.LogWarning(
+						"Аккаунт заблокирован в канале {ChatId}: {Error}. Направление репоста отключено",
+						destination.Id, forwardResult.ErrorMessage);
+					await storage.UpdateDestinationStatusAsync(dest.Id, ChatStatus.Banned, false, ct);
+					reason = RepostLogReason.Banned;
+					break;
+
+				case TelegramOperationStatus.TopicClosed:
+					reason = RepostLogReason.TopicClosed;
+					break;
+
+				default:
+					logger.LogError("Ошибка при репосте в {ChatIdentifier}: {Status} {Error}",
+						destination.Id, forwardResult.Status, forwardResult.ErrorMessage);
+					reason = RepostLogReason.ForwardFailed;
+					break;
 			}
 
 			await WriteLogAsync(new RepostLogEntry

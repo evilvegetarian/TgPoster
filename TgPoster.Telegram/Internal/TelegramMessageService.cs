@@ -421,6 +421,12 @@ internal sealed class TelegramMessageService(
 					ex.Message);
 				return TelegramOperationResult<T>.Failed(TelegramOperationStatus.ChannelBanned, ex.Message);
 			}
+			catch (RpcException ex) when (ex.Message is "TOPIC_CLOSED" or "TOPIC_DELETED")
+			{
+				logger.LogWarning("Telegram {Operation}: тема форума закрыта или удалена ({Error})", operation,
+					ex.Message);
+				return TelegramOperationResult<T>.Failed(TelegramOperationStatus.TopicClosed, ex.Message);
+			}
 			catch (RpcException ex) when (ex.Message is "CHAT_FORWARDS_RESTRICTED")
 			{
 				logger.LogWarning("Telegram {Operation}: пересылка из источника запрещена ({Error})", operation,

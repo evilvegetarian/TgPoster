@@ -27,5 +27,10 @@ public enum TelegramOperationStatus
 	///     В канале-источнике включена защита контента — пересылка запрещена
 	/// </summary>
 	ForwardsRestricted,
+
+	/// <summary>
+	///     Тема форума в целевом чате закрыта или удалена — отправка и пересылка в неё запрещены
+	/// </summary>
+	TopicClosed,
 	UnknownError
 }

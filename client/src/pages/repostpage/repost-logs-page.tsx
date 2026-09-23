@@ -32,6 +32,7 @@ const REASON_LABELS: Record<RepostLogReason, string> = {
     DestinationNotAvailable: "Аккаунт не состоит в канале",
     Banned: "Аккаунт забанен в канале",
     ForwardFailed: "Telegram отклонил пересылку",
+    TopicClosed: "Тема форума закрыта",
 }
 
 function statusVariant(status: RepostStatus): "default" | "destructive" | "secondary" | "outline" {

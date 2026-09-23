@@ -1041,6 +1041,7 @@ export const RepostLogReason = {
   DestinationNotAvailable: 'DestinationNotAvailable',
   Banned: 'Banned',
   ForwardFailed: 'ForwardFailed',
+  TopicClosed: 'TopicClosed',
 } as const;
 
 export interface RepostLogReasonCount {

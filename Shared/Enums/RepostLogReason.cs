@@ -53,5 +53,10 @@ public enum RepostLogReason
 	/// <summary>
 	///     Telegram вернул ошибку при пересылке сообщения
 	/// </summary>
-	ForwardFailed = 9
+	ForwardFailed = 9,
+
+	/// <summary>
+	///     Тема форума в целевом чате закрыта — Telegram не принимает пересылку
+	/// </summary>
+	TopicClosed = 10
 }
