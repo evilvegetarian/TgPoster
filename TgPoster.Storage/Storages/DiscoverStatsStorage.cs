@@ -21,7 +21,8 @@ internal sealed class DiscoverStatsStorage(PosterContext context)
 		var monthAgo = now.AddDays(-30);
 
 		// Все счётчики считаем одним проходом по таблице: GroupBy по константе
-		// превращается в набор агрегатов с FILTER без группировки
+		// превращается в набор агрегатов с FILTER. Строка всегда максимум одна,
+		// но на пустой таблице группы нет вовсе — отсюда SingleOrDefault и фолбэк
 		var totals = await context.DiscoveredChannels
 			.GroupBy(_ => 1)
 			.Select(g => new DiscoverStatsTotalsDto(
@@ -40,7 +41,7 @@ internal sealed class DiscoverStatsStorage(PosterContext context)
 				g.Min(x => x.Created),
 				g.Max(x => x.Created),
 				g.Max(x => x.LastDiscoveredAt)))
-			.FirstOrDefaultAsync(ct);
+			.SingleOrDefaultAsync(ct);
 
 		return totals ?? DiscoverStatsTotalsDto.Empty;
 	}
@@ -110,7 +111,7 @@ internal sealed class DiscoverStatsStorage(PosterContext context)
 				                             && x.ParticipantsCount < Participants100K),
 				Over100K = g.Count(x => x.ParticipantsCount >= Participants100K)
 			})
-			.FirstOrDefaultAsync(ct);
+			.SingleOrDefaultAsync(ct);
 
 		if (counts is null)
 		{

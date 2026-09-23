@@ -34,7 +34,7 @@ public sealed class TelegramBotManager(IWebProxy? proxy = null, ILogger<Telegram
 	{
 		return clients.GetOrAdd(token, t =>
 		{
-			logger?.LogInformation(
+			logger?.LogDebug(
 				"Создание TelegramBotClient. Прокси для api.telegram.org: {ProxyMode}",
 				proxy is null ? "НЕ настроен (запросы напрямую)" : "включён");
 

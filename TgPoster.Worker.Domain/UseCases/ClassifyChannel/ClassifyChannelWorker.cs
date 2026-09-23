@@ -171,7 +171,7 @@ internal sealed partial class ClassifyChannelWorker(
 			classification.Confidence,
 			ct);
 
-		logger.LogInformation(
+		logger.LogDebug(
 			"Канал {Channel} классифицирован: {Category}/{Subcategory} (confidence: {Confidence})",
 			channel.Title, classification.Category, classification.Subcategory, classification.Confidence);
 	}

@@ -29,11 +29,9 @@ internal sealed class UpdateChannelStatsWorker(
 		var channels = await storage.GetChannelsToUpdateAsync(BatchSize, ct);
 		if (channels.Count == 0)
 		{
-			logger.LogInformation("Нет каналов для обновления статистики подписчиков");
+			logger.LogDebug("Нет каналов для обновления статистики подписчиков");
 			return;
 		}
-
-		logger.LogInformation("Начинаем обновление статистики для {Count} каналов", channels.Count);
 
 		var updated = 0;
 
@@ -69,6 +67,6 @@ internal sealed class UpdateChannelStatsWorker(
 			await Task.Delay(TimeSpan.FromSeconds(3), ct);
 		}
 
-		logger.LogInformation("Обновлена статистика для {Updated}/{Total} каналов", updated, channels.Count);
+		logger.LogDebug("Обновлена статистика для {Updated}/{Total} каналов", updated, channels.Count);
 	}
 }
