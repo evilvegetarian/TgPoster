@@ -207,6 +207,11 @@ export function AddFromDiscoverDialog({
             return;
         }
 
+        // Завершённую задачу закрываем совсем: иначе баннер на Discover висит до нажатия «Готово»
+        if (!isOpen && job != null && !isJobRunning) {
+            onJobCleared();
+        }
+
         onOpenChange(isOpen);
     }
 

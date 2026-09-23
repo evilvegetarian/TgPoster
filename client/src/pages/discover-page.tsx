@@ -1,6 +1,6 @@
 import {useState} from "react"
 import {Link} from "react-router-dom"
-import {BarChart3, ExternalLink, ListPlus, Loader2, Search, Send, Users} from "lucide-react"
+import {BarChart3, ExternalLink, ListPlus, Loader2, Search, Send, Users, X} from "lucide-react"
 import {useGetApiV1Discover, useGetApiV1DiscoverCategories} from "@/api/endpoints/discover/discover"
 import {Badge} from "@/components/ui/badge"
 import {Button} from "@/components/ui/button"
@@ -152,9 +152,10 @@ function ChannelCard({channel, selected, onSelectedChange}: ChannelCardProps) {
 interface ImportJobBannerProps {
     job: RepostImportJobResponse
     onOpen: () => void
+    onDismiss: () => void
 }
 
-function ImportJobBanner({job, onOpen}: ImportJobBannerProps) {
+function ImportJobBanner({job, onOpen, onDismiss}: ImportJobBannerProps) {
     const processed = job.totalCount - job.pendingCount
     const percent = job.totalCount > 0 ? Math.round((processed / job.totalCount) * 100) : 100
     const isRunning = job.status !== "Completed" && job.status !== "Failed"
@@ -171,9 +172,17 @@ function ImportJobBanner({job, onOpen}: ImportJobBannerProps) {
                                 : `Добавление завершено: ${job.addedCount} из ${job.totalCount}`}
                         </p>
                     </div>
-                    <Button variant="outline" size="sm" onClick={onOpen}>
-                        Подробнее
-                    </Button>
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                        <Button variant="outline" size="sm" onClick={onOpen}>
+                            Подробнее
+                        </Button>
+                        {!isRunning && (
+                            <Button variant="ghost" size="icon" onClick={onDismiss} title="Скрыть">
+                                <X className="h-4 w-4"/>
+                                <span className="sr-only">Скрыть</span>
+                            </Button>
+                        )}
+                    </div>
                 </div>
                 <Progress value={percent}/>
                 {job.status === "CooldownWait" && (
@@ -335,7 +344,12 @@ export function DiscoverPage() {
             </div>
 
             {job != null && (
-                <ImportJobBanner job={job} onOpen={() => setIsAddToRepostOpen(true)}/>
+                <ImportJobBanner
+                    job={job}
+                    onOpen={() => setIsAddToRepostOpen(true)}
+                    onDismiss={clearJob}
+                />
+
             )}
 
             <Card className="mb-6">
