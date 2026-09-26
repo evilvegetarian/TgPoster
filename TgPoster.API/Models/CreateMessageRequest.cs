@@ -1,4 +1,6 @@
+using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
+using Shared.Enums;
 
 namespace TgPoster.API.Models;
 
@@ -26,6 +28,17 @@ public sealed class CreateMessageRequest : IValidatableObject
 	///     Файлы сообщения
 	/// </summary>
 	public List<IFormFile> Files { get; set; } = [];
+
+	/// <summary>
+	///     Кросс-постить ли пост в подключённые соцсети. По умолчанию — да
+	/// </summary>
+	[DefaultValue(true)]
+	public bool? CrossPostEnabled { get; set; }
+
+	/// <summary>
+	///     Формат кросс-поста; Inherit или пусто — как в настройках расписания
+	/// </summary>
+	public MessageCrossPostFormat? CrossPostFormat { get; set; }
 
 	/// <summary>
 	///     Валидация запроса на создание сообщения

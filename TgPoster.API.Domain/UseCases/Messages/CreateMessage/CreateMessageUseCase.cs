@@ -27,7 +27,14 @@ internal sealed class CreateMessageUseCase(
 		var bot = botManager.GetClient(token);
 		var files = await telegramService.GetFileMessageInTelegramByFile(bot, request.Files, chatId, ct);
 
-		var id = await storage.CreateMessagesAsync(request.ScheduleId, request.Text, request.TimePosting, files, ct);
+		var id = await storage.CreateMessagesAsync(
+			request.ScheduleId,
+			request.Text,
+			request.TimePosting,
+			files,
+			request.CrossPostEnabled,
+			request.CrossPostFormat,
+			ct);
 		return new CreateMessageResponse
 		{
 			Id = id

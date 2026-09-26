@@ -90,7 +90,7 @@ public class CreateMessageStorageShould(StorageTestFixture fixture) : IClassFixt
 			new() { FileId = "file2", MimeType = "video/mp4" }
 		};
 
-		var messageId = await sut.CreateMessagesAsync(schedule.Id, text, time, files, CancellationToken.None);
+		var messageId = await sut.CreateMessagesAsync(schedule.Id, text, time, files, true, null, CancellationToken.None);
 
 		messageId.ShouldNotBe(Guid.Empty);
 
@@ -114,7 +114,7 @@ public class CreateMessageStorageShould(StorageTestFixture fixture) : IClassFixt
 		var time = DateTimeOffset.UtcNow.AddHours(1);
 		var files = new List<MediaFileResult>();
 
-		var messageId = await sut.CreateMessagesAsync(schedule.Id, text, time, files, CancellationToken.None);
+		var messageId = await sut.CreateMessagesAsync(schedule.Id, text, time, files, true, null, CancellationToken.None);
 
 		messageId.ShouldNotBe(Guid.Empty);
 
@@ -139,7 +139,7 @@ public class CreateMessageStorageShould(StorageTestFixture fixture) : IClassFixt
 			new() { FileId = "file1", MimeType = "image/jpeg" }
 		};
 
-		var messageId = await sut.CreateMessagesAsync(schedule.Id, null, time, files, CancellationToken.None);
+		var messageId = await sut.CreateMessagesAsync(schedule.Id, null, time, files, true, null, CancellationToken.None);
 
 		messageId.ShouldNotBe(Guid.Empty);
 

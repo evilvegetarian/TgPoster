@@ -32,6 +32,9 @@ internal sealed class GetMessageUseCase(
 			NeedApprove = !message.IsVerified,
 			IsSent = message.IsSent,
 			HasYouTubeAccount = message.HasYouTubeAccount,
+			CrossPostEnabled = message.CrossPostEnabled,
+			CrossPostFormat = message.CrossPostFormat,
+			CrossPosts = message.CrossPosts,
 			HasVideo = message.Files.Any(f => f.ContentType.GetFileType() == FileTypes.Video),
 			Files = message.Files.Select(file => new FileResponse
 			{

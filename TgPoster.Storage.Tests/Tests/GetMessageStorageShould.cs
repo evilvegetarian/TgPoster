@@ -1,3 +1,4 @@
+using Shared.Enums;
 using Shouldly;
 using TgPoster.Storage.Data;
 using TgPoster.Storage.Data.Enum;
@@ -96,5 +97,55 @@ public class GetMessageStorageShould(StorageTestFixture fixture) : IClassFixture
 		result.Files.Count.ShouldBe(2);
 		result.Files.ShouldContain(x => x.ContentType == FileTypes.Photo.GetContentType());
 		result.Files.ShouldContain(x => x.ContentType == FileTypes.Video.GetContentType());
+	}
+
+	[Fact]
+	public async Task GetMessagesAsync_WithCrossPosts_ShouldReturnStatusesOrderedByCreated()
+	{
+		var schedule = await new ScheduleBuilder(context).CreateAsync();
+		var message = await new MessageBuilder(context).WithSchedule(schedule).CreateAsync();
+		var firstAccount = await new SocialAccountBuilder(context).WithUserId(schedule.UserId).CreateAsync();
+		var secondAccount = await new SocialAccountBuilder(context).WithUserId(schedule.UserId).CreateAsync();
+		var firstTarget = await new CrossPostTargetBuilder(context)
+			.WithSchedule(schedule)
+			.WithSocialAccount(firstAccount)
+			.CreateAsync();
+		var secondTarget = await new CrossPostTargetBuilder(context)
+			.WithSchedule(schedule)
+			.WithSocialAccount(secondAccount)
+			.CreateAsync();
+		var first = await new CrossPostBuilder(context)
+			.WithMessage(message)
+			.WithTarget(firstTarget)
+			.WithStatus(CrossPostStatus.Failed)
+			.CreateAsync();
+		await Task.Delay(20);
+		var second = await new CrossPostBuilder(context)
+			.WithMessage(message)
+			.WithTarget(secondTarget)
+			.WithStatus(CrossPostStatus.Published)
+			.CreateAsync();
+
+		var result = await sut.GetMessagesAsync(message.Id, schedule.UserId, CancellationToken.None);
+
+		result.ShouldNotBeNull();
+		result.CrossPosts.Count.ShouldBe(2);
+		result.CrossPosts.Select(x => x.Id).ShouldBe([first.Id, second.Id]);
+		result.CrossPosts.Select(x => x.Status).ShouldBe([CrossPostStatus.Failed, CrossPostStatus.Published]);
+	}
+
+	[Fact]
+	public async Task GetMessagesAsync_WithSentStatus_ShouldReturnIsSentTrue()
+	{
+		var schedule = await new ScheduleBuilder(context).CreateAsync();
+		var message = await new MessageBuilder(context)
+			.WithSchedule(schedule)
+			.WithStatus(Data.Enum.MessageStatus.Send)
+			.CreateAsync();
+
+		var result = await sut.GetMessagesAsync(message.Id, schedule.UserId, CancellationToken.None);
+
+		result.ShouldNotBeNull();
+		result.IsSent.ShouldBeTrue();
 	}
 }

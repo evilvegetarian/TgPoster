@@ -15,6 +15,9 @@ internal class PosterContext(
 	public DbSet<Schedule> Schedules { get; set; }
 	public DbSet<TelegramBot> TelegramBots { get; set; }
 	public DbSet<Message> Messages { get; set; }
+	public DbSet<SocialAccount> SocialAccounts { get; set; }
+	public DbSet<CrossPostTarget> CrossPostTargets { get; set; }
+	public DbSet<CrossPost> CrossPosts { get; set; }
 	public DbSet<MessageFile> MessageFiles { get; set; }
 	public DbSet<ChannelParsingSetting> ChannelParsingParameters { get; set; }
 	public DbSet<OpenRouterSetting> OpenRouterSettings { get; set; }

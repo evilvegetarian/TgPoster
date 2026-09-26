@@ -1,3 +1,5 @@
+using Shared.Enums;
+
 namespace TgPoster.API.Domain.UseCases.Messages.ListMessage;
 
 public sealed class MessageDto
@@ -11,4 +13,7 @@ public sealed class MessageDto
 	public DateTimeOffset? Created { get; set; }
 	public bool IsSent { get; set; }
 	public bool HasYouTubeAccount { get; set; }
+	public bool CrossPostEnabled { get; set; }
+	public CrossPostFormat? CrossPostFormat { get; set; }
+	public List<CrossPostStatusResponse> CrossPosts { get; set; } = [];
 }

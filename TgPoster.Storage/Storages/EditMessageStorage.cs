@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Shared.Enums;
 using TgPoster.API.Domain.Services;
 using TgPoster.API.Domain.UseCases.Messages.EditMessage;
 using TgPoster.Storage.Data;
@@ -29,6 +30,18 @@ internal sealed class EditMessageStorage(PosterContext context) : IEditMessageSt
 		message!.TextMessage = messageDto.Text;
 		message.TimePosting = messageDto.TimePosting;
 		message.ScheduleId = messageDto.ScheduleId;
+
+		if (messageDto.CrossPostEnabled is not null)
+		{
+			message.CrossPostEnabled = messageDto.CrossPostEnabled.Value;
+		}
+
+		if (messageDto.CrossPostFormat is not null)
+		{
+			message.CrossPostFormat = messageDto.CrossPostFormat == MessageCrossPostFormat.Inherit
+				? null
+				: (CrossPostFormat)(int)messageDto.CrossPostFormat.Value;
+		}
 
 		var filesToKeep = message.MessageFiles
 			.Where(f => messageDto.Files.Contains(f.Id)

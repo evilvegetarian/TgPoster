@@ -1,3 +1,4 @@
+using Shared.Enums;
 using Shouldly;
 using TgPoster.API.Domain.UseCases.Messages.ListMessage;
 using TgPoster.Storage.Data;
@@ -137,6 +138,43 @@ public sealed class ListMessageStorageShould(StorageTestFixture fixture) : IClas
 		returnedMessage.TextMessage.ShouldBe(message.TextMessage);
 		returnedMessage.ScheduleId.ShouldBe(message.ScheduleId);
 		returnedMessage.IsSent.ShouldBeFalse();
+	}
+
+	[Fact]
+	public async Task GetMessagesAsync_WithCrossPosts_ShouldReturnStatusesOrderedByCreated()
+	{
+		var schedule = await new ScheduleBuilder(context).CreateAsync();
+		var message = await new MessageBuilder(context).WithSchedule(schedule)
+			.WithStatus(Data.Enum.MessageStatus.Send).CreateAsync();
+		var firstAccount = await new SocialAccountBuilder(context).WithUserId(schedule.UserId).CreateAsync();
+		var secondAccount = await new SocialAccountBuilder(context).WithUserId(schedule.UserId).CreateAsync();
+		var firstTarget = await new CrossPostTargetBuilder(context)
+			.WithSchedule(schedule)
+			.WithSocialAccount(firstAccount)
+			.CreateAsync();
+		var secondTarget = await new CrossPostTargetBuilder(context)
+			.WithSchedule(schedule)
+			.WithSocialAccount(secondAccount)
+			.CreateAsync();
+		var first = await new CrossPostBuilder(context)
+			.WithMessage(message)
+			.WithTarget(firstTarget)
+			.WithStatus(CrossPostStatus.Failed)
+			.CreateAsync();
+		await Task.Delay(20);
+		var second = await new CrossPostBuilder(context)
+			.WithMessage(message)
+			.WithTarget(secondTarget)
+			.WithStatus(CrossPostStatus.Published)
+			.CreateAsync();
+
+		var request = CreateQuery(schedule.Id);
+		var result = await sut.GetMessagesAsync(request, Ct);
+
+		var returned = result.Items.ShouldHaveSingleItem();
+		returned.IsSent.ShouldBeTrue();
+		returned.CrossPosts.Count.ShouldBe(2);
+		returned.CrossPosts.Select(x => x.Id).ShouldBe([first.Id, second.Id]);
 	}
 
 	[Fact]

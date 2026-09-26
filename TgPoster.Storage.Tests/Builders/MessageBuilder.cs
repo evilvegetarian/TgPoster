@@ -82,6 +82,24 @@ internal class MessageBuilder(PosterContext context)
 		return this;
 	}
 
+	public MessageBuilder WithCrossPostEnabled(bool value)
+	{
+		message.CrossPostEnabled = value;
+		return this;
+	}
+
+	public MessageBuilder WithTelegramMessageId(int? value)
+	{
+		message.TelegramMessageId = value;
+		return this;
+	}
+
+	public MessageBuilder WithChannelParsingSettingId(Guid? value)
+	{
+		message.ChannelParsingSettingId = value;
+		return this;
+	}
+
 	public MessageBuilder WithPhotoMessageFile()
 	{
 		message.MessageFiles.Add(new MessageFile

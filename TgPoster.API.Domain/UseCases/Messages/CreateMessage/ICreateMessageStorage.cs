@@ -1,3 +1,4 @@
+using Shared.Enums;
 using TgPoster.API.Domain.Services;
 using TgPoster.API.Domain.UseCases.Messages.CreateMessagesFromFiles;
 
@@ -13,6 +14,8 @@ public interface ICreateMessageStorage
 		string? text,
 		DateTimeOffset time,
 		List<MediaFileResult> files,
+		bool crossPostEnabled,
+		CrossPostFormat? crossPostFormat,
 		CancellationToken ct
 	);
 }

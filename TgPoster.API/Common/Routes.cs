@@ -62,6 +62,7 @@ internal static class Routes
 		internal const string GetTime = Root + "/{scheduleId:guid}/time";
 		internal const string UpdateAllTime = Root + "/{scheduleId:guid}/times";
 		internal const string Shuffle = Root + "/{scheduleId:guid}/shuffle";
+		internal const string RetryCrossPost = Root + "/{id:guid}/cross-posts/{crossPostId:guid}/retry";
 	}
 
 	internal static class File
@@ -111,6 +112,24 @@ internal static class Routes
 		internal const string CallBack = Root + "/callback";
 		internal const string SendVideo = Root + "/{messageId:guid}";
 		internal const string Delete = Root + "/{id:guid}";
+	}
+
+	internal static class SocialAccount
+	{
+		internal const string Root = Base + "/social-accounts";
+		internal const string List = Root;
+		internal const string Delete = Root + "/{id:guid}";
+		internal const string ConnectBluesky = Root + "/bluesky";
+	}
+
+	internal static class CrossPostTarget
+	{
+		internal const string Root = Base + "/schedule/{scheduleId:guid}/cross-post-targets";
+		internal const string List = Root;
+		internal const string Create = Root;
+		internal const string Update = Root + "/{id:guid}";
+		internal const string Delete = Root + "/{id:guid}";
+		internal const string Preview = Root + "/preview";
 	}
 
 	internal static class TelegramSession

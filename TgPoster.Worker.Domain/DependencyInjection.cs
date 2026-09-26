@@ -6,6 +6,7 @@ using MassTransit;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Shared;
 using Shared.Services;
 using TgPoster.Worker.Domain.ConfigModels;
@@ -13,6 +14,10 @@ using TgPoster.Worker.Domain.UseCases;
 using TgPoster.Worker.Domain.UseCases.ClassifyChannel;
 using TgPoster.Worker.Domain.UseCases.CleanupS3Files;
 using TgPoster.Worker.Domain.UseCases.CommentRepostMonitor;
+using TgPoster.Worker.Domain.UseCases.CrossPosting;
+using TgPoster.Worker.Domain.UseCases.CrossPosting.Media;
+using TgPoster.Worker.Domain.UseCases.CrossPosting.Publishing;
+using TgPoster.Worker.Domain.UseCases.CrossPosting.Publishing.Bluesky;
 using TgPoster.Worker.Domain.UseCases.DiscoverChannelLinks;
 using TgPoster.Worker.Domain.UseCases.ImportRepostDestinations;
 using TgPoster.Worker.Domain.UseCases.ParseChannel;
@@ -58,6 +63,14 @@ public static class DependencyInjection
 		});
 		services.AddHangfireServer();
 		services.AddShared();
+		services.AddScoped<ITelegramFileDownloader, TelegramFileDownloader>();
+		services.AddScoped<ICrossPostMediaLoader, CrossPostMediaLoader>();
+		services.TryAddSingleton(TimeProvider.System);
+		services.AddScoped<ICrossPostPublisher, CrossPostPublisher>();
+		services.AddMemoryCache();
+		services.AddSingleton<BlueskySessionCache>();
+		services.AddScoped<ISocialPublisher, BlueskyPublisher>();
+		services.AddScoped<CrossPostWorker>();
 		services.AddScoped<SenderMessageWorker>();
 		services.AddScoped<ParseChannelWorker>();
 		services.AddScoped<ParseChannelUseCase>();
@@ -161,6 +174,11 @@ public static class DependencyInjection
 		recurringJobManager.AddOrUpdate<ResumeRepostImportJobsWorker>(
 			"resume-repost-import-job",
 			worker => worker.ResumeAsync(),
+			Cron.Minutely());
+
+		recurringJobManager.AddOrUpdate<CrossPostWorker>(
+			"cross-post-job",
+			worker => worker.ProcessAsync(),
 			Cron.Minutely());
 
 		var statusStorage = scope.ServiceProvider.GetRequiredService<IWorkerJobStatusStorage>();

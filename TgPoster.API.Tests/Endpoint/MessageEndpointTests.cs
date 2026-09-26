@@ -1,4 +1,5 @@
 using System.Net;
+using Shared.Enums;
 using Shouldly;
 using TgPoster.API.Common;
 using TgPoster.API.Domain.UseCases.Messages.CreateMessage;
@@ -153,6 +154,61 @@ public class MessageEndpointTests(EndpointTestFixture fixture) : IClassFixture<E
 		getResponse.ScheduleId.ShouldBe(createMessage.ScheduleId);
 		getResponse.TextMessage.ShouldBe(createMessage.TextMessage);
 		getResponse.Files.Count.ShouldBe(createMessage.Files.Count);
+	}
+
+	[Fact]
+	public async Task Create_WithCrossPostSettings_ReturnsThemInGet()
+	{
+		var createMessage = new CreateMessageRequest
+		{
+			ScheduleId = GlobalConst.Worked.ScheduleId,
+			TimePosting = DateTimeOffset.UtcNow.AddDays(1),
+			CrossPostEnabled = false,
+			CrossPostFormat = MessageCrossPostFormat.Full
+		};
+
+		var created = await client.PostMultipartFormAsync<CreateMessageResponse>(Url, createMessage);
+		var getResponse = await client.GetAsync<MessageResponse>(Url + "/" + created.Id);
+
+		getResponse.CrossPostEnabled.ShouldBeFalse();
+		getResponse.CrossPostFormat.ShouldBe(CrossPostFormat.Full);
+		getResponse.CrossPosts.ShouldBeEmpty();
+	}
+
+	[Fact]
+	public async Task Edit_WithInheritFormat_ResetsFormatToNull()
+	{
+		var createMessage = new CreateMessageRequest
+		{
+			ScheduleId = GlobalConst.Worked.ScheduleId,
+			TimePosting = DateTimeOffset.UtcNow.AddDays(1),
+			CrossPostFormat = MessageCrossPostFormat.Full
+		};
+		var created = await client.PostMultipartFormAsync<CreateMessageResponse>(Url, createMessage);
+
+		var request = new EditMessageRequest
+		{
+			ScheduleId = GlobalConst.Worked.ScheduleId,
+			TimePosting = DateTimeOffset.UtcNow.AddDays(2),
+			CrossPostFormat = MessageCrossPostFormat.Inherit
+		};
+
+		var response = await client.PutAsync(Url + "/" + created.Id, request.ToMultipartForm());
+		response.StatusCode.ShouldBe(HttpStatusCode.NoContent);
+
+		var updated = await client.GetAsync<MessageResponse>(Url + "/" + created.Id);
+		updated.CrossPostFormat.ShouldBeNull();
+	}
+
+	[Fact]
+	public async Task RetryCrossPost_WithNonExistentCrossPost_ReturnsNotFound()
+	{
+		var messageId = await helper.CreateMessage(GlobalConst.Worked.ScheduleId);
+
+		var response = await client.PostAsync($"{Url}/{messageId}/cross-posts/{Guid.NewGuid()}/retry",
+			new StringContent(string.Empty));
+
+		response.StatusCode.ShouldBe(HttpStatusCode.NotFound);
 	}
 
 	[Fact]

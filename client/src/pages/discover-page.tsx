@@ -292,7 +292,9 @@ export function DiscoverPage() {
         setPage(1)
     }
 
-    const pageChannelIds = channels.map((channel) => channel.id)
+    const pageChannelIds = channels
+        .map((channel) => channel.id)
+        .filter((id): id is string => !!id)
     const allOnPageSelected = pageChannelIds.length > 0
         && pageChannelIds.every((id) => selectedIds.includes(id))
 
@@ -474,8 +476,10 @@ export function DiscoverPage() {
                             <ChannelCard
                                 key={channel.id}
                                 channel={channel}
-                                selected={selectedIds.includes(channel.id)}
-                                onSelectedChange={(selected) => handleSelectedChange(channel.id, selected)}
+                                selected={!!channel.id && selectedIds.includes(channel.id)}
+                                onSelectedChange={(selected) => {
+                                    if (channel.id) handleSelectedChange(channel.id, selected)
+                                }}
                             />
                         ))}
                     </div>

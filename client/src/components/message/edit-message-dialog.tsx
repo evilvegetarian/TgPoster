@@ -9,19 +9,22 @@ import type {MessageResponse} from "@/api/endpoints/tgPosterAPI.schemas.ts";
 import {useGetApiV1MessageMessageIdAiContent, usePutApiV1MessageId} from "@/api/endpoints/message/message.ts";
 import {toast} from "sonner";
 import {z} from "zod";
-import {useForm} from "react-hook-form";
+import {Controller, useForm} from "react-hook-form";
 import {zodResolver} from "@hookform/resolvers/zod";
 import {Form, FormControl, FormField, FormItem, FormLabel, FormMessage} from "@/components/ui/form.tsx";
 import {utcToLocalString} from "@/utils/convertLocalToIsoTime.tsx";
 import {Textarea} from "@/components/ui/textarea.tsx";
 import {TimeSuggestions} from "@/components/message/time-suggestions.tsx";
+import {CrossPostToggle} from "@/components/cross-post/cross-post-toggle.tsx";
 
 const formSchema = z.object({
     scheduleId: z.string().min(1, "Необходимо расписание"),
     timePosting: z.string({required_error: "Выберите дату"}),
     textMessage: z.string().max(4096).nullable().optional(),
     oldFiles: z.array(z.string()),
-    newFiles: z.array(z.instanceof(File))
+    newFiles: z.array(z.instanceof(File)),
+    crossPostEnabled: z.boolean(),
+    crossPostFormat: z.enum(["Inherit", "Teaser", "Full", "Announcement"])
 });
 
 type EditMessageFormValues = z.infer<typeof formSchema>;
@@ -43,7 +46,9 @@ export function EditMessageDialog({message, availableTimes, onTimeSelect, onSucc
             timePosting: utcToLocalString(message?.timePosting),
             scheduleId: message?.scheduleId,
             oldFiles: message.files?.map(x => x.id) ?? [],
-            newFiles: []
+            newFiles: [],
+            crossPostEnabled: message.crossPostEnabled ?? true,
+            crossPostFormat: message.crossPostFormat ?? "Inherit"
         }
     });
 
@@ -112,7 +117,9 @@ export function EditMessageDialog({message, availableTimes, onTimeSelect, onSucc
                 TimePosting: new Date(values.timePosting).toISOString(),
                 TextMessage: values.textMessage || undefined,
                 OldFiles: values.oldFiles,
-                NewFiles: values.newFiles
+                NewFiles: values.newFiles,
+                CrossPostEnabled: values.crossPostEnabled,
+                CrossPostFormat: values.crossPostFormat
             }
         });
     };
@@ -166,6 +173,21 @@ export function EditMessageDialog({message, availableTimes, onTimeSelect, onSucc
                                 )}
                             />
                         </div>
+
+                        <Controller
+                            control={form.control}
+                            name="crossPostEnabled"
+                            render={({field}) => (
+                                <CrossPostToggle
+                                    id="edit-cross-post"
+                                    enabled={field.value}
+                                    onEnabledChange={field.onChange}
+                                    format={form.watch("crossPostFormat")}
+                                    onFormatChange={(value) => form.setValue("crossPostFormat", value, {shouldDirty: true})}
+                                    disabled={updateIsPending}
+                                />
+                            )}
+                        />
 
                         <div className="space-y-3">
                             <FormField

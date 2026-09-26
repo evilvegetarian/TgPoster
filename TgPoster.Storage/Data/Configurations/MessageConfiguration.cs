@@ -16,6 +16,16 @@ internal class MessageConfiguration : BaseEntityConfiguration<Message>
 		builder.Property(x => x.IsVerified)
 			.HasDefaultValue(true);
 
+		// Дефолт true нужен, чтобы уже существующие посты участвовали в кросс-постинге,
+		// а sentinel true — иначе EF не отправит false в INSERT и база подставит свой дефолт
+		builder.Property(x => x.CrossPostEnabled)
+			.HasDefaultValue(true)
+			.HasSentinel(true);
+
+		builder.Property(x => x.CrossPostFormat)
+			.HasConversion<string>()
+			.HasMaxLength(32);
+
 		builder.HasIndex(x => x.ScheduleId);
 
 		builder.HasOne(x => x.Schedule)
@@ -34,6 +44,10 @@ internal class MessageConfiguration : BaseEntityConfiguration<Message>
 			.OnDelete(DeleteBehavior.SetNull);
 
 		builder.HasMany(x => x.RepostLogs)
+			.WithOne(x => x.Message)
+			.HasForeignKey(x => x.MessageId);
+
+		builder.HasMany(x => x.CrossPosts)
 			.WithOne(x => x.Message)
 			.HasForeignKey(x => x.MessageId);
 	}

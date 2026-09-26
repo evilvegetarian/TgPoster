@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Shared.Enums;
 using TgPoster.API.Domain.Services;
 using TgPoster.API.Domain.UseCases.Messages.CreateMessage;
 using TgPoster.API.Domain.UseCases.Messages.CreateMessagesFromFiles;
@@ -32,6 +33,8 @@ internal sealed class CreateMessageStorage(PosterContext context, GuidFactory gu
 		string? text,
 		DateTimeOffset time,
 		List<MediaFileResult> files,
+		bool crossPostEnabled,
+		CrossPostFormat? crossPostFormat,
 		CancellationToken ct
 	)
 	{
@@ -43,7 +46,9 @@ internal sealed class CreateMessageStorage(PosterContext context, GuidFactory gu
 			ScheduleId = scheduleId,
 			TimePosting = time,
 			TextMessage = text,
-			IsTextMessage = text.IsTextMessage()
+			IsTextMessage = text.IsTextMessage(),
+			CrossPostEnabled = crossPostEnabled,
+			CrossPostFormat = crossPostFormat
 		};
 		var messageFiles = files.SelectMany((file, index) => file.ToEntity(messageId, index)).ToList();
 		await context.Messages.AddAsync(message, ct);

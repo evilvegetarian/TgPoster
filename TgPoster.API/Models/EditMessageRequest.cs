@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using Shared.Enums;
 
 namespace TgPoster.API.Models;
 
@@ -31,6 +32,16 @@ public sealed class EditMessageRequest : IValidatableObject
 	///     Новые файлы сообщения
 	/// </summary>
 	public List<IFormFile> NewFiles { get; set; } = [];
+
+	/// <summary>
+	///     Кросс-постить ли пост; null — не менять
+	/// </summary>
+	public bool? CrossPostEnabled { get; set; }
+
+	/// <summary>
+	///     Формат кросс-поста; null — не менять, Inherit — как в настройках расписания
+	/// </summary>
+	public MessageCrossPostFormat? CrossPostFormat { get; set; }
 
 	/// <summary>
 	///     Валидация запроса на редактирование сообщения

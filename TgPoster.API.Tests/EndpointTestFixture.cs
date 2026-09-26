@@ -10,6 +10,7 @@ using Microsoft.Extensions.Logging;
 using NSubstitute;
 using Security.Authentication;
 using Security.IdentityServices;
+using Shared.Social.Bluesky;
 using Shared.Utilities;
 using Telegram.Bot;
 using Testcontainers.PostgreSql;
@@ -31,6 +32,7 @@ public class EndpointTestFixture : WebApplicationFactory<Program>, IAsyncLifetim
 
 	public string? Token;
 	public HttpClient AuthClient { get; private set; } = null!;
+	public IBlueskyClient BlueskyClient { get; } = Substitute.For<IBlueskyClient>();
 
 	public async Task InitializeAsync()
 	{
@@ -92,6 +94,7 @@ public class EndpointTestFixture : WebApplicationFactory<Program>, IAsyncLifetim
 			ReplaceService<ITelegramAuthService>(services, Substitute.For<ITelegramAuthService>());
 			ReplaceService<ITelegramChatService>(services, CreateMockChatService());
 			ReplaceService<ITelegramService>(services, CreateMockTelegramService());
+			ReplaceService<IBlueskyClient>(services, BlueskyClient);
 		});
 		base.ConfigureWebHost(builder);
 	}

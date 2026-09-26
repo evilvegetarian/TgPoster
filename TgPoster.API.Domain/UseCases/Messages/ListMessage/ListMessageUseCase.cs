@@ -31,6 +31,9 @@ internal sealed class ListMessageUseCase(
 			IsSent = m.IsSent,
 			HasVideo = m.Files.Any(f => f.ContentType.GetFileType() == FileTypes.Video),
 			HasYouTubeAccount = m.HasYouTubeAccount,
+			CrossPostEnabled = m.CrossPostEnabled,
+			CrossPostFormat = m.CrossPostFormat,
+			CrossPosts = m.CrossPosts,
 			Files = m.Files.Select(file => new FileResponse
 			{
 				Id = file.Id,

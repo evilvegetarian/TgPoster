@@ -247,6 +247,176 @@ namespace TgPoster.Storage.Data.Migrations
                     b.ToTable("CommentRepostSettings");
                 });
 
+            modelBuilder.Entity("TgPoster.Storage.Data.Entities.CrossPost", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("AccountName")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<int>("Attempts")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTimeOffset?>("Created")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("CreatedById")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("CrossPostTargetId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset?>("Deleted")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("DeletedById")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Error")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
+                    b.Property<string>("ExternalPostId")
+                        .HasMaxLength(512)
+                        .HasColumnType("character varying(512)");
+
+                    b.Property<string>("ExternalUrl")
+                        .HasMaxLength(1024)
+                        .HasColumnType("character varying(1024)");
+
+                    b.Property<Guid>("MessageId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Platform")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
+
+                    b.Property<DateTimeOffset?>("PublishedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset>("ScheduledAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("SocialAccountId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset?>("StartedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
+
+                    b.Property<DateTimeOffset?>("Updated")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("UpdatedById")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedById");
+
+                    b.HasIndex("CrossPostTargetId");
+
+                    b.HasIndex("DeletedById");
+
+                    b.HasIndex("SocialAccountId");
+
+                    b.HasIndex("UpdatedById");
+
+                    b.HasIndex("MessageId", "SocialAccountId")
+                        .IsUnique()
+                        .HasFilter("\"Deleted\" IS NULL");
+
+                    b.HasIndex("Status", "ScheduledAt");
+
+                    b.ToTable("CrossPosts");
+                });
+
+            modelBuilder.Entity("TgPoster.Storage.Data.Entities.CrossPostTarget", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("CallToAction")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<DateTimeOffset?>("Created")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("CreatedById")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("CustomLink")
+                        .HasMaxLength(512)
+                        .HasColumnType("character varying(512)");
+
+                    b.Property<int>("DelayMinutes")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTimeOffset?>("Deleted")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("DeletedById")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Format")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
+
+                    b.Property<bool>("IncludeMedia")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IncludeParsed")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("LinkTarget")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
+
+                    b.Property<Guid>("ScheduleId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("SocialAccountId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset?>("Updated")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("UpdatedById")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedById");
+
+                    b.HasIndex("DeletedById");
+
+                    b.HasIndex("SocialAccountId");
+
+                    b.HasIndex("UpdatedById");
+
+                    b.HasIndex("ScheduleId", "SocialAccountId")
+                        .IsUnique()
+                        .HasFilter("\"Deleted\" IS NULL");
+
+                    b.ToTable("CrossPostTargets");
+                });
+
             modelBuilder.Entity("TgPoster.Storage.Data.Entities.Day", b =>
                 {
                     b.Property<Guid>("ScheduleId")
@@ -435,6 +605,15 @@ namespace TgPoster.Storage.Data.Migrations
 
                     b.Property<Guid?>("CreatedById")
                         .HasColumnType("uuid");
+
+                    b.Property<bool>("CrossPostEnabled")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true);
+
+                    b.Property<string>("CrossPostFormat")
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
 
                     b.Property<DateTimeOffset?>("Deleted")
                         .HasColumnType("timestamp with time zone");
@@ -1243,6 +1422,80 @@ namespace TgPoster.Storage.Data.Migrations
                     b.ToTable("Schedules");
                 });
 
+            modelBuilder.Entity("TgPoster.Storage.Data.Entities.SocialAccount", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset?>("Created")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("CreatedById")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset?>("Deleted")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("DeletedById")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("ExternalUserId")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<string>("LastError")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<string>("Platform")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
+
+                    b.Property<string>("Secret")
+                        .IsRequired()
+                        .HasMaxLength(4096)
+                        .HasColumnType("character varying(4096)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
+
+                    b.Property<DateTimeOffset?>("TokenExpiresAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset?>("Updated")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("UpdatedById")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedById");
+
+                    b.HasIndex("DeletedById");
+
+                    b.HasIndex("UpdatedById");
+
+                    b.HasIndex("UserId", "Platform", "ExternalUserId")
+                        .IsUnique()
+                        .HasFilter("\"Deleted\" IS NULL");
+
+                    b.ToTable("SocialAccounts");
+                });
+
             modelBuilder.Entity("TgPoster.Storage.Data.Entities.TelegramBot", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1693,6 +1946,88 @@ namespace TgPoster.Storage.Data.Migrations
                     b.Navigation("Schedule");
 
                     b.Navigation("TelegramSession");
+
+                    b.Navigation("UpdatedBy");
+                });
+
+            modelBuilder.Entity("TgPoster.Storage.Data.Entities.CrossPost", b =>
+                {
+                    b.HasOne("TgPoster.Storage.Data.Entities.User", "CreatedBy")
+                        .WithMany()
+                        .HasForeignKey("CreatedById");
+
+                    b.HasOne("TgPoster.Storage.Data.Entities.CrossPostTarget", "CrossPostTarget")
+                        .WithMany("CrossPosts")
+                        .HasForeignKey("CrossPostTargetId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("TgPoster.Storage.Data.Entities.User", "DeletedBy")
+                        .WithMany()
+                        .HasForeignKey("DeletedById");
+
+                    b.HasOne("TgPoster.Storage.Data.Entities.Message", "Message")
+                        .WithMany("CrossPosts")
+                        .HasForeignKey("MessageId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("TgPoster.Storage.Data.Entities.SocialAccount", "SocialAccount")
+                        .WithMany()
+                        .HasForeignKey("SocialAccountId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("TgPoster.Storage.Data.Entities.User", "UpdatedBy")
+                        .WithMany()
+                        .HasForeignKey("UpdatedById");
+
+                    b.Navigation("CreatedBy");
+
+                    b.Navigation("CrossPostTarget");
+
+                    b.Navigation("DeletedBy");
+
+                    b.Navigation("Message");
+
+                    b.Navigation("SocialAccount");
+
+                    b.Navigation("UpdatedBy");
+                });
+
+            modelBuilder.Entity("TgPoster.Storage.Data.Entities.CrossPostTarget", b =>
+                {
+                    b.HasOne("TgPoster.Storage.Data.Entities.User", "CreatedBy")
+                        .WithMany()
+                        .HasForeignKey("CreatedById");
+
+                    b.HasOne("TgPoster.Storage.Data.Entities.User", "DeletedBy")
+                        .WithMany()
+                        .HasForeignKey("DeletedById");
+
+                    b.HasOne("TgPoster.Storage.Data.Entities.Schedule", "Schedule")
+                        .WithMany("CrossPostTargets")
+                        .HasForeignKey("ScheduleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("TgPoster.Storage.Data.Entities.SocialAccount", "SocialAccount")
+                        .WithMany("CrossPostTargets")
+                        .HasForeignKey("SocialAccountId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("TgPoster.Storage.Data.Entities.User", "UpdatedBy")
+                        .WithMany()
+                        .HasForeignKey("UpdatedById");
+
+                    b.Navigation("CreatedBy");
+
+                    b.Navigation("DeletedBy");
+
+                    b.Navigation("Schedule");
+
+                    b.Navigation("SocialAccount");
 
                     b.Navigation("UpdatedBy");
                 });
@@ -2160,6 +2495,35 @@ namespace TgPoster.Storage.Data.Migrations
                     b.Navigation("YouTubeAccount");
                 });
 
+            modelBuilder.Entity("TgPoster.Storage.Data.Entities.SocialAccount", b =>
+                {
+                    b.HasOne("TgPoster.Storage.Data.Entities.User", "CreatedBy")
+                        .WithMany()
+                        .HasForeignKey("CreatedById");
+
+                    b.HasOne("TgPoster.Storage.Data.Entities.User", "DeletedBy")
+                        .WithMany()
+                        .HasForeignKey("DeletedById");
+
+                    b.HasOne("TgPoster.Storage.Data.Entities.User", "UpdatedBy")
+                        .WithMany()
+                        .HasForeignKey("UpdatedById");
+
+                    b.HasOne("TgPoster.Storage.Data.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("CreatedBy");
+
+                    b.Navigation("DeletedBy");
+
+                    b.Navigation("UpdatedBy");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("TgPoster.Storage.Data.Entities.TelegramBot", b =>
                 {
                     b.HasOne("TgPoster.Storage.Data.Entities.User", "CreatedBy")
@@ -2313,8 +2677,15 @@ namespace TgPoster.Storage.Data.Migrations
                     b.Navigation("CommentLogs");
                 });
 
+            modelBuilder.Entity("TgPoster.Storage.Data.Entities.CrossPostTarget", b =>
+                {
+                    b.Navigation("CrossPosts");
+                });
+
             modelBuilder.Entity("TgPoster.Storage.Data.Entities.Message", b =>
                 {
+                    b.Navigation("CrossPosts");
+
                     b.Navigation("MessageFiles");
 
                     b.Navigation("RepostLogs");
@@ -2347,6 +2718,8 @@ namespace TgPoster.Storage.Data.Migrations
 
             modelBuilder.Entity("TgPoster.Storage.Data.Entities.Schedule", b =>
                 {
+                    b.Navigation("CrossPostTargets");
+
                     b.Navigation("Days");
 
                     b.Navigation("Messages");
@@ -2358,6 +2731,11 @@ namespace TgPoster.Storage.Data.Migrations
                     b.Navigation("PromptSetting");
 
                     b.Navigation("RepostSettings");
+                });
+
+            modelBuilder.Entity("TgPoster.Storage.Data.Entities.SocialAccount", b =>
+                {
+                    b.Navigation("CrossPostTargets");
                 });
 
             modelBuilder.Entity("TgPoster.Storage.Data.Entities.TelegramBot", b =>

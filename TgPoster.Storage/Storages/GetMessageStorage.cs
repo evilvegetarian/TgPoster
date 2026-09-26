@@ -19,7 +19,22 @@ internal class GetMessageStorage(PosterContext context) : IGetMessageStorage
 				TextMessage = message.TextMessage,
 				ScheduleId = message.ScheduleId,
 				TimePosting = message.TimePosting,
+				IsSent = message.Status == Data.Enum.MessageStatus.Send,
 				HasYouTubeAccount = message.Schedule.YouTubeAccountId.HasValue,
+				CrossPostEnabled = message.CrossPostEnabled,
+				CrossPostFormat = message.CrossPostFormat,
+				CrossPosts = message.CrossPosts
+					.OrderBy(cp => cp.Created)
+					.Select(cp => new CrossPostStatusResponse
+					{
+						Id = cp.Id,
+						Platform = cp.Platform,
+						AccountName = cp.AccountName,
+						Status = cp.Status,
+						ExternalUrl = cp.ExternalUrl,
+						Error = cp.Error,
+						PublishedAt = cp.PublishedAt
+					}).ToList(),
 				Files = message.MessageFiles
 					.Where(file => file.ParentFileId == null)
 					.OrderBy(file => file.Order)

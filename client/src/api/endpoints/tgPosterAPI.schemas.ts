@@ -141,6 +141,28 @@ export interface CommentRepostItemDto {
 }
 
 /**
+ * Запрос на подключение аккаунта Bluesky
+ */
+export interface ConnectBlueskyRequest {
+  /**
+   * Handle аккаунта Bluesky
+   * @minLength 3
+   * @maxLength 253
+   */
+  handle: string;
+  /**
+   * App password Bluesky
+   * @minLength 8
+   * @maxLength 64
+   */
+  appPassword: string;
+}
+
+export interface ConnectSocialAccountResponse {
+  id: string;
+}
+
+/**
  * Создание настроек комментирующего репоста.
  */
 export interface CreateCommentRepostRequest {
@@ -157,6 +179,44 @@ export interface CreateCommentRepostRequest {
 }
 
 export interface CreateCommentRepostResponse {
+  id: string;
+}
+
+/**
+ * Запрос на создание связки расписания с аккаунтом соцсети
+ */
+export interface CreateCrossPostTargetRequest {
+  /** Идентификатор аккаунта соцсети */
+  socialAccountId: string;
+  format: CrossPostFormat;
+  linkTarget: CrossPostLinkTarget;
+  /**
+   * Произвольная ссылка, обязательна при своей ссылке
+   * @minLength 0
+   * @maxLength 512
+   * @nullable
+   */
+  customLink?: string | null;
+  /**
+   * Варианты призыва построчно
+   * @minLength 0
+   * @maxLength 1000
+   * @nullable
+   */
+  callToAction?: string | null;
+  /** Прикладывать медиа к кросс-посту */
+  includeMedia: boolean;
+  /** Кросс-постить посты, созданные парсером чужих каналов */
+  includeParsed: boolean;
+  /**
+   * Задержка публикации в минутах
+   * @minimum 0
+   * @maximum 1440
+   */
+  delayMinutes: number;
+}
+
+export interface CreateCrossPostTargetResponse {
   id: string;
 }
 
@@ -382,6 +442,86 @@ export interface CreateTelegramSessionResponse {
   name?: string;
   isActive?: boolean;
   authStatus?: string;
+}
+
+export type CrossPostFormat = typeof CrossPostFormat[keyof typeof CrossPostFormat];
+
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const CrossPostFormat = {
+  Teaser: 'Teaser',
+  Full: 'Full',
+  Announcement: 'Announcement',
+} as const;
+
+export type CrossPostLinkTarget = typeof CrossPostLinkTarget[keyof typeof CrossPostLinkTarget];
+
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const CrossPostLinkTarget = {
+  Post: 'Post',
+  Channel: 'Channel',
+  Custom: 'Custom',
+  None: 'None',
+} as const;
+
+export interface CrossPostPreviewPart {
+  text: string;
+  length: number;
+  limit: number;
+}
+
+export interface CrossPostPreviewResponse {
+  socialAccountId: string;
+  platform: SocialPlatform;
+  accountName: string;
+  format: CrossPostFormat;
+  parts: CrossPostPreviewPart[];
+  warnings: string[];
+}
+
+export type CrossPostStatus = typeof CrossPostStatus[keyof typeof CrossPostStatus];
+
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const CrossPostStatus = {
+  Pending: 'Pending',
+  InProgress: 'InProgress',
+  Published: 'Published',
+  Failed: 'Failed',
+  Skipped: 'Skipped',
+} as const;
+
+export interface CrossPostStatusResponse {
+  id: string;
+  platform: SocialPlatform;
+  accountName: string;
+  status: CrossPostStatus;
+  /** @nullable */
+  externalUrl?: string | null;
+  /** @nullable */
+  error?: string | null;
+  /** @nullable */
+  publishedAt?: string | null;
+}
+
+export interface CrossPostTargetResponse {
+  id: string;
+  scheduleId: string;
+  socialAccountId: string;
+  platform: SocialPlatform;
+  accountName: string;
+  accountStatus: SocialAccountStatus;
+  isActive: boolean;
+  format: CrossPostFormat;
+  linkTarget: CrossPostLinkTarget;
+  /** @nullable */
+  customLink?: string | null;
+  /** @nullable */
+  callToAction?: string | null;
+  includeMedia: boolean;
+  includeParsed: boolean;
+  delayMinutes: number;
 }
 
 export interface DayListResponse {
@@ -753,6 +893,17 @@ export interface ListRepostSettingsResponse {
   items: RepostSettingsItemDto[];
 }
 
+export type MessageCrossPostFormat = typeof MessageCrossPostFormat[keyof typeof MessageCrossPostFormat];
+
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const MessageCrossPostFormat = {
+  Inherit: 'Inherit',
+  Teaser: 'Teaser',
+  Full: 'Full',
+  Announcement: 'Announcement',
+} as const;
+
 export interface MessageResponse {
   id: string;
   /** @nullable */
@@ -765,6 +916,9 @@ export interface MessageResponse {
   isSent: boolean;
   hasVideo: boolean;
   hasYouTubeAccount: boolean;
+  crossPostEnabled: boolean;
+  crossPostFormat?: CrossPostFormat;
+  crossPosts?: CrossPostStatusResponse[];
 }
 
 export interface MessageResponsePagedResponse {
@@ -855,6 +1009,40 @@ export interface ParseChannelResponse {
   /** @nullable */
   totalMessagesCount?: number | null;
   parsedMessagesCount?: number;
+}
+
+/**
+ * Запрос на предпросмотр кросс-поста
+ */
+export interface PreviewCrossPostRequest {
+  /**
+   * Идентификатор аккаунта соцсети, null — все связки расписания
+   * @nullable
+   */
+  socialAccountId?: string | null;
+  format?: CrossPostFormat;
+  linkTarget?: CrossPostLinkTarget;
+  /**
+   * Переопределение своей ссылки
+   * @minLength 0
+   * @maxLength 512
+   * @nullable
+   */
+  customLink?: string | null;
+  /**
+   * Переопределение вариантов призыва
+   * @minLength 0
+   * @maxLength 1000
+   * @nullable
+   */
+  callToAction?: string | null;
+  /**
+   * Текст поста, null — текст последнего поста расписания с непустым текстом
+   * @minLength 0
+   * @maxLength 4096
+   * @nullable
+   */
+  text?: string | null;
 }
 
 export interface PreviewFileResponse {
@@ -1184,6 +1372,35 @@ export interface SignOnResponse {
   userId: string;
 }
 
+export interface SocialAccountResponse {
+  id: string;
+  platform: SocialPlatform;
+  name: string;
+  status: SocialAccountStatus;
+  /** @nullable */
+  tokenExpiresAt?: string | null;
+  /** @nullable */
+  lastError?: string | null;
+  created: string;
+}
+
+export type SocialAccountStatus = typeof SocialAccountStatus[keyof typeof SocialAccountStatus];
+
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const SocialAccountStatus = {
+  Active: 'Active',
+  NeedsReauth: 'NeedsReauth',
+} as const;
+
+export type SocialPlatform = typeof SocialPlatform[keyof typeof SocialPlatform];
+
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const SocialPlatform = {
+  Bluesky: 'Bluesky',
+} as const;
+
 /**
  * Направление сортировки
  */
@@ -1260,6 +1477,40 @@ export const TelegramSessionStatus = {
 export interface UpdateCommentRepostRequest {
   /** Активны ли настройки. */
   isActive: boolean;
+}
+
+/**
+ * Запрос на обновление связки расписания с аккаунтом соцсети
+ */
+export interface UpdateCrossPostTargetRequest {
+  /** Активна ли связка */
+  isActive: boolean;
+  format: CrossPostFormat;
+  linkTarget: CrossPostLinkTarget;
+  /**
+   * Произвольная ссылка, обязательна при своей ссылке
+   * @minLength 0
+   * @maxLength 512
+   * @nullable
+   */
+  customLink?: string | null;
+  /**
+   * Варианты призыва построчно
+   * @minLength 0
+   * @maxLength 1000
+   * @nullable
+   */
+  callToAction?: string | null;
+  /** Прикладывать медиа к кросс-посту */
+  includeMedia: boolean;
+  /** Кросс-постить посты, созданные парсером чужих каналов */
+  includeParsed: boolean;
+  /**
+   * Задержка публикации в минутах
+   * @minimum 0
+   * @maximum 1440
+   */
+  delayMinutes: number;
 }
 
 /**
@@ -1645,6 +1896,9 @@ export type PostApiV1MessageBody = {
   TextMessage?: string;
   /** Файлы сообщения */
   Files?: Blob[];
+  /** Кросс-постить ли пост в подключённые соцсети. По умолчанию — да */
+  CrossPostEnabled?: boolean;
+  CrossPostFormat?: MessageCrossPostFormat;
 };
 
 export type PutApiV1MessageIdBody = {
@@ -1658,6 +1912,9 @@ export type PutApiV1MessageIdBody = {
   OldFiles?: string[];
   /** Новые файлы сообщения */
   NewFiles?: Blob[];
+  /** Кросс-постить ли пост; null — не менять */
+  CrossPostEnabled?: boolean;
+  CrossPostFormat?: MessageCrossPostFormat;
 };
 
 export type GetApiV1PromptSettingParams = {

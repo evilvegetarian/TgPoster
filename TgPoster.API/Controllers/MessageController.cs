@@ -14,6 +14,7 @@ using TgPoster.API.Domain.UseCases.Messages.GetMessageById;
 using TgPoster.API.Domain.UseCases.Messages.GetTime;
 using TgPoster.API.Domain.UseCases.Messages.ListMessage;
 using TgPoster.API.Domain.UseCases.Messages.LoadFilesMessage;
+using TgPoster.API.Domain.UseCases.Messages.RetryCrossPost;
 using TgPoster.API.Domain.UseCases.Messages.ShuffleMessages;
 using TgPoster.API.Domain.UseCases.Messages.UpdateAllTime;
 using TgPoster.API.Mapper;
@@ -97,7 +98,12 @@ public class MessageController(ISender sender) : ControllerBase
 	public async Task<IActionResult> Create([FromForm] CreateMessageRequest request, CancellationToken ct)
 	{
 		var response = await sender.Send(new CreateMessageCommand(
-				request.ScheduleId, request.TimePosting, request.TextMessage, request.Files),
+				request.ScheduleId,
+				request.TimePosting,
+				request.TextMessage,
+				request.Files,
+				request.CrossPostEnabled ?? true,
+				request.CrossPostFormat.ToCrossPostFormat()),
 			ct);
 		return Created(Routes.Message.Create, response);
 	}
@@ -122,7 +128,14 @@ public class MessageController(ISender sender) : ControllerBase
 	)
 	{
 		await sender.Send(new EditMessageCommand(
-				id, request.ScheduleId, request.TimePosting, request.TextMessage, request.OldFiles, request.NewFiles),
+				id,
+				request.ScheduleId,
+				request.TimePosting,
+				request.TextMessage,
+				request.OldFiles,
+				request.NewFiles,
+				request.CrossPostEnabled,
+				request.CrossPostFormat),
 			ct);
 		return NoContent();
 	}
@@ -267,6 +280,28 @@ public class MessageController(ISender sender) : ControllerBase
 	public async Task<IActionResult> Shuffle([FromRoute] [Required] Guid scheduleId, CancellationToken ct)
 	{
 		await sender.Send(new ShuffleMessagesCommand(scheduleId), ct);
+		return NoContent();
+	}
+
+	/// <summary>
+	///     Повторить неудавшийся или пропущенный кросс-пост
+	/// </summary>
+	/// <param name="id">Идентификатор сообщения</param>
+	/// <param name="crossPostId">Идентификатор кросс-поста</param>
+	/// <param name="ct">Токен отмены операции</param>
+	/// <returns>Результат выполнения операции</returns>
+	[HttpPost(Routes.Message.RetryCrossPost)]
+	[ProducesResponseType(StatusCodes.Status204NoContent)]
+	[ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
+	[ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
+	[ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
+	public async Task<IActionResult> RetryCrossPost(
+		[FromRoute] [Required] Guid id,
+		[FromRoute] [Required] Guid crossPostId,
+		CancellationToken ct
+	)
+	{
+		await sender.Send(new RetryCrossPostCommand(id, crossPostId), ct);
 		return NoContent();
 	}
 }

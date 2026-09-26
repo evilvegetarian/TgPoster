@@ -1,3 +1,4 @@
+using Shared.Enums;
 using TgPoster.Storage.Data.Enum;
 
 namespace TgPoster.Storage.Data.Entities;
@@ -46,6 +47,16 @@ public sealed class Message : BaseEntity
 	/// </summary>
 	public Guid? ChannelParsingSettingId { get; set; }
 
+	/// <summary>
+	///     Участвует ли сообщение в кросс-постинге
+	/// </summary>
+	public bool CrossPostEnabled { get; set; } = true;
+
+	/// <summary>
+	///     Переопределение формата кросс-поста, null — как в связке
+	/// </summary>
+	public CrossPostFormat? CrossPostFormat { get; set; }
+
 	#region Navigtion
 
 	/// <summary>
@@ -67,6 +78,11 @@ public sealed class Message : BaseEntity
 	///     Журналы репостов этого сообщения
 	/// </summary>
 	public ICollection<RepostLog> RepostLogs { get; set; } = [];
+
+	/// <summary>
+	///     Кросс-посты этого сообщения
+	/// </summary>
+	public ICollection<CrossPost> CrossPosts { get; set; } = [];
 
 	#endregion
 }

@@ -19,6 +19,7 @@ import {LogOutPage} from "@/pages/logout-page.tsx";
 import {SchedulePage} from "@/pages/schedulepage/schedule-page.tsx";
 import {OpenRouterPage} from "@/pages/openrouterpage/open-router-page.tsx";
 import {YouTubeAccountPage} from "@/pages/youtube-account-page.tsx";
+import {SocialAccountsPage} from "@/pages/social-accounts-page.tsx";
 import TelegramAccountPage from "@/pages/telegram-account-page.tsx";
 import {RepostSettingsPage} from "@/pages/repostpage/repost-settings-page.tsx";
 import {RepostLogsPage} from "@/pages/repostpage/repost-logs-page.tsx";
@@ -91,6 +92,10 @@ const router = createBrowserRouter([
                             {
                                 path: "/youtube-accounts",
                                 element: <YouTubeAccountPage/>,
+                            },
+                            {
+                                path: "/social-accounts",
+                                element: <SocialAccountsPage/>,
                             },
                             {
                                 path: "/telegram-accounts",

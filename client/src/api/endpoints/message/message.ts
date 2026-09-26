@@ -219,6 +219,12 @@ if(postApiV1MessageBody.TextMessage !== undefined) {
 if(postApiV1MessageBody.Files !== undefined) {
  postApiV1MessageBody.Files.forEach(value => formData.append(`Files`, value));
  }
+if(postApiV1MessageBody.CrossPostEnabled !== undefined) {
+ formData.append(`CrossPostEnabled`, postApiV1MessageBody.CrossPostEnabled.toString())
+ }
+if(postApiV1MessageBody.CrossPostFormat !== undefined) {
+ formData.append(`CrossPostFormat`, postApiV1MessageBody.CrossPostFormat)
+ }
 
       return customInstance<CreateMessageResponse>(
       {url: `/api/v1/message`, method: 'POST',
@@ -512,6 +518,12 @@ if(putApiV1MessageIdBody.OldFiles !== undefined) {
  }
 if(putApiV1MessageIdBody.NewFiles !== undefined) {
  putApiV1MessageIdBody.NewFiles.forEach(value => formData.append(`NewFiles`, value));
+ }
+if(putApiV1MessageIdBody.CrossPostEnabled !== undefined) {
+ formData.append(`CrossPostEnabled`, putApiV1MessageIdBody.CrossPostEnabled.toString())
+ }
+if(putApiV1MessageIdBody.CrossPostFormat !== undefined) {
+ formData.append(`CrossPostFormat`, putApiV1MessageIdBody.CrossPostFormat)
  }
 
       return customInstance<void>(
@@ -1003,6 +1015,69 @@ export const usePostApiV1MessageScheduleIdShuffle = <TError = ProblemDetails,
       > => {
 
       const mutationOptions = getPostApiV1MessageScheduleIdShuffleMutationOptions(options);
+
+      return useMutation(mutationOptions, queryClient);
+    }
+    /**
+ * @summary Повторить неудавшийся или пропущенный кросс-пост
+ */
+export const postApiV1MessageIdCrossPostsCrossPostIdRetry = (
+    id: string,
+    crossPostId: string,
+ signal?: AbortSignal
+) => {
+      
+      
+      return customInstance<void>(
+      {url: `/api/v1/message/${id}/cross-posts/${crossPostId}/retry`, method: 'POST', signal
+    },
+      );
+    }
+  
+
+
+export const getPostApiV1MessageIdCrossPostsCrossPostIdRetryMutationOptions = <TError = ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postApiV1MessageIdCrossPostsCrossPostIdRetry>>, TError,{id: string;crossPostId: string}, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof postApiV1MessageIdCrossPostsCrossPostIdRetry>>, TError,{id: string;crossPostId: string}, TContext> => {
+
+const mutationKey = ['postApiV1MessageIdCrossPostsCrossPostIdRetry'];
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof postApiV1MessageIdCrossPostsCrossPostIdRetry>>, {id: string;crossPostId: string}> = (props) => {
+          const {id,crossPostId} = props ?? {};
+
+          return  postApiV1MessageIdCrossPostsCrossPostIdRetry(id,crossPostId,)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type PostApiV1MessageIdCrossPostsCrossPostIdRetryMutationResult = NonNullable<Awaited<ReturnType<typeof postApiV1MessageIdCrossPostsCrossPostIdRetry>>>
+    
+    export type PostApiV1MessageIdCrossPostsCrossPostIdRetryMutationError = ProblemDetails
+
+    /**
+ * @summary Повторить неудавшийся или пропущенный кросс-пост
+ */
+export const usePostApiV1MessageIdCrossPostsCrossPostIdRetry = <TError = ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postApiV1MessageIdCrossPostsCrossPostIdRetry>>, TError,{id: string;crossPostId: string}, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof postApiV1MessageIdCrossPostsCrossPostIdRetry>>,
+        TError,
+        {id: string;crossPostId: string},
+        TContext
+      > => {
+
+      const mutationOptions = getPostApiV1MessageIdCrossPostsCrossPostIdRetryMutationOptions(options);
 
       return useMutation(mutationOptions, queryClient);
     }

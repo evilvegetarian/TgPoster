@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/alert-dialog"
 import {MediaAlbum} from "./media-album"
 import {EditMessageDialog} from "./edit-message-dialog"
+import {CrossPostStatusBadges} from "@/components/cross-post/cross-post-status-badges.tsx"
 import type {MessageResponse} from "@/api/endpoints/tgPosterAPI.schemas"
 import {usePostApiV1YoutubeMessageId} from "@/api/endpoints/you-tube-account/you-tube-account"
 import {useDeleteApiV1Message} from "@/api/endpoints/message/message"
@@ -91,8 +92,9 @@ export function MessageCard({message, isSelected, onSelectionChange, availableTi
 
                         <div className="flex-1 space-y-3">
                             <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-2">
+                                <div className="flex flex-wrap items-center gap-2">
                                     {getStatusBadge(message.needApprove, message.canApprove, message.isSent)}
+                                    <CrossPostStatusBadges message={message}/>
                                     <div className="flex items-center gap-1 text-sm text-muted-foreground">
                                         <Clock className="h-3 w-3"/>
                                         {message.timePosting && format(new Date(message.timePosting), "dd.MM.yyyy HH:mm", {locale: ru})}

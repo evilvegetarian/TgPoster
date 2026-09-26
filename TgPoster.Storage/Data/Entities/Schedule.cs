@@ -98,5 +98,10 @@ public sealed class Schedule : BaseEntity
 	/// </summary>
 	public List<RepostSettings> RepostSettings { get; set; } = [];
 
+	/// <summary>
+	///     Связки кросс-постинга для этого расписания
+	/// </summary>
+	public ICollection<CrossPostTarget> CrossPostTargets { get; set; } = [];
+
 	#endregion
 }

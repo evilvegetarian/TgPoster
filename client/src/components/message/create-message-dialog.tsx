@@ -7,18 +7,21 @@ import {Input} from "@/components/ui/input";
 import {toast} from "sonner";
 import {usePostApiV1Message} from "@/api/endpoints/message/message.ts";
 import {z} from "zod";
-import {useForm} from "react-hook-form";
+import {Controller, useForm} from "react-hook-form";
 import {zodResolver} from "@hookform/resolvers/zod";
 import {Form, FormControl, FormField, FormItem, FormLabel, FormMessage} from "@/components/ui/form";
 import {utcToLocalString} from "@/utils/convertLocalToIsoTime.tsx";
 import {TimeSuggestions} from "@/components/message/time-suggestions.tsx";
 import {MediaUploader} from "@/components/message/media-uploader.tsx";
+import {CrossPostToggle} from "@/components/cross-post/cross-post-toggle.tsx";
 
 const formSchema = z.object({
     scheduleId: z.string().min(1),
     timePosting: z.string({ required_error: "Выберите время публикации" }),
     textMessage: z.string().optional(),
-    files: z.array(z.instanceof(File))
+    files: z.array(z.instanceof(File)),
+    crossPostEnabled: z.boolean(),
+    crossPostFormat: z.enum(["Inherit", "Teaser", "Full", "Announcement"])
 });
 
 type CreateMessageFormValues = z.infer<typeof formSchema>;
@@ -39,7 +42,9 @@ export function CreateMessageDialog({ scheduleId, availableTimes, onTimeSelect, 
             scheduleId: scheduleId,
             textMessage: "",
             timePosting: "",
-            files: []
+            files: [],
+            crossPostEnabled: true,
+            crossPostFormat: "Inherit"
         }
     });
 
@@ -65,6 +70,8 @@ export function CreateMessageDialog({ scheduleId, availableTimes, onTimeSelect, 
                 TimePosting: utcTimeForServer,
                 TextMessage: values.textMessage || undefined,
                 Files: values.files.length > 0 ? values.files : undefined,
+                CrossPostEnabled: values.crossPostEnabled,
+                CrossPostFormat: values.crossPostFormat,
             },
         });
     };
@@ -116,6 +123,21 @@ export function CreateMessageDialog({ scheduleId, availableTimes, onTimeSelect, 
                                     </FormControl>
                                     <FormMessage />
                                 </FormItem>
+                            )}
+                        />
+
+                        <Controller
+                            control={form.control}
+                            name="crossPostEnabled"
+                            render={({field}) => (
+                                <CrossPostToggle
+                                    id="create-cross-post"
+                                    enabled={field.value}
+                                    onEnabledChange={field.onChange}
+                                    format={form.watch("crossPostFormat")}
+                                    onFormatChange={(value) => form.setValue("crossPostFormat", value, {shouldDirty: true})}
+                                    disabled={createMessage.isPending}
+                                />
                             )}
                         />
 

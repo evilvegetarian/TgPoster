@@ -12,6 +12,7 @@ import {
     Repeat2,
     ScrollText,
     Settings,
+    Share2,
     SignatureIcon,
     Smartphone,
     Telescope,
@@ -78,6 +79,11 @@ export function SideBar() {
                 title: "YouTube Аккаунты",
                 path: "/youtube-accounts",
                 icon: Youtube
+            },
+            {
+                title: "Соцсети",
+                path: "/social-accounts",
+                icon: Share2
             },
             {
                 title: "Telegram Аккаунты",

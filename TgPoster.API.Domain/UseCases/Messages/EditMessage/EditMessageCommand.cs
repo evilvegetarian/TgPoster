@@ -1,5 +1,6 @@
 using MediatR;
 using Microsoft.AspNetCore.Http;
+using Shared.Enums;
 
 namespace TgPoster.API.Domain.UseCases.Messages.EditMessage;
 
@@ -9,4 +10,6 @@ public sealed record EditMessageCommand(
 	DateTimeOffset TimePosting,
 	string? Text,
 	List<Guid> Files,
-	List<IFormFile> NewFiles) : IRequest;
+	List<IFormFile> NewFiles,
+	bool? CrossPostEnabled = null,
+	MessageCrossPostFormat? CrossPostFormat = null) : IRequest;

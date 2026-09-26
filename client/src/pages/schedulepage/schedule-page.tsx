@@ -36,6 +36,7 @@ import {convertLocalToIsoTime, convertUtcTimeToLocalTime} from "@/utils/convertL
 import {CreateScheduleComponent} from "@/pages/schedulepage/create-schedule-component.tsx";
 import {useGetApiV1Youtube} from "@/api/endpoints/you-tube-account/you-tube-account.ts";
 import {useGetApiV1TelegramBot} from "@/api/endpoints/telegram-bot/telegram-bot.ts";
+import {ScheduleCrossPostSection} from "@/components/cross-post/schedule-cross-post-section.tsx";
 
 
 interface NewTimeSlot {
@@ -697,6 +698,8 @@ export function SchedulePage() {
                                     </Select>
                                 </div>
                             </div>
+
+                            <ScheduleCrossPostSection scheduleId={editingSchedule.id}/>
 
                             <Card>
                                 <CardHeader>
