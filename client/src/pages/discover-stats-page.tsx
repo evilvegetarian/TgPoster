@@ -1,20 +1,17 @@
 import {useState} from "react"
 import {Link} from "react-router-dom"
-import {format, formatDistanceToNow} from "date-fns"
-import {ru} from "date-fns/locale"
 import {
-    AlertCircle,
     Ban,
     CheckCircle2,
     Clock,
     Database,
     ExternalLink,
     Loader2,
-    PauseCircle,
     RefreshCw,
     Search,
     Sparkles,
     Tag,
+    Tags,
     Telescope,
     Users,
 } from "lucide-react"
@@ -27,21 +24,29 @@ import {Badge} from "@/components/ui/badge"
 import {Button} from "@/components/ui/button"
 import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card"
 import {Input} from "@/components/ui/input"
-import {Progress} from "@/components/ui/progress"
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select"
 import {Skeleton} from "@/components/ui/skeleton"
+import {ChannelAvatar, ChannelName} from "@/components/discover/channel-identity"
 import {DailyBarChart} from "@/components/discover/daily-bar-chart"
+import {
+    compactNumber,
+    channelLink,
+    formatDateTime,
+    formatRelative,
+    percent,
+    toIsoEnd,
+    toIsoStart,
+} from "@/components/discover/format"
 import {NamedCountBars, type NamedCountBarItem} from "@/components/discover/named-count-bars"
 import {StatTile} from "@/components/discover/stat-tile"
+import {WorkerStatusCard} from "@/components/discover/worker-status-card"
 import {useDebounce} from "@/hooks/use-debounce"
 import {
     DiscoverChannelStatus,
-    DiscoverJobStatus,
     DiscoverParticipantsBucket,
     type DiscoverParseHistoryItemResponse,
     type DiscoverSourceStat,
     type DiscoverStatsResponse,
-    type DiscoverStatusResponse,
 } from "@/api/endpoints/tgPosterAPI.schemas"
 
 const HISTORY_PAGE_SIZE = 20
@@ -61,14 +66,6 @@ const CHANNEL_STATUS_META: Record<DiscoverChannelStatus, {label: string; colorCl
     Skipped: {label: "Пропущен", colorClass: "bg-amber-500", variant: "secondary"},
 }
 
-const JOB_STATUS_META: Record<DiscoverJobStatus, {label: string; accent: string; icon: React.ReactNode}> = {
-    Idle: {label: "Ожидает следующего запуска", accent: "bg-muted text-muted-foreground", icon: <Clock className="h-4 w-4"/>},
-    Running: {label: "Выполняется", accent: "bg-sky-100 text-sky-700", icon: <Loader2 className="h-4 w-4 animate-spin"/>},
-    CooldownWait: {label: "Пауза: Telegram ограничил сессии", accent: "bg-amber-100 text-amber-700", icon: <PauseCircle className="h-4 w-4"/>},
-    Failed: {label: "Последний запуск завершился ошибкой", accent: "bg-red-100 text-red-700", icon: <AlertCircle className="h-4 w-4"/>},
-    Unknown: {label: "Нет сигнала от воркера", accent: "bg-amber-100 text-amber-700", icon: <AlertCircle className="h-4 w-4"/>},
-}
-
 const BUCKET_LABELS: Record<DiscoverParticipantsBucket, string> = {
     Unknown: "Неизвестно",
     UpTo1K: "до 1 тыс.",
@@ -81,124 +78,6 @@ const PEER_TYPE_LABELS: Record<string, string> = {
     channel: "Каналы",
     chat: "Чаты",
     unknown: "Не определён",
-}
-
-const compactNumber = new Intl.NumberFormat("ru-RU", {notation: "compact", maximumFractionDigits: 1})
-
-function formatDateTime(value: string | null | undefined): string {
-    if (!value) return "—"
-    return format(new Date(value), "d MMM yyyy, HH:mm", {locale: ru})
-}
-
-function formatRelative(value: string | null | undefined): string {
-    if (!value) return "—"
-    return formatDistanceToNow(new Date(value), {locale: ru, addSuffix: true})
-}
-
-function percent(part: number, total: number): string {
-    if (total <= 0) return "0%"
-    return `${((part / total) * 100).toFixed(part / total >= 0.1 ? 0 : 1)}%`
-}
-
-function toIsoStart(value: string): string | undefined {
-    return value ? new Date(`${value}T00:00:00`).toISOString() : undefined
-}
-
-function toIsoEnd(value: string): string | undefined {
-    return value ? new Date(`${value}T23:59:59.999`).toISOString() : undefined
-}
-
-function channelLink(channel: {tgUrl?: string | null; username?: string | null}): string | null {
-    return channel.tgUrl ?? (channel.username ? `https://t.me/${channel.username}` : null)
-}
-
-interface ChannelAvatarProps {
-    avatarUrl?: string | null
-    name: string
-    size?: "sm" | "md"
-}
-
-function ChannelAvatar({avatarUrl, name, size = "sm"}: ChannelAvatarProps) {
-    const dimension = size === "sm" ? "w-8 h-8 text-sm" : "w-10 h-10 text-base"
-    return avatarUrl ? (
-        <img src={avatarUrl} alt="" className={`${dimension} rounded-full object-cover shrink-0`}/>
-    ) : (
-        <div className={`${dimension} rounded-full bg-muted flex items-center justify-center text-muted-foreground font-semibold shrink-0`}>
-            {name[0]?.toUpperCase() ?? "?"}
-        </div>
-    )
-}
-
-interface ChannelNameProps {
-    title?: string | null
-    username?: string | null
-    tgUrl?: string | null
-}
-
-function ChannelName({title, username, tgUrl}: ChannelNameProps) {
-    const link = channelLink({tgUrl, username})
-    const name = title ?? username ?? "Без названия"
-    return (
-        <div className="min-w-0">
-            {link ? (
-                <a href={link} target="_blank" rel="noopener noreferrer" className="font-medium truncate block hover:underline">
-                    {name}
-                </a>
-            ) : (
-                <p className="font-medium truncate">{name}</p>
-            )}
-            {username && <p className="text-xs text-muted-foreground truncate">@{username}</p>}
-        </div>
-    )
-}
-
-function WorkerStatusCard({status}: {status: DiscoverStatusResponse}) {
-    const meta = JOB_STATUS_META[status.status]
-    const hasProgress = status.status === "Running" && status.progressTotal != null && status.progressTotal > 0
-    const progressPercent = hasProgress
-        ? Math.round(((status.progressCurrent ?? 0) / status.progressTotal!) * 100)
-        : 0
-
-    return (
-        <Card>
-            <CardContent className="pt-6 space-y-3">
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                    <div className="flex items-center gap-3 min-w-0">
-                        <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${meta.accent}`}>
-                            {meta.icon}
-                        </div>
-                        <div className="min-w-0">
-                            <p className="text-sm font-medium">Воркер парсинга: {meta.label}</p>
-                            {status.status === "Running" && status.progressMessage && (
-                                <p className="text-xs text-muted-foreground truncate">{status.progressMessage}</p>
-                            )}
-                            {status.status === "CooldownWait" && status.cooldownUntil && (
-                                <p className="text-xs text-muted-foreground">
-                                    До {formatDateTime(status.cooldownUntil)} ({formatRelative(status.cooldownUntil)})
-                                </p>
-                            )}
-                            {status.status === "Failed" && status.lastError && (
-                                <p className="text-xs text-red-600 truncate" title={status.lastError}>{status.lastError}</p>
-                            )}
-                        </div>
-                    </div>
-                    <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
-                        <span>Начат: {formatDateTime(status.lastStartedAt)}</span>
-                        <span>Завершён: {formatDateTime(status.lastFinishedAt)}</span>
-                        <span>Следующий: {formatDateTime(status.nextRunAt)}</span>
-                    </div>
-                </div>
-                {hasProgress && (
-                    <div className="space-y-1">
-                        <Progress value={progressPercent}/>
-                        <p className="text-xs text-muted-foreground">
-                            {status.progressCurrent ?? 0} из {status.progressTotal} каналов
-                        </p>
-                    </div>
-                )}
-            </CardContent>
-        </Card>
-    )
 }
 
 function StatsTiles({stats}: {stats: DiscoverStatsResponse}) {
@@ -646,6 +525,12 @@ export function DiscoverStatsPage() {
                         Обновить
                     </Button>
                     <Button variant="outline" size="sm" className="gap-1.5" asChild>
+                        <Link to="/discover/classification">
+                            <Tags className="h-3.5 w-3.5"/>
+                            Классификация
+                        </Link>
+                    </Button>
+                    <Button variant="outline" size="sm" className="gap-1.5" asChild>
                         <Link to="/discover">
                             <Telescope className="h-3.5 w-3.5"/>
                             К списку каналов
@@ -654,7 +539,7 @@ export function DiscoverStatsPage() {
                 </div>
             </div>
 
-            {status && <WorkerStatusCard status={status}/>}
+            {status && <WorkerStatusCard title="Воркер парсинга" status={status}/>}
 
             {isLoading || !stats ? (
                 <StatsSkeleton/>

@@ -15,6 +15,7 @@ import {
     Share2,
     SignatureIcon,
     Smartphone,
+    Tags,
     Telescope,
     UserPlus,
     Youtube
@@ -119,6 +120,11 @@ export function SideBar() {
                 title: "Статистика Discover",
                 path: "/discover/stats",
                 icon: BarChart3
+            },
+            {
+                title: "Классификация каналов",
+                path: "/discover/classification",
+                icon: Tags
             }
         ]
         : [

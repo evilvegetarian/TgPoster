@@ -130,6 +130,105 @@ export const ChatType = {
   Unknown: 'Unknown',
 } as const;
 
+export interface ClassificationCategoryStat {
+  name: string;
+  count: number;
+  /** @nullable */
+  averageConfidence?: number | null;
+}
+
+export type ClassificationConfidenceBucket = typeof ClassificationConfidenceBucket[keyof typeof ClassificationConfidenceBucket];
+
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const ClassificationConfidenceBucket = {
+  Unknown: 'Unknown',
+  UpTo50: 'UpTo50',
+  From50To70: 'From50To70',
+  From70To80: 'From70To80',
+  From80To90: 'From80To90',
+  Over90: 'Over90',
+} as const;
+
+export interface ClassificationConfidenceBucketCount {
+  bucket: ClassificationConfidenceBucket;
+  count: number;
+}
+
+export interface ClassificationHistoryItemResponse {
+  id: string;
+  /** @nullable */
+  username?: string | null;
+  /** @nullable */
+  title?: string | null;
+  /** @nullable */
+  avatarUrl?: string | null;
+  /** @nullable */
+  tgUrl?: string | null;
+  /** @nullable */
+  participantsCount?: number | null;
+  /** @nullable */
+  category?: string | null;
+  /** @nullable */
+  subcategory?: string | null;
+  tags: string[];
+  /** @nullable */
+  language?: string | null;
+  /** @nullable */
+  confidence?: number | null;
+  classifiedAt: string;
+}
+
+export interface ClassificationHistoryItemResponsePagedResponse {
+  currentPage?: number;
+  readonly totalPages?: number;
+  pageSize?: number;
+  totalCount?: number;
+  readonly hasPreviousPage?: boolean;
+  readonly hasNextPage?: boolean;
+  data?: ClassificationHistoryItemResponse[];
+}
+
+export interface ClassificationStatsFreshness {
+  classifiedLast24Hours: number;
+  classifiedLast7Days: number;
+  classifiedLast30Days: number;
+  /** @nullable */
+  lastClassifiedAt?: string | null;
+}
+
+export interface ClassificationStatsResponse {
+  totals: ClassificationStatsTotals;
+  freshness: ClassificationStatsFreshness;
+  byCategory: ClassificationCategoryStat[];
+  byLanguage: DiscoverNamedCount[];
+  byConfidence: ClassificationConfidenceBucketCount[];
+  topSubcategories: ClassificationSubcategoryStat[];
+  topTags: DiscoverNamedCount[];
+  classifiedByDay: DiscoverDailyCount[];
+}
+
+export interface ClassificationStatsTotals {
+  total: number;
+  eligible: number;
+  skipped: number;
+  classified: number;
+  pending: number;
+  withCategory: number;
+  withTags: number;
+  /** @nullable */
+  averageConfidence?: number | null;
+  distinctSubcategories: number;
+  distinctTags: number;
+}
+
+export interface ClassificationSubcategoryStat {
+  /** @nullable */
+  category?: string | null;
+  subcategory: string;
+  count: number;
+}
+
 export interface CommentRepostItemDto {
   id: string;
   watchedChannel: string;
@@ -1829,6 +1928,46 @@ Search?: string;
 From?: string;
 /**
  * Конец периода по времени парсинга (включительно)
+ */
+To?: string;
+/**
+ * Номер страницы.
+ */
+PageNumber?: number;
+/**
+ * Размер страницы.
+ */
+PageSize?: number;
+};
+
+export type GetApiV1DiscoverClassificationStatsParams = {
+/**
+ * Глубина таймлайнов «по дням» в днях, включая сегодня. По умолчанию — 30
+ * @minimum 1
+ * @maximum 365
+ */
+Days?: number;
+};
+
+export type GetApiV1DiscoverClassificationHistoryParams = {
+/**
+ * Поиск по названию или username
+ */
+Search?: string;
+/**
+ * Точное название тематики
+ */
+Category?: string;
+/**
+ * Корзина уверенности модели
+ */
+Confidence?: ClassificationConfidenceBucket;
+/**
+ * Начало периода по времени классификации (включительно)
+ */
+From?: string;
+/**
+ * Конец периода по времени классификации (включительно)
  */
 To?: string;
 /**

@@ -12,6 +12,7 @@ using SixLabors.ImageSharp.Processing;
 using TgPoster.Telegram.Abstractions;
 using TgPoster.Telegram.Models;
 using TgPoster.Worker.Domain.ConfigModels;
+using TgPoster.Worker.Domain.UseCases.WorkerJobStatus;
 
 namespace TgPoster.Worker.Domain.UseCases.ClassifyChannel;
 
@@ -20,6 +21,8 @@ internal sealed partial class ClassifyChannelWorker(
 	IClassifyChannelStorage storage,
 	ITelegramAuthService authService,
 	ITelegramMessageService tgMessages,
+	IWorkerJobStatusStorage statusStorage,
+	HangfireNextRunProvider nextRun,
 	OpenRouterOptions options,
 	ILogger<ClassifyChannelWorker> logger,
 	IHostApplicationLifetime lifetime)
@@ -70,39 +73,113 @@ internal sealed partial class ClassifyChannelWorker(
 
 		try
 		{
-			if (string.IsNullOrWhiteSpace(options.SecretKey))
-			{
-				logger.LogWarning("ClassificationApiKey не задан, пропускаем классификацию каналов");
-				return;
-			}
+			await TryReportAsync(() => statusStorage.ReportStartedAsync(WorkerJobNames.ClassifyChannels, ct));
 
-			var channels = await storage.GetUnclassifiedChannelsAsync(BatchSize, ct);
-			if (channels.Count == 0)
-			{
-				return;
-			}
+			var error = await ClassifyBatchAsync(ct);
 
-			var sessionId = await authService.GetSessionIdForPurposeAsync(TelegramSessionPurpose.Classification, ct);
-			if (sessionId is null)
+			// Финальную запись статуса делаем с CancellationToken.None: при остановке приложения
+			// она должна успеть выполниться best-effort
+			var nextRunAt = nextRun.GetNextRunAt(WorkerJobNames.ClassifyChannels);
+			if (error is null)
 			{
-				return;
+				await TryReportAsync(() => statusStorage.ReportCompletedAsync(
+					WorkerJobNames.ClassifyChannels, nextRunAt, CancellationToken.None));
 			}
-
-			foreach (var channel in channels)
+			else
 			{
-				try
-				{
-					await ClassifyChannelAsync(channel, sessionId.Value, ct);
-				}
-				catch (Exception ex)
-				{
-					logger.LogError(ex, "Ошибка при классификации канала {ChannelId}", channel.Id);
-				}
+				await TryReportAsync(() => statusStorage.ReportFailedAsync(
+					WorkerJobNames.ClassifyChannels, error, nextRunAt, CancellationToken.None));
 			}
+		}
+		catch (OperationCanceledException)
+		{
+			// Статус не пишем: запись останется Running, и API покажет «прервана» по протухшему heartbeat'у
+			throw;
+		}
+		catch (Exception ex)
+		{
+			await TryReportAsync(() => statusStorage.ReportFailedAsync(
+				WorkerJobNames.ClassifyChannels,
+				ex.Message,
+				nextRun.GetNextRunAt(WorkerJobNames.ClassifyChannels),
+				CancellationToken.None));
+			throw;
 		}
 		finally
 		{
 			ParseLock.Release();
+		}
+	}
+
+	/// <summary>
+	///     Классифицировать очередную пачку каналов
+	/// </summary>
+	/// <param name="ct"></param>
+	/// <returns>Текст ошибки, если запуск не смог выполнить работу, иначе null</returns>
+	private async Task<string?> ClassifyBatchAsync(CancellationToken ct)
+	{
+		if (string.IsNullOrWhiteSpace(options.SecretKey))
+		{
+			logger.LogWarning("ClassificationApiKey не задан, пропускаем классификацию каналов");
+			return "Не задан ключ OpenRouter — классификация отключена";
+		}
+
+		var channels = await storage.GetUnclassifiedChannelsAsync(BatchSize, ct);
+		if (channels.Count == 0)
+		{
+			return null;
+		}
+
+		var sessionId = await authService.GetSessionIdForPurposeAsync(TelegramSessionPurpose.Classification, ct);
+		if (sessionId is null)
+		{
+			logger.LogWarning("Нет активной Telegram-сессии с назначением Classification");
+			return "Нет активной Telegram-сессии с назначением «Классификация»";
+		}
+
+		string? lastError = null;
+		var failedCount = 0;
+		for (var index = 0; index < channels.Count; index++)
+		{
+			var channel = channels[index];
+			var processed = index;
+			await TryReportAsync(() => statusStorage.ReportHeartbeatAsync(
+				WorkerJobNames.ClassifyChannels,
+				processed,
+				channels.Count,
+				channel.Username is null ? channel.Title : $"@{channel.Username}",
+				ct));
+
+			try
+			{
+				await ClassifyChannelAsync(channel, sessionId.Value, ct);
+			}
+			catch (Exception ex) when (ex is not OperationCanceledException)
+			{
+				logger.LogError(ex, "Ошибка при классификации канала {ChannelId}", channel.Id);
+				failedCount++;
+				lastError = ex.Message;
+			}
+		}
+
+		// Единичный сбой — норма (канал мог пропасть), а вот если упали все каналы пачки,
+		// скорее всего сломан сам классификатор: ключ, модель или сессия
+		return failedCount == channels.Count ? lastError : null;
+	}
+
+	/// <summary>
+	///     Выполнить запись статуса, проглатывая ошибки: сбой записи не должен ронять job
+	/// </summary>
+	/// <param name="report"></param>
+	private async Task TryReportAsync(Func<Task> report)
+	{
+		try
+		{
+			await report();
+		}
+		catch (Exception ex)
+		{
+			logger.LogWarning(ex, "Не удалось записать статус задачи {JobName}", WorkerJobNames.ClassifyChannels);
 		}
 	}
 

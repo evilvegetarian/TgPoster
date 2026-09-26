@@ -10,4 +10,7 @@ public static class WorkerJobNames
 
 	/// <summary>Еженедельная очистка устаревших файлов в S3.</summary>
 	public const string CleanupS3Files = "cleanup-s3-files-job";
+
+	/// <summary>Классификация обнаруженных каналов через LLM</summary>
+	public const string ClassifyChannels = "classify-channels-job";
 }

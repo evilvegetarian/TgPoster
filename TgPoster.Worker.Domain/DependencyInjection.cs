@@ -157,7 +157,7 @@ public static class DependencyInjection
 			"0 */2 * * *");
 
 		recurringJobManager.AddOrUpdate<ClassifyChannelWorker>(
-			"classify-channels-job",
+			WorkerJobNames.ClassifyChannels,
 			worker => worker.ClassifyChannelsAsync(),
 			"*/20 * * * *");
 
@@ -186,6 +186,11 @@ public static class DependencyInjection
 		statusStorage.EnsureRegisteredAsync(
 				WorkerJobNames.DiscoverChannelLinks,
 				nextRunProvider.GetNextRunAt(WorkerJobNames.DiscoverChannelLinks),
+				CancellationToken.None)
+			.GetAwaiter().GetResult();
+		statusStorage.EnsureRegisteredAsync(
+				WorkerJobNames.ClassifyChannels,
+				nextRunProvider.GetNextRunAt(WorkerJobNames.ClassifyChannels),
 				CancellationToken.None)
 			.GetAwaiter().GetResult();
 	}

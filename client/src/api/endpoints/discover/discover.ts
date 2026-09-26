@@ -20,10 +20,14 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  ClassificationHistoryItemResponsePagedResponse,
+  ClassificationStatsResponse,
   DiscoverChannelResponsePagedResponse,
   DiscoverParseHistoryItemResponsePagedResponse,
   DiscoverStatsResponse,
   DiscoverStatusResponse,
+  GetApiV1DiscoverClassificationHistoryParams,
+  GetApiV1DiscoverClassificationStatsParams,
   GetApiV1DiscoverParams,
   GetApiV1DiscoverParseHistoryParams,
   GetApiV1DiscoverStatsParams,
@@ -487,6 +491,284 @@ export function useGetApiV1DiscoverParseHistory<TData = Awaited<ReturnType<typeo
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getGetApiV1DiscoverParseHistoryQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+
+/**
+ * @summary Получить статистику классификации каналов: покрытие, свежесть, уверенность модели и разбивки
+ */
+export const getApiV1DiscoverClassificationStats = (
+    params?: GetApiV1DiscoverClassificationStatsParams,
+ signal?: AbortSignal
+) => {
+      
+      
+      return customInstance<ClassificationStatsResponse>(
+      {url: `/api/v1/discover/classification/stats`, method: 'GET',
+        params, signal
+    },
+      );
+    }
+  
+
+
+
+export const getGetApiV1DiscoverClassificationStatsQueryKey = (params?: GetApiV1DiscoverClassificationStatsParams,) => {
+    return [
+    `/api/v1/discover/classification/stats`, ...(params ? [params]: [])
+    ] as const;
+    }
+
+    
+export const getGetApiV1DiscoverClassificationStatsQueryOptions = <TData = Awaited<ReturnType<typeof getApiV1DiscoverClassificationStats>>, TError = ProblemDetails>(params?: GetApiV1DiscoverClassificationStatsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1DiscoverClassificationStats>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetApiV1DiscoverClassificationStatsQueryKey(params);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getApiV1DiscoverClassificationStats>>> = ({ signal }) => getApiV1DiscoverClassificationStats(params, signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getApiV1DiscoverClassificationStats>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetApiV1DiscoverClassificationStatsQueryResult = NonNullable<Awaited<ReturnType<typeof getApiV1DiscoverClassificationStats>>>
+export type GetApiV1DiscoverClassificationStatsQueryError = ProblemDetails
+
+
+export function useGetApiV1DiscoverClassificationStats<TData = Awaited<ReturnType<typeof getApiV1DiscoverClassificationStats>>, TError = ProblemDetails>(
+ params: undefined |  GetApiV1DiscoverClassificationStatsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1DiscoverClassificationStats>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getApiV1DiscoverClassificationStats>>,
+          TError,
+          Awaited<ReturnType<typeof getApiV1DiscoverClassificationStats>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetApiV1DiscoverClassificationStats<TData = Awaited<ReturnType<typeof getApiV1DiscoverClassificationStats>>, TError = ProblemDetails>(
+ params?: GetApiV1DiscoverClassificationStatsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1DiscoverClassificationStats>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getApiV1DiscoverClassificationStats>>,
+          TError,
+          Awaited<ReturnType<typeof getApiV1DiscoverClassificationStats>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetApiV1DiscoverClassificationStats<TData = Awaited<ReturnType<typeof getApiV1DiscoverClassificationStats>>, TError = ProblemDetails>(
+ params?: GetApiV1DiscoverClassificationStatsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1DiscoverClassificationStats>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Получить статистику классификации каналов: покрытие, свежесть, уверенность модели и разбивки
+ */
+
+export function useGetApiV1DiscoverClassificationStats<TData = Awaited<ReturnType<typeof getApiV1DiscoverClassificationStats>>, TError = ProblemDetails>(
+ params?: GetApiV1DiscoverClassificationStatsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1DiscoverClassificationStats>>, TError, TData>>, }
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetApiV1DiscoverClassificationStatsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+
+/**
+ * @summary Получить историю классификации: какие каналы и как классифицированы, от самых свежих к старым
+ */
+export const getApiV1DiscoverClassificationHistory = (
+    params?: GetApiV1DiscoverClassificationHistoryParams,
+ signal?: AbortSignal
+) => {
+      
+      
+      return customInstance<ClassificationHistoryItemResponsePagedResponse>(
+      {url: `/api/v1/discover/classification/history`, method: 'GET',
+        params, signal
+    },
+      );
+    }
+  
+
+
+
+export const getGetApiV1DiscoverClassificationHistoryQueryKey = (params?: GetApiV1DiscoverClassificationHistoryParams,) => {
+    return [
+    `/api/v1/discover/classification/history`, ...(params ? [params]: [])
+    ] as const;
+    }
+
+    
+export const getGetApiV1DiscoverClassificationHistoryQueryOptions = <TData = Awaited<ReturnType<typeof getApiV1DiscoverClassificationHistory>>, TError = ProblemDetails>(params?: GetApiV1DiscoverClassificationHistoryParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1DiscoverClassificationHistory>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetApiV1DiscoverClassificationHistoryQueryKey(params);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getApiV1DiscoverClassificationHistory>>> = ({ signal }) => getApiV1DiscoverClassificationHistory(params, signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getApiV1DiscoverClassificationHistory>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetApiV1DiscoverClassificationHistoryQueryResult = NonNullable<Awaited<ReturnType<typeof getApiV1DiscoverClassificationHistory>>>
+export type GetApiV1DiscoverClassificationHistoryQueryError = ProblemDetails
+
+
+export function useGetApiV1DiscoverClassificationHistory<TData = Awaited<ReturnType<typeof getApiV1DiscoverClassificationHistory>>, TError = ProblemDetails>(
+ params: undefined |  GetApiV1DiscoverClassificationHistoryParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1DiscoverClassificationHistory>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getApiV1DiscoverClassificationHistory>>,
+          TError,
+          Awaited<ReturnType<typeof getApiV1DiscoverClassificationHistory>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetApiV1DiscoverClassificationHistory<TData = Awaited<ReturnType<typeof getApiV1DiscoverClassificationHistory>>, TError = ProblemDetails>(
+ params?: GetApiV1DiscoverClassificationHistoryParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1DiscoverClassificationHistory>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getApiV1DiscoverClassificationHistory>>,
+          TError,
+          Awaited<ReturnType<typeof getApiV1DiscoverClassificationHistory>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetApiV1DiscoverClassificationHistory<TData = Awaited<ReturnType<typeof getApiV1DiscoverClassificationHistory>>, TError = ProblemDetails>(
+ params?: GetApiV1DiscoverClassificationHistoryParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1DiscoverClassificationHistory>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Получить историю классификации: какие каналы и как классифицированы, от самых свежих к старым
+ */
+
+export function useGetApiV1DiscoverClassificationHistory<TData = Awaited<ReturnType<typeof getApiV1DiscoverClassificationHistory>>, TError = ProblemDetails>(
+ params?: GetApiV1DiscoverClassificationHistoryParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1DiscoverClassificationHistory>>, TError, TData>>, }
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetApiV1DiscoverClassificationHistoryQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+
+/**
+ * @summary Получить состояние фоновой задачи классификации каналов
+ */
+export const getApiV1DiscoverClassificationStatus = (
+    
+ signal?: AbortSignal
+) => {
+      
+      
+      return customInstance<DiscoverStatusResponse>(
+      {url: `/api/v1/discover/classification/status`, method: 'GET', signal
+    },
+      );
+    }
+  
+
+
+
+export const getGetApiV1DiscoverClassificationStatusQueryKey = () => {
+    return [
+    `/api/v1/discover/classification/status`
+    ] as const;
+    }
+
+    
+export const getGetApiV1DiscoverClassificationStatusQueryOptions = <TData = Awaited<ReturnType<typeof getApiV1DiscoverClassificationStatus>>, TError = ProblemDetails>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1DiscoverClassificationStatus>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetApiV1DiscoverClassificationStatusQueryKey();
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getApiV1DiscoverClassificationStatus>>> = ({ signal }) => getApiV1DiscoverClassificationStatus(signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getApiV1DiscoverClassificationStatus>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetApiV1DiscoverClassificationStatusQueryResult = NonNullable<Awaited<ReturnType<typeof getApiV1DiscoverClassificationStatus>>>
+export type GetApiV1DiscoverClassificationStatusQueryError = ProblemDetails
+
+
+export function useGetApiV1DiscoverClassificationStatus<TData = Awaited<ReturnType<typeof getApiV1DiscoverClassificationStatus>>, TError = ProblemDetails>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1DiscoverClassificationStatus>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getApiV1DiscoverClassificationStatus>>,
+          TError,
+          Awaited<ReturnType<typeof getApiV1DiscoverClassificationStatus>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetApiV1DiscoverClassificationStatus<TData = Awaited<ReturnType<typeof getApiV1DiscoverClassificationStatus>>, TError = ProblemDetails>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1DiscoverClassificationStatus>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getApiV1DiscoverClassificationStatus>>,
+          TError,
+          Awaited<ReturnType<typeof getApiV1DiscoverClassificationStatus>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetApiV1DiscoverClassificationStatus<TData = Awaited<ReturnType<typeof getApiV1DiscoverClassificationStatus>>, TError = ProblemDetails>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1DiscoverClassificationStatus>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Получить состояние фоновой задачи классификации каналов
+ */
+
+export function useGetApiV1DiscoverClassificationStatus<TData = Awaited<ReturnType<typeof getApiV1DiscoverClassificationStatus>>, TError = ProblemDetails>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1DiscoverClassificationStatus>>, TError, TData>>, }
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetApiV1DiscoverClassificationStatusQueryOptions(options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 

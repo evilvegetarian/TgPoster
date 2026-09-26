@@ -178,6 +178,9 @@ internal static class Routes
 		internal const string Status = Root + "/status";
 		internal const string Stats = Root + "/stats";
 		internal const string ParseHistory = Root + "/parse-history";
+		internal const string ClassificationStats = Root + "/classification/stats";
+		internal const string ClassificationHistory = Root + "/classification/history";
+		internal const string ClassificationStatus = Root + "/classification/status";
 	}
 
 	internal static class Repost

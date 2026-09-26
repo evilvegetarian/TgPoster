@@ -29,9 +29,7 @@ internal sealed class GetDiscoverStatsUseCase(IGetDiscoverStatsStorage storage)
 		}
 
 		var now = DateTimeOffset.UtcNow;
-		var today = DateOnly.FromDateTime(now.UtcDateTime);
-		var firstDay = today.AddDays(-(request.Days - 1));
-		var since = new DateTimeOffset(firstDay.ToDateTime(TimeOnly.MinValue), TimeSpan.Zero);
+		var series = DailyCountSeries.EndingAt(request.Days, now);
 
 		// Хранилище делит один DbContext, поэтому запросы идут строго последовательно
 		var totals = await storage.GetTotalsAsync(now, ct);
@@ -41,8 +39,8 @@ internal sealed class GetDiscoverStatsUseCase(IGetDiscoverStatsStorage storage)
 		var byCategory = await storage.GetCategoryCountsAsync(ct);
 		var byLanguage = await storage.GetLanguageCountsAsync(ct);
 		var byParticipants = await storage.GetParticipantsBucketCountsAsync(ct);
-		var parsedByDay = await storage.GetParsedByDayAsync(since, ct);
-		var foundByDay = await storage.GetFoundByDayAsync(since, ct);
+		var parsedByDay = await storage.GetParsedByDayAsync(series.Since, ct);
+		var foundByDay = await storage.GetFoundByDayAsync(series.Since, ct);
 		var topSources = await storage.GetTopSourcesAsync(TopSourcesLimit, ct);
 
 		return new DiscoverStatsResponse
@@ -76,8 +74,8 @@ internal sealed class GetDiscoverStatsUseCase(IGetDiscoverStatsStorage storage)
 			ByCategory = byCategory,
 			ByLanguage = byLanguage,
 			ByParticipants = FillAllBuckets(byParticipants),
-			ParsedByDay = FillAllDays(parsedByDay, firstDay, today),
-			FoundByDay = FillAllDays(foundByDay, firstDay, today),
+			ParsedByDay = series.Fill(parsedByDay),
+			FoundByDay = series.Fill(foundByDay),
 			TopSources = topSources
 		};
 	}
@@ -125,34 +123,4 @@ internal sealed class GetDiscoverStatsUseCase(IGetDiscoverStatsStorage storage)
 			.OrderByDescending(x => x.Count)
 			.ThenBy(x => x.Name)
 			.ToList();
-
-	/// <summary>
-	///     Развернуть разреженный список по дням в плотный: каждый день окна присутствует, пустые дни — с нулём
-	/// </summary>
-	/// <param name="counts"></param>
-	/// <param name="firstDay"></param>
-	/// <param name="lastDay"></param>
-	/// <returns></returns>
-	private static List<DiscoverDailyCount> FillAllDays(
-		IEnumerable<DiscoverDailyCount> counts,
-		DateOnly firstDay,
-		DateOnly lastDay
-	)
-	{
-		var byDate = counts
-			.GroupBy(x => x.Date)
-			.ToDictionary(g => g.Key, g => g.Sum(x => x.Count));
-
-		var result = new List<DiscoverDailyCount>(lastDay.DayNumber - firstDay.DayNumber + 1);
-		for (var day = firstDay; day <= lastDay; day = day.AddDays(1))
-		{
-			result.Add(new DiscoverDailyCount
-			{
-				Date = day,
-				Count = byDate.GetValueOrDefault(day)
-			});
-		}
-
-		return result;
-	}
 }

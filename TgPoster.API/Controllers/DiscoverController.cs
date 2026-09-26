@@ -3,6 +3,9 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TgPoster.API.Common;
 using TgPoster.API.Domain.UseCases.Discover.GetCategories;
+using TgPoster.API.Domain.UseCases.Discover.GetClassificationHistory;
+using TgPoster.API.Domain.UseCases.Discover.GetClassificationStats;
+using TgPoster.API.Domain.UseCases.Discover.GetClassificationStatus;
 using TgPoster.API.Domain.UseCases.Discover.GetDiscoverParseHistory;
 using TgPoster.API.Domain.UseCases.Discover.GetDiscoverStats;
 using TgPoster.API.Domain.UseCases.Discover.GetDiscoverStatus;
@@ -84,5 +87,49 @@ public class DiscoverController(ISender sender) : ControllerBase
 	{
 		var response = await sender.Send(request.ToDomain(), ct);
 		return Ok(response);
+	}
+
+	/// <summary>
+	///     Получить статистику классификации каналов: покрытие, свежесть, уверенность модели и разбивки
+	/// </summary>
+	[HttpGet(Routes.Discover.ClassificationStats)]
+	[ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ClassificationStatsResponse))]
+	[ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
+	[ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
+	public async Task<IActionResult> GetClassificationStats(
+		[FromQuery] GetDiscoverStatsRequest request,
+		CancellationToken ct
+	)
+	{
+		var stats = await sender.Send(new GetClassificationStatsQuery(request.Days), ct);
+		return Ok(stats);
+	}
+
+	/// <summary>
+	///     Получить историю классификации: какие каналы и как классифицированы, от самых свежих к старым
+	/// </summary>
+	[HttpGet(Routes.Discover.ClassificationHistory)]
+	[ProducesResponseType(StatusCodes.Status200OK, Type = typeof(PagedResponse<ClassificationHistoryItemResponse>))]
+	[ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
+	[ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
+	public async Task<IActionResult> GetClassificationHistory(
+		[FromQuery] ListClassificationHistoryRequest request,
+		CancellationToken ct
+	)
+	{
+		var response = await sender.Send(request.ToDomain(), ct);
+		return Ok(response);
+	}
+
+	/// <summary>
+	///     Получить состояние фоновой задачи классификации каналов
+	/// </summary>
+	[HttpGet(Routes.Discover.ClassificationStatus)]
+	[ProducesResponseType(StatusCodes.Status200OK, Type = typeof(DiscoverStatusResponse))]
+	[ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
+	public async Task<IActionResult> GetClassificationStatus(CancellationToken ct)
+	{
+		var status = await sender.Send(new GetClassificationStatusQuery(), ct);
+		return Ok(status);
 	}
 }
