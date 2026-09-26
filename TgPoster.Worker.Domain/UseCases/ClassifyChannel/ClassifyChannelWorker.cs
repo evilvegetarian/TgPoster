@@ -24,7 +24,7 @@ internal sealed partial class ClassifyChannelWorker(
 	ILogger<ClassifyChannelWorker> logger,
 	IHostApplicationLifetime lifetime)
 {
-	private const int BatchSize = 1;
+	private const int BatchSize = 2;
 	private const int MaxPhotoCount = 6;
 	private const int MaxImageSize = 512;
 	private const int JpegQuality = 80;
