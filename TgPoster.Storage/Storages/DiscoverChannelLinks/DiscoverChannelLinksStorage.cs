@@ -13,7 +13,7 @@ internal sealed class DiscoverChannelLinksStorage(PosterContext context, GuidFac
 	{
 		//Пока это только ищу
 		var query = context.DiscoveredChannels
-			.Where(x => x.PeerType == "chat")
+			.Where(x=>!x.IsBanned)
 			.Where(x => x.Category == "18+");
 
 		return query
