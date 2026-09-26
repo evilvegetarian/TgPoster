@@ -9,6 +9,7 @@ namespace TgPoster.API.Domain.UseCases.Discover.GetClassificationStats;
 /// <param name="Eligible">Каналов с username</param>
 /// <param name="Classified">Каналов, классифицированных хотя бы раз</param>
 /// <param name="Pending">Каналов с username, ещё ни разу не классифицированных</param>
+/// <param name="Failed">Каналов, которые пробовали классифицировать, но пока безуспешно</param>
 /// <param name="WithCategory">Каналов с тематикой</param>
 /// <param name="WithTags">Каналов хотя бы с одним тегом</param>
 /// <param name="AverageConfidence">Средняя уверенность модели</param>
@@ -21,6 +22,7 @@ public sealed record ClassificationStatsTotalsDto(
 	int Eligible,
 	int Classified,
 	int Pending,
+	int Failed,
 	int WithCategory,
 	int WithTags,
 	double? AverageConfidence,
@@ -32,7 +34,7 @@ public sealed record ClassificationStatsTotalsDto(
 	/// <summary>
 	///     Пустые итоги: в базе ещё нет ни одного канала
 	/// </summary>
-	public static ClassificationStatsTotalsDto Empty { get; } = new(0, 0, 0, 0, 0, 0, null, 0, 0, 0, null);
+	public static ClassificationStatsTotalsDto Empty { get; } = new(0, 0, 0, 0, 0, 0, 0, null, 0, 0, 0, null);
 }
 
 public interface IGetClassificationStatsStorage

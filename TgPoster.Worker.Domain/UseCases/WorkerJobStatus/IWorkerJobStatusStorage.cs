@@ -16,6 +16,14 @@ public interface IWorkerJobStatusStorage
 	Task EnsureRegisteredAsync(string jobName, DateTimeOffset? nextRunAt, CancellationToken ct);
 
 	/// <summary>
+	///     Когда начался последний запуск задачи; null, если она ещё не запускалась
+	/// </summary>
+	/// <param name="jobName">Имя job'а в Hangfire</param>
+	/// <param name="ct">Токен отмены</param>
+	/// <returns></returns>
+	Task<DateTimeOffset?> GetLastStartedAtAsync(string jobName, CancellationToken ct);
+
+	/// <summary>
 	///     Зафиксировать начало запуска: статус Running, сброс ошибки, таймаута и прогресса
 	/// </summary>
 	/// <param name="jobName">Имя job'а в Hangfire</param>

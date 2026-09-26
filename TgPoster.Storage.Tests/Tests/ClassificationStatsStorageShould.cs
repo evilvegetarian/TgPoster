@@ -25,16 +25,18 @@ public sealed class ClassificationStatsStorageShould(StorageTestFixture fixture)
 			NewChannel(c => Classify(c, "Tech", 0.9, ["ai"])),
 			NewChannel(c => Classify(c, null, 0.3, [])),
 			NewChannel(),
+			NewChannel(c => { c.LastClassificationAttemptAt = DateTimeOffset.UtcNow; }),
 			NewChannel(c => { c.Username = null; }));
 		await context.SaveChangesAsync(CancellationToken.None);
 		context.ChangeTracker.Clear();
 
 		var after = await sut.GetTotalsAsync(DateTimeOffset.UtcNow, CancellationToken.None);
 
-		(after.Total - before.Total).ShouldBe(4);
-		(after.Eligible - before.Eligible).ShouldBe(3);
+		(after.Total - before.Total).ShouldBe(5);
+		(after.Eligible - before.Eligible).ShouldBe(4);
 		(after.Classified - before.Classified).ShouldBe(2);
-		(after.Pending - before.Pending).ShouldBe(1);
+		(after.Pending - before.Pending).ShouldBe(2);
+		(after.Failed - before.Failed).ShouldBe(1);
 		(after.WithCategory - before.WithCategory).ShouldBe(1);
 		(after.WithTags - before.WithTags).ShouldBe(1);
 		after.AverageConfidence.ShouldNotBeNull();

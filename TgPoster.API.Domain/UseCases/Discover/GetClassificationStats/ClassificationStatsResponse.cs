@@ -61,6 +61,9 @@ public sealed record ClassificationStatsTotals
 	/// <summary>В очереди: доступны для классификации, но ещё ни разу не классифицированы</summary>
 	public required int Pending { get; init; }
 
+	/// <summary>Из очереди: классификатор уже пробовал, но безуспешно — повторит позже</summary>
+	public required int Failed { get; init; }
+
 	/// <summary>Каналов с проставленной тематикой</summary>
 	public required int WithCategory { get; init; }
 

@@ -20,6 +20,12 @@ internal sealed class WorkerJobStatusStorage(PosterContext context, GuidFactory 
 		await context.SaveChangesAsync(ct);
 	}
 
+	public Task<DateTimeOffset?> GetLastStartedAtAsync(string jobName, CancellationToken ct) =>
+		context.WorkerJobStates
+			.Where(x => x.JobName == jobName)
+			.Select(x => x.LastStartedAt)
+			.FirstOrDefaultAsync(ct);
+
 	public async Task ReportStartedAsync(string jobName, CancellationToken ct)
 	{
 		var state = await GetOrCreateAsync(jobName, ct);

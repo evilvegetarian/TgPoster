@@ -3,6 +3,7 @@ using System.Text.RegularExpressions;
 using Hangfire;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Shared.Classification;
 using Shared.Enums;
 using Shared.OpenRouter;
 using Shared.OpenRouter.Models.Request;
@@ -22,35 +23,14 @@ internal sealed partial class ClassifyChannelWorker(
 	ITelegramAuthService authService,
 	ITelegramMessageService tgMessages,
 	IWorkerJobStatusStorage statusStorage,
-	HangfireNextRunProvider nextRun,
+	TimeProvider timeProvider,
 	OpenRouterOptions options,
 	ILogger<ClassifyChannelWorker> logger,
 	IHostApplicationLifetime lifetime)
 {
-	private const int BatchSize = 2;
-	private const int MaxPhotoCount = 6;
 	private const int MaxImageSize = 512;
 	private const int JpegQuality = 80;
 	private const int MaxTextLength = 500;
-
-	private const string ClassificationSystemPrompt = """
-	                                                  Ты — классификатор Telegram-каналов. На вход получаешь название, описание,
-	                                                  последние посты и до 6 фотографий из этих постов. Используй И текст, И визуальный
-	                                                  контекст изображений для определения тематики.
-
-	                                                  Категории (выбери РОВНО ОДНУ): Технологии, Новости, Крипто, Бизнес, Маркетинг,
-	                                                  Развлечения, Образование, Политика, Спорт, Здоровье, Путешествия, Еда, Музыка,
-	                                                  Игры, Авто, Финансы, Наука, Дизайн, Юмор, 18+, Другое.
-
-	                                                  Правила:
-	                                                  - Если данных мало или они противоречивы — ставь confidence < 0.5 и категорию "Другое".
-	                                                  - tags: 3-5 коротких тегов (1-2 слова каждый), отражающих узкую специфику.
-	                                                  - language: ISO-код основного языка постов (ru, en, uk, ...).
-	                                                  - Отвечай СТРОГО валидным JSON без markdown-обёрток, без ```, без комментариев.
-
-	                                                  Формат ответа:
-	                                                  {"category":"...","subcategory":"...","tags":["...","..."],"language":"...","confidence":0.0-1.0}
-	                                                  """;
 
 	private const string ClassificationUserPromptTemplate = """
 	                                                        Название канала: {0}
@@ -59,7 +39,39 @@ internal sealed partial class ClassifyChannelWorker(
 	                                                        {2}
 	                                                        """;
 
+	/// <summary>
+	///     Через сколько повторять канал, классификация которого не удалась
+	/// </summary>
+	private static readonly TimeSpan RetryDelay = TimeSpan.FromHours(6);
+
+	/// <summary>
+	///     Job тикает раз в минуту, поэтому интервал из настроек сверяем с запасом —
+	///     иначе каждый запуск съезжал бы на лишнюю минуту
+	/// </summary>
+	private static readonly TimeSpan ScheduleTolerance = TimeSpan.FromSeconds(30);
+
 	private static readonly SemaphoreSlim ParseLock = new(1, 1);
+
+	/// <summary>
+	///     Настройки по умолчанию: модель и размер выборки берутся из конфига воркера, чтобы после обновления
+	///     классификатор продолжил работать как раньше, остальное — из <see cref="ClassifierDefaults" />
+	/// </summary>
+	/// <param name="options"></param>
+	/// <returns></returns>
+	internal static ClassifierSettingsDto CreateDefaultSettings(OpenRouterOptions options) => new()
+	{
+		IsEnabled = ClassifierDefaults.IsEnabled,
+		Model = string.IsNullOrWhiteSpace(options.Model) ? ClassifierDefaults.Model : options.Model,
+		BatchSize = ClassifierDefaults.BatchSize,
+		IntervalMinutes = ClassifierDefaults.IntervalMinutes,
+		MessageSampleCount = options.MessageSampleCount > 0
+			? options.MessageSampleCount
+			: ClassifierDefaults.MessageSampleCount,
+		PhotoCount = ClassifierDefaults.PhotoCount,
+		ReclassifyAfterDays = null,
+		Categories = ClassifierDefaults.Categories,
+		SystemPrompt = ClassifierDefaults.SystemPrompt
+	};
 
 	[DisableConcurrentExecution(100000)]
 	public async Task ClassifyChannelsAsync()
@@ -73,13 +85,28 @@ internal sealed partial class ClassifyChannelWorker(
 
 		try
 		{
+			var settings = await storage.GetSettingsAsync(ct) ?? CreateDefaultSettings(options);
+			if (!settings.IsEnabled)
+			{
+				return;
+			}
+
+			// Hangfire дёргает job каждую минуту, а реальный интервал берётся из настроек
+			var startedAt = timeProvider.GetUtcNow();
+			var interval = TimeSpan.FromMinutes(settings.IntervalMinutes);
+			var lastStartedAt = await statusStorage.GetLastStartedAtAsync(WorkerJobNames.ClassifyChannels, ct);
+			if (lastStartedAt is not null && startedAt - lastStartedAt < interval - ScheduleTolerance)
+			{
+				return;
+			}
+
 			await TryReportAsync(() => statusStorage.ReportStartedAsync(WorkerJobNames.ClassifyChannels, ct));
 
-			var error = await ClassifyBatchAsync(ct);
+			var error = await ClassifyBatchAsync(settings, ct);
 
 			// Финальную запись статуса делаем с CancellationToken.None: при остановке приложения
 			// она должна успеть выполниться best-effort
-			var nextRunAt = nextRun.GetNextRunAt(WorkerJobNames.ClassifyChannels);
+			var nextRunAt = startedAt + interval;
 			if (error is null)
 			{
 				await TryReportAsync(() => statusStorage.ReportCompletedAsync(
@@ -101,7 +128,7 @@ internal sealed partial class ClassifyChannelWorker(
 			await TryReportAsync(() => statusStorage.ReportFailedAsync(
 				WorkerJobNames.ClassifyChannels,
 				ex.Message,
-				nextRun.GetNextRunAt(WorkerJobNames.ClassifyChannels),
+				null,
 				CancellationToken.None));
 			throw;
 		}
@@ -114,27 +141,34 @@ internal sealed partial class ClassifyChannelWorker(
 	/// <summary>
 	///     Классифицировать очередную пачку каналов
 	/// </summary>
+	/// <param name="settings"></param>
 	/// <param name="ct"></param>
 	/// <returns>Текст ошибки, если запуск не смог выполнить работу, иначе null</returns>
-	private async Task<string?> ClassifyBatchAsync(CancellationToken ct)
+	private async Task<string?> ClassifyBatchAsync(ClassifierSettingsDto settings, CancellationToken ct)
 	{
 		if (string.IsNullOrWhiteSpace(options.SecretKey))
 		{
-			logger.LogWarning("ClassificationApiKey не задан, пропускаем классификацию каналов");
-			return "Не задан ключ OpenRouter — классификация отключена";
+			logger.LogWarning("Ключ OpenRouter не задан, пропускаем классификацию каналов");
+			return "Не задан ключ OpenRouter (OpenRouterOptions:SecretKey в конфиге воркера)";
 		}
 
-		var channels = await storage.GetUnclassifiedChannelsAsync(BatchSize, ct);
+		var now = timeProvider.GetUtcNow();
+		var channels = await storage.GetChannelsToClassifyAsync(
+			settings.BatchSize,
+			now - RetryDelay,
+			settings.ReclassifyAfterDays is { } days ? now.AddDays(-days) : null,
+			ct);
 		if (channels.Count == 0)
 		{
 			return null;
 		}
 
-		var sessionId = await authService.GetSessionIdForPurposeAsync(TelegramSessionPurpose.Classification, ct);
+		var sessionId = settings.TelegramSessionId
+		                ?? await authService.GetSessionIdForPurposeAsync(TelegramSessionPurpose.Classification, ct);
 		if (sessionId is null)
 		{
-			logger.LogWarning("Нет активной Telegram-сессии с назначением Classification");
-			return "Нет активной Telegram-сессии с назначением «Классификация»";
+			logger.LogWarning("Нет Telegram-сессии для классификации каналов");
+			return "Не выбрана Telegram-сессия: укажите её в настройках классификатора";
 		}
 
 		string? lastError = null;
@@ -152,7 +186,8 @@ internal sealed partial class ClassifyChannelWorker(
 
 			try
 			{
-				await ClassifyChannelAsync(channel, sessionId.Value, ct);
+				await storage.MarkClassificationAttemptAsync(channel.Id, timeProvider.GetUtcNow(), ct);
+				await ClassifyChannelAsync(channel, sessionId.Value, settings, ct);
 			}
 			catch (Exception ex) when (ex is not OperationCanceledException)
 			{
@@ -186,6 +221,7 @@ internal sealed partial class ClassifyChannelWorker(
 	private async Task ClassifyChannelAsync(
 		ChannelForClassificationDto channel,
 		Guid sessionId,
+		ClassifierSettingsDto settings,
 		CancellationToken ct
 	)
 	{
@@ -196,7 +232,8 @@ internal sealed partial class ClassifyChannelWorker(
 			return;
 		}
 
-		var sample = await FetchRecentMessagesAsync(sessionId, resolved, ct);
+		var sample = await FetchRecentMessagesAsync(
+			sessionId, resolved, settings.MessageSampleCount, settings.PhotoCount, ct);
 
 		var messagesSection = sample.Texts.Count > 0
 			? string.Join("\n---\n", sample.Texts)
@@ -213,15 +250,25 @@ internal sealed partial class ClassifyChannelWorker(
 			new() { Type = "text", Text = userPrompt }
 		};
 
+		if (sample.Photos.Count > 0)
+		{
+			var images = await DownloadAndPrepareImagesAsync(sessionId, resolved, sample.Photos, ct);
+			contentParts.AddRange(images.Select(url => new MessageContentPart
+			{
+				Type = "image_url",
+				ImageUrl = new ImageUrlInfo { Url = url }
+			}));
+		}
+
 		var messages = new List<ChatMessage>
 		{
-			new() { Role = "system", Content = ClassificationSystemPrompt },
+			new() { Role = "system", Content = BuildSystemPrompt(settings) },
 			new() { Role = "user", Content = contentParts }
 		};
 
 		var response = await openRouterClient.SendMessageRawAsync(
 			options.SecretKey!,
-			options.Model,
+			settings.Model,
 			messages,
 			ct);
 
@@ -253,14 +300,24 @@ internal sealed partial class ClassifyChannelWorker(
 			channel.Title, classification.Category, classification.Subcategory, classification.Confidence);
 	}
 
+	/// <summary>
+	///     Подставить список тематик в системный промпт из настроек
+	/// </summary>
+	/// <param name="settings"></param>
+	/// <returns></returns>
+	private static string BuildSystemPrompt(ClassifierSettingsDto settings) =>
+		settings.SystemPrompt.Replace(ClassifierDefaults.CategoriesPlaceholder, string.Join(", ", settings.Categories));
+
 	private async Task<RecentMessagesSample> FetchRecentMessagesAsync(
 		Guid sessionId,
 		TelegramPeer peer,
+		int messageCount,
+		int maxPhotoCount,
 		CancellationToken ct
 	)
 	{
 		var historyResult = await tgMessages.GetHistoryAsync(
-			sessionId, peer, options.MessageSampleCount, ct: ct);
+			sessionId, peer, messageCount, ct: ct);
 
 		if (!historyResult.IsSuccess)
 		{
@@ -283,7 +340,7 @@ internal sealed partial class ClassifyChannelWorker(
 				}
 			}
 
-			if (photos.Count < MaxPhotoCount
+			if (photos.Count < maxPhotoCount
 			    && message.Media is { Type: TelegramMediaType.Photo } media)
 			{
 				photos.Add(new PhotoForClassification(message.Id, media));

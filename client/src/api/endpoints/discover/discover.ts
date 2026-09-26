@@ -5,16 +5,20 @@
  * OpenAPI spec version: 1.0
  */
 import {
+  useMutation,
   useQuery
 } from '@tanstack/react-query';
 import type {
   DataTag,
   DefinedInitialDataOptions,
   DefinedUseQueryResult,
+  MutationFunction,
   QueryClient,
   QueryFunction,
   QueryKey,
   UndefinedInitialDataOptions,
+  UseMutationOptions,
+  UseMutationResult,
   UseQueryOptions,
   UseQueryResult
 } from '@tanstack/react-query';
@@ -22,6 +26,7 @@ import type {
 import type {
   ClassificationHistoryItemResponsePagedResponse,
   ClassificationStatsResponse,
+  ClassifierSettingsResponse,
   DiscoverChannelResponsePagedResponse,
   DiscoverParseHistoryItemResponsePagedResponse,
   DiscoverStatsResponse,
@@ -31,7 +36,8 @@ import type {
   GetApiV1DiscoverParams,
   GetApiV1DiscoverParseHistoryParams,
   GetApiV1DiscoverStatsParams,
-  ProblemDetails
+  ProblemDetails,
+  UpdateClassifierSettingsRequest
 } from '../tgPosterAPI.schemas';
 
 import { customInstance } from '../../axios-instance';
@@ -780,3 +786,159 @@ export function useGetApiV1DiscoverClassificationStatus<TData = Awaited<ReturnTy
 
 
 
+/**
+ * @summary Получить настройки классификатора каналов вместе со значениями по умолчанию
+ */
+export const getApiV1DiscoverClassificationSettings = (
+    
+ signal?: AbortSignal
+) => {
+      
+      
+      return customInstance<ClassifierSettingsResponse>(
+      {url: `/api/v1/discover/classification/settings`, method: 'GET', signal
+    },
+      );
+    }
+  
+
+
+
+export const getGetApiV1DiscoverClassificationSettingsQueryKey = () => {
+    return [
+    `/api/v1/discover/classification/settings`
+    ] as const;
+    }
+
+    
+export const getGetApiV1DiscoverClassificationSettingsQueryOptions = <TData = Awaited<ReturnType<typeof getApiV1DiscoverClassificationSettings>>, TError = ProblemDetails>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1DiscoverClassificationSettings>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetApiV1DiscoverClassificationSettingsQueryKey();
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getApiV1DiscoverClassificationSettings>>> = ({ signal }) => getApiV1DiscoverClassificationSettings(signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getApiV1DiscoverClassificationSettings>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetApiV1DiscoverClassificationSettingsQueryResult = NonNullable<Awaited<ReturnType<typeof getApiV1DiscoverClassificationSettings>>>
+export type GetApiV1DiscoverClassificationSettingsQueryError = ProblemDetails
+
+
+export function useGetApiV1DiscoverClassificationSettings<TData = Awaited<ReturnType<typeof getApiV1DiscoverClassificationSettings>>, TError = ProblemDetails>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1DiscoverClassificationSettings>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getApiV1DiscoverClassificationSettings>>,
+          TError,
+          Awaited<ReturnType<typeof getApiV1DiscoverClassificationSettings>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetApiV1DiscoverClassificationSettings<TData = Awaited<ReturnType<typeof getApiV1DiscoverClassificationSettings>>, TError = ProblemDetails>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1DiscoverClassificationSettings>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getApiV1DiscoverClassificationSettings>>,
+          TError,
+          Awaited<ReturnType<typeof getApiV1DiscoverClassificationSettings>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetApiV1DiscoverClassificationSettings<TData = Awaited<ReturnType<typeof getApiV1DiscoverClassificationSettings>>, TError = ProblemDetails>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1DiscoverClassificationSettings>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Получить настройки классификатора каналов вместе со значениями по умолчанию
+ */
+
+export function useGetApiV1DiscoverClassificationSettings<TData = Awaited<ReturnType<typeof getApiV1DiscoverClassificationSettings>>, TError = ProblemDetails>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1DiscoverClassificationSettings>>, TError, TData>>, }
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetApiV1DiscoverClassificationSettingsQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+
+/**
+ * @summary Сохранить настройки классификатора каналов
+ */
+export const putApiV1DiscoverClassificationSettings = (
+    updateClassifierSettingsRequest: UpdateClassifierSettingsRequest,
+ ) => {
+      
+      
+      return customInstance<void>(
+      {url: `/api/v1/discover/classification/settings`, method: 'PUT',
+      headers: {'Content-Type': 'application/json', },
+      data: updateClassifierSettingsRequest
+    },
+      );
+    }
+  
+
+
+export const getPutApiV1DiscoverClassificationSettingsMutationOptions = <TError = ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof putApiV1DiscoverClassificationSettings>>, TError,{data: UpdateClassifierSettingsRequest}, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof putApiV1DiscoverClassificationSettings>>, TError,{data: UpdateClassifierSettingsRequest}, TContext> => {
+
+const mutationKey = ['putApiV1DiscoverClassificationSettings'];
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof putApiV1DiscoverClassificationSettings>>, {data: UpdateClassifierSettingsRequest}> = (props) => {
+          const {data} = props ?? {};
+
+          return  putApiV1DiscoverClassificationSettings(data,)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type PutApiV1DiscoverClassificationSettingsMutationResult = NonNullable<Awaited<ReturnType<typeof putApiV1DiscoverClassificationSettings>>>
+    export type PutApiV1DiscoverClassificationSettingsMutationBody = UpdateClassifierSettingsRequest
+    export type PutApiV1DiscoverClassificationSettingsMutationError = ProblemDetails
+
+    /**
+ * @summary Сохранить настройки классификатора каналов
+ */
+export const usePutApiV1DiscoverClassificationSettings = <TError = ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof putApiV1DiscoverClassificationSettings>>, TError,{data: UpdateClassifierSettingsRequest}, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof putApiV1DiscoverClassificationSettings>>,
+        TError,
+        {data: UpdateClassifierSettingsRequest},
+        TContext
+      > => {
+
+      const mutationOptions = getPutApiV1DiscoverClassificationSettingsMutationOptions(options);
+
+      return useMutation(mutationOptions, queryClient);
+    }
+    

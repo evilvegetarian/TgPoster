@@ -34,6 +34,9 @@ internal sealed class ClassificationStatsStorage(PosterContext context)
 				g.Count(x => x.Username != null),
 				g.Count(x => x.LastClassifiedAt != null),
 				g.Count(x => x.Username != null && x.LastClassifiedAt == null),
+				g.Count(x => x.Username != null
+				             && x.LastClassifiedAt == null
+				             && x.LastClassificationAttemptAt != null),
 				g.Count(x => x.Category != null),
 				g.Count(x => x.Tags != null && x.Tags.Length > 0),
 				g.Average(x => x.ClassificationConfidence),

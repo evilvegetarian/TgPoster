@@ -1,5 +1,5 @@
 import {useState} from "react"
-import {Link} from "react-router-dom"
+import {Link, useSearchParams} from "react-router-dom"
 import {
     BarChart3,
     CheckCircle2,
@@ -11,6 +11,7 @@ import {
     Loader2,
     RefreshCw,
     Search,
+    Settings2,
     Sparkles,
     Tag,
     Tags,
@@ -19,6 +20,7 @@ import {
 } from "lucide-react"
 import {
     useGetApiV1DiscoverClassificationHistory,
+    useGetApiV1DiscoverClassificationSettings,
     useGetApiV1DiscoverClassificationStats,
     useGetApiV1DiscoverClassificationStatus,
 } from "@/api/endpoints/discover/discover"
@@ -28,7 +30,9 @@ import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card"
 import {Input} from "@/components/ui/input"
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select"
 import {Skeleton} from "@/components/ui/skeleton"
+import {Tabs, TabsContent, TabsList, TabsTrigger} from "@/components/ui/tabs"
 import {ChannelAvatar, ChannelName} from "@/components/discover/channel-identity"
+import {ClassifierSettingsForm} from "@/components/discover/classifier-settings-form"
 import {DailyBarChart} from "@/components/discover/daily-bar-chart"
 import {
     compactNumber,
@@ -112,7 +116,8 @@ function StatsTiles({stats}: {stats: ClassificationStatsResponse}) {
             <StatTile
                 label="Классифицировано"
                 value={totals.classified}
-                hint={`${percent(totals.classified, totals.eligible)} от доступных · в очереди ${totals.pending.toLocaleString("ru-RU")}`}
+                hint={`${percent(totals.classified, totals.eligible)} от доступных · в очереди ${totals.pending.toLocaleString("ru-RU")}`
+                    + (totals.failed > 0 ? ` · не удалось ${totals.failed.toLocaleString("ru-RU")}` : "")}
                 icon={<CheckCircle2 className="h-4 w-4"/>}
                 accent="bg-violet-100 text-violet-700"
             />
@@ -593,52 +598,29 @@ function StatsSkeleton() {
     )
 }
 
-export function DiscoverClassificationPage() {
+function StatsTab() {
     const [days, setDays] = useState("30")
 
     const {data: stats, isLoading, isFetching, refetch} = useGetApiV1DiscoverClassificationStats({Days: Number(days)})
-    const {data: status} = useGetApiV1DiscoverClassificationStatus({query: {refetchInterval: 15_000}})
 
     return (
-        <div className="container mx-auto p-6 max-w-6xl space-y-4">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-                <div>
-                    <h1 className="text-2xl font-bold">Статистика классификации</h1>
-                    <p className="text-sm text-muted-foreground mt-1">
-                        Как LLM раскладывает каналы по тематикам: покрытие, уверенность модели, теги и история
-                    </p>
-                </div>
-                <div className="flex flex-wrap items-center gap-2">
-                    <Select value={days} onValueChange={setDays}>
-                        <SelectTrigger className="w-[130px]">
-                            <SelectValue placeholder="Период"/>
-                        </SelectTrigger>
-                        <SelectContent>
-                            {PERIOD_OPTIONS.map((opt) => (
-                                <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
-                    <Button variant="outline" size="sm" className="gap-1.5" onClick={() => void refetch()} disabled={isFetching}>
-                        <RefreshCw className={`h-3.5 w-3.5 ${isFetching ? "animate-spin" : ""}`}/>
-                        Обновить
-                    </Button>
-                    <Button variant="outline" size="sm" className="gap-1.5" asChild>
-                        <Link to="/discover/stats">
-                            <BarChart3 className="h-3.5 w-3.5"/>
-                            Статистика Discover
-                        </Link>
-                    </Button>
-                    <Button variant="outline" size="sm" className="gap-1.5" asChild>
-                        <Link to="/discover">
-                            <Telescope className="h-3.5 w-3.5"/>
-                            К списку каналов
-                        </Link>
-                    </Button>
-                </div>
+        <div className="space-y-4">
+            <div className="flex flex-wrap items-center justify-end gap-2">
+                <Select value={days} onValueChange={setDays}>
+                    <SelectTrigger className="w-[130px]">
+                        <SelectValue placeholder="Период"/>
+                    </SelectTrigger>
+                    <SelectContent>
+                        {PERIOD_OPTIONS.map((opt) => (
+                            <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
+                <Button variant="outline" size="sm" className="gap-1.5" onClick={() => void refetch()} disabled={isFetching}>
+                    <RefreshCw className={`h-3.5 w-3.5 ${isFetching ? "animate-spin" : ""}`}/>
+                    Обновить
+                </Button>
             </div>
-
-            {status && <WorkerStatusCard title="Воркер классификации" status={status}/>}
 
             {isLoading || !stats ? (
                 <StatsSkeleton/>
@@ -676,6 +658,74 @@ export function DiscoverClassificationPage() {
             )}
 
             <ClassificationHistory categories={stats?.byCategory.map((c) => c.name) ?? []}/>
+        </div>
+    )
+}
+
+const SETTINGS_TAB = "settings"
+
+export function DiscoverClassificationPage() {
+    const [searchParams, setSearchParams] = useSearchParams()
+    const tab = searchParams.get("tab") === SETTINGS_TAB ? SETTINGS_TAB : "stats"
+
+    const {data: status} = useGetApiV1DiscoverClassificationStatus({query: {refetchInterval: 15_000}})
+    const {data: settings} = useGetApiV1DiscoverClassificationSettings()
+
+    const openTab = (value: string) =>
+        setSearchParams(value === SETTINGS_TAB ? {tab: SETTINGS_TAB} : {}, {replace: true})
+
+    return (
+        <div className="container mx-auto p-6 max-w-6xl space-y-4">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                    <div className="flex flex-wrap items-center gap-2">
+                        <h1 className="text-2xl font-bold">Классификация каналов</h1>
+                        {settings && !settings.isEnabled && (
+                            <Badge variant="outline" className="border-amber-300 bg-amber-50 text-amber-700">
+                                Выключена
+                            </Badge>
+                        )}
+                    </div>
+                    <p className="text-sm text-muted-foreground mt-1">
+                        Как LLM раскладывает каналы по тематикам — статистика, история и настройки классификатора
+                    </p>
+                </div>
+                <div className="flex flex-wrap items-center gap-2">
+                    <Button variant="outline" size="sm" className="gap-1.5" asChild>
+                        <Link to="/discover/stats">
+                            <BarChart3 className="h-3.5 w-3.5"/>
+                            Статистика Discover
+                        </Link>
+                    </Button>
+                    <Button variant="outline" size="sm" className="gap-1.5" asChild>
+                        <Link to="/discover">
+                            <Telescope className="h-3.5 w-3.5"/>
+                            К списку каналов
+                        </Link>
+                    </Button>
+                </div>
+            </div>
+
+            {status && <WorkerStatusCard title="Воркер классификации" status={status}/>}
+
+            <Tabs value={tab} onValueChange={openTab}>
+                <TabsList>
+                    <TabsTrigger value="stats" className="gap-1.5">
+                        <BarChart3 className="h-3.5 w-3.5"/>
+                        Статистика
+                    </TabsTrigger>
+                    <TabsTrigger value={SETTINGS_TAB} className="gap-1.5">
+                        <Settings2 className="h-3.5 w-3.5"/>
+                        Настройки
+                    </TabsTrigger>
+                </TabsList>
+                <TabsContent value="stats" className="mt-4">
+                    <StatsTab/>
+                </TabsContent>
+                <TabsContent value={SETTINGS_TAB} className="mt-4">
+                    <ClassifierSettingsForm/>
+                </TabsContent>
+            </Tabs>
         </div>
     )
 }

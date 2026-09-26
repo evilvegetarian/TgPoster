@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -6,6 +7,7 @@ using TgPoster.API.Domain.UseCases.Discover.GetCategories;
 using TgPoster.API.Domain.UseCases.Discover.GetClassificationHistory;
 using TgPoster.API.Domain.UseCases.Discover.GetClassificationStats;
 using TgPoster.API.Domain.UseCases.Discover.GetClassificationStatus;
+using TgPoster.API.Domain.UseCases.Discover.GetClassifierSettings;
 using TgPoster.API.Domain.UseCases.Discover.GetDiscoverParseHistory;
 using TgPoster.API.Domain.UseCases.Discover.GetDiscoverStats;
 using TgPoster.API.Domain.UseCases.Discover.GetDiscoverStatus;
@@ -131,5 +133,34 @@ public class DiscoverController(ISender sender) : ControllerBase
 	{
 		var status = await sender.Send(new GetClassificationStatusQuery(), ct);
 		return Ok(status);
+	}
+
+	/// <summary>
+	///     Получить настройки классификатора каналов вместе со значениями по умолчанию
+	/// </summary>
+	[HttpGet(Routes.Discover.ClassificationSettings)]
+	[ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ClassifierSettingsResponse))]
+	[ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
+	public async Task<IActionResult> GetClassifierSettings(CancellationToken ct)
+	{
+		var settings = await sender.Send(new GetClassifierSettingsQuery(), ct);
+		return Ok(settings);
+	}
+
+	/// <summary>
+	///     Сохранить настройки классификатора каналов
+	/// </summary>
+	[HttpPut(Routes.Discover.ClassificationSettings)]
+	[ProducesResponseType(StatusCodes.Status204NoContent)]
+	[ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
+	[ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
+	[ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
+	public async Task<IActionResult> UpdateClassifierSettings(
+		[FromBody] [Required] UpdateClassifierSettingsRequest request,
+		CancellationToken ct
+	)
+	{
+		await sender.Send(request.ToDomain(), ct);
+		return NoContent();
 	}
 }

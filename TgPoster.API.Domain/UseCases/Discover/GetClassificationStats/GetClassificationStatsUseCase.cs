@@ -52,6 +52,7 @@ internal sealed class GetClassificationStatsUseCase(IGetClassificationStatsStora
 				Skipped = totals.Total - totals.Eligible,
 				Classified = totals.Classified,
 				Pending = totals.Pending,
+				Failed = totals.Failed,
 				WithCategory = totals.WithCategory,
 				WithTags = totals.WithTags,
 				AverageConfidence = totals.AverageConfidence,

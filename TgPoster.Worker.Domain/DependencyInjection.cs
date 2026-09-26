@@ -156,10 +156,11 @@ public static class DependencyInjection
 			worker => worker.ProcessChannelsAsync(),
 			"0 */2 * * *");
 
+		// Тикает каждую минуту: включён ли классификатор и пора ли запускаться, решают настройки в БД
 		recurringJobManager.AddOrUpdate<ClassifyChannelWorker>(
 			WorkerJobNames.ClassifyChannels,
 			worker => worker.ClassifyChannelsAsync(),
-			"*/20 * * * *");
+			Cron.Minutely());
 
 		recurringJobManager.AddOrUpdate<UpdateChannelStatsWorker>(
 			"update-channel-stats-job",
@@ -188,9 +189,13 @@ public static class DependencyInjection
 				nextRunProvider.GetNextRunAt(WorkerJobNames.DiscoverChannelLinks),
 				CancellationToken.None)
 			.GetAwaiter().GetResult();
-		statusStorage.EnsureRegisteredAsync(
-				WorkerJobNames.ClassifyChannels,
-				nextRunProvider.GetNextRunAt(WorkerJobNames.ClassifyChannels),
+		statusStorage.EnsureRegisteredAsync(WorkerJobNames.ClassifyChannels, null, CancellationToken.None)
+			.GetAwaiter().GetResult();
+
+		var classifyStorage = scope.ServiceProvider.GetRequiredService<IClassifyChannelStorage>();
+		var openRouterOptions = scope.ServiceProvider.GetRequiredService<OpenRouterOptions>();
+		classifyStorage.EnsureSettingsAsync(
+				ClassifyChannelWorker.CreateDefaultSettings(openRouterOptions),
 				CancellationToken.None)
 			.GetAwaiter().GetResult();
 	}

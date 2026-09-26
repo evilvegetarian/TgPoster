@@ -33,6 +33,7 @@ internal class PosterContext(
 	public DbSet<CommentRepostLog> CommentRepostLogs { get; set; }
 	public DbSet<DiscoveredChannel> DiscoveredChannels { get; set; }
 	public DbSet<WorkerJobState> WorkerJobStates { get; set; }
+	public DbSet<ClassifierSettings> ClassifierSettings { get; set; }
 
 	public override Task<int> SaveChangesAsync(CancellationToken ct = new())
 	{

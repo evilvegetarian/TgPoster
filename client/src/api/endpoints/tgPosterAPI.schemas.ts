@@ -214,6 +214,7 @@ export interface ClassificationStatsTotals {
   skipped: number;
   classified: number;
   pending: number;
+  failed: number;
   withCategory: number;
   withTags: number;
   /** @nullable */
@@ -227,6 +228,36 @@ export interface ClassificationSubcategoryStat {
   category?: string | null;
   subcategory: string;
   count: number;
+}
+
+export interface ClassifierSessionInfo {
+  id: string;
+  /** @nullable */
+  name?: string | null;
+  isActive: boolean;
+}
+
+export interface ClassifierSettingsResponse {
+  isEnabled: boolean;
+  /** @minLength 1 */
+  model: string;
+  batchSize: number;
+  intervalMinutes: number;
+  messageSampleCount: number;
+  photoCount: number;
+  /** @nullable */
+  reclassifyAfterDays?: number | null;
+  categories: string[];
+  /** @minLength 1 */
+  systemPrompt: string;
+  /** @minLength 1 */
+  categoriesPlaceholder: string;
+  /** @minLength 1 */
+  defaultSystemPrompt: string;
+  defaultCategories: string[];
+  telegramSession?: ClassifierSessionInfo;
+  /** @nullable */
+  updatedAt?: string | null;
 }
 
 export interface CommentRepostItemDto {
@@ -1569,6 +1600,68 @@ export const TelegramSessionStatus = {
   Authorized: 'Authorized',
   Failed: 'Failed',
 } as const;
+
+/**
+ * Настройки LLM-классификатора каналов
+ */
+export interface UpdateClassifierSettingsRequest {
+  /** Включён ли классификатор */
+  isEnabled: boolean;
+  /**
+   * Модель OpenRouter, например qwen/qwen3-vl-8b-instruct
+   * @minLength 1
+   * @maxLength 128
+   */
+  model: string;
+  /**
+   * Сколько каналов классифицировать за один запуск
+   * @minimum 1
+   * @maximum 50
+   */
+  batchSize: number;
+  /**
+   * Как часто запускать классификатор, в минутах
+   * @minimum 1
+   * @maximum 1440
+   */
+  intervalMinutes: number;
+  /**
+   * Сколько последних постов канала брать в выборку
+   * @minimum 5
+   * @maximum 100
+   */
+  messageSampleCount: number;
+  /**
+   * Сколько фото из постов отправлять в модель (0 — не отправлять)
+   * @minimum 0
+   * @maximum 10
+   */
+  photoCount: number;
+  /**
+   * Через сколько дней классифицировать канал заново (null — никогда)
+   * @minimum 1
+   * @maximum 365
+   * @nullable
+   */
+  reclassifyAfterDays?: number | null;
+  /**
+   * Тематики, из которых модель выбирает ровно одну
+   * @minItems 1
+   * @maxItems 50
+   */
+  categories: string[];
+  /**
+   * Системный промпт; должен содержать {categories}
+   * @minLength 1
+   * @maxLength 8000
+   */
+  systemPrompt: string;
+  /**
+   * Telegram-сессия классификатора (null — сессия с назначением Classification)
+   * @nullable
+   */
+  telegramSessionId?: string | null;
+}
 
 /**
  * Обновление настроек комментирующего репоста.

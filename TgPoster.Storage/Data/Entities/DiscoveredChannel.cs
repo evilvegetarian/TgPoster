@@ -88,6 +88,11 @@ public sealed class DiscoveredChannel : BaseEntity
 	public DateTimeOffset? LastClassifiedAt { get; set; }
 
 	/// <summary>
+	///     Когда классификатор последний раз брался за канал — в том числе неудачно
+	/// </summary>
+	public DateTimeOffset? LastClassificationAttemptAt { get; set; }
+
+	/// <summary>
 	///     Хеш инвайт-ссылки (для приватных каналов/чатов).
 	/// </summary>
 	public string? InviteHash { get; set; }

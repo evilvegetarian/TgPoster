@@ -66,6 +66,7 @@ public class GetClassificationStatsUseCaseShould
 				Eligible = 80,
 				Classified = 50,
 				Pending = 30,
+				Failed = 4,
 				WithCategory = 48,
 				WithTags = 45,
 				AverageConfidence = 0.82
@@ -80,6 +81,7 @@ public class GetClassificationStatsUseCaseShould
 		result.Totals.Skipped.ShouldBe(20);
 		result.Totals.Classified.ShouldBe(50);
 		result.Totals.Pending.ShouldBe(30);
+		result.Totals.Failed.ShouldBe(4);
 		result.Totals.WithCategory.ShouldBe(48);
 		result.Totals.WithTags.ShouldBe(45);
 		result.Totals.AverageConfidence.ShouldBe(0.82);
