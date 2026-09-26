@@ -27,7 +27,8 @@ public class ClassifyChannelWorkerShould
 	private readonly Mock<ITelegramMessageService> tgMessages = new();
 	private readonly Mock<IWorkerJobStatusStorage> statusStorage = new();
 	private readonly OpenRouterOptions options = new() { SecretKey = "test-key" };
-	private readonly Guid purposeSessionId = Guid.NewGuid();
+	private readonly Guid firstSessionId = Guid.NewGuid();
+	private readonly Guid secondSessionId = Guid.NewGuid();
 
 	private ClassifierSettingsDto settings = new()
 	{
@@ -45,9 +46,7 @@ public class ClassifyChannelWorkerShould
 	public ClassifyChannelWorkerShould()
 	{
 		storage.Setup(s => s.GetSettingsAsync(It.IsAny<CancellationToken>())).ReturnsAsync(() => settings);
-		authService.Setup(s => s.GetSessionIdForPurposeAsync(
-				TelegramSessionPurpose.Classification, It.IsAny<CancellationToken>()))
-			.ReturnsAsync(purposeSessionId);
+		SetupSessions(firstSessionId);
 	}
 
 	[Fact]
@@ -169,43 +168,81 @@ public class ClassifyChannelWorkerShould
 		await sut.ClassifyChannelsAsync();
 
 		VerifyCompleted();
-		authService.Verify(s => s.GetSessionIdForPurposeAsync(
+		authService.Verify(s => s.GetSessionIdsForPurposeAsync(
 				It.IsAny<TelegramSessionPurpose>(), It.IsAny<CancellationToken>()),
 			Times.Never);
 	}
 
 	[Fact]
-	public async Task ReportFailed_WhenNoSessionIsAvailable()
+	public async Task ReportFailed_WhenNoSessionIsAssigned()
 	{
 		SetupQueue(CreateChannel("first"));
-		authService.Setup(s => s.GetSessionIdForPurposeAsync(
-				TelegramSessionPurpose.Classification, It.IsAny<CancellationToken>()))
-			.ReturnsAsync((Guid?)null);
+		SetupSessions();
 		var sut = CreateSut();
 
 		await sut.ClassifyChannelsAsync();
 
-		VerifyFailedWith(e => e.Contains("сессия"));
+		VerifyFailedWith(e => e.Contains("сессии"));
 		VerifyNotCompleted();
 	}
 
 	[Fact]
-	public async Task UseSessionFromSettings_InsteadOfPurposeLookup()
+	public async Task DistributeChannelsAcrossSessions_InTurn()
 	{
-		var settingsSessionId = Guid.NewGuid();
-		settings = settings with { TelegramSessionId = settingsSessionId };
-		SetupQueue(CreateChannel("first"));
+		SetupSessions(firstSessionId, secondSessionId);
+		SetupQueue(CreateChannel("a"), CreateChannel("b"), CreateChannel("c"));
 		SetupResolveFails();
 		var sut = CreateSut();
 
 		await sut.ClassifyChannelsAsync();
 
+		VerifyResolved(firstSessionId, "a");
+		VerifyResolved(secondSessionId, "b");
+		VerifyResolved(firstSessionId, "c");
+		VerifyCompleted();
+	}
+
+	[Fact]
+	public async Task PassChannelToNextSession_WhenSessionGetsFloodWait()
+	{
+		SetupSessions(firstSessionId, secondSessionId);
+		SetupQueue(CreateChannel("a"), CreateChannel("b"));
+		SetupResolveFails();
+		SetupFloodWait(firstSessionId, 300);
+		var sut = CreateSut();
+
+		await sut.ClassifyChannelsAsync();
+
+		VerifyResolved(firstSessionId, "a");
+		VerifyResolved(secondSessionId, "a");
+		VerifyResolved(secondSessionId, "b");
 		tgMessages.Verify(s => s.ResolveChannelAsync(
-				settingsSessionId, "first", It.IsAny<CancellationToken>(), It.IsAny<bool>()),
-			Times.Once);
-		authService.Verify(s => s.GetSessionIdForPurposeAsync(
-				It.IsAny<TelegramSessionPurpose>(), It.IsAny<CancellationToken>()),
+				firstSessionId, "b", It.IsAny<CancellationToken>(), It.IsAny<bool>()),
 			Times.Never);
+		VerifyCompleted();
+	}
+
+	[Fact]
+	public async Task ReportCooldown_WhenEverySessionGetsFloodWait()
+	{
+		SetupSessions(firstSessionId, secondSessionId);
+		SetupQueue(CreateChannel("a"), CreateChannel("b"));
+		SetupFloodWait(firstSessionId, 300);
+		SetupFloodWait(secondSessionId, 120);
+		var sut = CreateSut();
+
+		await sut.ClassifyChannelsAsync();
+
+		statusStorage.Verify(s => s.ReportCooldownAsync(
+				WorkerJobNames.ClassifyChannels,
+				FixedNow.AddSeconds(120),
+				FixedNow.AddMinutes(20),
+				It.IsAny<CancellationToken>()),
+			Times.Once);
+		storage.Verify(s => s.MarkClassificationAttemptAsync(
+				It.IsAny<Guid>(), It.IsAny<DateTimeOffset>(), It.IsAny<CancellationToken>()),
+			Times.Once);
+		VerifyNotCompleted();
 	}
 
 	[Fact]
@@ -391,6 +428,22 @@ public class ClassifyChannelWorkerShould
 		result.SystemPrompt.ShouldContain(ClassifierDefaults.CategoriesPlaceholder);
 		result.ReclassifyAfterDays.ShouldBeNull();
 	}
+
+	private void SetupSessions(params Guid[] sessionIds) =>
+		authService.Setup(s => s.GetSessionIdsForPurposeAsync(
+				TelegramSessionPurpose.Classification, It.IsAny<CancellationToken>()))
+			.ReturnsAsync([..sessionIds]);
+
+	private void SetupFloodWait(Guid sessionId, int seconds) =>
+		tgMessages.Setup(s => s.ResolveChannelAsync(
+				sessionId, It.IsAny<string>(), It.IsAny<CancellationToken>(), It.IsAny<bool>()))
+			.ReturnsAsync(TelegramOperationResult<TelegramChatInfo>.Failed(
+				TelegramOperationStatus.FloodWait, floodWait: seconds));
+
+	private void VerifyResolved(Guid sessionId, string username) =>
+		tgMessages.Verify(s => s.ResolveChannelAsync(
+				sessionId, username, It.IsAny<CancellationToken>(), It.IsAny<bool>()),
+			Times.Once);
 
 	private void SetupLastStartedAt(DateTimeOffset? value) =>
 		statusStorage.Setup(s => s.GetLastStartedAtAsync(WorkerJobNames.ClassifyChannels, It.IsAny<CancellationToken>()))

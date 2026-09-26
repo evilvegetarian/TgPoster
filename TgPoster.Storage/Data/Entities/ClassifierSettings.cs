@@ -37,10 +37,4 @@ public sealed class ClassifierSettings : BaseEntity
 
 	/// <summary>Системный промпт с плейсхолдером списка тематик</summary>
 	public required string SystemPrompt { get; set; }
-
-	/// <summary>Telegram-сессия, через которую читаются посты (null — сессия с назначением Classification)</summary>
-	public Guid? TelegramSessionId { get; set; }
-
-	/// <summary>Telegram-сессия классификатора</summary>
-	public TelegramSession? TelegramSession { get; set; }
 }

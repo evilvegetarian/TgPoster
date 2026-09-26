@@ -1,8 +1,10 @@
 using Microsoft.EntityFrameworkCore;
+using Shared.Enums;
 using TgPoster.API.Domain.UseCases.Discover.GetClassifierSettings;
 using TgPoster.API.Domain.UseCases.Discover.UpdateClassifierSettings;
 using TgPoster.Storage.Data;
 using TgPoster.Storage.Data.Entities;
+using TgPoster.Storage.Data.Enum;
 
 namespace TgPoster.Storage.Storages;
 
@@ -23,28 +25,38 @@ internal sealed class ClassifierSettingsStorage(PosterContext context)
 				ReclassifyAfterDays = x.ReclassifyAfterDays,
 				Categories = x.Categories,
 				SystemPrompt = x.SystemPrompt,
-				TelegramSession = x.TelegramSession == null
-					? null
-					: new ClassifierSessionInfo
-					{
-						Id = x.TelegramSession.Id,
-						Name = x.TelegramSession.Name,
-						IsActive = x.TelegramSession.IsActive
-					},
 				UpdatedAt = x.Updated ?? x.Created
 			})
 			.FirstOrDefaultAsync(ct);
 
-	public Task<Guid?> GetTelegramSessionIdAsync(CancellationToken ct) =>
-		context.ClassifierSettings
-			.Where(x => x.Id == ClassifierSettings.SingletonId)
-			.Select(x => x.TelegramSessionId)
-			.FirstOrDefaultAsync(ct);
+	public Task<List<ClassifierSessionOption>> GetClassifierSessionsAsync(Guid userId, CancellationToken ct) =>
+		context.TelegramSessions
+			.Where(x => x.UserId == userId || x.Purposes.Contains(TelegramSessionPurpose.Classification))
+			.OrderBy(x => x.UserId != userId)
+			.ThenBy(x => x.Created)
+			.Select(x => new ClassifierSessionOption
+			{
+				Id = x.Id,
+				Name = x.Name,
+				PhoneNumber = x.UserId == userId ? x.PhoneNumber : null,
+				IsActive = x.IsActive,
+				IsAuthorized = x.Status == TelegramSessionStatus.Authorized,
+				IsSelected = x.Purposes.Contains(TelegramSessionPurpose.Classification),
+				IsOwn = x.UserId == userId
+			})
+			.ToListAsync(ct);
 
-	public Task<bool> TelegramSessionBelongsToUserAsync(Guid userId, Guid sessionId, CancellationToken ct) =>
-		context.TelegramSessions.AnyAsync(x => x.Id == sessionId && x.UserId == userId, ct);
+	public Task<List<Guid>> GetUserSessionIdsAsync(Guid userId, CancellationToken ct) =>
+		context.TelegramSessions
+			.Where(x => x.UserId == userId)
+			.Select(x => x.Id)
+			.ToListAsync(ct);
 
-	public async Task SaveClassifierSettingsAsync(UpdateClassifierSettingsCommand settings, CancellationToken ct)
+	public async Task SaveClassifierSettingsAsync(
+		UpdateClassifierSettingsCommand settings,
+		Guid userId,
+		CancellationToken ct
+	)
 	{
 		var entity = await context.ClassifierSettings
 			.FirstOrDefaultAsync(x => x.Id == ClassifierSettings.SingletonId, ct);
@@ -68,7 +80,25 @@ internal sealed class ClassifierSettingsStorage(PosterContext context)
 		entity.ReclassifyAfterDays = settings.ReclassifyAfterDays;
 		entity.Categories = [..settings.Categories];
 		entity.SystemPrompt = settings.SystemPrompt;
-		entity.TelegramSessionId = settings.TelegramSessionId;
+
+		var selected = settings.TelegramSessionIds.ToHashSet();
+		var userSessions = await context.TelegramSessions
+			.Where(x => x.UserId == userId)
+			.ToListAsync(ct);
+		foreach (var session in userSessions)
+		{
+			var hasPurpose = session.Purposes.Contains(TelegramSessionPurpose.Classification);
+			if (selected.Contains(session.Id) && !hasPurpose)
+			{
+				session.Purposes = [..session.Purposes, TelegramSessionPurpose.Classification];
+			}
+			else if (!selected.Contains(session.Id) && hasPurpose)
+			{
+				session.Purposes = session.Purposes
+					.Where(x => x != TelegramSessionPurpose.Classification)
+					.ToArray();
+			}
+		}
 
 		await context.SaveChangesAsync(ct);
 	}

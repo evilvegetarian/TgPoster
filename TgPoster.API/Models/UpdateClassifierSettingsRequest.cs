@@ -70,7 +70,10 @@ public sealed class UpdateClassifierSettingsRequest
 	public required string SystemPrompt { get; init; }
 
 	/// <summary>
-	///     Telegram-сессия классификатора (null — сессия с назначением Classification)
+	///     Свои Telegram-сессии, которые классификатор использует по очереди; с остальных своих сессий
+	///     назначение снимается, чужие не меняются
 	/// </summary>
-	public Guid? TelegramSessionId { get; init; }
+	[Required]
+	[MaxLength(50)]
+	public required List<Guid> TelegramSessionIds { get; init; }
 }

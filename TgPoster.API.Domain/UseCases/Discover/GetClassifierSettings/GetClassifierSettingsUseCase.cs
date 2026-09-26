@@ -1,15 +1,19 @@
 using MediatR;
+using Security.IdentityServices;
 using Shared.Classification;
 
 namespace TgPoster.API.Domain.UseCases.Discover.GetClassifierSettings;
 
-internal sealed class GetClassifierSettingsUseCase(IGetClassifierSettingsStorage storage)
-	: IRequestHandler<GetClassifierSettingsQuery, ClassifierSettingsResponse>
+internal sealed class GetClassifierSettingsUseCase(
+	IGetClassifierSettingsStorage storage,
+	IIdentityProvider identityProvider
+) : IRequestHandler<GetClassifierSettingsQuery, ClassifierSettingsResponse>
 {
 	public async Task<ClassifierSettingsResponse> Handle(GetClassifierSettingsQuery request, CancellationToken ct)
 	{
 		// Пока воркер не засеял запись, а в интерфейсе ничего не сохраняли, показываем стандартные значения
 		var saved = await storage.GetClassifierSettingsAsync(ct);
+		var sessions = await storage.GetClassifierSessionsAsync(identityProvider.Current.UserId, ct);
 
 		return new ClassifierSettingsResponse
 		{
@@ -25,7 +29,7 @@ internal sealed class GetClassifierSettingsUseCase(IGetClassifierSettingsStorage
 			CategoriesPlaceholder = ClassifierDefaults.CategoriesPlaceholder,
 			DefaultSystemPrompt = ClassifierDefaults.SystemPrompt,
 			DefaultCategories = ClassifierDefaults.Categories,
-			TelegramSession = saved?.TelegramSession,
+			Sessions = sessions,
 			UpdatedAt = saved?.UpdatedAt
 		};
 	}

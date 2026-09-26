@@ -10,21 +10,18 @@ import {
     useGetApiV1DiscoverClassificationSettings,
     usePutApiV1DiscoverClassificationSettings,
 } from "@/api/endpoints/discover/discover"
-import {useGetApiV1TelegramSession} from "@/api/endpoints/telegram-session/telegram-session"
-import type {ClassifierSettingsResponse} from "@/api/endpoints/tgPosterAPI.schemas"
+import type {ClassifierSessionOption, ClassifierSettingsResponse} from "@/api/endpoints/tgPosterAPI.schemas"
 import {Badge} from "@/components/ui/badge"
 import {Button} from "@/components/ui/button"
 import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card"
+import {Checkbox} from "@/components/ui/checkbox"
 import {Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage} from "@/components/ui/form"
 import {Input} from "@/components/ui/input"
-import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select"
 import {Skeleton} from "@/components/ui/skeleton"
 import {Switch} from "@/components/ui/switch"
 import {Textarea} from "@/components/ui/textarea"
 import {formatDateTime} from "@/components/discover/format"
 
-// Значение селекта «сессия по назначению Classification» — на бэкенд уходит как null
-const PURPOSE_SESSION = "purpose"
 const DEFAULT_RECLASSIFY_DAYS = 30
 
 function buildSchema(placeholder: string) {
@@ -44,7 +41,7 @@ function buildSchema(placeholder: string) {
             .min(1, "Промпт не может быть пустым")
             .max(8000, "Не длиннее 8000 символов")
             .refine((value) => value.includes(placeholder), `Промпт должен содержать ${placeholder}`),
-        telegramSessionId: z.string(),
+        telegramSessionIds: z.array(z.string()).max(50, "Не больше 50 сессий"),
     })
 }
 
@@ -62,7 +59,7 @@ function toFormValues(settings: ClassifierSettingsResponse): FormValues {
         reclassifyAfterDays: settings.reclassifyAfterDays ?? DEFAULT_RECLASSIFY_DAYS,
         categories: [...settings.categories],
         systemPrompt: settings.systemPrompt,
-        telegramSessionId: settings.telegramSession?.id ?? PURPOSE_SESSION,
+        telegramSessionIds: settings.sessions.filter((s) => s.isOwn && s.isSelected).map((s) => s.id),
     }
 }
 
@@ -83,6 +80,74 @@ function NumberInput({value, onChange, min, max, disabled}: {
             disabled={disabled}
             className="w-32"
         />
+    )
+}
+
+function SessionStateBadges({session}: {session: ClassifierSessionOption}) {
+    return (
+        <>
+            {!session.isActive && (
+                <Badge variant="outline" className="shrink-0 border-amber-300 text-amber-700 font-normal">неактивна</Badge>
+            )}
+            {!session.isAuthorized && (
+                <Badge variant="outline" className="shrink-0 border-amber-300 text-amber-700 font-normal">не авторизована</Badge>
+            )}
+        </>
+    )
+}
+
+// Свои сессии отмечаются галочками; чужие, уже отданные классификатору, видны, но менять их нельзя
+function SessionsPicker({sessions, value, onChange, disabled}: {
+    sessions: ClassifierSessionOption[]
+    value: string[]
+    onChange: (value: string[]) => void
+    disabled?: boolean
+}) {
+    const own = sessions.filter((s) => s.isOwn)
+    const foreign = sessions.filter((s) => !s.isOwn)
+
+    const toggle = (id: string, checked: boolean) =>
+        onChange(checked ? [...value, id] : value.filter((x) => x !== id))
+
+    return (
+        <div className="space-y-1.5">
+            {own.length === 0 && (
+                <p className="text-sm text-muted-foreground">
+                    У вас нет Telegram-сессий — добавьте их на странице «Telegram Аккаунты»
+                </p>
+            )}
+            {own.map((session) => (
+                <label
+                    key={session.id}
+                    className="flex items-center gap-3 rounded-md border px-3 py-2 cursor-pointer hover:bg-accent/40"
+                >
+                    <Checkbox
+                        checked={value.includes(session.id)}
+                        onCheckedChange={(checked) => toggle(session.id, checked === true)}
+                        disabled={disabled}
+                    />
+                    <div className="min-w-0 flex-1">
+                        <p className="text-sm font-medium truncate">{session.name || session.phoneNumber || "Без названия"}</p>
+                        {session.name && session.phoneNumber && (
+                            <p className="text-xs text-muted-foreground truncate">{session.phoneNumber}</p>
+                        )}
+                    </div>
+                    <SessionStateBadges session={session}/>
+                </label>
+            ))}
+            {foreign.map((session) => (
+                <div
+                    key={session.id}
+                    className="flex items-center gap-3 rounded-md border border-dashed px-3 py-2 text-muted-foreground"
+                    title="Сессия другого пользователя: снять назначение может только владелец"
+                >
+                    <Checkbox checked disabled/>
+                    <p className="min-w-0 flex-1 text-sm truncate">{session.name || "Без названия"}</p>
+                    <Badge variant="secondary" className="shrink-0 font-normal">другого пользователя</Badge>
+                    <SessionStateBadges session={session}/>
+                </div>
+            ))}
+        </div>
     )
 }
 
@@ -173,10 +238,6 @@ function SettingsForm({settings}: {settings: ClassifierSettingsResponse}) {
         form.reset(defaultValues)
     }, [defaultValues, form])
 
-    // В контракте сессий все поля опциональны (позиционный record на бэке) — без id сессию не выбрать
-    const {data: sessionsData} = useGetApiV1TelegramSession()
-    const sessions = (sessionsData?.items ?? []).flatMap((s) => (s.id ? [{...s, id: s.id}] : []))
-
     const {mutate: save, isPending} = usePutApiV1DiscoverClassificationSettings({
         mutation: {
             onSuccess: () => {
@@ -201,18 +262,16 @@ function SettingsForm({settings}: {settings: ClassifierSettingsResponse}) {
                 reclassifyAfterDays: values.reclassify ? values.reclassifyAfterDays : null,
                 categories: values.categories,
                 systemPrompt: values.systemPrompt,
-                telegramSessionId: values.telegramSessionId === PURPOSE_SESSION ? null : values.telegramSessionId,
+                telegramSessionIds: values.telegramSessionIds,
             },
         })
     }
 
     const watched = form.watch()
     const perDay = Math.floor(1440 / Math.max(1, watched.intervalMinutes || 1)) * (watched.batchSize || 0)
-    const savedSession = settings.telegramSession
-    const savedSessionIsForeign = savedSession != null && !sessions.some((s) => s.id === savedSession.id)
-    const selectedSession = sessions.find((s) => s.id === watched.telegramSessionId)
-        ?? (savedSession?.id === watched.telegramSessionId ? savedSession : undefined)
-    const selectedSessionInactive = selectedSession?.isActive === false
+    // Рабочие сессии: отмеченные свои плюс чужие, уже отданные классификатору
+    const workingSessions = settings.sessions.filter((s) =>
+        s.isActive && s.isAuthorized && (s.isOwn ? watched.telegramSessionIds.includes(s.id) : s.isSelected)).length
 
     return (
         <Form {...form}>
@@ -328,40 +387,25 @@ function SettingsForm({settings}: {settings: ClassifierSettingsResponse}) {
                                 />
                                 <FormField
                                     control={form.control}
-                                    name="telegramSessionId"
+                                    name="telegramSessionIds"
                                     render={({field}) => (
                                         <FormItem>
-                                            <FormLabel>Telegram-сессия для чтения постов</FormLabel>
-                                            <Select value={field.value} onValueChange={field.onChange} disabled={isPending}>
-                                                <FormControl>
-                                                    <SelectTrigger>
-                                                        <SelectValue placeholder="Выберите сессию"/>
-                                                    </SelectTrigger>
-                                                </FormControl>
-                                                <SelectContent>
-                                                    <SelectItem value={PURPOSE_SESSION}>Сессия с назначением «Классификация»</SelectItem>
-                                                    {sessions.map((session) => (
-                                                        <SelectItem key={session.id} value={session.id}>
-                                                            {session.name || session.phoneNumber}
-                                                            {session.isActive === false && " — неактивна"}
-                                                            {session.status != null && session.status !== "Authorized" && " — не авторизована"}
-                                                        </SelectItem>
-                                                    ))}
-                                                    {savedSessionIsForeign && savedSession && (
-                                                        <SelectItem value={savedSession.id}>
-                                                            {savedSession.name || "Без названия"} — другого пользователя
-                                                        </SelectItem>
-                                                    )}
-                                                </SelectContent>
-                                            </Select>
-                                            {selectedSessionInactive ? (
+                                            <FormLabel>Telegram-сессии для чтения постов</FormLabel>
+                                            <SessionsPicker
+                                                sessions={settings.sessions}
+                                                value={field.value}
+                                                onChange={field.onChange}
+                                                disabled={isPending}
+                                            />
+                                            {workingSessions === 0 ? (
                                                 <p className="flex items-center gap-1.5 text-xs text-amber-600">
-                                                    <AlertTriangle className="h-3.5 w-3.5"/>
-                                                    Сессия неактивна — воркер будет искать сессию по назначению
+                                                    <AlertTriangle className="h-3.5 w-3.5 shrink-0"/>
+                                                    Нет ни одной активной авторизованной сессии — классификатор не сможет читать каналы
                                                 </p>
                                             ) : (
                                                 <FormDescription>
-                                                    Через неё классификатор открывает каналы и читает последние посты
+                                                    Каналы пачки раздаются выбранным сессиям по очереди. Если Telegram ограничит
+                                                    сессию (FloodWait), её каналы заберут остальные
                                                 </FormDescription>
                                             )}
                                             <FormMessage/>

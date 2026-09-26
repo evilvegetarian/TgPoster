@@ -77,7 +77,4 @@ public sealed record ClassifierSettingsDto
 	public int? ReclassifyAfterDays { get; init; }
 	public required IReadOnlyList<string> Categories { get; init; }
 	public required string SystemPrompt { get; init; }
-
-	/// <summary>Активная сессия, выбранная в настройках; null — искать сессию по назначению Classification</summary>
-	public Guid? TelegramSessionId { get; init; }
 }

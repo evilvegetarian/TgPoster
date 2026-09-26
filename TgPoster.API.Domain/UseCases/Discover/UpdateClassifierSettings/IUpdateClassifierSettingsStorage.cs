@@ -3,25 +3,19 @@ namespace TgPoster.API.Domain.UseCases.Discover.UpdateClassifierSettings;
 public interface IUpdateClassifierSettingsStorage
 {
 	/// <summary>
-	///     Какая Telegram-сессия сейчас сохранена в настройках классификатора
-	/// </summary>
-	/// <param name="ct"></param>
-	/// <returns></returns>
-	Task<Guid?> GetTelegramSessionIdAsync(CancellationToken ct);
-
-	/// <summary>
-	///     Принадлежит ли Telegram-сессия пользователю
+	///     ID всех Telegram-сессий пользователя
 	/// </summary>
 	/// <param name="userId"></param>
-	/// <param name="sessionId"></param>
 	/// <param name="ct"></param>
 	/// <returns></returns>
-	Task<bool> TelegramSessionBelongsToUserAsync(Guid userId, Guid sessionId, CancellationToken ct);
+	Task<List<Guid>> GetUserSessionIdsAsync(Guid userId, CancellationToken ct);
 
 	/// <summary>
-	///     Создать или перезаписать настройки классификатора
+	///     Создать или перезаписать настройки классификатора и одним сохранением переназначить сессии пользователя:
+	///     выбранным добавить назначение Classification, остальным его сессиям — снять
 	/// </summary>
 	/// <param name="settings"></param>
+	/// <param name="userId"></param>
 	/// <param name="ct"></param>
-	Task SaveClassifierSettingsAsync(UpdateClassifierSettingsCommand settings, CancellationToken ct);
+	Task SaveClassifierSettingsAsync(UpdateClassifierSettingsCommand settings, Guid userId, CancellationToken ct);
 }

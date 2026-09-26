@@ -47,19 +47,22 @@ internal sealed class UpdateClassifierSettingsUseCase(
 				$"Промпт должен содержать {ClassifierDefaults.CategoriesPlaceholder} — туда подставится список тематик");
 		}
 
-		// Сессию другого пользователя выбрать нельзя, но уже сохранённую можно оставить как есть
-		if (request.TelegramSessionId is { } sessionId)
+		// Назначать можно только свои сессии: чужие, уже отданные классификатору, остаются как есть
+		var userId = identityProvider.Current.UserId;
+		var sessionIds = request.TelegramSessionIds.Distinct().ToList();
+		if (sessionIds.Count > 0)
 		{
-			var currentSessionId = await storage.GetTelegramSessionIdAsync(ct);
-			if (sessionId != currentSessionId
-			    && !await storage.TelegramSessionBelongsToUserAsync(identityProvider.Current.UserId, sessionId, ct))
+			var ownSessionIds = (await storage.GetUserSessionIdsAsync(userId, ct)).ToHashSet();
+			var foreign = sessionIds.FirstOrDefault(id => !ownSessionIds.Contains(id), Guid.Empty);
+			if (foreign != Guid.Empty)
 			{
-				throw new TelegramSessionEntityNotFoundException(sessionId);
+				throw new TelegramSessionEntityNotFoundException(foreign);
 			}
 		}
 
 		await storage.SaveClassifierSettingsAsync(
-			request with { Model = model, Categories = categories },
+			request with { Model = model, Categories = categories, TelegramSessionIds = sessionIds },
+			userId,
 			ct);
 	}
 }

@@ -14,7 +14,7 @@ namespace TgPoster.API.Domain.UseCases.Discover.UpdateClassifierSettings;
 /// <param name="ReclassifyAfterDays">Через сколько дней классифицировать канал заново (null — никогда)</param>
 /// <param name="Categories">Тематики</param>
 /// <param name="SystemPrompt">Системный промпт с плейсхолдером списка тематик</param>
-/// <param name="TelegramSessionId">Telegram-сессия классификатора (null — по назначению Classification)</param>
+/// <param name="TelegramSessionIds">Сессии текущего пользователя, которые назначаются классификатору; с остальных его сессий назначение снимается</param>
 public sealed record UpdateClassifierSettingsCommand(
 	bool IsEnabled,
 	string Model,
@@ -25,4 +25,4 @@ public sealed record UpdateClassifierSettingsCommand(
 	int? ReclassifyAfterDays,
 	IReadOnlyList<string> Categories,
 	string SystemPrompt,
-	Guid? TelegramSessionId) : IRequest;
+	IReadOnlyList<Guid> TelegramSessionIds) : IRequest;

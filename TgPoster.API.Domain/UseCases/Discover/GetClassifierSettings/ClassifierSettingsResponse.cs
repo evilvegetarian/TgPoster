@@ -49,17 +49,21 @@ public sealed record ClassifierSettingsResponse
 	[Required]
 	public required IReadOnlyList<string> DefaultCategories { get; init; }
 
-	/// <summary>Telegram-сессия классификатора; null — используется сессия с назначением Classification</summary>
-	public ClassifierSessionInfo? TelegramSession { get; init; }
+	/// <summary>
+	///     Сессии, которые можно отдать классификатору: все сессии текущего пользователя
+	///     и уже назначенные классификатору сессии других пользователей
+	/// </summary>
+	[Required]
+	public required IReadOnlyList<ClassifierSessionOption> Sessions { get; init; }
 
 	/// <summary>Когда настройки последний раз меняли; null — настройки ещё не сохранялись</summary>
 	public DateTimeOffset? UpdatedAt { get; init; }
 }
 
 /// <summary>
-///     Telegram-сессия, выбранная для классификатора
+///     Telegram-сессия в списке выбора для классификатора
 /// </summary>
-public sealed record ClassifierSessionInfo
+public sealed record ClassifierSessionOption
 {
 	/// <summary>ID сессии</summary>
 	public required Guid Id { get; init; }
@@ -67,6 +71,18 @@ public sealed record ClassifierSessionInfo
 	/// <summary>Название сессии</summary>
 	public string? Name { get; init; }
 
+	/// <summary>Номер телефона — только для своих сессий</summary>
+	public string? PhoneNumber { get; init; }
+
 	/// <summary>Активна ли сессия: неактивную воркер пропустит</summary>
 	public required bool IsActive { get; init; }
+
+	/// <summary>Авторизована ли сессия в Telegram</summary>
+	public required bool IsAuthorized { get; init; }
+
+	/// <summary>Назначена ли сессия классификатору</summary>
+	public required bool IsSelected { get; init; }
+
+	/// <summary>Принадлежит ли сессия текущему пользователю: чужие можно только видеть</summary>
+	public required bool IsOwn { get; init; }
 }

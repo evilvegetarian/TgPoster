@@ -32,6 +32,11 @@ internal sealed partial class ClassifyChannelWorker(
 	private const int JpegQuality = 80;
 	private const int MaxTextLength = 500;
 
+	/// <summary>
+	///     Длительность паузы, если Telegram вернул FloodWait без срока
+	/// </summary>
+	private const int DefaultFloodWaitSeconds = 60;
+
 	private const string ClassificationUserPromptTemplate = """
 	                                                        Название канала: {0}
 	                                                        Описание: {1}
@@ -102,20 +107,28 @@ internal sealed partial class ClassifyChannelWorker(
 
 			await TryReportAsync(() => statusStorage.ReportStartedAsync(WorkerJobNames.ClassifyChannels, ct));
 
-			var error = await ClassifyBatchAsync(settings, ct);
+			var outcome = await ClassifyBatchAsync(settings, ct);
 
 			// Финальную запись статуса делаем с CancellationToken.None: при остановке приложения
 			// она должна успеть выполниться best-effort
 			var nextRunAt = startedAt + interval;
-			if (error is null)
+			if (outcome.CooldownSeconds is { } cooldown)
 			{
-				await TryReportAsync(() => statusStorage.ReportCompletedAsync(
-					WorkerJobNames.ClassifyChannels, nextRunAt, CancellationToken.None));
+				await TryReportAsync(() => statusStorage.ReportCooldownAsync(
+					WorkerJobNames.ClassifyChannels,
+					timeProvider.GetUtcNow().AddSeconds(cooldown),
+					nextRunAt,
+					CancellationToken.None));
 			}
-			else
+			else if (outcome.Error is { } error)
 			{
 				await TryReportAsync(() => statusStorage.ReportFailedAsync(
 					WorkerJobNames.ClassifyChannels, error, nextRunAt, CancellationToken.None));
+			}
+			else
+			{
+				await TryReportAsync(() => statusStorage.ReportCompletedAsync(
+					WorkerJobNames.ClassifyChannels, nextRunAt, CancellationToken.None));
 			}
 		}
 		catch (OperationCanceledException)
@@ -139,17 +152,17 @@ internal sealed partial class ClassifyChannelWorker(
 	}
 
 	/// <summary>
-	///     Классифицировать очередную пачку каналов
+	///     Классифицировать очередную пачку каналов, раздавая их по очереди сессиям с назначением Classification
 	/// </summary>
 	/// <param name="settings"></param>
 	/// <param name="ct"></param>
-	/// <returns>Текст ошибки, если запуск не смог выполнить работу, иначе null</returns>
-	private async Task<string?> ClassifyBatchAsync(ClassifierSettingsDto settings, CancellationToken ct)
+	/// <returns></returns>
+	private async Task<BatchOutcome> ClassifyBatchAsync(ClassifierSettingsDto settings, CancellationToken ct)
 	{
 		if (string.IsNullOrWhiteSpace(options.SecretKey))
 		{
 			logger.LogWarning("Ключ OpenRouter не задан, пропускаем классификацию каналов");
-			return "Не задан ключ OpenRouter (OpenRouterOptions:SecretKey в конфиге воркера)";
+			return BatchOutcome.Failed("Не задан ключ OpenRouter (OpenRouterOptions:SecretKey в конфиге воркера)");
 		}
 
 		var now = timeProvider.GetUtcNow();
@@ -160,20 +173,24 @@ internal sealed partial class ClassifyChannelWorker(
 			ct);
 		if (channels.Count == 0)
 		{
-			return null;
+			return BatchOutcome.Success;
 		}
 
-		var sessionId = settings.TelegramSessionId
-		                ?? await authService.GetSessionIdForPurposeAsync(TelegramSessionPurpose.Classification, ct);
-		if (sessionId is null)
+		var sessionIds = await authService.GetSessionIdsForPurposeAsync(TelegramSessionPurpose.Classification, ct);
+		if (sessionIds.Count == 0)
 		{
-			logger.LogWarning("Нет Telegram-сессии для классификации каналов");
-			return "Не выбрана Telegram-сессия: укажите её в настройках классификатора";
+			logger.LogWarning("Нет Telegram-сессий с назначением Classification");
+			return BatchOutcome.Failed("Не выбрано ни одной Telegram-сессии: отметьте их в настройках классификатора");
 		}
 
+		// Сессию, которую Telegram ограничил, до конца запуска больше не трогаем — её каналы достаются остальным
+		var availableSessions = sessionIds.ToList();
+		var floodWaits = new List<int>();
+		var nextSession = 0;
 		string? lastError = null;
 		var failedCount = 0;
-		for (var index = 0; index < channels.Count; index++)
+
+		for (var index = 0; index < channels.Count && availableSessions.Count > 0; index++)
 		{
 			var channel = channels[index];
 			var processed = index;
@@ -187,7 +204,21 @@ internal sealed partial class ClassifyChannelWorker(
 			try
 			{
 				await storage.MarkClassificationAttemptAsync(channel.Id, timeProvider.GetUtcNow(), ct);
-				await ClassifyChannelAsync(channel, sessionId.Value, settings, ct);
+				while (availableSessions.Count > 0)
+				{
+					var sessionId = availableSessions[nextSession++ % availableSessions.Count];
+					var floodWait = await ClassifyChannelAsync(channel, sessionId, settings, ct);
+					if (floodWait is null)
+					{
+						break;
+					}
+
+					logger.LogWarning(
+						"Сессия {SessionId} получила FloodWait на {Seconds} с, канал {ChannelId} передаём следующей",
+						sessionId, floodWait, channel.Id);
+					availableSessions.Remove(sessionId);
+					floodWaits.Add(floodWait.Value);
+				}
 			}
 			catch (Exception ex) when (ex is not OperationCanceledException)
 			{
@@ -197,9 +228,14 @@ internal sealed partial class ClassifyChannelWorker(
 			}
 		}
 
+		if (availableSessions.Count == 0)
+		{
+			return BatchOutcome.Cooldown(floodWaits.Min());
+		}
+
 		// Единичный сбой — норма (канал мог пропасть), а вот если упали все каналы пачки,
 		// скорее всего сломан сам классификатор: ключ, модель или сессия
-		return failedCount == channels.Count ? lastError : null;
+		return failedCount == channels.Count ? BatchOutcome.Failed(lastError) : BatchOutcome.Success;
 	}
 
 	/// <summary>
@@ -218,18 +254,31 @@ internal sealed partial class ClassifyChannelWorker(
 		}
 	}
 
-	private async Task ClassifyChannelAsync(
+	/// <summary>
+	///     Классифицировать один канал через указанную сессию
+	/// </summary>
+	/// <param name="channel"></param>
+	/// <param name="sessionId"></param>
+	/// <param name="settings"></param>
+	/// <param name="ct"></param>
+	/// <returns>Секунды FloodWait, если Telegram ограничил сессию и канал надо отдать другой, иначе null</returns>
+	private async Task<int?> ClassifyChannelAsync(
 		ChannelForClassificationDto channel,
 		Guid sessionId,
 		ClassifierSettingsDto settings,
 		CancellationToken ct
 	)
 	{
-		var resolved = await ResolvePeerAsync(sessionId, channel, ct);
-		if (resolved is null)
+		var lookup = await ResolvePeerAsync(sessionId, channel, ct);
+		if (lookup.FloodWaitSeconds is not null)
+		{
+			return lookup.FloodWaitSeconds;
+		}
+
+		if (lookup.Peer is not { } resolved)
 		{
 			logger.LogDebug("Не удалось найти канал {ChannelId} в Telegram для загрузки сообщений", channel.Id);
-			return;
+			return null;
 		}
 
 		var sample = await FetchRecentMessagesAsync(
@@ -276,14 +325,14 @@ internal sealed partial class ClassifyChannelWorker(
 		if (string.IsNullOrWhiteSpace(content))
 		{
 			logger.LogWarning("Пустой ответ от LLM для канала {ChannelId}", channel.Id);
-			return;
+			return null;
 		}
 
 		var classification = ParseClassification(content);
 		if (classification is null)
 		{
 			logger.LogWarning("Не удалось распарсить ответ LLM для канала {ChannelId}: {Content}", channel.Id, content);
-			return;
+			return null;
 		}
 
 		await storage.UpdateClassificationAsync(
@@ -298,6 +347,7 @@ internal sealed partial class ClassifyChannelWorker(
 		logger.LogDebug(
 			"Канал {Channel} классифицирован: {Category}/{Subcategory} (confidence: {Confidence})",
 			channel.Title, classification.Category, classification.Subcategory, classification.Confidence);
+		return null;
 	}
 
 	/// <summary>
@@ -398,7 +448,7 @@ internal sealed partial class ClassifyChannelWorker(
 		return results;
 	}
 
-	private async Task<TelegramPeer?> ResolvePeerAsync(
+	private async Task<PeerLookup> ResolvePeerAsync(
 		Guid sessionId,
 		ChannelForClassificationDto channel,
 		CancellationToken ct
@@ -407,13 +457,18 @@ internal sealed partial class ClassifyChannelWorker(
 		if (!string.IsNullOrEmpty(channel.Username))
 		{
 			var resolved = await tgMessages.ResolveChannelAsync(sessionId, channel.Username, ct);
+			if (resolved.Status == TelegramOperationStatus.FloodWait)
+			{
+				return new PeerLookup(null, resolved.FloodWaitSeconds ?? DefaultFloodWaitSeconds);
+			}
+
 			if (await resolved.HandleChannelUnavailableAsync(async () =>
 				    await storage.MarkChannelBannedAsync(channel.Id, ct)))
 			{
-				return null;
+				return PeerLookup.NotFound;
 			}
 
-			return resolved.IsSuccess ? resolved.Value!.Peer : null;
+			return resolved.IsSuccess ? new PeerLookup(resolved.Value!.Peer, null) : PeerLookup.NotFound;
 		}
 
 		if (channel.TelegramId.HasValue)
@@ -421,14 +476,14 @@ internal sealed partial class ClassifyChannelWorker(
 			var dialogsResult = await tgMessages.GetAllDialogsAsync(sessionId, ct);
 			if (!dialogsResult.IsSuccess)
 			{
-				return null;
+				return PeerLookup.NotFound;
 			}
 
 			var found = dialogsResult.Value!.FirstOrDefault(c => c.Id == channel.TelegramId.Value);
-			return found?.Peer;
+			return new PeerLookup(found?.Peer, null);
 		}
 
-		return null;
+		return PeerLookup.NotFound;
 	}
 
 	private static string TruncateMessage(string text, int maxLength)
@@ -490,4 +545,24 @@ internal sealed partial class ClassifyChannelWorker(
 	private sealed record RecentMessagesSample(List<string> Texts, List<PhotoForClassification> Photos);
 
 	private sealed record PhotoForClassification(int MessageId, TelegramMessageMedia Media);
+
+	/// <summary>
+	///     Результат поиска канала: peer, либо FloodWait сессии, либо ничего (канал не найден)
+	/// </summary>
+	private sealed record PeerLookup(TelegramPeer? Peer, int? FloodWaitSeconds)
+	{
+		public static PeerLookup NotFound { get; } = new(null, null);
+	}
+
+	/// <summary>
+	///     Итог запуска: всё в порядке, запуск не смог работать, или все сессии упёрлись во FloodWait
+	/// </summary>
+	private sealed record BatchOutcome(string? Error, int? CooldownSeconds)
+	{
+		public static BatchOutcome Success { get; } = new(null, null);
+
+		public static BatchOutcome Failed(string? error) => new(error, null);
+
+		public static BatchOutcome Cooldown(int seconds) => new(null, seconds);
+	}
 }

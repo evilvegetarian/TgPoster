@@ -4,7 +4,6 @@ using TgPoster.Storage.Data;
 using TgPoster.Storage.Data.Entities;
 using TgPoster.Storage.Data.Enum;
 using TgPoster.Storage.Storages.ClassifyChannel;
-using TgPoster.Storage.Tests.Builders;
 using TgPoster.Worker.Domain.UseCases.ClassifyChannel;
 
 namespace TgPoster.Storage.Tests.Tests;
@@ -29,27 +28,6 @@ public sealed class ClassifyChannelStorageShould(StorageTestFixture fixture)
 		result.Model.ShouldBe("first/model");
 		result.Categories.ShouldBe(["Технологии", "Другое"]);
 		(await context.ClassifierSettings.CountAsync(CancellationToken.None)).ShouldBe(1);
-	}
-
-	[Fact]
-	public async Task GetSettingsAsync_ShouldDropInactiveSession()
-	{
-		await sut.EnsureSettingsAsync(Settings(), CancellationToken.None);
-		var session = new TelegramSessionBuilder(context).WithIsActive(false).Create();
-		var entity = await context.ClassifierSettings.FirstAsync(CancellationToken.None);
-		entity.TelegramSessionId = session.Id;
-		await context.SaveChangesAsync(CancellationToken.None);
-
-		var inactive = await sut.GetSettingsAsync(CancellationToken.None);
-		session.IsActive = true;
-		context.TelegramSessions.Update(session);
-		await context.SaveChangesAsync(CancellationToken.None);
-		var active = await sut.GetSettingsAsync(CancellationToken.None);
-
-		inactive.ShouldNotBeNull();
-		inactive.TelegramSessionId.ShouldBeNull();
-		active.ShouldNotBeNull();
-		active.TelegramSessionId.ShouldBe(session.Id);
 	}
 
 	[Fact]

@@ -1,8 +1,9 @@
 using Microsoft.EntityFrameworkCore;
+using Shared.Enums;
 using Shouldly;
 using TgPoster.API.Domain.UseCases.Discover.UpdateClassifierSettings;
 using TgPoster.Storage.Data;
-using TgPoster.Storage.Data.Entities;
+using TgPoster.Storage.Data.Enum;
 using TgPoster.Storage.Storages;
 using TgPoster.Storage.Tests.Builders;
 
@@ -17,9 +18,12 @@ public sealed class ClassifierSettingsStorageShould(StorageTestFixture fixture)
 	[Fact]
 	public async Task SaveClassifierSettingsAsync_ShouldCreateThenUpdateSingleRecord()
 	{
-		await sut.SaveClassifierSettingsAsync(Command() with { Model = "first/model" }, CancellationToken.None);
+		var userId = new UserBuilder(context).Create().Id;
+
+		await sut.SaveClassifierSettingsAsync(Command() with { Model = "first/model" }, userId, CancellationToken.None);
 		await sut.SaveClassifierSettingsAsync(
 			Command() with { Model = "second/model", Categories = ["Один", "Два"], ReclassifyAfterDays = 14 },
+			userId,
 			CancellationToken.None);
 
 		var result = await sut.GetClassifierSettingsAsync(CancellationToken.None);
@@ -39,33 +43,73 @@ public sealed class ClassifierSettingsStorageShould(StorageTestFixture fixture)
 	}
 
 	[Fact]
-	public async Task GetClassifierSettingsAsync_ShouldReturnSelectedSession()
+	public async Task SaveClassifierSettingsAsync_ShouldAssignPurposeToSelectedOwnSessionsOnly()
 	{
-		var session = new TelegramSessionBuilder(context).WithName("Классификатор").WithIsActive(false).Create();
+		var userId = new UserBuilder(context).Create().Id;
+		var selected = new TelegramSessionBuilder(context).WithUserId(userId)
+			.WithPurposes(TelegramSessionPurpose.Discover).Create();
+		var deselected = new TelegramSessionBuilder(context).WithUserId(userId)
+			.WithPurposes(TelegramSessionPurpose.Classification, TelegramSessionPurpose.UpdateStats).Create();
+		var foreign = new TelegramSessionBuilder(context)
+			.WithPurposes(TelegramSessionPurpose.Classification).Create();
+
 		await sut.SaveClassifierSettingsAsync(
-			Command() with { TelegramSessionId = session.Id }, CancellationToken.None);
+			Command() with { TelegramSessionIds = [selected.Id] }, userId, CancellationToken.None);
 
-		var result = await sut.GetClassifierSettingsAsync(CancellationToken.None);
-		var savedSessionId = await sut.GetTelegramSessionIdAsync(CancellationToken.None);
-
-		result.ShouldNotBeNull();
-		result.TelegramSession.ShouldNotBeNull();
-		result.TelegramSession.Id.ShouldBe(session.Id);
-		result.TelegramSession.Name.ShouldBe("Классификатор");
-		result.TelegramSession.IsActive.ShouldBeFalse();
-		savedSessionId.ShouldBe(session.Id);
+		using var check = fixture.GetDbContext();
+		var purposes = await check.TelegramSessions
+			.Where(x => x.Id == selected.Id || x.Id == deselected.Id || x.Id == foreign.Id)
+			.ToDictionaryAsync(x => x.Id, x => x.Purposes, CancellationToken.None);
+		purposes[selected.Id].ShouldBe([TelegramSessionPurpose.Discover, TelegramSessionPurpose.Classification], true);
+		purposes[deselected.Id].ShouldBe([TelegramSessionPurpose.UpdateStats]);
+		purposes[foreign.Id].ShouldBe([TelegramSessionPurpose.Classification]);
 	}
 
 	[Fact]
-	public async Task TelegramSessionBelongsToUserAsync_ShouldCheckOwner()
+	public async Task GetClassifierSessionsAsync_ShouldReturnOwnSessionsAndForeignAssignedOnes()
 	{
-		var session = new TelegramSessionBuilder(context).Create();
+		var userId = new UserBuilder(context).Create().Id;
+		var ownSelected = new TelegramSessionBuilder(context).WithUserId(userId).WithName("Своя")
+			.WithStatus(TelegramSessionStatus.Authorized)
+			.WithPurposes(TelegramSessionPurpose.Classification).Create();
+		var ownFree = new TelegramSessionBuilder(context).WithUserId(userId).WithIsActive(false).Create();
+		var foreignAssigned = new TelegramSessionBuilder(context).WithName("Чужая")
+			.WithPurposes(TelegramSessionPurpose.Classification).Create();
+		var foreignFree = new TelegramSessionBuilder(context).Create();
 
-		var own = await sut.TelegramSessionBelongsToUserAsync(session.UserId, session.Id, CancellationToken.None);
-		var foreign = await sut.TelegramSessionBelongsToUserAsync(Guid.NewGuid(), session.Id, CancellationToken.None);
+		var result = await sut.GetClassifierSessionsAsync(userId, CancellationToken.None);
 
-		own.ShouldBeTrue();
-		foreign.ShouldBeFalse();
+		result.Select(x => x.Id).ShouldContain(ownSelected.Id);
+		result.Select(x => x.Id).ShouldContain(ownFree.Id);
+		result.Select(x => x.Id).ShouldContain(foreignAssigned.Id);
+		result.Select(x => x.Id).ShouldNotContain(foreignFree.Id);
+		var own = result.Single(x => x.Id == ownSelected.Id);
+		own.IsOwn.ShouldBeTrue();
+		own.IsSelected.ShouldBeTrue();
+		own.IsAuthorized.ShouldBeTrue();
+		own.PhoneNumber.ShouldBe(ownSelected.PhoneNumber);
+		var free = result.Single(x => x.Id == ownFree.Id);
+		free.IsSelected.ShouldBeFalse();
+		free.IsActive.ShouldBeFalse();
+		var foreign = result.Single(x => x.Id == foreignAssigned.Id);
+		foreign.IsOwn.ShouldBeFalse();
+		foreign.PhoneNumber.ShouldBeNull();
+		foreign.Name.ShouldBe("Чужая");
+		result.FindIndex(x => x.Id == foreignAssigned.Id)
+			.ShouldBeGreaterThan(result.FindIndex(x => x.Id == ownFree.Id));
+	}
+
+	[Fact]
+	public async Task GetUserSessionIdsAsync_ShouldReturnOnlyUserSessions()
+	{
+		var userId = new UserBuilder(context).Create().Id;
+		var own = new TelegramSessionBuilder(context).WithUserId(userId).Create();
+		var foreign = new TelegramSessionBuilder(context).Create();
+
+		var result = await sut.GetUserSessionIdsAsync(userId, CancellationToken.None);
+
+		result.ShouldBe([own.Id]);
+		result.ShouldNotContain(foreign.Id);
 	}
 
 	private static UpdateClassifierSettingsCommand Command() => new(
@@ -78,5 +122,5 @@ public sealed class ClassifierSettingsStorageShould(StorageTestFixture fixture)
 		null,
 		["Технологии"],
 		"Промпт {categories}",
-		null);
+		[]);
 }

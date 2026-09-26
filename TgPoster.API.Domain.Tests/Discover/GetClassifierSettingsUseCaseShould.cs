@@ -1,4 +1,5 @@
 using Moq;
+using Security.IdentityServices;
 using Shared.Classification;
 using Shouldly;
 using TgPoster.API.Domain.UseCases.Discover.GetClassifierSettings;
@@ -7,13 +8,18 @@ namespace TgPoster.API.Domain.Tests.Discover;
 
 public class GetClassifierSettingsUseCaseShould
 {
+	private readonly Guid userId = Guid.NewGuid();
 	private readonly Mock<IGetClassifierSettingsStorage> storage;
 	private readonly GetClassifierSettingsUseCase sut;
 
 	public GetClassifierSettingsUseCaseShould()
 	{
 		storage = new Mock<IGetClassifierSettingsStorage>();
-		sut = new GetClassifierSettingsUseCase(storage.Object);
+		storage.Setup(s => s.GetClassifierSessionsAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+			.ReturnsAsync([]);
+		var identity = new Mock<IIdentityProvider>();
+		identity.Setup(x => x.Current).Returns(new Identity(userId));
+		sut = new GetClassifierSettingsUseCase(storage.Object, identity.Object);
 	}
 
 	[Fact]
@@ -33,7 +39,7 @@ public class GetClassifierSettingsUseCaseShould
 		result.ReclassifyAfterDays.ShouldBeNull();
 		result.Categories.ShouldBe(ClassifierDefaults.Categories);
 		result.SystemPrompt.ShouldBe(ClassifierDefaults.SystemPrompt);
-		result.TelegramSession.ShouldBeNull();
+		result.Sessions.ShouldBeEmpty();
 		result.UpdatedAt.ShouldBeNull();
 	}
 
@@ -41,7 +47,6 @@ public class GetClassifierSettingsUseCaseShould
 	public async Task ReturnSavedValues_WithDefaultsForReset()
 	{
 		var updatedAt = DateTimeOffset.UtcNow.AddHours(-1);
-		var session = new ClassifierSessionInfo { Id = Guid.NewGuid(), Name = "Классификатор", IsActive = true };
 		storage.Setup(s => s.GetClassifierSettingsAsync(It.IsAny<CancellationToken>()))
 			.ReturnsAsync(new SavedClassifierSettingsDto
 			{
@@ -54,7 +59,6 @@ public class GetClassifierSettingsUseCaseShould
 				ReclassifyAfterDays = 30,
 				Categories = ["Один", "Два"],
 				SystemPrompt = "Свой промпт {categories}",
-				TelegramSession = session,
 				UpdatedAt = updatedAt
 			});
 
@@ -69,10 +73,27 @@ public class GetClassifierSettingsUseCaseShould
 		result.ReclassifyAfterDays.ShouldBe(30);
 		result.Categories.ShouldBe(["Один", "Два"]);
 		result.SystemPrompt.ShouldBe("Свой промпт {categories}");
-		result.TelegramSession.ShouldBe(session);
 		result.UpdatedAt.ShouldBe(updatedAt);
 		result.DefaultSystemPrompt.ShouldBe(ClassifierDefaults.SystemPrompt);
 		result.DefaultCategories.ShouldBe(ClassifierDefaults.Categories);
 		result.CategoriesPlaceholder.ShouldBe(ClassifierDefaults.CategoriesPlaceholder);
+	}
+
+	[Fact]
+	public async Task ReturnSessionsOfCurrentUser()
+	{
+		var sessions = new List<ClassifierSessionOption>
+		{
+			new() { Id = Guid.NewGuid(), IsActive = true, IsAuthorized = true, IsSelected = true, IsOwn = true },
+			new() { Id = Guid.NewGuid(), IsActive = true, IsAuthorized = true, IsSelected = true, IsOwn = false }
+		};
+		storage.Setup(s => s.GetClassifierSettingsAsync(It.IsAny<CancellationToken>()))
+			.ReturnsAsync((SavedClassifierSettingsDto?)null);
+		storage.Setup(s => s.GetClassifierSessionsAsync(userId, It.IsAny<CancellationToken>()))
+			.ReturnsAsync(sessions);
+
+		var result = await sut.Handle(new GetClassifierSettingsQuery(), CancellationToken.None);
+
+		result.Sessions.ShouldBe(sessions);
 	}
 }

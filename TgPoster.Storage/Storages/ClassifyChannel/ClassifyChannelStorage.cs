@@ -20,11 +20,7 @@ internal sealed class ClassifyChannelStorage(PosterContext context) : IClassifyC
 				PhotoCount = x.PhotoCount,
 				ReclassifyAfterDays = x.ReclassifyAfterDays,
 				Categories = x.Categories,
-				SystemPrompt = x.SystemPrompt,
-				// Удалённая или выключенная сессия не годится — воркер откатится к поиску по назначению
-				TelegramSessionId = x.TelegramSession != null && x.TelegramSession.IsActive
-					? x.TelegramSessionId
-					: null
+				SystemPrompt = x.SystemPrompt
 			})
 			.FirstOrDefaultAsync(ct);
 
@@ -49,8 +45,7 @@ internal sealed class ClassifyChannelStorage(PosterContext context) : IClassifyC
 			PhotoCount = defaults.PhotoCount,
 			ReclassifyAfterDays = defaults.ReclassifyAfterDays,
 			Categories = [..defaults.Categories],
-			SystemPrompt = defaults.SystemPrompt,
-			TelegramSessionId = defaults.TelegramSessionId
+			SystemPrompt = defaults.SystemPrompt
 		});
 		await context.SaveChangesAsync(ct);
 	}

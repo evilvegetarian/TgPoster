@@ -16,5 +16,5 @@ internal static class UpdateClassifierSettingsRequestMapper
 			request.ReclassifyAfterDays,
 			request.Categories,
 			request.SystemPrompt,
-			request.TelegramSessionId);
+			request.TelegramSessionIds);
 }

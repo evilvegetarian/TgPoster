@@ -1,4 +1,5 @@
 using Bogus;
+using Shared.Enums;
 using TgPoster.Storage.Data;
 using TgPoster.Storage.Data.Entities;
 using TgPoster.Storage.Data.Enum;
@@ -48,6 +49,12 @@ internal sealed class TelegramSessionBuilder(PosterContext context)
 	public TelegramSessionBuilder WithName(string? name)
 	{
 		telegramSession.Name = name;
+		return this;
+	}
+
+	public TelegramSessionBuilder WithPurposes(params TelegramSessionPurpose[] purposes)
+	{
+		telegramSession.Purposes = purposes;
 		return this;
 	}
 

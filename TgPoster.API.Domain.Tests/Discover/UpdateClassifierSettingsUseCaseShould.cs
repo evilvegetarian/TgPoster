@@ -10,33 +10,35 @@ namespace TgPoster.API.Domain.Tests.Discover;
 public class UpdateClassifierSettingsUseCaseShould
 {
 	private readonly Guid userId = Guid.NewGuid();
+	private readonly Guid ownSessionId = Guid.NewGuid();
+	private readonly Guid otherOwnSessionId = Guid.NewGuid();
 	private readonly Mock<IUpdateClassifierSettingsStorage> storage;
 	private readonly UpdateClassifierSettingsUseCase sut;
 
 	public UpdateClassifierSettingsUseCaseShould()
 	{
 		storage = new Mock<IUpdateClassifierSettingsStorage>();
+		storage.Setup(s => s.GetUserSessionIdsAsync(userId, It.IsAny<CancellationToken>()))
+			.ReturnsAsync([ownSessionId, otherOwnSessionId]);
 		var identity = new Mock<IIdentityProvider>();
 		identity.Setup(x => x.Current).Returns(new Identity(userId));
 		sut = new UpdateClassifierSettingsUseCase(storage.Object, identity.Object);
 	}
 
 	[Fact]
-	public async Task SaveTrimmedModelAndNormalizedCategories()
+	public async Task SaveTrimmedModelAndNormalizedCategories_ForCurrentUser()
 	{
-		UpdateClassifierSettingsCommand? saved = null;
-		storage.Setup(s => s.SaveClassifierSettingsAsync(
-				It.IsAny<UpdateClassifierSettingsCommand>(), It.IsAny<CancellationToken>()))
-			.Callback<UpdateClassifierSettingsCommand, CancellationToken>((command, _) => saved = command);
+		var saved = CaptureSaved();
 
 		await sut.Handle(
 			ValidCommand() with { Model = "  some/model ", Categories = [" Крипто ", "", "крипто", "Новости"] },
 			CancellationToken.None);
 
-		saved.ShouldNotBeNull();
-		saved.Model.ShouldBe("some/model");
-		saved.Categories.ShouldBe(["Крипто", "Новости"]);
-		saved.BatchSize.ShouldBe(3);
+		saved.Command.ShouldNotBeNull();
+		saved.Command.Model.ShouldBe("some/model");
+		saved.Command.Categories.ShouldBe(["Крипто", "Новости"]);
+		saved.Command.BatchSize.ShouldBe(3);
+		saved.UserId.ShouldBe(userId);
 	}
 
 	[Fact]
@@ -80,64 +82,58 @@ public class UpdateClassifierSettingsUseCaseShould
 	[Fact]
 	public async Task Throw_WhenSessionBelongsToAnotherUser()
 	{
-		var sessionId = Guid.NewGuid();
-		storage.Setup(s => s.GetTelegramSessionIdAsync(It.IsAny<CancellationToken>())).ReturnsAsync((Guid?)null);
-		storage.Setup(s => s.TelegramSessionBelongsToUserAsync(userId, sessionId, It.IsAny<CancellationToken>()))
-			.ReturnsAsync(false);
+		var foreignSessionId = Guid.NewGuid();
 
-		await Should.ThrowAsync<TelegramSessionEntityNotFoundException>(
-			() => sut.Handle(ValidCommand() with { TelegramSessionId = sessionId }, CancellationToken.None));
+		var exception = await Should.ThrowAsync<TelegramSessionEntityNotFoundException>(
+			() => sut.Handle(
+				ValidCommand() with { TelegramSessionIds = [ownSessionId, foreignSessionId] },
+				CancellationToken.None));
 
+		exception.Message.ShouldContain(foreignSessionId.ToString());
 		VerifyNotSaved();
 	}
 
 	[Fact]
-	public async Task Save_WhenSessionBelongsToUser()
+	public async Task SaveSeveralOwnSessions_WithoutDuplicates()
 	{
-		var sessionId = Guid.NewGuid();
-		storage.Setup(s => s.GetTelegramSessionIdAsync(It.IsAny<CancellationToken>())).ReturnsAsync((Guid?)null);
-		storage.Setup(s => s.TelegramSessionBelongsToUserAsync(userId, sessionId, It.IsAny<CancellationToken>()))
-			.ReturnsAsync(true);
+		var saved = CaptureSaved();
 
-		await sut.Handle(ValidCommand() with { TelegramSessionId = sessionId }, CancellationToken.None);
+		await sut.Handle(
+			ValidCommand() with { TelegramSessionIds = [ownSessionId, otherOwnSessionId, ownSessionId] },
+			CancellationToken.None);
 
-		storage.Verify(s => s.SaveClassifierSettingsAsync(
-				It.Is<UpdateClassifierSettingsCommand>(c => c.TelegramSessionId == sessionId),
-				It.IsAny<CancellationToken>()),
-			Times.Once);
+		saved.Command.ShouldNotBeNull();
+		saved.Command.TelegramSessionIds.ShouldBe([ownSessionId, otherOwnSessionId]);
 	}
 
 	[Fact]
-	public async Task KeepAlreadySavedForeignSession()
+	public async Task SaveEmptySelection_WithoutCheckingOwnership()
 	{
-		var sessionId = Guid.NewGuid();
-		storage.Setup(s => s.GetTelegramSessionIdAsync(It.IsAny<CancellationToken>())).ReturnsAsync(sessionId);
+		var saved = CaptureSaved();
 
-		await sut.Handle(ValidCommand() with { TelegramSessionId = sessionId }, CancellationToken.None);
-
-		storage.Verify(s => s.TelegramSessionBelongsToUserAsync(
-				It.IsAny<Guid>(), It.IsAny<Guid>(), It.IsAny<CancellationToken>()),
-			Times.Never);
-		storage.Verify(s => s.SaveClassifierSettingsAsync(
-				It.IsAny<UpdateClassifierSettingsCommand>(), It.IsAny<CancellationToken>()),
-			Times.Once);
-	}
-
-	[Fact]
-	public async Task NotCheckSession_WhenNoneSelected()
-	{
 		await sut.Handle(ValidCommand(), CancellationToken.None);
 
-		storage.Verify(s => s.GetTelegramSessionIdAsync(It.IsAny<CancellationToken>()), Times.Never);
-		storage.Verify(s => s.SaveClassifierSettingsAsync(
-				It.Is<UpdateClassifierSettingsCommand>(c => c.TelegramSessionId == null),
-				It.IsAny<CancellationToken>()),
-			Times.Once);
+		storage.Verify(s => s.GetUserSessionIdsAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()), Times.Never);
+		saved.Command.ShouldNotBeNull();
+		saved.Command.TelegramSessionIds.ShouldBeEmpty();
+	}
+
+	private SavedCall CaptureSaved()
+	{
+		var call = new SavedCall();
+		storage.Setup(s => s.SaveClassifierSettingsAsync(
+				It.IsAny<UpdateClassifierSettingsCommand>(), It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+			.Callback<UpdateClassifierSettingsCommand, Guid, CancellationToken>((command, user, _) =>
+			{
+				call.Command = command;
+				call.UserId = user;
+			});
+		return call;
 	}
 
 	private void VerifyNotSaved() =>
 		storage.Verify(s => s.SaveClassifierSettingsAsync(
-				It.IsAny<UpdateClassifierSettingsCommand>(), It.IsAny<CancellationToken>()),
+				It.IsAny<UpdateClassifierSettingsCommand>(), It.IsAny<Guid>(), It.IsAny<CancellationToken>()),
 			Times.Never);
 
 	private static UpdateClassifierSettingsCommand ValidCommand() => new(
@@ -150,5 +146,11 @@ public class UpdateClassifierSettingsUseCaseShould
 		null,
 		["Технологии", "Другое"],
 		"Выбери из {categories}",
-		null);
+		[]);
+
+	private sealed class SavedCall
+	{
+		public UpdateClassifierSettingsCommand? Command { get; set; }
+		public Guid UserId { get; set; }
+	}
 }

@@ -1,4 +1,3 @@
-using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using TgPoster.Storage.Data.Entities;
 
@@ -12,10 +11,5 @@ internal sealed class ClassifierSettingsConfiguration : BaseEntityConfiguration<
 
 		builder.Property(x => x.Model).HasMaxLength(128).IsRequired();
 		builder.Property(x => x.SystemPrompt).HasMaxLength(8000).IsRequired();
-
-		builder.HasOne(x => x.TelegramSession)
-			.WithMany()
-			.HasForeignKey(x => x.TelegramSessionId)
-			.OnDelete(DeleteBehavior.SetNull);
 	}
 }
