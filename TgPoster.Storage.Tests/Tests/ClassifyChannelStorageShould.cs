@@ -51,6 +51,31 @@ public sealed class ClassifyChannelStorageShould(StorageTestFixture fixture)
 	}
 
 	[Fact]
+	public async Task GetChannelsToClassifyAsync_ShouldPreferChats_WithinSameAttemptGroup()
+	{
+		await ClearChannelsAsync();
+		var neverAttemptedChannel = NewChannel();
+		var neverAttemptedChat = NewChannel(c => c.PeerType = "chat");
+		var attemptedChannel = NewChannel(c => c.LastClassificationAttemptAt = Now.AddDays(-5));
+		var attemptedChat = NewChannel(c =>
+		{
+			c.PeerType = "chat";
+			c.LastClassificationAttemptAt = Now.AddDays(-1);
+		});
+		var unknownType = NewChannel(c => c.PeerType = null);
+		context.DiscoveredChannels.AddRange(
+			neverAttemptedChannel, neverAttemptedChat, attemptedChannel, attemptedChat, unknownType);
+		await context.SaveChangesAsync(CancellationToken.None);
+
+		var result = await sut.GetChannelsToClassifyAsync(10, Now, null, CancellationToken.None);
+
+		result[0].Id.ShouldBe(neverAttemptedChat.Id);
+		result.Take(3).Select(x => x.Id).ShouldBe([neverAttemptedChat.Id, neverAttemptedChannel.Id, unknownType.Id],
+			ignoreOrder: true);
+		result.Skip(3).Select(x => x.Id).ShouldBe([attemptedChat.Id, attemptedChannel.Id]);
+	}
+
+	[Fact]
 	public async Task GetChannelsToClassifyAsync_ShouldPostponeRecentAttempts()
 	{
 		await ClearChannelsAsync();

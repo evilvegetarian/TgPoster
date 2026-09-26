@@ -46,18 +46,23 @@ internal sealed partial class DiscoverChannelLinksWorker(
 		{
 			await TryReportAsync(() => statusStorage.ReportStartedAsync(WorkerJobNames.DiscoverChannelLinks, ct));
 
-			var floodWaitSeconds = await ProcessChannelsCoreAsync(ct);
+			var outcome = await ProcessChannelsCoreAsync(ct);
 
 			// Финальную запись статуса делаем с CancellationToken.None: при остановке приложения
 			// она должна успеть выполниться best-effort
 			var nextRunAt = nextRun.GetNextRunAt(WorkerJobNames.DiscoverChannelLinks);
-			if (floodWaitSeconds is { } floodWait)
+			if (outcome.CooldownSeconds is { } floodWait)
 			{
 				await TryReportAsync(() => statusStorage.ReportCooldownAsync(
 					WorkerJobNames.DiscoverChannelLinks,
 					DateTimeOffset.UtcNow.AddSeconds(floodWait),
 					nextRunAt,
 					CancellationToken.None));
+			}
+			else if (outcome.Error is { } error)
+			{
+				await TryReportAsync(() => statusStorage.ReportFailedAsync(
+					WorkerJobNames.DiscoverChannelLinks, error, nextRunAt, CancellationToken.None));
 			}
 			else
 			{
@@ -90,21 +95,21 @@ internal sealed partial class DiscoverChannelLinksWorker(
 	///     за каждой сессией стоит отдельный Telegram-аккаунт со своими лимитами
 	/// </summary>
 	/// <param name="ct">Токен отмены</param>
-	/// <returns>Секунды FloodWait-таймаута, если ни одна сессия не смогла отработать, иначе null</returns>
-	private async Task<int?> ProcessChannelsCoreAsync(CancellationToken ct)
+	/// <returns>Кулдаун, если FloodWait поймали все сессии; ошибка, если упали все каналы запуска</returns>
+	private async Task<RunOutcome> ProcessChannelsCoreAsync(CancellationToken ct)
 	{
 		var sessionIds = await authService.GetSessionIdsForPurposeAsync(TelegramSessionPurpose.Discover, ct);
 		if (sessionIds.Count == 0)
 		{
 			logger.LogWarning("Нет активных Telegram-сессий с назначением Discover");
-			return null;
+			return RunOutcome.Success;
 		}
 
 		var channels = await storage.GetChannelsToProcessAsync(ChannelsPerSession * sessionIds.Count, ct);
 		if (channels.Count == 0)
 		{
 			logger.LogInformation("Нет каналов для обработки DiscoverChannelLinks");
-			return null;
+			return RunOutcome.Success;
 		}
 
 		progressTotal = channels.Count;
@@ -126,13 +131,21 @@ internal sealed partial class DiscoverChannelLinksWorker(
 			.Select(bucket => ProcessSessionChannelsAsync(bucket.Key, bucket.ToList(), ct))
 			.ToArray();
 
-		var floodWaits = await Task.WhenAll(tasks);
+		var sessionOutcomes = await Task.WhenAll(tasks);
 
 		// Кулдаун имеет смысл, только если FloodWait поймали все сессии: пока свободен
 		// хотя бы один аккаунт, следующий запуск снова принесёт результат
-		return floodWaits.All(x => x is not null)
-			? floodWaits.Min()
-			: null;
+		if (sessionOutcomes.All(x => x.FloodWaitSeconds is not null))
+		{
+			return RunOutcome.Cooldown(sessionOutcomes.Min(x => x.FloodWaitSeconds!.Value));
+		}
+
+		// Единичный сбой — норма (канал мог сломаться), а вот если упали все каналы запуска,
+		// скорее всего сломано что-то общее: сессии, сеть или БД
+		var failedCount = sessionOutcomes.Sum(x => x.FailedCount);
+		return failedCount == channels.Count
+			? RunOutcome.Failed(sessionOutcomes.Select(x => x.LastError).LastOrDefault(x => x is not null))
+			: RunOutcome.Success;
 	}
 
 	/// <summary>
@@ -141,8 +154,8 @@ internal sealed partial class DiscoverChannelLinksWorker(
 	/// <param name="sessionId">ID сессии Telegram</param>
 	/// <param name="channels">Каналы этой сессии</param>
 	/// <param name="ct">Токен отмены</param>
-	/// <returns>Секунды FloodWait-таймаута, если Telegram ограничил сессию, иначе null</returns>
-	private async Task<int?> ProcessSessionChannelsAsync(
+	/// <returns>FloodWait, если Telegram ограничил сессию, и число каналов, на которых обработка упала</returns>
+	private async Task<SessionOutcome> ProcessSessionChannelsAsync(
 		Guid sessionId,
 		IReadOnlyList<DiscoverChannelDto> channels,
 		CancellationToken ct
@@ -156,30 +169,36 @@ internal sealed partial class DiscoverChannelLinksWorker(
 			scope.ServiceProvider.GetRequiredService<ITelegramMessageService>(),
 			scope.ServiceProvider.GetRequiredService<ITelegramPublicLookupService>());
 
+		var failedCount = 0;
+		string? lastError = null;
+
 		foreach (var channelDto in channels)
 		{
 			await ReportProgressAsync($"@{channelDto.Username ?? channelDto.TelegramId?.ToString()}", ct);
 
-			int? floodWaitSeconds;
+			int? floodWaitSeconds = null;
 			try
 			{
 				floodWaitSeconds = await ProcessChannelAsync(session, channelDto, ct);
 			}
-			catch (Exception ex)
+			catch (Exception ex) when (ex is not OperationCanceledException)
 			{
+				// Без пометки канал остался бы первым в очереди и ронял бы каждый следующий запуск
 				logger.LogError(ex, "Ошибка при обработке канала {Channel} сессией {SessionId}",
 					channelDto.Username ?? channelDto.TelegramId?.ToString(), sessionId);
-				throw;
+				await WithDbLockAsync(() => storage.MarkAsErrorAsync(channelDto.Id, ct), ct);
+				failedCount++;
+				lastError = ex.Message;
 			}
 
 			Interlocked.Increment(ref progressCurrent);
 			if (floodWaitSeconds is not null)
 			{
-				return floodWaitSeconds;
+				return new SessionOutcome(floodWaitSeconds, failedCount, lastError);
 			}
 		}
 
-		return null;
+		return new SessionOutcome(null, failedCount, lastError);
 	}
 
 	/// <summary>
@@ -195,8 +214,13 @@ internal sealed partial class DiscoverChannelLinksWorker(
 		CancellationToken ct
 	)
 	{
-		var channel = await ResolveChannelAsync(session, channelDto, ct);
+		var resolution = await ResolveChannelAsync(session, channelDto, ct);
+		if (resolution.FloodWaitSeconds is not null)
+		{
+			return resolution.FloodWaitSeconds;
+		}
 
+		var channel = resolution.Channel;
 		if (channel is null)
 		{
 			logger.LogWarning("Не удалось найти канал: {Channel}",
@@ -242,7 +266,15 @@ internal sealed partial class DiscoverChannelLinksWorker(
 		return fetch.FloodWaitSeconds;
 	}
 
-	private async Task<TelegramChatInfo?> ResolveChannelAsync(
+	/// <summary>
+	///     Найти канал в Telegram. Канал, который не удалось открыть по его собственной вине, помечается
+	///     ошибкой, иначе он оставался бы первым в очереди и занимал сессию на каждом запуске
+	/// </summary>
+	/// <param name="session"></param>
+	/// <param name="channelDto"></param>
+	/// <param name="ct"></param>
+	/// <returns></returns>
+	private async Task<ChannelResolution> ResolveChannelAsync(
 		SessionScope session,
 		DiscoverChannelDto channelDto,
 		CancellationToken ct
@@ -257,18 +289,33 @@ internal sealed partial class DiscoverChannelLinksWorker(
 				    () => WithDbLockAsync(() => storage.ChannelBanned(channelDto.Id, ct), ct)))
 			{
 				logger.LogError("Канал {channel} забанен", channelDto.Username);
-				return null;
+				return ChannelResolution.NotFound;
 			}
 
 			if (resolved.IsSuccess)
 			{
-				return resolved.Value;
+				return ChannelResolution.Found(resolved.Value!);
+			}
+
+			if (resolved.Status is TelegramOperationStatus.FloodWait)
+			{
+				logger.LogWarning("FloodWait {Seconds} с при поиске канала @{Channel}",
+					resolved.FloodWaitSeconds, channelDto.Username);
+				return ChannelResolution.FloodWait(resolved.FloodWaitSeconds ?? 0);
 			}
 
 			logger.LogError("Не удалось разрешить канал {Channel}: {Status} {Error}",
 				channelDto.Username, resolved.Status, resolved.ErrorMessage);
 
-			return null;
+			// Таймаут и проблемы самой сессии канал не касаются — он останется в очереди на следующий запуск
+			if (resolved.Status is not (TelegramOperationStatus.Timeout
+			    or TelegramOperationStatus.SessionNotFound
+			    or TelegramOperationStatus.SpamRestricted))
+			{
+				await WithDbLockAsync(() => storage.MarkAsErrorAsync(channelDto.Id, ct), ct);
+			}
+
+			return ChannelResolution.NotFound;
 		}
 
 		if (channelDto.TelegramId.HasValue)
@@ -279,14 +326,15 @@ internal sealed partial class DiscoverChannelLinksWorker(
 			{
 				logger.LogError("Не удалось получить диалоги: {Status} {Error}",
 					dialogsResult.Status, dialogsResult.ErrorMessage);
-				return null;
+				return ChannelResolution.NotFound;
 			}
 
-			return dialogsResult.Value!.FirstOrDefault(c => c.Id == channelDto.TelegramId.Value);
+			var dialog = dialogsResult.Value!.FirstOrDefault(c => c.Id == channelDto.TelegramId.Value);
+			return dialog is null ? ChannelResolution.NotFound : ChannelResolution.Found(dialog);
 		}
 
 		logger.LogDebug("Пропускаем канал только с инвайт-хешем — нет доступа для сканирования");
-		return null;
+		return ChannelResolution.NotFound;
 	}
 
 	private async Task<HistoryFetchResult> GetAllHistoryAsync(
@@ -881,6 +929,42 @@ internal sealed partial class DiscoverChannelLinksWorker(
 	private sealed record HistoryFetchResult(
 		List<TelegramHistoryPage> Pages,
 		int? FloodWaitSeconds);
+
+	/// <summary>
+	///     Итог запуска: успех, ошибка (упали все каналы) или кулдаун (FloodWait у всех сессий)
+	/// </summary>
+	/// <param name="Error"></param>
+	/// <param name="CooldownSeconds"></param>
+	private sealed record RunOutcome(string? Error, int? CooldownSeconds)
+	{
+		public static RunOutcome Success { get; } = new(null, null);
+
+		public static RunOutcome Failed(string? error) => new(error, null);
+
+		public static RunOutcome Cooldown(int seconds) => new(null, seconds);
+	}
+
+	/// <summary>
+	///     Итог работы одной сесии за запуск
+	/// </summary>
+	/// <param name="FloodWaitSeconds"></param>
+	/// <param name="FailedCount"></param>
+	/// <param name="LastError"></param>
+	private sealed record SessionOutcome(int? FloodWaitSeconds, int FailedCount, string? LastError);
+
+	/// <summary>
+	///     Результат поиска канала: сам канал либо FloodWait, из-за которого сессию надо остановить
+	/// </summary>
+	/// <param name="Channel"></param>
+	/// <param name="FloodWaitSeconds"></param>
+	private sealed record ChannelResolution(TelegramChatInfo? Channel, int? FloodWaitSeconds)
+	{
+		public static ChannelResolution NotFound { get; } = new(null, null);
+
+		public static ChannelResolution Found(TelegramChatInfo channel) => new(channel, null);
+
+		public static ChannelResolution FloodWait(int seconds) => new(null, seconds);
+	}
 
 	private sealed record HistoryScanResult(
 		Dictionary<string, DiscoveredPeerInfo> PublicPeers,

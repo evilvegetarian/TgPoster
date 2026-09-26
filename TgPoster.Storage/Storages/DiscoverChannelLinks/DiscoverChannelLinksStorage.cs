@@ -19,7 +19,10 @@ internal sealed class DiscoverChannelLinksStorage(PosterContext context, GuidFac
 		return query
 			.Where(x => x.Status == DiscoveryStatus.Pending || x.Status == DiscoveryStatus.Completed)
 			.Where(x => x.Username != null)
+			// Сначала ни разу не парсенные, затем самые давние: иначе повторно парсятся одни и те же каналы
 			.OrderBy(x => x.LastDiscoveredAt != null)
+			.ThenBy(x => x.LastDiscoveredAt)
+			.ThenBy(x => x.Id)
 			.Take(channelBatchSize)
 			.Select(x => new DiscoverChannelDto
 			{
@@ -77,6 +80,17 @@ internal sealed class DiscoverChannelLinksStorage(PosterContext context, GuidFac
 		var entity = await context.DiscoveredChannels.FirstAsync(x => x.Id == id, ct);
 		entity.Status = DiscoveryStatus.Skipped;
 		entity.LastDiscoveredAt = DateTimeOffset.UtcNow;
+		await context.SaveChangesAsync(ct);
+	}
+
+	public async Task MarkAsErrorAsync(Guid id, CancellationToken ct)
+	{
+		// Если перед этим упала запись найденных пиров, их сущности остались в трекере
+		// и повторили бы ту же ошибку на SaveChanges
+		context.ChangeTracker.Clear();
+
+		var entity = await context.DiscoveredChannels.FirstAsync(x => x.Id == id, ct);
+		entity.Status = DiscoveryStatus.Error;
 		await context.SaveChangesAsync(ct);
 	}
 

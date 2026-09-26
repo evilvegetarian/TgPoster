@@ -17,7 +17,8 @@ public interface IClassifyChannelStorage
 	Task EnsureSettingsAsync(ClassifierSettingsDto defaults, CancellationToken ct);
 
 	/// <summary>
-	///     Выбрать каналы для классификации: сначала ни разу не классифицированные, среди них — давно не пробованные.
+	///     Выбрать каналы для классификации: сначала ни разу не классифицированные, среди них — давно не пробованные,
+	///     при прочих равных чаты раньше каналов.
 	///     Неудачные попытки откладываются до <paramref name="retryBefore" />, повторная классификация — только
 	///     для классифицированных раньше <paramref name="reclassifyBefore" />
 	/// </summary>

@@ -73,28 +73,92 @@ public sealed class DiscoverChannelLinksStorageShould(StorageTestFixture fixture
 	[Fact]
 	public async Task GetChannelsToProcessAsync_ShouldReturnPendingChannelsBeforeCompleted()
 	{
-		var completed = new DiscoveredChannel
+		await ClearChannelsAsync();
+		var completed = NewQueueChannel(c =>
 		{
-			Id = Guid.NewGuid(),
-			Username = "completedchannel",
-			Status = DiscoveryStatus.Completed,
-			LastDiscoveredAt = DateTimeOffset.UtcNow.AddHours(-1)
-		};
-		var pending = new DiscoveredChannel
-		{
-			Id = Guid.NewGuid(),
-			Username = "pendingchannel",
-			Status = DiscoveryStatus.Pending
-		};
+			c.Status = DiscoveryStatus.Completed;
+			c.LastDiscoveredAt = DateTimeOffset.UtcNow.AddHours(-1);
+		});
+		var pending = NewQueueChannel();
 		context.DiscoveredChannels.AddRange(completed, pending);
 		await context.SaveChangesAsync(CancellationToken.None);
 		context.ChangeTracker.Clear();
 
-		var result = await sut.GetChannelsToProcessAsync(1, CancellationToken.None);
+		var result = await sut.GetChannelsToProcessAsync(10, CancellationToken.None);
 
-		var pendingIndex = result.FindIndex(x => x.Username == pending.Username);
-		var completedIndex = result.FindIndex(x => x.Username == completed.Username);
-		pendingIndex.ShouldBeLessThan(completedIndex);
+		result.Select(x => x.Id).ShouldBe([pending.Id, completed.Id]);
+	}
+
+	[Fact]
+	public async Task GetChannelsToProcessAsync_ShouldReturnLongestNotParsedFirst()
+	{
+		await ClearChannelsAsync();
+		var now = DateTimeOffset.UtcNow;
+		var parsedYesterday = NewQueueChannel(c =>
+		{
+			c.Status = DiscoveryStatus.Completed;
+			c.LastDiscoveredAt = now.AddDays(-1);
+		});
+		var parsedWeekAgo = NewQueueChannel(c =>
+		{
+			c.Status = DiscoveryStatus.Completed;
+			c.LastDiscoveredAt = now.AddDays(-7);
+		});
+		var parsedHourAgo = NewQueueChannel(c =>
+		{
+			c.Status = DiscoveryStatus.Completed;
+			c.LastDiscoveredAt = now.AddHours(-1);
+		});
+		context.DiscoveredChannels.AddRange(parsedYesterday, parsedWeekAgo, parsedHourAgo);
+		await context.SaveChangesAsync(CancellationToken.None);
+		context.ChangeTracker.Clear();
+
+		var result = await sut.GetChannelsToProcessAsync(2, CancellationToken.None);
+
+		result.Select(x => x.Id).ShouldBe([parsedWeekAgo.Id, parsedYesterday.Id]);
+	}
+
+	[Fact]
+	public async Task GetChannelsToProcessAsync_ShouldSkipChannelsWithError()
+	{
+		await ClearChannelsAsync();
+		var failed = NewQueueChannel(c => c.Status = DiscoveryStatus.Error);
+		var pending = NewQueueChannel();
+		context.DiscoveredChannels.AddRange(failed, pending);
+		await context.SaveChangesAsync(CancellationToken.None);
+		context.ChangeTracker.Clear();
+
+		var result = await sut.GetChannelsToProcessAsync(10, CancellationToken.None);
+
+		result.Select(x => x.Id).ShouldBe([pending.Id]);
+	}
+
+	[Fact]
+	public async Task MarkAsErrorAsync_ShouldSetErrorStatus_AndKeepLastDiscoveredAt()
+	{
+		var parsedAt = DateTimeOffset.UtcNow.AddDays(-2);
+		var entity = NewQueueChannel(c =>
+		{
+			c.Status = DiscoveryStatus.Completed;
+			c.LastDiscoveredAt = parsedAt;
+		});
+		var neverParsed = NewQueueChannel();
+		context.DiscoveredChannels.AddRange(entity, neverParsed);
+		await context.SaveChangesAsync(CancellationToken.None);
+		context.ChangeTracker.Clear();
+
+		await sut.MarkAsErrorAsync(entity.Id, CancellationToken.None);
+		await sut.MarkAsErrorAsync(neverParsed.Id, CancellationToken.None);
+
+		using var check = fixture.GetDbContext();
+		var saved = await check.DiscoveredChannels.FirstAsync(x => x.Id == entity.Id, CancellationToken.None);
+		var savedNeverParsed = await check.DiscoveredChannels
+			.FirstAsync(x => x.Id == neverParsed.Id, CancellationToken.None);
+		saved.Status.ShouldBe(DiscoveryStatus.Error);
+		saved.LastDiscoveredAt.ShouldNotBeNull();
+		saved.LastDiscoveredAt.Value.ShouldBe(parsedAt, TimeSpan.FromMilliseconds(1));
+		savedNeverParsed.Status.ShouldBe(DiscoveryStatus.Error);
+		savedNeverParsed.LastDiscoveredAt.ShouldBeNull();
 	}
 
 	[Fact]
@@ -479,5 +543,33 @@ public sealed class DiscoverChannelLinksStorageShould(StorageTestFixture fixture
 		rows[0].TelegramId.ShouldBe(telegramId);
 		rows[0].Title.ShouldBe("Resolved");
 		rows[0].ParticipantsCount.ShouldBe(42);
+	}
+
+	// Каналы прошлых тестов прячем баном: фильтр запросов у каналов смотрит на IsBanned
+	private async Task ClearChannelsAsync()
+	{
+		var all = await context.DiscoveredChannels.ToListAsync(CancellationToken.None);
+		all.ForEach(x => x.IsBanned = true);
+		await context.SaveChangesAsync(CancellationToken.None);
+		context.ChangeTracker.Clear();
+	}
+
+	/// <summary>
+	///     Канал, который проходит фильтр очереди парсинга
+	/// </summary>
+	/// <param name="setup"></param>
+	/// <returns></returns>
+	private static DiscoveredChannel NewQueueChannel(Action<DiscoveredChannel>? setup = null)
+	{
+		var channel = new DiscoveredChannel
+		{
+			Id = Guid.NewGuid(),
+			Username = $"queue_{Guid.NewGuid():N}",
+			PeerType = "chat",
+			Category = "18+",
+			Status = DiscoveryStatus.Pending
+		};
+		setup?.Invoke(channel);
+		return channel;
 	}
 }
