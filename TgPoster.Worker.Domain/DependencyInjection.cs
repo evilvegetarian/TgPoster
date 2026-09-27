@@ -150,11 +150,11 @@ public static class DependencyInjection
 			worker => worker.CheckForNewPostsAsync(),
 			Cron.Minutely());
 
-		//Каждые 2 часов
+		//Каждый 1 часов
 		recurringJobManager.AddOrUpdate<DiscoverChannelLinksWorker>(
 			WorkerJobNames.DiscoverChannelLinks,
 			worker => worker.ProcessChannelsAsync(),
-			"0 */2 * * *");
+			"0 */1 * * *");
 
 		// Тикает каждую минуту: включён ли классификатор и пора ли запускаться, решают настройки в БД
 		recurringJobManager.AddOrUpdate<ClassifyChannelWorker>(
