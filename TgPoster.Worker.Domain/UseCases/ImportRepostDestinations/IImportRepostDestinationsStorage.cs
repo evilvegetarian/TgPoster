@@ -95,6 +95,14 @@ public interface IImportRepostDestinationsStorage
 	);
 
 	/// <summary>
+	/// Пометить все ещё не обработанные каналы задания как NotProcessed: задание остановлено и продолжено не будет
+	/// </summary>
+	/// <param name="jobId"></param>
+	/// <param name="error"></param>
+	/// <param name="ct"></param>
+	Task MarkPendingItemsNotProcessedAsync(Guid jobId, string error, CancellationToken ct);
+
+	/// <summary>
 	///     Обновить статус задания
 	/// </summary>
 	/// <param name="jobId">Id задания</param>

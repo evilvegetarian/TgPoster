@@ -194,6 +194,31 @@ public class ImportRepostDestinationsConsumerShould
 	}
 
 	[Fact]
+	public async Task StopJob_WhenAccountReachedChannelsLimit()
+	{
+		var first = SetupPendingItem(username: "fullchan");
+		var second = SetupPendingItem(username: "secondchan");
+		SetupPendingItems(first, second);
+
+		chatService.Setup(c => c.TryGetChatInfoAsync(sessionId, "@fullchan", It.IsAny<bool>()))
+			.ReturnsAsync(TelegramOperationResult<TelegramChatInfo>.Failed(
+				TelegramOperationStatus.ChannelsLimitReached, "лимит каналов"));
+
+		var context = await ConsumeAsync(CreateSut(1));
+
+		VerifyItemOutcome(first, AddDestinationOutcome.NotResolved);
+		storage.Verify(s => s.MarkPendingItemsNotProcessedAsync(
+			jobId, It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Once);
+		storage.Verify(s => s.SetJobStatusAsync(
+			jobId, RepostImportStatus.Failed, "лимит каналов", It.IsAny<CancellationToken>()), Times.Once);
+		chatService.Verify(c => c.TryGetChatInfoAsync(sessionId, "@secondchan", It.IsAny<bool>()), Times.Never);
+		context.Verify(c => c.Publish(
+			It.IsAny<ImportRepostDestinationsContract>(), It.IsAny<CancellationToken>()), Times.Never);
+		storage.Verify(s => s.SetSessionFloodWaitAsync(
+			It.IsAny<Guid>(), It.IsAny<DateTimeOffset>(), It.IsAny<CancellationToken>()), Times.Never);
+	}
+
+	[Fact]
 	public async Task ReportNotResolved_WhenTelegramCannotFindChannel()
 	{
 		var item = SetupPendingItem(username: "ghostchan");

@@ -113,6 +113,32 @@ public sealed class ImportRepostDestinationsStorageShould(StorageTestFixture fix
 	}
 
 	[Fact]
+	public async Task MarkPendingItemsNotProcessedAsync_ShouldTouchOnlyPendingItemsOfJob()
+	{
+		var settings = await new RepostSettingsBuilder(context).CreateAsync();
+		var job = await CreateJobAsync(settings.Id);
+		var otherJob = await CreateJobAsync(settings.Id);
+		var pending = await CreateItemAsync(job.Id, (await CreateDiscoveredChannelAsync()).Id, 0,
+			AddDestinationOutcome.Pending);
+		var added = await CreateItemAsync(job.Id, (await CreateDiscoveredChannelAsync()).Id, 1,
+			AddDestinationOutcome.Added);
+		var otherPending = await CreateItemAsync(otherJob.Id, (await CreateDiscoveredChannelAsync()).Id, 0,
+			AddDestinationOutcome.Pending);
+
+		await sut.MarkPendingItemsNotProcessedAsync(job.Id, "лимит каналов", CancellationToken.None);
+
+		var items = await context.RepostImportJobItems
+			.AsNoTracking()
+			.Where(x => x.Id == pending.Id || x.Id == added.Id || x.Id == otherPending.Id)
+			.ToDictionaryAsync(x => x.Id);
+		items[pending.Id].Outcome.ShouldBe(AddDestinationOutcome.NotProcessed);
+		items[pending.Id].Error.ShouldBe("лимит каналов");
+		items[pending.Id].ProcessedAt.ShouldNotBeNull();
+		items[added.Id].Outcome.ShouldBe(AddDestinationOutcome.Added);
+		items[otherPending.Id].Outcome.ShouldBe(AddDestinationOutcome.Pending);
+	}
+
+	[Fact]
 	public async Task SetJobStatusAsync_ShouldStampStartedAndCompleted()
 	{
 		var settings = await new RepostSettingsBuilder(context).CreateAsync();

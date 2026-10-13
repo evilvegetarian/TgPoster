@@ -82,6 +82,25 @@ internal sealed class ImportRepostDestinationsStorage(PosterContext context, Gui
 		await context.SaveChangesAsync(ct);
 	}
 
+	public async Task MarkPendingItemsNotProcessedAsync(Guid jobId, string error, CancellationToken ct)
+	{
+		var items = await context.RepostImportJobItems
+			.Where(x => x.RepostImportJobId == jobId && x.Outcome == AddDestinationOutcome.Pending)
+			.ToListAsync(ct);
+
+		var now = DateTimeOffset.UtcNow;
+		var truncatedError = Truncate(error);
+
+		foreach (var item in items)
+		{
+			item.Outcome = AddDestinationOutcome.NotProcessed;
+			item.Error = truncatedError;
+			item.ProcessedAt = now;
+		}
+
+		await context.SaveChangesAsync(ct);
+	}
+
 	public async Task SetJobStatusAsync(
 		Guid jobId,
 		RepostImportStatus status,

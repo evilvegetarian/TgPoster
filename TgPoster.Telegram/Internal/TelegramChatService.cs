@@ -76,6 +76,10 @@ internal sealed partial class TelegramChatService(
 		{
 			return Failed(TelegramOperationStatus.AccessDenied, input, ex.Message);
 		}
+		catch (TelegramChannelsLimitReachedException ex)
+		{
+			return Failed(TelegramOperationStatus.ChannelsLimitReached, input, ex.Message);
+		}
 		catch (RpcException ex) when (ex.Message is "PEER_FLOOD")
 		{
 			await alertService.NotifyAsync(sessionId, TelegramSessionProblem.SpamRestricted, ex.Message);
@@ -85,10 +89,6 @@ internal sealed partial class TelegramChatService(
 		{
 			await alertService.NotifyAsync(sessionId, TelegramSessionProblem.FloodWait, ex.Message);
 			return Failed(TelegramOperationStatus.FloodWait, input, ex.Message, ex.X);
-		}
-		catch (RpcException ex) when (ex.Message is "CHANNELS_TOO_MUCH")
-		{
-			return Failed(TelegramOperationStatus.AccessDenied, input, ex.Message);
 		}
 		catch (RpcException ex)
 		{
@@ -307,6 +307,7 @@ internal sealed partial class TelegramChatService(
 				"INVITE_HASH_INVALID" => new TelegramJoinChatFailedException("Неверная ссылка"),
 				"INVITE_REQUEST_SENT" => new TelegramJoinChatFailedException(
 					"Заявка отправлена, ожидайте одобрения"),
+				"CHANNELS_TOO_MUCH" => new TelegramChannelsLimitReachedException(),
 				_ => ex
 			};
 		}
@@ -336,6 +337,10 @@ internal sealed partial class TelegramChatService(
 		catch (RpcException ex) when (ex.Message is "USERNAME_NOT_OCCUPIED" or "USERNAME_INVALID")
 		{
 			throw new TelegramChatNotFoundException(username);
+		}
+		catch (RpcException ex) when (ex.Message is "CHANNELS_TOO_MUCH")
+		{
+			throw new TelegramChannelsLimitReachedException();
 		}
 	}
 

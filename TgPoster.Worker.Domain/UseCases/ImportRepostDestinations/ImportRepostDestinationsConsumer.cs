@@ -102,6 +102,13 @@ internal sealed class ImportRepostDestinationsConsumer(
 					return;
 				}
 
+				if (chatResult.Status is TelegramOperationStatus.ChannelsLimitReached)
+				{
+					await StopOnChannelsLimitAsync(job, item, chatResult.ErrorMessage, ct);
+
+					return;
+				}
+
 				await storage.UpdateItemAsync(item.ItemId, AddDestinationOutcome.NotResolved, null,
 					chatResult.ErrorMessage, ct);
 				continue;
@@ -203,6 +210,31 @@ internal sealed class ImportRepostDestinationsConsumer(
 		// Остальные каналы остаются Pending — их подхватит ResumeRepostImportJobsWorker
 		await storage.SetJobStatusAsync(job.JobId, RepostImportStatus.CooldownWait,
 			$"Telegram ограничил сессию, ждём {cooldownSeconds} сек.", ct);
+	}
+
+	/// <summary>
+	/// Останавливает задание: при лимите каналов каждый следующий канал упадёт так же,
+	/// а лишние попытки вступления только приближают ограничение аккаунта
+	/// </summary>
+	/// <param name="job"></param>
+	/// <param name="item"></param>
+	/// <param name="error"></param>
+	/// <param name="ct"></param>
+	/// <returns></returns>
+	private async Task StopOnChannelsLimitAsync(
+		ImportJobData job,
+		ImportJobPendingItem item,
+		string? error,
+		CancellationToken ct
+	)
+	{
+		logger.LogWarning(
+			"Сессия {SessionId} достигла лимита каналов. Задание {JobId} остановлено",
+			job.TelegramSessionId, job.JobId);
+
+		await storage.UpdateItemAsync(item.ItemId, AddDestinationOutcome.NotResolved, null, error, ct);
+		await storage.MarkPendingItemsNotProcessedAsync(job.JobId, "аккаунт достиг лимита каналов Telegram", ct);
+		await storage.SetJobStatusAsync(job.JobId, RepostImportStatus.Failed, error, ct);
 	}
 
 	private async Task DelayBeforeNextChannelAsync(CancellationToken ct)

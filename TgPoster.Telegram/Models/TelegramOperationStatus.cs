@@ -32,5 +32,11 @@ public enum TelegramOperationStatus
 	///     Тема форума в целевом чате закрыта или удалена — отправка и пересылка в неё запрещены
 	/// </summary>
 	TopicClosed,
+
+	/// <summary>
+	/// Аккаунт достиг лимита каналов и групп (CHANNELS_TOO_MUCH): ни в один новый канал не вступит,
+	/// пока не выйдет из ненужных
+	/// </summary>
+	ChannelsLimitReached,
 	UnknownError
 }
