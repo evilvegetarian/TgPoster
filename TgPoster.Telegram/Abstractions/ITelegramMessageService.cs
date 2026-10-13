@@ -26,6 +26,32 @@ public interface ITelegramMessageService
 	);
 
 	/// <summary>
+	/// Получает каналы, супергруппы и группы, в которых аккаунт сейчас состоит, включая архивные.
+	/// Чаты, которые только упоминаются в сообщениях, и покинутые/заблокированные сюда не попадают
+	/// </summary>
+	/// <param name="sessionId"></param>
+	/// <param name="ct"></param>
+	/// <returns></returns>
+	Task<TelegramOperationResult<IReadOnlyList<TelegramChatInfo>>> GetJoinedChatsAsync(
+		Guid sessionId,
+		CancellationToken ct = default
+	);
+
+	/// <summary>
+	/// Выходит из канала, супергруппы или обычной группы. FLOOD_WAIT не ждёт, а возвращает статусом.
+	/// Value = false, если аккаунт в чате уже не состоял
+	/// </summary>
+	/// <param name="sessionId"></param>
+	/// <param name="peer"></param>
+	/// <param name="ct"></param>
+	/// <returns></returns>
+	Task<TelegramOperationResult<bool>> LeaveChatAsync(
+		Guid sessionId,
+		TelegramPeer peer,
+		CancellationToken ct = default
+	);
+
+	/// <summary>
 	///     Получает все диалоги клиента
 	/// </summary>
 	/// <param name="sessionId">Идентификатор Telegram-сессии</param>

@@ -12,6 +12,7 @@ using Shared.Services;
 using TgPoster.Worker.Domain.ConfigModels;
 using TgPoster.Worker.Domain.UseCases;
 using TgPoster.Worker.Domain.UseCases.ClassifyChannel;
+using TgPoster.Worker.Domain.UseCases.CleanupChannels;
 using TgPoster.Worker.Domain.UseCases.CleanupS3Files;
 using TgPoster.Worker.Domain.UseCases.CommentRepostMonitor;
 using TgPoster.Worker.Domain.UseCases.CrossPosting;
@@ -42,6 +43,10 @@ public static class DependencyInjection
 		var repostImportOptions = configuration.GetSection(nameof(RepostImportOptions)).Get<RepostImportOptions>()
 		                          ?? new RepostImportOptions();
 		services.AddSingleton(repostImportOptions);
+
+		var channelCleanupOptions = configuration.GetSection(nameof(ChannelCleanupOptions)).Get<ChannelCleanupOptions>()
+		                            ?? new ChannelCleanupOptions();
+		services.AddSingleton(channelCleanupOptions);
 
 		var s3Options = configuration.GetSection(nameof(S3Options)).Get<S3Options>()!;
 		services.AddSingleton(s3Options);
@@ -81,6 +86,7 @@ public static class DependencyInjection
 		services.AddScoped<UpdateChannelStatsWorker>();
 		services.AddScoped<CleanupS3FilesWorker>();
 		services.AddScoped<ResumeRepostImportJobsWorker>();
+		services.AddScoped<ResumeChannelCleanupJobsWorker>();
 		services.AddScoped<HangfireNextRunProvider>();
 
 		return services;
@@ -108,6 +114,10 @@ public static class DependencyInjection
 				opt.ConcurrentMessageLimit = 1;
 			});
 			x.AddConsumer<ImportRepostDestinationsConsumer>(opt =>
+			{
+				opt.ConcurrentMessageLimit = 1;
+			});
+			x.AddConsumer<CleanupChannelsConsumer>(opt =>
 			{
 				opt.ConcurrentMessageLimit = 1;
 			});
@@ -174,6 +184,11 @@ public static class DependencyInjection
 
 		recurringJobManager.AddOrUpdate<ResumeRepostImportJobsWorker>(
 			"resume-repost-import-job",
+			worker => worker.ResumeAsync(),
+			Cron.Minutely());
+
+		recurringJobManager.AddOrUpdate<ResumeChannelCleanupJobsWorker>(
+			"resume-channel-cleanup-job",
 			worker => worker.ResumeAsync(),
 			Cron.Minutely());
 

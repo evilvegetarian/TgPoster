@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { AlertCircle, Bell, Network, Pencil, Smartphone, Trash2, MoreVertical } from "lucide-react";
+import { AlertCircle, Bell, Eraser, Network, Pencil, Smartphone, Trash2, MoreVertical } from "lucide-react";
 import { toast } from "sonner";
 import {
     Card,
@@ -37,6 +37,7 @@ import type { TelegramSessionResponse } from "@/api/endpoints/tgPosterAPI.schema
 import { TelegramSessionStatus } from "@/api/endpoints/tgPosterAPI.schemas";
 import { TelegramAccountAuthDialog } from "./telegram-account-auth-dialog";
 import { TelegramAccountEditDialog } from "./telegram-account-edit-dialog";
+import { TelegramAccountCleanupDialog } from "./telegram-account-cleanup-dialog";
 
 function getStatusConfig(status?: string) {
     switch (status) {
@@ -60,6 +61,7 @@ export function TelegramAccountListComponent() {
     const queryClient = useQueryClient();
     const [accountToDelete, setAccountToDelete] = useState<TelegramSessionResponse | null>(null);
     const [accountToEdit, setAccountToEdit] = useState<TelegramSessionResponse | null>(null);
+    const [accountToClean, setAccountToClean] = useState<TelegramSessionResponse | null>(null);
 
     const { mutate: deleteAccount, isPending: isDeleting } = useDeleteApiV1TelegramSessionId({
         mutation: {
@@ -214,6 +216,14 @@ export function TelegramAccountListComponent() {
                                                     <Pencil className="h-4 w-4 mr-2" />
                                                     Изменить
                                                 </DropdownMenuItem>
+                                                {account.status === TelegramSessionStatus.Authorized && (
+                                                    <DropdownMenuItem
+                                                        onClick={() => setAccountToClean(account)}
+                                                    >
+                                                        <Eraser className="h-4 w-4 mr-2" />
+                                                        Очистить каналы
+                                                    </DropdownMenuItem>
+                                                )}
                                                 <DropdownMenuItem
                                                     onClick={() => setAccountToDelete(account)}
                                                     className="text-red-600 focus:text-red-600"
@@ -260,6 +270,11 @@ export function TelegramAccountListComponent() {
             <TelegramAccountEditDialog
                 account={accountToEdit}
                 onOpenChange={(open) => !open && setAccountToEdit(null)}
+            />
+
+            <TelegramAccountCleanupDialog
+                account={accountToClean}
+                onClose={() => setAccountToClean(null)}
             />
         </>
     );

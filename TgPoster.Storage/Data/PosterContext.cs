@@ -29,6 +29,8 @@ internal class PosterContext(
 	public DbSet<RepostSettings> RepostSettings { get; set; }
 	public DbSet<RepostImportJob> RepostImportJobs { get; set; }
 	public DbSet<RepostImportJobItem> RepostImportJobItems { get; set; }
+	public DbSet<ChannelCleanupJob> ChannelCleanupJobs { get; set; }
+	public DbSet<ChannelCleanupJobItem> ChannelCleanupJobItems { get; set; }
 	public DbSet<CommentRepostSettings> CommentRepostSettings { get; set; }
 	public DbSet<CommentRepostLog> CommentRepostLogs { get; set; }
 	public DbSet<DiscoveredChannel> DiscoveredChannels { get; set; }

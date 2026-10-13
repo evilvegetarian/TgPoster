@@ -145,6 +145,14 @@ internal static class Routes
 		internal const string Import = Root + "/import";
 	}
 
+	internal static class ChannelCleanup
+	{
+		internal const string Root = Base + "/channel-cleanup";
+		internal const string Preview = Root + "/sessions/{sessionId:guid}/preview";
+		internal const string Start = Root + "/sessions/{sessionId:guid}";
+		internal const string GetJob = Root + "/jobs/{jobId:guid}";
+	}
+
 	internal static class Proxy
 	{
 		internal const string Root = Base + "/proxy";

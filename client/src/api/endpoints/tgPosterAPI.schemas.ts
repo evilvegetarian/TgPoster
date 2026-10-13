@@ -109,6 +109,74 @@ export interface ApproveMessagesRequest {
   messagesIds?: string[];
 }
 
+export interface ChannelCleanupCandidateResponse {
+  chatId: number;
+  /** @minLength 1 */
+  title: string;
+  /** @nullable */
+  username?: string | null;
+  chatType: ChatType;
+}
+
+export interface ChannelCleanupItemResponse {
+  chatId: number;
+  /** @minLength 1 */
+  title: string;
+  /** @nullable */
+  username?: string | null;
+  chatType: ChatType;
+  outcome: ChannelCleanupOutcome;
+  /** @nullable */
+  error?: string | null;
+}
+
+export interface ChannelCleanupJobResponse {
+  jobId: string;
+  status: ChannelCleanupStatus;
+  totalCount: number;
+  leftCount: number;
+  skippedCount: number;
+  failedCount: number;
+  pendingCount: number;
+  /** @nullable */
+  retryAfterSeconds?: number | null;
+  /** @nullable */
+  lastError?: string | null;
+  results: ChannelCleanupItemResponse[];
+}
+
+export type ChannelCleanupOutcome = typeof ChannelCleanupOutcome[keyof typeof ChannelCleanupOutcome];
+
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const ChannelCleanupOutcome = {
+  Pending: 'Pending',
+  Left: 'Left',
+  NotMember: 'NotMember',
+  InUse: 'InUse',
+  Failed: 'Failed',
+  NotProcessed: 'NotProcessed',
+} as const;
+
+export interface ChannelCleanupPreviewResponse {
+  totalCount: number;
+  inUseCount: number;
+  adminCount: number;
+  candidates: ChannelCleanupCandidateResponse[];
+}
+
+export type ChannelCleanupStatus = typeof ChannelCleanupStatus[keyof typeof ChannelCleanupStatus];
+
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const ChannelCleanupStatus = {
+  Pending: 'Pending',
+  InProgress: 'InProgress',
+  CooldownWait: 'CooldownWait',
+  Completed: 'Completed',
+  Failed: 'Failed',
+} as const;
+
 export type ChatStatus = typeof ChatStatus[keyof typeof ChatStatus];
 
 
@@ -230,11 +298,16 @@ export interface ClassificationSubcategoryStat {
   count: number;
 }
 
-export interface ClassifierSessionInfo {
+export interface ClassifierSessionOption {
   id: string;
   /** @nullable */
   name?: string | null;
+  /** @nullable */
+  phoneNumber?: string | null;
   isActive: boolean;
+  isAuthorized: boolean;
+  isSelected: boolean;
+  isOwn: boolean;
 }
 
 export interface ClassifierSettingsResponse {
@@ -255,7 +328,7 @@ export interface ClassifierSettingsResponse {
   /** @minLength 1 */
   defaultSystemPrompt: string;
   defaultCategories: string[];
-  telegramSession?: ClassifierSessionInfo;
+  sessions: ClassifierSessionOption[];
   /** @nullable */
   updatedAt?: string | null;
 }
@@ -1557,6 +1630,18 @@ export interface StartAuthResponse {
   message?: string;
 }
 
+/**
+ * Запуск выхода из каналов, подтверждённых в предпросмотре
+ */
+export interface StartChannelCleanupRequest {
+  /**
+   * Telegram-id каналов и групп из предпросмотра. Выход будет только из тех, что по-прежнему не используются
+   * @minItems 1
+   * @maxItems 2000
+   */
+  chatIds: number[];
+}
+
 export interface TelegramBotListResponse {
   items: TelegramBotResponse[];
 }
@@ -1657,10 +1742,11 @@ export interface UpdateClassifierSettingsRequest {
    */
   systemPrompt: string;
   /**
-   * Telegram-сессия классификатора (null — сессия с назначением Classification)
-   * @nullable
+   * Свои Telegram-сессии, которые классификатор использует по очереди; с остальных своих сессий
+назначение снимается, чужие не меняются
+   * @maxItems 50
    */
-  telegramSessionId?: string | null;
+  telegramSessionIds: string[];
 }
 
 /**

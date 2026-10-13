@@ -91,6 +91,70 @@ internal sealed class TelegramMessageService(
 		return TelegramOperationResult<IReadOnlyList<TelegramChatInfo>>.Success(list);
 	}
 
+	public async Task<TelegramOperationResult<IReadOnlyList<TelegramChatInfo>>> GetJoinedChatsAsync(
+		Guid sessionId,
+		CancellationToken ct = default
+	)
+	{
+		// В отличие от GetAllDialogs, здесь только чаты, где аккаунт участник: в chats диалогов
+		// попадают и каналы, которые всего лишь упомянуты в последних сообщениях
+		var raw = await ExecuteWithClientAsync(
+			sessionId,
+			client => client.Messages_GetAllChats(),
+			"GetAllChats",
+			false,
+			ct);
+
+		if (!raw.IsSuccess)
+		{
+			return TelegramOperationResult<IReadOnlyList<TelegramChatInfo>>.Failed(
+				raw.Status, raw.ErrorMessage, raw.FloodWaitSeconds);
+		}
+
+		var list = raw.Value!.chats.Values
+			.Where(c => c.IsActive)
+			.Select(ChatMapper.SafeMap)
+			.Where(c => c is not null)
+			.Select(c => c!)
+			.ToList();
+
+		return TelegramOperationResult<IReadOnlyList<TelegramChatInfo>>.Success(list);
+	}
+
+	public Task<TelegramOperationResult<bool>> LeaveChatAsync(
+		Guid sessionId,
+		TelegramPeer peer,
+		CancellationToken ct = default
+	)
+	{
+		return ExecuteWithClientAsync(
+			sessionId,
+			async client =>
+			{
+				try
+				{
+					if (peer.Type == TelegramPeerType.Chat)
+					{
+						await client.Messages_DeleteChatUser(peer.Id, new InputUserSelf());
+					}
+					else
+					{
+						await client.Channels_LeaveChannel(PeerMapper.ToInputChannel(peer));
+					}
+
+					return true;
+				}
+				catch (RpcException ex) when (ex.Message is "USER_NOT_PARTICIPANT" or "CHANNEL_PRIVATE")
+				{
+					// Аккаунт уже вышел, его исключили или канал закрылся — цель достигнута
+					return false;
+				}
+			},
+			$"LeaveChat({peer.Type} {peer.Id})",
+			false,
+			ct);
+	}
+
 	public async Task<TelegramOperationResult<TelegramHistoryPage>> GetHistoryAsync(
 		Guid sessionId,
 		TelegramPeer peer,
