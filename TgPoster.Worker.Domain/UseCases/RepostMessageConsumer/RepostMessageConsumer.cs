@@ -83,13 +83,18 @@ internal sealed class RepostMessageConsumer(
 		{
 			if (!dialogs.TryGetValue(dest.ChatIdentifier, out var destination))
 			{
+				// Аккаунт вышел из чата или его удалили: без отключения направление падало бы на каждом посте
+				logger.LogWarning(
+					"Аккаунт не состоит в целевом чате {ChatId}. Направление репоста {DestinationId} отключено",
+					dest.ChatIdentifier, dest.Id);
+				await storage.UpdateDestinationStatusAsync(dest.Id, ChatStatus.Left, false, ct);
 				await WriteLogAsync(new RepostLogEntry
 				{
 					MessageId = command.MessageId,
 					RepostDestinationId = dest.Id,
 					Status = RepostStatus.Failed,
 					Reason = RepostLogReason.DestinationNotAvailable,
-					Error = "Целевой канал отсутствует в диалогах сессии — аккаунт в нём не состоит"
+					Error = "Целевой канал отсутствует в диалогах сессии — аккаунт в нём не состоит, направление отключено"
 				}, ct);
 				continue;
 			}

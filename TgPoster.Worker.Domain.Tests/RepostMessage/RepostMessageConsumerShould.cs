@@ -137,6 +137,34 @@ public class RepostMessageConsumerShould
 	}
 
 	[Fact]
+	public async Task DisableDestinationAsLeft_WhenDestinationIsMissingInDialogs()
+	{
+		SetupDialogs(DestinationChatId + 1);
+
+		await ConsumeAsync();
+
+		storage.Verify(s => s.UpdateDestinationStatusAsync(
+			destinationId, ChatStatus.Left, false, It.IsAny<CancellationToken>()), Times.Once);
+		storage.Verify(s => s.IncrementRepostCounterAsync(
+			It.IsAny<Guid>(), It.IsAny<CancellationToken>()), Times.Never);
+	}
+
+	[Fact]
+	public async Task NotChangeDestinationStatus_WhenDialogsCannotBeLoaded()
+	{
+		tgMessages.Setup(x => x.GetAllDialogsAsync(
+				sessionId, It.IsAny<CancellationToken>(), It.IsAny<bool>()))
+			.ReturnsAsync(TelegramOperationResult<IReadOnlyList<TelegramChatInfo>>.Failed(
+				TelegramOperationStatus.FloodWait, "FLOOD_WAIT_X"));
+
+		await ConsumeAsync();
+
+		storage.Verify(s => s.UpdateDestinationStatusAsync(
+			It.IsAny<Guid>(), It.IsAny<ChatStatus>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()),
+			Times.Never);
+	}
+
+	[Fact]
 	public async Task WriteMessageNotPublishedLog_WhenSourceMessageHasNoTelegramId()
 	{
 		SetupRepostData(null);

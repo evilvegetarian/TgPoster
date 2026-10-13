@@ -41,7 +41,7 @@ public enum RepostLogReason
 	SourceChannelNotResolved = 6,
 
 	/// <summary>
-	///     Целевой канал отсутствует в диалогах сессии — аккаунт в нём не состоит
+	/// Целевой канал отсутствует в диалогах сессии — аккаунт в нём не состоит, направление отключено
 	/// </summary>
 	DestinationNotAvailable = 7,
 
