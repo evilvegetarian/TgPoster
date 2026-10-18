@@ -6,6 +6,7 @@ using TgPoster.API.Domain.UseCases.Repost.AddRepostDestination;
 using TgPoster.API.Domain.UseCases.Repost.CreateRepostSettings;
 using TgPoster.API.Domain.UseCases.Repost.GetRepostSettings;
 using TgPoster.API.Domain.UseCases.Repost.ListRepostSettings;
+using TgPoster.API.Domain.UseCases.Repost.SetRepostDestinationsActive;
 using TgPoster.API.Models;
 using TgPoster.API.Tests.Helper;
 
@@ -286,6 +287,97 @@ public sealed class RepostEndpointTest(EndpointTestFixture fixture) : IClassFixt
 		response.StatusCode.ShouldBe(HttpStatusCode.NotFound);
 	}
 
+	[Fact]
+	public async Task SetDestinationsActive_DisableThenEnable_ShouldSwitchDestination()
+	{
+		var (settingsId, destination) = await CreateSettingsAndDestination();
+
+		var disabled = await SetDestinationsActive(settingsId, [destination.Id], false);
+		var enabled = await SetDestinationsActive(settingsId, [destination.Id], true);
+
+		disabled.UpdatedCount.ShouldBe(1);
+		enabled.UpdatedCount.ShouldBe(1);
+		enabled.NotMemberCount.ShouldBe(0);
+		enabled.NoPermissionCount.ShouldBe(0);
+	}
+
+	[Fact]
+	public async Task SetDestinationsActive_WithNonExistingSettings_ShouldReturnNotFound()
+	{
+		var request = new SetRepostDestinationsActiveRequest { DestinationIds = [Guid.NewGuid()], IsActive = false };
+
+		var response = await client.PutAsJsonAsync(DestinationsActiveUrl(Guid.NewGuid()), request);
+
+		response.StatusCode.ShouldBe(HttpStatusCode.NotFound);
+	}
+
+	[Fact]
+	public async Task SetDestinationsActive_WithEmptyList_ShouldReturnBadRequest()
+	{
+		var settings = await CreateRepostSettings();
+		var request = new SetRepostDestinationsActiveRequest { DestinationIds = [], IsActive = false };
+
+		var response = await client.PutAsJsonAsync(DestinationsActiveUrl(settings.Id), request);
+
+		response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+	}
+
+	[Fact]
+	public async Task DeleteDestinations_WithOwnDestination_ShouldReturnNoContent()
+	{
+		var (settingsId, destination) = await CreateSettingsAndDestination();
+		var request = new DeleteRepostDestinationsRequest { DestinationIds = [destination.Id] };
+
+		var response = await client.PostAsJsonAsync(DeleteDestinationsUrl(settingsId), request);
+
+		response.StatusCode.ShouldBe(HttpStatusCode.NoContent);
+	}
+
+	[Fact]
+	public async Task DeleteDestinations_WithDestinationOfOtherSettings_ShouldReturnNotFound()
+	{
+		var (_, destination) = await CreateSettingsAndDestination();
+		var otherSettings = await CreateRepostSettings();
+		var request = new DeleteRepostDestinationsRequest { DestinationIds = [destination.Id] };
+
+		var response = await client.PostAsJsonAsync(DeleteDestinationsUrl(otherSettings.Id), request);
+
+		response.StatusCode.ShouldBe(HttpStatusCode.NotFound);
+	}
+
+	private static string DestinationsActiveUrl(Guid settingsId) => $"{SettingsUrl}/{settingsId}/destinations/active";
+
+	private static string DeleteDestinationsUrl(Guid settingsId) => $"{SettingsUrl}/{settingsId}/destinations/delete";
+
+	private async Task<SetRepostDestinationsActiveResponse> SetDestinationsActive(
+		Guid settingsId,
+		List<Guid> destinationIds,
+		bool isActive
+	)
+	{
+		var request = new SetRepostDestinationsActiveRequest { DestinationIds = destinationIds, IsActive = isActive };
+		var response = await client.PutAsJsonAsync(DestinationsActiveUrl(settingsId), request);
+		response.StatusCode.ShouldBe(HttpStatusCode.OK);
+
+		var result = await response.ToObject<SetRepostDestinationsActiveResponse>();
+		result.ShouldNotBeNull();
+		return result;
+	}
+
+	private async Task<(Guid SettingsId, AddRepostDestinationResponse Destination)> CreateSettingsAndDestination()
+	{
+		var settings = await CreateRepostSettings();
+		var request = new AddRepostDestinationRequest
+		{
+			ChatIdentifier = GlobalConst.Worked.Channel
+		};
+
+		var destination = await client.PostAsync<AddRepostDestinationResponse>(
+			$"{SettingsUrl}/{settings.Id}/destinations", request);
+
+		return (settings.Id, destination);
+	}
+
 	private async Task<CreateRepostSettingsResponse> CreateRepostSettings()
 	{
 		var request = new CreateRepostSettingsRequest
@@ -298,15 +390,6 @@ public sealed class RepostEndpointTest(EndpointTestFixture fixture) : IClassFixt
 		return await client.PostAsync<CreateRepostSettingsResponse>(SettingsUrl, request);
 	}
 
-	private async Task<AddRepostDestinationResponse> CreateRepostSettingsWithDestination()
-	{
-		var settings = await CreateRepostSettings();
-		var request = new AddRepostDestinationRequest
-		{
-			ChatIdentifier = GlobalConst.Worked.Channel
-		};
-
-		return await client.PostAsync<AddRepostDestinationResponse>(
-			$"{SettingsUrl}/{settings.Id}/destinations", request);
-	}
+	private async Task<AddRepostDestinationResponse> CreateRepostSettingsWithDestination() =>
+		(await CreateSettingsAndDestination()).Destination;
 }

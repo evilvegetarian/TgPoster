@@ -86,4 +86,14 @@ public sealed record RepostDestinationDto
 	///     Максимальное количество репостов в день (null = без лимита).
 	/// </summary>
 	public int? MaxRepostsPerDay { get; init; }
+
+	/// <summary>
+	/// Время последнего успешного репоста в канал, null если репостов ещё не было
+	/// </summary>
+	public required DateTime? LastRepostAt { get; init; }
+
+	/// <summary>
+	/// Успешные репосты за текущие сутки по UTC — с ними сравнивается дневной лимит
+	/// </summary>
+	public required int RepostsToday { get; init; }
 }

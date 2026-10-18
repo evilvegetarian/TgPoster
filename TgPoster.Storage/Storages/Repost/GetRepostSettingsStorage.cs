@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Shared.Enums;
 using TgPoster.API.Domain.UseCases.Repost.GetRepostSettings;
 using TgPoster.Storage.Data;
 using TgPoster.Storage.Data.Entities;
@@ -9,6 +10,9 @@ internal sealed class GetRepostSettingsStorage(PosterContext context) : IGetRepo
 {
 	public Task<RepostSettingsResponse?> GetAsync(Guid id, Guid userId, CancellationToken ct)
 	{
+		// Сутки те же, что у воркера при проверке дневного лимита
+		var todayUtc = DateTime.UtcNow.Date;
+
 		return context.Set<RepostSettings>()
 			.Where(x => x.Id == id && x.Schedule.UserId == userId)
 			.Select(x => new RepostSettingsResponse
@@ -42,7 +46,13 @@ internal sealed class GetRepostSettingsStorage(PosterContext context) : IGetRepo
 					DelayMaxSeconds = d.DelayMaxSeconds,
 					RepostEveryNth = d.RepostEveryNth,
 					SkipProbability = d.SkipProbability,
-					MaxRepostsPerDay = d.MaxRepostsPerDay
+					MaxRepostsPerDay = d.MaxRepostsPerDay,
+					LastRepostAt = d.RepostLogs
+						.Where(l => l.Status == RepostStatus.Success)
+						.Max(l => l.RepostedAt),
+					RepostsToday = d.RepostLogs.Count(l => l.Status == RepostStatus.Success
+					                                       && l.RepostedAt != null
+					                                       && l.RepostedAt.Value >= todayUtc)
 				}).ToList()
 			})
 			.FirstOrDefaultAsync(ct);

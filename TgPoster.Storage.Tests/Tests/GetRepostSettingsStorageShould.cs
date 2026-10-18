@@ -1,5 +1,7 @@
+using Shared.Enums;
 using Shouldly;
 using TgPoster.Storage.Data;
+using TgPoster.Storage.Data.Entities;
 using TgPoster.Storage.Storages.Repost;
 using TgPoster.Storage.Tests.Builders;
 
@@ -100,4 +102,52 @@ public class GetRepostSettingsStorageShould(StorageTestFixture fixture) : IClass
 
 		response.ShouldBeNull();
 	}
+
+	[Fact]
+	public async Task GetAsync_ShouldReturnLastSuccessfulRepostAndTodayCount()
+	{
+		var schedule = await new ScheduleBuilder(context).CreateAsync(ct);
+		var repostSettings = await new RepostSettingsBuilder(context)
+			.WithSchedule(schedule)
+			.CreateAsync(ct);
+		var destination = await new RepostDestinationBuilder(context)
+			.WithRepostSettings(repostSettings)
+			.CreateAsync(ct);
+		var silentDestination = await new RepostDestinationBuilder(context)
+			.WithRepostSettings(repostSettings)
+			.CreateAsync(ct);
+		var message = await new MessageBuilder(context).WithScheduleId(schedule.Id).CreateAsync();
+
+		var todayUtc = DateTime.UtcNow.Date;
+		var lastRepostAt = todayUtc.AddMinutes(2);
+		AddLog(message.Id, destination.Id, RepostStatus.Success, todayUtc.AddHours(-1));
+		AddLog(message.Id, destination.Id, RepostStatus.Success, todayUtc.AddMinutes(1));
+		AddLog(message.Id, destination.Id, RepostStatus.Success, lastRepostAt);
+		AddLog(message.Id, destination.Id, RepostStatus.Skipped, null);
+		AddLog(message.Id, destination.Id, RepostStatus.Failed, null);
+		await context.SaveChangesAsync(ct);
+
+		var response = await sut.GetAsync(repostSettings.Id, schedule.UserId, ct);
+
+		response.ShouldNotBeNull();
+		var withLogs = response.Destinations.Single(d => d.Id == destination.Id);
+		withLogs.LastRepostAt.ShouldNotBeNull();
+		withLogs.LastRepostAt.Value.ShouldBe(lastRepostAt, TimeSpan.FromSeconds(1));
+		withLogs.RepostsToday.ShouldBe(2);
+
+		var withoutLogs = response.Destinations.Single(d => d.Id == silentDestination.Id);
+		withoutLogs.LastRepostAt.ShouldBeNull();
+		withoutLogs.RepostsToday.ShouldBe(0);
+	}
+
+	private void AddLog(Guid messageId, Guid destinationId, RepostStatus status, DateTime? repostedAt) =>
+		context.Add(new RepostLog
+		{
+			Id = Guid.NewGuid(),
+			MessageId = messageId,
+			RepostDestinationId = destinationId,
+			Status = status,
+			Reason = status == RepostStatus.Success ? RepostLogReason.None : RepostLogReason.SkipProbability,
+			RepostedAt = repostedAt
+		});
 }

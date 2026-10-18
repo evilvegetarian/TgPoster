@@ -1,5 +1,7 @@
+using Shared.Enums;
 using Shouldly;
 using TgPoster.Storage.Data;
+using TgPoster.Storage.Data.Entities;
 using TgPoster.Storage.Storages.Repost;
 using TgPoster.Storage.Tests.Builders;
 
@@ -43,6 +45,35 @@ public sealed class ListRepostSettingsStorageShould(StorageTestFixture fixture) 
 		item.TelegramSessionId.ShouldBe(session.Id);
 		item.IsActive.ShouldBeTrue();
 		item.DestinationsCount.ShouldBe(2);
+	}
+
+	[Fact]
+	public async Task GetListAsync_ShouldCountActiveAndProblemDestinations()
+	{
+		var user = await new UserBuilder(context).CreateAsync();
+		var telegramBot = new TelegramBotBuilder(context).WithOwnerId(user.Id).Create();
+		var schedule = await new ScheduleBuilder(context)
+			.WithUserId(user.Id)
+			.WithTelegramBotId(telegramBot.Id)
+			.CreateAsync();
+		var session = await new TelegramSessionBuilder(context).CreateAsync();
+		var settings = await new RepostSettingsBuilder(context)
+			.WithScheduleId(schedule.Id)
+			.WithTelegramSessionId(session.Id)
+			.CreateAsync();
+
+		await CreateDestinationAsync(settings.Id, true, ChatStatus.Active);
+		await CreateDestinationAsync(settings.Id, true, ChatStatus.Unknown);
+		await CreateDestinationAsync(settings.Id, false, ChatStatus.Banned);
+		await CreateDestinationAsync(settings.Id, false, ChatStatus.Left);
+		await CreateDestinationAsync(settings.Id, false, ChatStatus.Active);
+
+		var result = await sut.GetListAsync(user.Id, CancellationToken.None);
+
+		var item = result.ShouldHaveSingleItem();
+		item.DestinationsCount.ShouldBe(5);
+		item.ActiveDestinationsCount.ShouldBe(2);
+		item.ProblemDestinationsCount.ShouldBe(2);
 	}
 
 	[Fact]
@@ -126,4 +157,11 @@ public sealed class ListRepostSettingsStorageShould(StorageTestFixture fixture) 
 		result.ShouldContain(x => x.Id == settings1.Id && x.IsActive);
 		result.ShouldContain(x => x.Id == settings2.Id && !x.IsActive);
 	}
+
+	private Task<RepostDestination> CreateDestinationAsync(Guid settingsId, bool isActive, ChatStatus chatStatus) =>
+		new RepostDestinationBuilder(context)
+			.WithRepostSettingsId(settingsId)
+			.WithIsActive(isActive)
+			.WithChatStatus(chatStatus)
+			.CreateAsync();
 }

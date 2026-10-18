@@ -778,6 +778,18 @@ export interface DayResponse {
   timePostings?: string[];
 }
 
+/**
+ * Массовое удаление целевых каналов репоста
+ */
+export interface DeleteRepostDestinationsRequest {
+  /**
+   * Id целевых каналов
+   * @minItems 1
+   * @maxItems 1000
+   */
+  destinationIds: string[];
+}
+
 export interface DiscoverChannelResponse {
   id?: string;
   /** @nullable */
@@ -1355,6 +1367,9 @@ export interface RepostDestinationDto {
   skipProbability?: number;
   /** @nullable */
   maxRepostsPerDay?: number | null;
+  /** @nullable */
+  lastRepostAt: string | null;
+  repostsToday: number;
 }
 
 export interface RepostImportJobResponse {
@@ -1457,6 +1472,8 @@ export interface RepostSettingsItemDto {
   telegramSessionId: string;
   isActive: boolean;
   destinationsCount: number;
+  activeDestinationsCount: number;
+  problemDestinationsCount: number;
 }
 
 export interface RepostSettingsResponse {
@@ -1529,6 +1546,26 @@ export interface SendPasswordRequest {
 export interface SendPasswordResponse {
   success?: boolean;
   message?: string;
+}
+
+/**
+ * Массовое включение или выключение целевых каналов репоста
+ */
+export interface SetRepostDestinationsActiveRequest {
+  /**
+   * Id целевых каналов
+   * @minItems 1
+   * @maxItems 1000
+   */
+  destinationIds: string[];
+  /** true — включить каналы, false — выключить */
+  isActive: boolean;
+}
+
+export interface SetRepostDestinationsActiveResponse {
+  updatedCount: number;
+  notMemberCount: number;
+  noPermissionCount: number;
 }
 
 /**

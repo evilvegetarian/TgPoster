@@ -108,8 +108,22 @@ public class GetRepostSettingsUseCaseShould
 		var settingsId = Guid.NewGuid();
 		var destinations = new List<RepostDestinationDto>
 		{
-			new() { Id = Guid.NewGuid(), ChatId = -1001234567890, IsActive = true },
-			new() { Id = Guid.NewGuid(), ChatId = -1009876543210, IsActive = false }
+			new()
+			{
+				Id = Guid.NewGuid(),
+				ChatId = -1001234567890,
+				IsActive = true,
+				LastRepostAt = DateTime.UtcNow,
+				RepostsToday = 3
+			},
+			new()
+			{
+				Id = Guid.NewGuid(),
+				ChatId = -1009876543210,
+				IsActive = false,
+				LastRepostAt = null,
+				RepostsToday = 0
+			}
 		};
 		var expectedResponse = new RepostSettingsResponse
 		{

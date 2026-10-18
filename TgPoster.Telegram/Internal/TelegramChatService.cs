@@ -100,6 +100,38 @@ internal sealed partial class TelegramChatService(
 		}
 	}
 
+	public async Task<TelegramOperationResult<IReadOnlyDictionary<long, TelegramChatInfo>>> TryGetJoinedChatsAsync(
+		Guid sessionId
+	)
+	{
+		try
+		{
+			var client = await ResolveClientAsync(sessionId);
+
+			// Не GetAllDialogs: диалоги читаются страницами, и чат с новым сообщением между запросами выпадает
+			var joinedChats = await client.Messages_GetAllChats();
+
+			IReadOnlyDictionary<long, TelegramChatInfo> chats = joinedChats.chats
+				.Where(pair => pair.Value is Channel or Chat)
+				.ToDictionary(pair => pair.Key, pair => MapToInfo(pair.Value));
+
+			return TelegramOperationResult<IReadOnlyDictionary<long, TelegramChatInfo>>.Success(chats);
+		}
+		catch (TelegramAuthSessionNotFoundException ex)
+		{
+			return JoinedChatsFailed(TelegramOperationStatus.SessionNotFound, sessionId, ex.Message);
+		}
+		catch (RpcException ex) when (ex.Message.StartsWith("FLOOD_WAIT"))
+		{
+			await alertService.NotifyAsync(sessionId, TelegramSessionProblem.FloodWait, ex.Message);
+			return JoinedChatsFailed(TelegramOperationStatus.FloodWait, sessionId, ex.Message, ex.X);
+		}
+		catch (Exception ex)
+		{
+			return JoinedChatsFailed(TelegramOperationStatus.UnknownError, sessionId, ex.Message);
+		}
+	}
+
 	public void EnsureCanSendMessages(TelegramChatInfo chatInfo)
 	{
 		if (!chatInfo.CanSendMessages)
@@ -263,6 +295,20 @@ internal sealed partial class TelegramChatService(
 	{
 		logger.LogWarning("Telegram TryGetChatInfo({Input}): {Status} ({Error})", input, status, error);
 		return TelegramOperationResult<TelegramChatInfo>.Failed(status, error, floodWaitSeconds);
+	}
+
+	private TelegramOperationResult<IReadOnlyDictionary<long, TelegramChatInfo>> JoinedChatsFailed(
+		TelegramOperationStatus status,
+		Guid sessionId,
+		string? error,
+		int? floodWaitSeconds = null
+	)
+	{
+		logger.LogWarning("Telegram TryGetJoinedChats({SessionId}): {Status} ({Error})", sessionId, status, error);
+		return TelegramOperationResult<IReadOnlyDictionary<long, TelegramChatInfo>>.Failed(
+			status,
+			error,
+			floodWaitSeconds);
 	}
 
 	private async Task<Client> ResolveClientAsync(Guid sessionId)

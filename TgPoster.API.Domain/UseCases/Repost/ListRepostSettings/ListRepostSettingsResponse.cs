@@ -34,6 +34,16 @@ public sealed record RepostSettingsItemDto
 	///     Количество каналов для репоста.
 	/// </summary>
 	public required int DestinationsCount { get; init; }
+
+	/// <summary>
+	/// Количество включённых каналов: в них воркер делает репост
+	/// </summary>
+	public required int ActiveDestinationsCount { get; init; }
+
+	/// <summary>
+	/// Количество каналов, где аккаунт забанен или вышел из чата
+	/// </summary>
+	public required int ProblemDestinationsCount { get; init; }
 }
 
 /// <summary>

@@ -30,6 +30,7 @@ import type {
   AddRepostDestinationResponse,
   CreateRepostSettingsRequest,
   CreateRepostSettingsResponse,
+  DeleteRepostDestinationsRequest,
   GetApiV1RepostLogsParams,
   GetApiV1RepostLogsSummaryParams,
   ListRepostSettingsResponse,
@@ -38,6 +39,8 @@ import type {
   RepostLogDtoPagedResponse,
   RepostLogsSummaryResponse,
   RepostSettingsResponse,
+  SetRepostDestinationsActiveRequest,
+  SetRepostDestinationsActiveResponse,
   UpdateRepostDestinationRequest,
   UpdateRepostSettingsRequest
 } from '../tgPosterAPI.schemas';
@@ -833,6 +836,137 @@ export const usePutApiV1RepostDestinationsId = <TError = ProblemDetails,
       > => {
 
       const mutationOptions = getPutApiV1RepostDestinationsIdMutationOptions(options);
+
+      return useMutation(mutationOptions, queryClient);
+    }
+    /**
+ * @summary Массовое включение или выключение целевых каналов. При включении аккаунт не вступает в чаты:
+включаются только каналы, где он уже состоит и может отправлять сообщения и медиа
+ */
+export const putApiV1RepostSettingsSettingsIdDestinationsActive = (
+    settingsId: string,
+    setRepostDestinationsActiveRequest: SetRepostDestinationsActiveRequest,
+ ) => {
+      
+      
+      return customInstance<SetRepostDestinationsActiveResponse>(
+      {url: `/api/v1/repost/settings/${settingsId}/destinations/active`, method: 'PUT',
+      headers: {'Content-Type': 'application/json', },
+      data: setRepostDestinationsActiveRequest
+    },
+      );
+    }
+  
+
+
+export const getPutApiV1RepostSettingsSettingsIdDestinationsActiveMutationOptions = <TError = ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof putApiV1RepostSettingsSettingsIdDestinationsActive>>, TError,{settingsId: string;data: SetRepostDestinationsActiveRequest}, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof putApiV1RepostSettingsSettingsIdDestinationsActive>>, TError,{settingsId: string;data: SetRepostDestinationsActiveRequest}, TContext> => {
+
+const mutationKey = ['putApiV1RepostSettingsSettingsIdDestinationsActive'];
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof putApiV1RepostSettingsSettingsIdDestinationsActive>>, {settingsId: string;data: SetRepostDestinationsActiveRequest}> = (props) => {
+          const {settingsId,data} = props ?? {};
+
+          return  putApiV1RepostSettingsSettingsIdDestinationsActive(settingsId,data,)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type PutApiV1RepostSettingsSettingsIdDestinationsActiveMutationResult = NonNullable<Awaited<ReturnType<typeof putApiV1RepostSettingsSettingsIdDestinationsActive>>>
+    export type PutApiV1RepostSettingsSettingsIdDestinationsActiveMutationBody = SetRepostDestinationsActiveRequest
+    export type PutApiV1RepostSettingsSettingsIdDestinationsActiveMutationError = ProblemDetails
+
+    /**
+ * @summary Массовое включение или выключение целевых каналов. При включении аккаунт не вступает в чаты:
+включаются только каналы, где он уже состоит и может отправлять сообщения и медиа
+ */
+export const usePutApiV1RepostSettingsSettingsIdDestinationsActive = <TError = ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof putApiV1RepostSettingsSettingsIdDestinationsActive>>, TError,{settingsId: string;data: SetRepostDestinationsActiveRequest}, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof putApiV1RepostSettingsSettingsIdDestinationsActive>>,
+        TError,
+        {settingsId: string;data: SetRepostDestinationsActiveRequest},
+        TContext
+      > => {
+
+      const mutationOptions = getPutApiV1RepostSettingsSettingsIdDestinationsActiveMutationOptions(options);
+
+      return useMutation(mutationOptions, queryClient);
+    }
+    /**
+ * @summary Массовое удаление целевых каналов
+ */
+export const postApiV1RepostSettingsSettingsIdDestinationsDelete = (
+    settingsId: string,
+    deleteRepostDestinationsRequest: DeleteRepostDestinationsRequest,
+ signal?: AbortSignal
+) => {
+      
+      
+      return customInstance<void>(
+      {url: `/api/v1/repost/settings/${settingsId}/destinations/delete`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: deleteRepostDestinationsRequest, signal
+    },
+      );
+    }
+  
+
+
+export const getPostApiV1RepostSettingsSettingsIdDestinationsDeleteMutationOptions = <TError = ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postApiV1RepostSettingsSettingsIdDestinationsDelete>>, TError,{settingsId: string;data: DeleteRepostDestinationsRequest}, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof postApiV1RepostSettingsSettingsIdDestinationsDelete>>, TError,{settingsId: string;data: DeleteRepostDestinationsRequest}, TContext> => {
+
+const mutationKey = ['postApiV1RepostSettingsSettingsIdDestinationsDelete'];
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof postApiV1RepostSettingsSettingsIdDestinationsDelete>>, {settingsId: string;data: DeleteRepostDestinationsRequest}> = (props) => {
+          const {settingsId,data} = props ?? {};
+
+          return  postApiV1RepostSettingsSettingsIdDestinationsDelete(settingsId,data,)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type PostApiV1RepostSettingsSettingsIdDestinationsDeleteMutationResult = NonNullable<Awaited<ReturnType<typeof postApiV1RepostSettingsSettingsIdDestinationsDelete>>>
+    export type PostApiV1RepostSettingsSettingsIdDestinationsDeleteMutationBody = DeleteRepostDestinationsRequest
+    export type PostApiV1RepostSettingsSettingsIdDestinationsDeleteMutationError = ProblemDetails
+
+    /**
+ * @summary Массовое удаление целевых каналов
+ */
+export const usePostApiV1RepostSettingsSettingsIdDestinationsDelete = <TError = ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postApiV1RepostSettingsSettingsIdDestinationsDelete>>, TError,{settingsId: string;data: DeleteRepostDestinationsRequest}, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof postApiV1RepostSettingsSettingsIdDestinationsDelete>>,
+        TError,
+        {settingsId: string;data: DeleteRepostDestinationsRequest},
+        TContext
+      > => {
+
+      const mutationOptions = getPostApiV1RepostSettingsSettingsIdDestinationsDeleteMutationOptions(options);
 
       return useMutation(mutationOptions, queryClient);
     }

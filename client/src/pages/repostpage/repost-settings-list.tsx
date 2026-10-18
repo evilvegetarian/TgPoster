@@ -30,6 +30,7 @@ export function RepostSettingsList({settings}: RepostSettingsListProps) {
         <>
             {settings.map(setting => (
                 <RepostSettingsCard
+                    key={setting.id}
                     settings={setting}
                 />
             ))}

@@ -211,6 +211,8 @@ internal static class Routes
 		internal const string GetImportJob = Root + "/import-jobs/{jobId:guid}";
 		internal const string DeleteDestination = Root + "/destinations/{id:guid}";
 		internal const string ListDestinations = Root + "/settings/{settingsId:guid}/destinations";
+		internal const string SetDestinationsActive = Root + "/settings/{settingsId:guid}/destinations/active";
+		internal const string DeleteDestinations = Root + "/settings/{settingsId:guid}/destinations/delete";
 		internal const string UpdateDestination = Root + "/destinations/{id:guid}";
 		internal const string RefreshDestination = Root + "/destinations/{id:guid}/refresh";
 		internal const string ListLogs = Root + "/logs";

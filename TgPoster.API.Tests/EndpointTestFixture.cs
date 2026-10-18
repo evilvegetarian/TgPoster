@@ -136,6 +136,22 @@ public class EndpointTestFixture : WebApplicationFactory<Program>, IAsyncLifetim
 		mock.GetLinkedDiscussionGroupAsync(
 				Arg.Any<Guid>(), Arg.Any<TelegramChatInfo>(), Arg.Any<CancellationToken>())
 			.Returns((123456789L, (long?)987654321L));
+		mock.TryGetJoinedChatsAsync(Arg.Any<Guid>())
+			.Returns(TelegramOperationResult<IReadOnlyDictionary<long, TelegramChatInfo>>.Success(
+				new Dictionary<long, TelegramChatInfo>
+				{
+					[123456789L] = new()
+					{
+						Id = 123456789L,
+						AccessHash = 0L,
+						Title = "Test Channel",
+						Username = "testchannel",
+						IsChannel = true,
+						CanSendMessages = true,
+						CanSendMedia = true,
+						Peer = TelegramPeer.Channel(123456789L, 0L)
+					}
+				}));
 		return mock;
 	}
 

@@ -8,6 +8,7 @@ using TgPoster.API.Domain.UseCases.Repost.AddDestinationsFromDiscover;
 using TgPoster.API.Domain.UseCases.Repost.AddRepostDestination;
 using TgPoster.API.Domain.UseCases.Repost.CreateRepostSettings;
 using TgPoster.API.Domain.UseCases.Repost.DeleteRepostDestination;
+using TgPoster.API.Domain.UseCases.Repost.DeleteRepostDestinations;
 using TgPoster.API.Domain.UseCases.Repost.DeleteRepostSettings;
 using TgPoster.API.Domain.UseCases.Repost.GetRepostImportJob;
 using TgPoster.API.Domain.UseCases.Repost.GetRepostLogsSummary;
@@ -15,6 +16,7 @@ using TgPoster.API.Domain.UseCases.Repost.GetRepostSettings;
 using TgPoster.API.Domain.UseCases.Repost.ListRepostLogs;
 using TgPoster.API.Domain.UseCases.Repost.ListRepostSettings;
 using TgPoster.API.Domain.UseCases.Repost.RefreshDestinationInfo;
+using TgPoster.API.Domain.UseCases.Repost.SetRepostDestinationsActive;
 using TgPoster.API.Domain.UseCases.Repost.UpdateRepostDestination;
 using TgPoster.API.Domain.UseCases.Repost.UpdateRepostSettings;
 using TgPoster.API.Mapper;
@@ -283,6 +285,54 @@ public sealed class RepostController(ISender sender) : ControllerBase
 			request.SkipProbability,
 			request.MaxRepostsPerDay);
 		await sender.Send(command, ct);
+
+		return NoContent();
+	}
+
+	/// <summary>
+	/// Массовое включение или выключение целевых каналов. При включении аккаунт не вступает в чаты:
+	/// включаются только каналы, где он уже состоит и может отправлять сообщения и медиа
+	/// </summary>
+	/// <param name="settingsId"></param>
+	/// <param name="request"></param>
+	/// <param name="ct"></param>
+	/// <returns></returns>
+	[HttpPut(Routes.Repost.SetDestinationsActive)]
+	[ProducesResponseType(StatusCodes.Status200OK, Type = typeof(SetRepostDestinationsActiveResponse))]
+	[ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
+	[ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
+	[ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
+	public async Task<IActionResult> SetDestinationsActive(
+		[FromRoute] [Required] Guid settingsId,
+		[FromBody] [Required] SetRepostDestinationsActiveRequest request,
+		CancellationToken ct
+	)
+	{
+		var command = new SetRepostDestinationsActiveCommand(settingsId, request.DestinationIds, request.IsActive);
+		var response = await sender.Send(command, ct);
+
+		return Ok(response);
+	}
+
+	/// <summary>
+	/// Массовое удаление целевых каналов
+	/// </summary>
+	/// <param name="settingsId"></param>
+	/// <param name="request"></param>
+	/// <param name="ct"></param>
+	/// <returns></returns>
+	[HttpPost(Routes.Repost.DeleteDestinations)]
+	[ProducesResponseType(StatusCodes.Status204NoContent)]
+	[ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
+	[ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
+	[ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
+	public async Task<IActionResult> DeleteDestinations(
+		[FromRoute] [Required] Guid settingsId,
+		[FromBody] [Required] DeleteRepostDestinationsRequest request,
+		CancellationToken ct
+	)
+	{
+		await sender.Send(new DeleteRepostDestinationsCommand(settingsId, request.DestinationIds), ct);
 
 		return NoContent();
 	}

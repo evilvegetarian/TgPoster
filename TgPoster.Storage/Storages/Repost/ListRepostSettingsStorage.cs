@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Shared.Enums;
 using TgPoster.API.Domain.UseCases.Repost.ListRepostSettings;
 using TgPoster.Storage.Data;
 using TgPoster.Storage.Data.Entities;
@@ -18,7 +19,10 @@ internal sealed class ListRepostSettingsStorage(PosterContext context) : IListRe
 				ScheduleName = x.Schedule.Name,
 				TelegramSessionId = x.TelegramSessionId,
 				IsActive = x.IsActive,
-				DestinationsCount = x.Destinations.Count
+				DestinationsCount = x.Destinations.Count,
+				ActiveDestinationsCount = x.Destinations.Count(d => d.IsActive),
+				ProblemDestinationsCount = x.Destinations.Count(d =>
+					d.ChatStatus == ChatStatus.Banned || d.ChatStatus == ChatStatus.Left)
 			})
 			.ToListAsync(ct);
 	}
