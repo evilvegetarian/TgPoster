@@ -31,10 +31,12 @@ public interface ITelegramMessageService
 	/// </summary>
 	/// <param name="sessionId"></param>
 	/// <param name="ct"></param>
+	/// <param name="waitOnFloodWait"></param>
 	/// <returns></returns>
 	Task<TelegramOperationResult<IReadOnlyList<TelegramChatInfo>>> GetJoinedChatsAsync(
 		Guid sessionId,
-		CancellationToken ct = default
+		CancellationToken ct = default,
+		bool waitOnFloodWait = false
 	);
 
 	/// <summary>

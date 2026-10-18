@@ -44,16 +44,18 @@ internal sealed class RepostMessageConsumer(
 
 		var sessionId = repostData.TelegramSessionId;
 
-		var dialogsResult = await tgMessages.GetAllDialogsAsync(sessionId, ct);
-		if (!dialogsResult.IsSuccess)
+		// Не GetAllDialogs: диалоги читаются страницами, активный чат между страницами уезжает вверх
+		// и выпадает из выборки, а направление из-за этого ошибочно отключалось бы как покинутое
+		var joinedResult = await tgMessages.GetJoinedChatsAsync(sessionId, ct, true);
+		if (!joinedResult.IsSuccess)
 		{
-			logger.LogError("Не удалось получить диалоги: {Status} {Error}",
-				dialogsResult.Status, dialogsResult.ErrorMessage);
+			logger.LogError("Не удалось получить чаты сессии: {Status} {Error}",
+				joinedResult.Status, joinedResult.ErrorMessage);
 			await LogForAllDestinationsAsync(
 				repostData,
 				command.MessageId,
 				RepostLogReason.DialogsUnavailable,
-				$"Не удалось получить диалоги сессии ({dialogsResult.Status}): {dialogsResult.ErrorMessage}",
+				$"Не удалось получить чаты сессии ({joinedResult.Status}): {joinedResult.ErrorMessage}",
 				ct);
 			return;
 		}
@@ -75,15 +77,16 @@ internal sealed class RepostMessageConsumer(
 
 		var sourceChannel = resolveResult.Value!;
 
-		var dialogs = dialogsResult.Value!
+		var joinedChats = joinedResult.Value!
 			.DistinctBy(c => c.Id)
 			.ToDictionary(c => c.Id);
 
 		foreach (var dest in repostData.Destinations)
 		{
-			if (!dialogs.TryGetValue(dest.ChatIdentifier, out var destination))
+			if (!joinedChats.TryGetValue(dest.ChatIdentifier, out var destination))
 			{
-				// Аккаунт вышел из чата или его удалили: без отключения направление падало бы на каждом посте
+				// Аккаунт вышел из чата или его удалили: без отключения направление падало бы на каждом посте.
+				// При включении направления аккаунт вступает в чат заново
 				logger.LogWarning(
 					"Аккаунт не состоит в целевом чате {ChatId}. Направление репоста {DestinationId} отключено",
 					dest.ChatIdentifier, dest.Id);
@@ -94,7 +97,7 @@ internal sealed class RepostMessageConsumer(
 					RepostDestinationId = dest.Id,
 					Status = RepostStatus.Failed,
 					Reason = RepostLogReason.DestinationNotAvailable,
-					Error = "Целевой канал отсутствует в диалогах сессии — аккаунт в нём не состоит, направление отключено"
+					Error = "Аккаунт не состоит в целевом чате, направление отключено"
 				}, ct);
 				continue;
 			}

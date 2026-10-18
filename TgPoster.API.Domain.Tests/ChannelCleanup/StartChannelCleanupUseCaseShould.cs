@@ -110,7 +110,7 @@ public sealed class StartChannelCleanupUseCaseShould
 
 		await Should.ThrowAsync<ChannelCleanupException>(async () =>
 			await sut.Handle(new StartChannelCleanupCommand(sessionId, [1]), CancellationToken.None));
-		messageService.Verify(m => m.GetJoinedChatsAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()),
+		messageService.Verify(m => m.GetJoinedChatsAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>(), It.IsAny<bool>()),
 			Times.Never);
 	}
 
@@ -128,7 +128,7 @@ public sealed class StartChannelCleanupUseCaseShould
 	[Fact]
 	public async Task Throw_WhenTelegramDoesNotReturnChats()
 	{
-		messageService.Setup(m => m.GetJoinedChatsAsync(sessionId, It.IsAny<CancellationToken>()))
+		messageService.Setup(m => m.GetJoinedChatsAsync(sessionId, It.IsAny<CancellationToken>(), It.IsAny<bool>()))
 			.ReturnsAsync(TelegramOperationResult<IReadOnlyList<TelegramChatInfo>>.Failed(
 				TelegramOperationStatus.SessionNotFound, "AUTH_KEY_UNREGISTERED"));
 
@@ -138,7 +138,7 @@ public sealed class StartChannelCleanupUseCaseShould
 	}
 
 	private void SetupChats(params TelegramChatInfo[] chats) =>
-		messageService.Setup(m => m.GetJoinedChatsAsync(sessionId, It.IsAny<CancellationToken>()))
+		messageService.Setup(m => m.GetJoinedChatsAsync(sessionId, It.IsAny<CancellationToken>(), It.IsAny<bool>()))
 			.ReturnsAsync(TelegramOperationResult<IReadOnlyList<TelegramChatInfo>>.Success(chats));
 
 	private void VerifyNoJobCreated() =>

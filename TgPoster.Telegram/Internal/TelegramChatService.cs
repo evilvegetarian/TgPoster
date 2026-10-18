@@ -115,8 +115,8 @@ internal sealed partial class TelegramChatService(
 		int? memberCount = null;
 		byte[]? avatar = null;
 
-		var dialogs = await client.Messages_GetAllDialogs();
-		dialogs.chats.TryGetValue(chatInfo.Id, out var chatBase);
+		var joinedChats = await client.Messages_GetAllChats();
+		joinedChats.chats.TryGetValue(chatInfo.Id, out var chatBase);
 
 		try
 		{
@@ -342,15 +342,21 @@ internal sealed partial class TelegramChatService(
 		{
 			throw new TelegramChannelsLimitReachedException();
 		}
+		catch (RpcException ex) when (ex.Message is "INVITE_REQUEST_SENT")
+		{
+			throw new TelegramJoinChatFailedException("Заявка отправлена, ожидайте одобрения");
+		}
 	}
 
 	private static async Task<TelegramChatInfo> GetChatByIdAsync(Client client, long chatId)
 	{
 		var rawId = ResolveRawId(chatId);
 
-		var dialogs = await client.Messages_GetAllDialogs();
+		// Не GetAllDialogs: диалоги читаются страницами по дате последнего сообщения, и чат,
+		// в который написали между запросами страниц, выпадает из выборки
+		var joinedChats = await client.Messages_GetAllChats();
 
-		if (dialogs.chats.TryGetValue(rawId, out var chat))
+		if (joinedChats.chats.TryGetValue(rawId, out var chat))
 		{
 			return MapToInfo(chat);
 		}

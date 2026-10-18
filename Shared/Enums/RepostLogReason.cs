@@ -31,7 +31,7 @@ public enum RepostLogReason
 	MessageNotPublished = 4,
 
 	/// <summary>
-	///     Не удалось получить список диалогов Telegram-сессии
+	///     Не удалось получить список чатов Telegram-сессии
 	/// </summary>
 	DialogsUnavailable = 5,
 
@@ -41,7 +41,7 @@ public enum RepostLogReason
 	SourceChannelNotResolved = 6,
 
 	/// <summary>
-	/// Целевой канал отсутствует в диалогах сессии — аккаунт в нём не состоит, направление отключено
+	/// Аккаунт не состоит в целевом чате, направление отключено
 	/// </summary>
 	DestinationNotAvailable = 7,
 

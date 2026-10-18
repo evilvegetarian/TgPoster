@@ -40,7 +40,7 @@ public class RepostMessageConsumerShould
 			.ReturnsAsync(0);
 
 		SetupRepostData();
-		SetupDialogs(DestinationChatId);
+		SetupJoinedChats(DestinationChatId);
 		SetupSourceChannel(TelegramOperationResult<TelegramChatInfo>.Success(ChatInfo(777)));
 		SetupForward(TelegramOperationResult<int?>.Success(999));
 
@@ -61,6 +61,16 @@ public class RepostMessageConsumerShould
 		entry.Reason.ShouldBe(RepostLogReason.None);
 		entry.TelegramMessageId.ShouldBe(999);
 		entry.Error.ShouldBeNull();
+	}
+
+	[Fact]
+	public async Task CheckMembershipByJoinedChats_InsteadOfPagedDialogs()
+	{
+		await ConsumeAsync();
+
+		tgMessages.Verify(x => x.GetJoinedChatsAsync(sessionId, It.IsAny<CancellationToken>(), true), Times.Once);
+		tgMessages.Verify(x => x.GetAllDialogsAsync(
+			It.IsAny<Guid>(), It.IsAny<CancellationToken>(), It.IsAny<bool>()), Times.Never);
 	}
 
 	[Fact]
@@ -94,9 +104,9 @@ public class RepostMessageConsumerShould
 	}
 
 	[Fact]
-	public async Task WriteDialogsUnavailableLog_WhenDialogsCannotBeLoaded()
+	public async Task WriteDialogsUnavailableLog_WhenJoinedChatsCannotBeLoaded()
 	{
-		tgMessages.Setup(x => x.GetAllDialogsAsync(
+		tgMessages.Setup(x => x.GetJoinedChatsAsync(
 				sessionId, It.IsAny<CancellationToken>(), It.IsAny<bool>()))
 			.ReturnsAsync(TelegramOperationResult<IReadOnlyList<TelegramChatInfo>>.Failed(
 				TelegramOperationStatus.SessionNotFound, "сессия не найдена"));
@@ -122,9 +132,9 @@ public class RepostMessageConsumerShould
 	}
 
 	[Fact]
-	public async Task WriteDestinationNotAvailableLog_WhenDestinationIsMissingInDialogs()
+	public async Task WriteDestinationNotAvailableLog_WhenAccountIsNotMemberOfDestination()
 	{
-		SetupDialogs(DestinationChatId + 1);
+		SetupJoinedChats(DestinationChatId + 1);
 
 		await ConsumeAsync();
 
@@ -137,9 +147,9 @@ public class RepostMessageConsumerShould
 	}
 
 	[Fact]
-	public async Task DisableDestinationAsLeft_WhenDestinationIsMissingInDialogs()
+	public async Task DisableDestinationAsLeft_WhenAccountIsNotMemberOfDestination()
 	{
-		SetupDialogs(DestinationChatId + 1);
+		SetupJoinedChats(DestinationChatId + 1);
 
 		await ConsumeAsync();
 
@@ -150,9 +160,9 @@ public class RepostMessageConsumerShould
 	}
 
 	[Fact]
-	public async Task NotChangeDestinationStatus_WhenDialogsCannotBeLoaded()
+	public async Task NotChangeDestinationStatus_WhenJoinedChatsCannotBeLoaded()
 	{
-		tgMessages.Setup(x => x.GetAllDialogsAsync(
+		tgMessages.Setup(x => x.GetJoinedChatsAsync(
 				sessionId, It.IsAny<CancellationToken>(), It.IsAny<bool>()))
 			.ReturnsAsync(TelegramOperationResult<IReadOnlyList<TelegramChatInfo>>.Failed(
 				TelegramOperationStatus.FloodWait, "FLOOD_WAIT_X"));
@@ -251,8 +261,8 @@ public class RepostMessageConsumerShould
 				]
 			});
 
-	private void SetupDialogs(long chatId) =>
-		tgMessages.Setup(x => x.GetAllDialogsAsync(
+	private void SetupJoinedChats(long chatId) =>
+		tgMessages.Setup(x => x.GetJoinedChatsAsync(
 				sessionId, It.IsAny<CancellationToken>(), It.IsAny<bool>()))
 			.ReturnsAsync(TelegramOperationResult<IReadOnlyList<TelegramChatInfo>>.Success([ChatInfo(chatId)]));
 

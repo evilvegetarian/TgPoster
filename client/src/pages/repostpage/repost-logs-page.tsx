@@ -27,7 +27,7 @@ const REASON_LABELS: Record<RepostLogReason, string> = {
     SkipProbability: "Случайный пропуск",
     DailyLimit: "Дневной лимит исчерпан",
     MessageNotPublished: "Пост не опубликован в источнике",
-    DialogsUnavailable: "Сессия не отдала диалоги",
+    DialogsUnavailable: "Сессия не отдала список чатов",
     SourceChannelNotResolved: "Канал-источник не найден",
     DestinationNotAvailable: "Аккаунт не состоит в канале",
     Banned: "Аккаунт забанен в канале",

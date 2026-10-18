@@ -77,14 +77,14 @@ public sealed class PreviewChannelCleanupUseCaseShould
 
 		await Should.ThrowAsync<TelegramSessionEntityNotFoundException>(async () =>
 			await sut.Handle(new PreviewChannelCleanupQuery(sessionId), CancellationToken.None));
-		messageService.Verify(m => m.GetJoinedChatsAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()),
+		messageService.Verify(m => m.GetJoinedChatsAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>(), It.IsAny<bool>()),
 			Times.Never);
 	}
 
 	[Fact]
 	public async Task ThrowReadableError_WhenTelegramRateLimits()
 	{
-		messageService.Setup(m => m.GetJoinedChatsAsync(sessionId, It.IsAny<CancellationToken>()))
+		messageService.Setup(m => m.GetJoinedChatsAsync(sessionId, It.IsAny<CancellationToken>(), It.IsAny<bool>()))
 			.ReturnsAsync(TelegramOperationResult<IReadOnlyList<TelegramChatInfo>>.Failed(
 				TelegramOperationStatus.FloodWait, "FLOOD_WAIT_X", 300));
 
@@ -95,6 +95,6 @@ public sealed class PreviewChannelCleanupUseCaseShould
 	}
 
 	private void SetupChats(params TelegramChatInfo[] chats) =>
-		messageService.Setup(m => m.GetJoinedChatsAsync(sessionId, It.IsAny<CancellationToken>()))
+		messageService.Setup(m => m.GetJoinedChatsAsync(sessionId, It.IsAny<CancellationToken>(), It.IsAny<bool>()))
 			.ReturnsAsync(TelegramOperationResult<IReadOnlyList<TelegramChatInfo>>.Success(chats));
 }

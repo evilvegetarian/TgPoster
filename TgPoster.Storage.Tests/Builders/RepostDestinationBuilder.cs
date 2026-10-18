@@ -1,4 +1,5 @@
 using Bogus;
+using Shared.Enums;
 using TgPoster.Storage.Data;
 using TgPoster.Storage.Data.Entities;
 
@@ -54,6 +55,18 @@ internal sealed class RepostDestinationBuilder(PosterContext context)
 	public RepostDestinationBuilder WithIsActive(bool isActive)
 	{
 		destination.IsActive = isActive;
+		return this;
+	}
+
+	public RepostDestinationBuilder WithChatStatus(ChatStatus chatStatus)
+	{
+		destination.ChatStatus = chatStatus;
+		return this;
+	}
+
+	public RepostDestinationBuilder WithUsername(string? username)
+	{
+		destination.Username = username;
 		return this;
 	}
 }

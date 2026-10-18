@@ -93,16 +93,19 @@ internal sealed class TelegramMessageService(
 
 	public async Task<TelegramOperationResult<IReadOnlyList<TelegramChatInfo>>> GetJoinedChatsAsync(
 		Guid sessionId,
-		CancellationToken ct = default
+		CancellationToken ct = default,
+		bool waitOnFloodWait = false
 	)
 	{
 		// В отличие от GetAllDialogs, здесь только чаты, где аккаунт участник: в chats диалогов
-		// попадают и каналы, которые всего лишь упомянуты в последних сообщениях
+		// попадают и каналы, которые всего лишь упомянуты в последних сообщениях.
+		// Список приходит одним запросом, поэтому активный чат не теряется, как при постраничном
+		// чтении диалогов, где он уезжает вверх списка между страницами
 		var raw = await ExecuteWithClientAsync(
 			sessionId,
 			client => client.Messages_GetAllChats(),
 			"GetAllChats",
-			false,
+			waitOnFloodWait,
 			ct);
 
 		if (!raw.IsSuccess)

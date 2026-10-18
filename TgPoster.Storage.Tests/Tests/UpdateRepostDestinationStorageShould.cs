@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Shared.Enums;
 using Shouldly;
 using TgPoster.Storage.Data;
 using TgPoster.Storage.Storages.Repost;
@@ -18,23 +19,35 @@ public sealed class UpdateRepostDestinationStorageShould : IClassFixture<Storage
 	}
 
 	[Fact]
-	public async Task DestinationExistsAsync_WithExistingDestination_ShouldReturnTrue()
+	public async Task GetDestinationAsync_WithExistingDestination_ShouldReturnSessionChatAndStatus()
 	{
-		var destination = await new RepostDestinationBuilder(context).CreateAsync();
+		var destination = await new RepostDestinationBuilder(context)
+			.WithChatIdentifier(1375846471)
+			.WithUsername("wc_world")
+			.WithIsActive(false)
+			.WithChatStatus(ChatStatus.Left)
+			.CreateAsync();
+		var sessionId = await context.RepostSettings
+			.Where(x => x.Id == destination.RepostSettingsId)
+			.Select(x => x.TelegramSessionId)
+			.FirstAsync();
 
-		var result = await sut.DestinationExistsAsync(destination.Id, CancellationToken.None);
+		var result = await sut.GetDestinationAsync(destination.Id, CancellationToken.None);
 
-		result.ShouldBeTrue();
+		result.ShouldNotBeNull();
+		result.TelegramSessionId.ShouldBe(sessionId);
+		result.ChatId.ShouldBe(1375846471);
+		result.Username.ShouldBe("wc_world");
+		result.IsActive.ShouldBeFalse();
+		result.ChatStatus.ShouldBe(ChatStatus.Left);
 	}
 
 	[Fact]
-	public async Task DestinationExistsAsync_WithNonExistingDestination_ShouldReturnFalse()
+	public async Task GetDestinationAsync_WithNonExistingDestination_ShouldReturnNull()
 	{
-		var nonExistingId = Guid.NewGuid();
+		var result = await sut.GetDestinationAsync(Guid.NewGuid(), CancellationToken.None);
 
-		var result = await sut.DestinationExistsAsync(nonExistingId, CancellationToken.None);
-
-		result.ShouldBeFalse();
+		result.ShouldBeNull();
 	}
 
 	[Fact]
@@ -44,7 +57,8 @@ public sealed class UpdateRepostDestinationStorageShould : IClassFixture<Storage
 			.WithIsActive(true)
 			.CreateAsync();
 
-		await sut.UpdateDestinationAsync(destination.Id, false, 0, 0, 1, 0, null, CancellationToken.None);
+		await sut.UpdateDestinationAsync(destination.Id, false, ChatStatus.Active, 0, 0, 1, 0, null,
+			CancellationToken.None);
 
 		var updatedDestination = await context.RepostDestinations
 			.FirstOrDefaultAsync(x => x.Id == destination.Id);
@@ -54,18 +68,22 @@ public sealed class UpdateRepostDestinationStorageShould : IClassFixture<Storage
 	}
 
 	[Fact]
-	public async Task UpdateDestinationAsync_ToActive_ShouldUpdateIsActive()
+	public async Task UpdateDestinationAsync_ToActive_ShouldUpdateIsActiveAndChatStatus()
 	{
 		var destination = await new RepostDestinationBuilder(context)
 			.WithIsActive(false)
+			.WithChatStatus(ChatStatus.Left)
 			.CreateAsync();
 
-		await sut.UpdateDestinationAsync(destination.Id, true, 0, 0, 1, 0, null, CancellationToken.None);
+		await sut.UpdateDestinationAsync(destination.Id, true, ChatStatus.Active, 0, 0, 1, 0, null,
+			CancellationToken.None);
 
 		var updatedDestination = await context.RepostDestinations
+			.AsNoTracking()
 			.FirstOrDefaultAsync(x => x.Id == destination.Id);
 
 		updatedDestination.ShouldNotBeNull();
 		updatedDestination.IsActive.ShouldBeTrue();
+		updatedDestination.ChatStatus.ShouldBe(ChatStatus.Active);
 	}
 }
