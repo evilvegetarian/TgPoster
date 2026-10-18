@@ -164,7 +164,10 @@ internal sealed class ImportRepostDestinationsStorage(PosterContext context, Gui
 			channel.Title = title;
 		}
 
-		if (normalizedUsername != null)
+		// Username может уже стоять у другой записи Discover: Telegram отдаёт основной username канала
+		// с несколькими ссылками, а канал по инвайту или id мог попасть в Discover второй строкой.
+		// Уникальный индекс не даст его присвоить — оставляем прежний, остальное обновляем
+		if (normalizedUsername != null && !await IsUsernameTakenAsync(channel.Id, normalizedUsername, ct))
 		{
 			channel.Username = normalizedUsername;
 			channel.TgUrl ??= $"https://t.me/{normalizedUsername}";
@@ -228,6 +231,14 @@ internal sealed class ImportRepostDestinationsStorage(PosterContext context, Gui
 		await context.SaveChangesAsync(ct);
 
 		return destination.Id;
+	}
+
+	private Task<bool> IsUsernameTakenAsync(Guid discoveredChannelId, string username, CancellationToken ct)
+	{
+		// Индекс IX_DiscoveredChannels_Username покрывает и забаненные строки
+		return context.DiscoveredChannels
+			.IgnoreQueryFilters()
+			.AnyAsync(x => x.Id != discoveredChannelId && x.Username == username, ct);
 	}
 
 	private static string? Truncate(string? value) =>

@@ -194,6 +194,61 @@ public sealed class ImportRepostDestinationsStorageShould(StorageTestFixture fix
 	}
 
 	[Fact]
+	public async Task UpdateDiscoveredChannelAsync_ShouldTakeFreeUsername()
+	{
+		var channel = await CreateDiscoveredChannelAsync();
+		var newUsername = "renamed" + faker.Random.Number(10000, 99999);
+
+		await sut.UpdateDiscoveredChannelAsync(
+			channel.Id,
+			channel.TelegramId!.Value,
+			channel.Title,
+			newUsername,
+			ChatType.Channel,
+			true,
+			true,
+			CancellationToken.None);
+
+		var refreshed = await context.DiscoveredChannels
+			.IgnoreQueryFilters()
+			.AsNoTracking()
+			.FirstAsync(x => x.Id == channel.Id);
+
+		refreshed.Username.ShouldBe(newUsername);
+	}
+
+	[Theory]
+	[InlineData(false)]
+	[InlineData(true)]
+	public async Task UpdateDiscoveredChannelAsync_ShouldKeepUsernameWhenTakenByAnotherChannel(bool ownerBanned)
+	{
+		var channel = await CreateDiscoveredChannelAsync();
+		var owner = await CreateDiscoveredChannelAsync(isBanned: ownerBanned);
+		var telegramId = faker.Random.Long(1_000_000_000, 9_000_000_000);
+
+		await sut.UpdateDiscoveredChannelAsync(
+			channel.Id,
+			telegramId,
+			"Свежее название",
+			owner.Username,
+			ChatType.Channel,
+			true,
+			false,
+			CancellationToken.None);
+
+		var refreshed = await context.DiscoveredChannels
+			.IgnoreQueryFilters()
+			.AsNoTracking()
+			.FirstAsync(x => x.Id == channel.Id);
+
+		refreshed.Username.ShouldBe(channel.Username);
+		refreshed.TelegramId.ShouldBe(telegramId);
+		refreshed.Title.ShouldBe("Свежее название");
+		refreshed.CanSendMessages.ShouldBe(true);
+		refreshed.CanSendMedia.ShouldBe(false);
+	}
+
+	[Fact]
 	public async Task AddDestinationAsync_ShouldCreateActiveDestinationLinkedToDiscover()
 	{
 		var settings = await new RepostSettingsBuilder(context).CreateAsync();
@@ -271,7 +326,10 @@ public sealed class ImportRepostDestinationsStorageShould(StorageTestFixture fix
 		return item;
 	}
 
-	private async Task<DiscoveredChannel> CreateDiscoveredChannelAsync(bool? canSendMessages = null)
+	private async Task<DiscoveredChannel> CreateDiscoveredChannelAsync(
+		bool? canSendMessages = null,
+		bool isBanned = false
+	)
 	{
 		var channel = new DiscoveredChannel
 		{
@@ -282,7 +340,8 @@ public sealed class ImportRepostDestinationsStorageShould(StorageTestFixture fix
 			InviteHash = faker.Random.AlphaNumeric(16),
 			ParticipantsCount = faker.Random.Number(100, 10000),
 			Status = DiscoveryStatus.Completed,
-			CanSendMessages = canSendMessages
+			CanSendMessages = canSendMessages,
+			IsBanned = isBanned
 		};
 
 		await context.DiscoveredChannels.AddAsync(channel);
