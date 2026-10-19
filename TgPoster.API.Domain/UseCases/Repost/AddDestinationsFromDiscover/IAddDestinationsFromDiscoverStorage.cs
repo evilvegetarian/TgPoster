@@ -23,6 +23,7 @@ public sealed record RepostSettingsDefaults(
 /// <param name="InviteHash">Хеш инвайт-ссылки для приватных каналов</param>
 /// <param name="CanSendMessages">Известное из прошлых проверок право на отправку сообщений (null — не проверялось)</param>
 /// <param name="CanSendMedia">Известное из прошлых проверок право на отправку медиа (null — не проверялось)</param>
+/// <param name="IsAccountBanned"></param>
 public sealed record DiscoverCandidate(
 	Guid Id,
 	long? TelegramId,
@@ -30,7 +31,8 @@ public sealed record DiscoverCandidate(
 	string? Title,
 	string? InviteHash,
 	bool? CanSendMessages,
-	bool? CanSendMedia);
+	bool? CanSendMedia,
+	bool IsAccountBanned = false);
 
 /// <summary>
 ///     Канал, попадающий в задание на массовое добавление
@@ -57,25 +59,33 @@ public interface IAddDestinationsFromDiscoverStorage
 	Task<RepostSettingsDefaults?> GetSettingsDefaultsAsync(Guid repostSettingsId, Guid userId, CancellationToken ct);
 
 	/// <summary>
-	///     Получить выбранные каналы из Discover
+	///     Получить выбранные каналы из Discover вместе с признаком бана аккаунта сессии в канале
 	/// </summary>
 	/// <param name="discoveredChannelIds">Id записей в Discover</param>
+	/// <param name="telegramSessionId"></param>
 	/// <param name="ct">Токен отмены</param>
 	/// <returns>Найденные каналы (забаненные исключены глобальным фильтром)</returns>
-	Task<List<DiscoverCandidate>> GetCandidatesAsync(IReadOnlyList<Guid> discoveredChannelIds, CancellationToken ct);
+	Task<List<DiscoverCandidate>> GetCandidatesAsync(
+		IReadOnlyList<Guid> discoveredChannelIds,
+		Guid telegramSessionId,
+		CancellationToken ct
+	);
 
 	/// <summary>
 	///     Получить каналы Discover, подходящие под фильтр. Заведомо бесполезные кандидаты
-	///     отсекаются здесь же, чтобы лимит задания не расходовался впустую
+	///     отсекаются здесь же, чтобы лимит задания не расходовался впустую. В том числе каналы,
+	///     где у аккаунта сессии записан бан
 	/// </summary>
 	/// <param name="filter">Фильтр и сортировка Discover</param>
 	/// <param name="excludedChatIds">Telegram-идентификаторы, которые брать не нужно: уже добавленные и канал-источник</param>
+	/// <param name="telegramSessionId"></param>
 	/// <param name="limit">Максимальное количество каналов в задании</param>
 	/// <param name="ct">Токен отмены</param>
 	/// <returns>Каналы в порядке сортировки фильтра</returns>
 	Task<List<DiscoverCandidate>> GetCandidatesByFilterAsync(
 		DiscoverImportFilter filter,
 		IReadOnlyCollection<long> excludedChatIds,
+		Guid telegramSessionId,
 		int limit,
 		CancellationToken ct
 	);

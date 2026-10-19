@@ -188,4 +188,45 @@ public sealed class AddRepostDestinationStorageShould(StorageTestFixture fixture
 		refreshed.CanSendMessages.ShouldBe(true);
 		refreshed.CanSendMedia.ShouldBe(true);
 	}
+
+	[Fact]
+	public async Task RemoveAccountBanAsync_ShouldRemoveOnlyBanOfSessionInChat()
+	{
+		var ban = await new TelegramSessionChatBanBuilder(context).CreateAsync();
+		var otherSession = await new TelegramSessionChatBanBuilder(context)
+			.WithChatId(ban.ChatId)
+			.CreateAsync();
+
+		await sut.RemoveAccountBanAsync(ban.TelegramSessionId, ban.ChatId, CancellationToken.None);
+
+		var activeIds = await context.TelegramSessionChatBans
+			.AsNoTracking()
+			.Where(x => x.ChatId == ban.ChatId)
+			.Select(x => x.Id)
+			.ToListAsync();
+		activeIds.ShouldBe([otherSession.Id]);
+	}
+
+	[Fact]
+	public async Task AddAccountBanAsync_ShouldRecordBanOfSessionInChat()
+	{
+		var session = await new TelegramSessionBuilder(context).CreateAsync();
+
+		await sut.AddAccountBanAsync(session.Id, 4242, "ограничен", CancellationToken.None);
+
+		var ban = await context.TelegramSessionChatBans
+			.AsNoTracking()
+			.SingleAsync(x => x.TelegramSessionId == session.Id);
+		ban.ChatId.ShouldBe(4242);
+		ban.Error.ShouldBe("ограничен");
+	}
+
+	[Fact]
+	public async Task RemoveAccountBanAsync_WithoutBan_ShouldDoNothing()
+	{
+		var session = await new TelegramSessionBuilder(context).CreateAsync();
+
+		await Should.NotThrowAsync(() =>
+			sut.RemoveAccountBanAsync(session.Id, 1375846471, CancellationToken.None));
+	}
 }

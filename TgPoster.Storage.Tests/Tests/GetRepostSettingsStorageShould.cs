@@ -14,6 +14,38 @@ public class GetRepostSettingsStorageShould(StorageTestFixture fixture) : IClass
 	private readonly GetRepostSettingsStorage sut = new(fixture.GetDbContext());
 
 	[Fact]
+	public async Task GetAsync_ShouldShowBannedFromAccountRegistry_AndMembershipOtherwise()
+	{
+		var schedule = await new ScheduleBuilder(context).CreateAsync(ct);
+		var session = await new TelegramSessionBuilder(context).WithUserId(schedule.UserId).CreateAsync(ct);
+		var settings = await new RepostSettingsBuilder(context)
+			.WithSchedule(schedule)
+			.WithTelegramSession(session)
+			.CreateAsync(ct);
+		var banned = await new RepostDestinationBuilder(context)
+			.WithRepostSettingsId(settings.Id)
+			.WithIsActive(false)
+			.WithChatStatus(ChatStatus.Active)
+			.CreateAsync(ct);
+		var left = await new RepostDestinationBuilder(context)
+			.WithRepostSettingsId(settings.Id)
+			.WithChatStatus(ChatStatus.Left)
+			.CreateAsync(ct);
+		await new TelegramSessionChatBanBuilder(context)
+			.WithTelegramSessionId(session.Id)
+			.WithChatId(banned.ChatId)
+			.CreateAsync(ct);
+		// Бан другого аккаунта в том же чате к этим настройкам не относится
+		await new TelegramSessionChatBanBuilder(context).WithChatId(left.ChatId).CreateAsync(ct);
+
+		var response = await sut.GetAsync(settings.Id, schedule.UserId, ct);
+
+		response.ShouldNotBeNull();
+		response.Destinations.Single(x => x.Id == banned.Id).ChatStatus.ShouldBe(ChatStatus.Banned);
+		response.Destinations.Single(x => x.Id == left.Id).ChatStatus.ShouldBe(ChatStatus.Left);
+	}
+
+	[Fact]
 	public async Task GetAsync_WithExistingIdAndUserId_ShouldReturnRepostSettings()
 	{
 		var schedule = await new ScheduleBuilder(context).CreateAsync(ct);

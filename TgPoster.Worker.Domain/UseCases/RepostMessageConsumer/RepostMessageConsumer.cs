@@ -30,11 +30,18 @@ internal sealed class RepostMessageConsumer(
 			return;
 		}
 
+		// Бан аккаунта в чате уже зафиксирован прошлой попыткой: за тем же отказом в Telegram не ходим
+		var destinations = await DisableBannedDestinationsAsync(repostData.Destinations, command.MessageId, ct);
+		if (destinations.Count == 0)
+		{
+			return;
+		}
+
 		if (repostData.TelegramMessageId is null)
 		{
 			logger.LogWarning("TelegramMessageId отсутствует для сообщения {MessageId}", command.MessageId);
 			await LogForAllDestinationsAsync(
-				repostData,
+				destinations,
 				command.MessageId,
 				RepostLogReason.MessageNotPublished,
 				"Сообщение ещё не опубликовано в канале-источнике",
@@ -46,13 +53,13 @@ internal sealed class RepostMessageConsumer(
 
 		// Не GetAllDialogs: диалоги читаются страницами, активный чат между страницами уезжает вверх
 		// и выпадает из выборки, а направление из-за этого ошибочно отключалось бы как покинутое
-		var joinedResult = await tgMessages.GetJoinedChatsAsync(sessionId, ct, true);
+		var joinedResult = await tgMessages.GetChatMembershipAsync(sessionId, ct, true);
 		if (!joinedResult.IsSuccess)
 		{
 			logger.LogError("Не удалось получить чаты сессии: {Status} {Error}",
 				joinedResult.Status, joinedResult.ErrorMessage);
 			await LogForAllDestinationsAsync(
-				repostData,
+				destinations,
 				command.MessageId,
 				RepostLogReason.DialogsUnavailable,
 				$"Не удалось получить чаты сессии ({joinedResult.Status}): {joinedResult.ErrorMessage}",
@@ -67,7 +74,7 @@ internal sealed class RepostMessageConsumer(
 			logger.LogError("Не удалось найти исходный канал: {ChannelName} ({Status})",
 				repostData.SourceChannelIdentifier, resolveResult.Status);
 			await LogForAllDestinationsAsync(
-				repostData,
+				destinations,
 				command.MessageId,
 				RepostLogReason.SourceChannelNotResolved,
 				$"Канал-источник {repostData.SourceChannelIdentifier} не найден сессией ({resolveResult.Status})",
@@ -77,13 +84,18 @@ internal sealed class RepostMessageConsumer(
 
 		var sourceChannel = resolveResult.Value!;
 
-		var joinedChats = joinedResult.Value!
-			.DistinctBy(c => c.Id)
-			.ToDictionary(c => c.Id);
+		var membership = joinedResult.Value!;
 
-		foreach (var dest in repostData.Destinations)
+		foreach (var dest in destinations)
 		{
-			if (!joinedChats.TryGetValue(dest.ChatIdentifier, out var destination))
+			// Telegram сам отдал чат недоступным: аккаунт забанен или исключён, а не вышел сам
+			if (membership.ForbiddenChatIds.Contains(dest.ChatIdentifier))
+			{
+				await MarkAccountBannedAsync(dest, sessionId, command.MessageId, "CHANNEL_FORBIDDEN", ct);
+				continue;
+			}
+
+			if (!membership.Chats.TryGetValue(dest.ChatIdentifier, out var destination))
 			{
 				// Аккаунт вышел из чата или его удалили: без отключения направление падало бы на каждом посте.
 				// При включении направления аккаунт вступает в чат заново
@@ -99,6 +111,15 @@ internal sealed class RepostMessageConsumer(
 					Reason = RepostLogReason.DestinationNotAvailable,
 					Error = "Аккаунт не состоит в целевом чате, направление отключено"
 				}, ct);
+				continue;
+			}
+
+			// Ограничение наложено лично на аккаунт: пересылка упала бы с той же CHAT_WRITE_FORBIDDEN, что и
+			// при общем запрете чата, и ушла бы в Discover как свойство чата. Записываем за аккаунтом заранее
+			if (destination.IsAccountRestricted)
+			{
+				await MarkAccountBannedAsync(
+					dest, sessionId, command.MessageId, "Аккаунт ограничен в чате администратором", ct);
 				continue;
 			}
 
@@ -146,15 +167,35 @@ internal sealed class RepostMessageConsumer(
 				continue;
 			}
 
+			if (forwardResult.Status == TelegramOperationStatus.ChannelBanned)
+			{
+				await MarkAccountBannedAsync(
+					dest,
+					sessionId,
+					command.MessageId,
+					forwardResult.ErrorMessage ?? forwardResult.Status.ToString(),
+					ct);
+				continue;
+			}
+
 			RepostLogReason reason;
 			switch (forwardResult.Status)
 			{
-				case TelegramOperationStatus.ChannelBanned:
+				// Запрет общий для чата, а не бан аккаунта: в Discover, а не в реестр банов сессии
+				case TelegramOperationStatus.NoWritePermission:
 					logger.LogWarning(
-						"Аккаунт заблокирован в канале {ChatId}: {Error}. Направление репоста отключено",
+						"В канал {ChatId} нельзя писать: {Error}. Направление репоста отключено",
 						destination.Id, forwardResult.ErrorMessage);
-					await storage.UpdateDestinationStatusAsync(dest.Id, ChatStatus.Banned, false, ct);
-					reason = RepostLogReason.Banned;
+					await storage.DisableForChatRestrictionAsync(dest.Id, false, null, ct);
+					reason = RepostLogReason.NoWritePermission;
+					break;
+
+				case TelegramOperationStatus.NoMediaPermission:
+					logger.LogWarning(
+						"В канал {ChatId} нельзя отправлять медиа: {Error}. Направление репоста отключено",
+						destination.Id, forwardResult.ErrorMessage);
+					await storage.DisableForChatRestrictionAsync(dest.Id, null, false, ct);
+					reason = RepostLogReason.NoMediaPermission;
 					break;
 
 				case TelegramOperationStatus.TopicClosed:
@@ -225,18 +266,83 @@ internal sealed class RepostMessageConsumer(
 		_ => reason.ToString()
 	};
 
+	/// <summary>
+	/// Записывает бан аккаунта в чате и отключает все направления этой сессии в этот чат, в том числе
+	/// из других настроек репоста
+	/// </summary>
+	/// <param name="dest"></param>
+	/// <param name="sessionId"></param>
+	/// <param name="messageId"></param>
+	/// <param name="error"></param>
+	/// <param name="ct"></param>
+	/// <returns></returns>
+	private async Task MarkAccountBannedAsync(
+		RepostDestinationDataDto dest,
+		Guid sessionId,
+		Guid messageId,
+		string error,
+		CancellationToken ct
+	)
+	{
+		logger.LogWarning(
+			"Аккаунт заблокирован в канале {ChatId}: {Error}. Направления репоста этой сессии в канал отключены",
+			dest.ChatIdentifier, error);
+		await storage.MarkAccountBannedAsync(sessionId, dest.ChatIdentifier, error, ct);
+		await WriteLogAsync(new RepostLogEntry
+		{
+			MessageId = messageId,
+			RepostDestinationId = dest.Id,
+			Status = RepostStatus.Failed,
+			Reason = RepostLogReason.Banned,
+			Error = error
+		}, ct);
+	}
+
+	/// <summary>
+	/// Отключает направления в чаты, где у аккаунта зафиксирован бан, и возвращает остальные. Бан снимает
+	/// ручное включение направления: оно заново проверяет доступ аккаунта к чату
+	/// </summary>
+	/// <param name="destinations"></param>
+	/// <param name="messageId"></param>
+	/// <param name="ct"></param>
+	/// <returns></returns>
+	private async Task<List<RepostDestinationDataDto>> DisableBannedDestinationsAsync(
+		List<RepostDestinationDataDto> destinations,
+		Guid messageId,
+		CancellationToken ct
+	)
+	{
+		foreach (var dest in destinations.Where(d => d.IsAccountBanned))
+		{
+			logger.LogWarning(
+				"Аккаунт заблокирован в канале {ChatId} по данным прошлой попытки. Направление репоста {DestinationId} отключено",
+				dest.ChatIdentifier, dest.Id);
+			await storage.DeactivateDestinationAsync(dest.Id, ct);
+			await WriteLogAsync(new RepostLogEntry
+			{
+				MessageId = messageId,
+				RepostDestinationId = dest.Id,
+				Status = RepostStatus.Failed,
+				Reason = RepostLogReason.Banned,
+				Error = "Аккаунт заблокирован в канале по данным прошлой попытки, направление отключено"
+			}, ct);
+		}
+
+		return destinations.Where(d => !d.IsAccountBanned).ToList();
+	}
+
 	private Task WriteLogAsync(RepostLogEntry entry, CancellationToken ct) =>
 		storage.CreateRepostLogsAsync([entry], ct);
 
 	private Task LogForAllDestinationsAsync(
-		RepostDataDto repostData,
+		List<RepostDestinationDataDto> destinations,
 		Guid messageId,
 		RepostLogReason reason,
 		string error,
 		CancellationToken ct
 	)
 	{
-		var entries = repostData.Destinations
+		var entries = destinations
 			.Select(dest => new RepostLogEntry
 			{
 				MessageId = messageId,

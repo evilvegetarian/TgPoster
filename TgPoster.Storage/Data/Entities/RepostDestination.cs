@@ -43,7 +43,8 @@ public sealed class RepostDestination : BaseEntity
 	public ChatType ChatType { get; set; } = ChatType.Unknown;
 
 	/// <summary>
-	///     Статус доступа к чату (активен/забанен/покинул).
+	/// Членство аккаунта в чате: состоит, покинул или неизвестно. Бан сюда не пишется — он хранится
+	/// только в TelegramSessionChatBans, а статус «забанен» для интерфейса вычисляется оттуда
 	/// </summary>
 	public ChatStatus ChatStatus { get; set; } = ChatStatus.Unknown;
 

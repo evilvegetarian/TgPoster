@@ -3,7 +3,7 @@ namespace TgPoster.Telegram.Models;
 public static class TelegramOperationResultExtensions
 {
 	/// <summary>
-	///     Если канал недоступен (username не найден или забанен) — вызывает <paramref name="markBanned" />
+	///     Если канала нет для всех (username не найден) — вызывает <paramref name="markBanned" />
 	///     и возвращает <c>true</c>. Иначе ничего не делает и возвращает <c>false</c>.
 	/// </summary>
 	public static async Task<bool> HandleChannelUnavailableAsync<T>(

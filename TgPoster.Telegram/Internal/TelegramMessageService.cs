@@ -15,16 +15,31 @@ internal sealed class TelegramMessageService(
 	private const int MaxFloodWaitSeconds = 60;
 
 	/// <summary>
-	///     Ошибка означает, что отправка/пересылка в канал запрещена (нет прав, бан, ограничение)
+	/// Ошибка означает, что именно этот аккаунт забанен, исключён или ограничен в чате. Другой аккаунт туда напишет
 	/// </summary>
-	/// <param name="message">Текст RPC-ошибки Telegram</param>
-	/// <returns>true, если доступ к отправке заблокирован</returns>
-	private static bool IsSendForbidden(string message) =>
-		message is "CHANNEL_PRIVATE" or "USER_BANNED_IN_CHANNEL"
-			or "CHAT_WRITE_FORBIDDEN" or "CHAT_RESTRICTED"
-		|| message.StartsWith("CHAT_SEND_", StringComparison.Ordinal)
-		&& message.EndsWith("_FORBIDDEN", StringComparison.Ordinal)
+	/// <param name="message"></param>
+	/// <returns></returns>
+	private static bool IsAccountBanned(string message) =>
+		message is "CHANNEL_PRIVATE" or "USER_BANNED_IN_CHANNEL" or "CHAT_RESTRICTED";
+
+	/// <summary>
+	/// Ошибка означает, что писать в чат нельзя никому из рядовых участников: это настройка чата, а не бан аккаунта
+	/// </summary>
+	/// <param name="message"></param>
+	/// <returns></returns>
+	private static bool IsWriteForbidden(string message) =>
+		message is "CHAT_WRITE_FORBIDDEN" or "CHAT_SEND_PLAIN_FORBIDDEN"
 		|| message.StartsWith("ALLOW_PAYMENT_REQUIRED", StringComparison.Ordinal);
+
+	/// <summary>
+	/// Ошибка означает, что в чате запрещено отправлять медиа: фото, видео, документы, стикеры и т.п.
+	/// Проверять после <see cref="IsWriteForbidden" />: CHAT_SEND_PLAIN_FORBIDDEN подходит под оба шаблона
+	/// </summary>
+	/// <param name="message"></param>
+	/// <returns></returns>
+	private static bool IsMediaForbidden(string message) =>
+		message.StartsWith("CHAT_SEND_", StringComparison.Ordinal)
+		&& message.EndsWith("_FORBIDDEN", StringComparison.Ordinal);
 
 	/// <summary>
 	///     Ошибка означает, что сессия недействительна и требует переавторизации
@@ -57,6 +72,26 @@ internal sealed class TelegramMessageService(
 		if (raw.Value?.Chat is Channel channel)
 		{
 			return TelegramOperationResult<TelegramChatInfo>.Success(ChatMapper.FromChannel(channel));
+		}
+
+		// Канал есть, но этому аккаунту закрыт: бан аккаунта, а не пропавший канал. Id отдаём, чтобы бан
+		// записался за аккаунтом, а канал не считался недоступным для всех
+		if (raw.Value?.Chat is ChannelForbidden forbidden)
+		{
+			logger.LogWarning("Telegram ResolveChannel({Username}): канал недоступен аккаунту (ChannelForbidden)",
+				username);
+			return new TelegramOperationResult<TelegramChatInfo>
+			{
+				Status = TelegramOperationStatus.ChannelBanned,
+				ErrorMessage = "CHANNEL_FORBIDDEN",
+				Value = new TelegramChatInfo
+				{
+					Id = forbidden.id,
+					AccessHash = forbidden.access_hash,
+					Title = forbidden.title,
+					Peer = TelegramPeer.Channel(forbidden.id, forbidden.access_hash)
+				}
+			};
 		}
 
 		logger.LogWarning("Telegram ResolveChannel({Username}): не Channel — трактуем как UsernameNotFound", username);
@@ -122,6 +157,42 @@ internal sealed class TelegramMessageService(
 			.ToList();
 
 		return TelegramOperationResult<IReadOnlyList<TelegramChatInfo>>.Success(list);
+	}
+
+	public async Task<TelegramOperationResult<TelegramJoinedChats>> GetChatMembershipAsync(
+		Guid sessionId,
+		CancellationToken ct = default,
+		bool waitOnFloodWait = false
+	)
+	{
+		var raw = await ExecuteWithClientAsync(
+			sessionId,
+			client => client.Messages_GetAllChats(),
+			"GetAllChats",
+			waitOnFloodWait,
+			ct);
+
+		if (!raw.IsSuccess)
+		{
+			return TelegramOperationResult<TelegramJoinedChats>.Failed(
+				raw.Status, raw.ErrorMessage, raw.FloodWaitSeconds);
+		}
+
+		var chats = raw.Value!.chats.Values;
+		return TelegramOperationResult<TelegramJoinedChats>.Success(new TelegramJoinedChats
+		{
+			Chats = chats
+				.Where(c => c.IsActive)
+				.Select(ChatMapper.SafeMap)
+				.Where(c => c is not null)
+				.Select(c => c!)
+				.DistinctBy(c => c.Id)
+				.ToDictionary(c => c.Id),
+			ForbiddenChatIds = chats
+				.Where(c => c is ChannelForbidden or ChatForbidden)
+				.Select(c => c.ID)
+				.ToHashSet()
+		});
 	}
 
 	public Task<TelegramOperationResult<bool>> LeaveChatAsync(
@@ -482,11 +553,22 @@ internal sealed class TelegramMessageService(
 				await alertService.NotifyAsync(sessionId, TelegramSessionProblem.AuthorizationRevoked, ex.Message, ct);
 				return TelegramOperationResult<T>.Failed(TelegramOperationStatus.SessionNotFound, ex.Message);
 			}
-			catch (RpcException ex) when (IsSendForbidden(ex.Message))
+			catch (RpcException ex) when (IsAccountBanned(ex.Message))
 			{
-				logger.LogWarning("Telegram {Operation}: доступ к каналу заблокирован ({Error})", operation,
+				logger.LogWarning("Telegram {Operation}: аккаунт заблокирован в чате ({Error})", operation,
 					ex.Message);
 				return TelegramOperationResult<T>.Failed(TelegramOperationStatus.ChannelBanned, ex.Message);
+			}
+			catch (RpcException ex) when (IsWriteForbidden(ex.Message))
+			{
+				logger.LogWarning("Telegram {Operation}: в чат нельзя писать ({Error})", operation, ex.Message);
+				return TelegramOperationResult<T>.Failed(TelegramOperationStatus.NoWritePermission, ex.Message);
+			}
+			catch (RpcException ex) when (IsMediaForbidden(ex.Message))
+			{
+				logger.LogWarning("Telegram {Operation}: в чат нельзя отправлять медиа ({Error})", operation,
+					ex.Message);
+				return TelegramOperationResult<T>.Failed(TelegramOperationStatus.NoMediaPermission, ex.Message);
 			}
 			catch (RpcException ex) when (ex.Message is "TOPIC_CLOSED" or "TOPIC_DELETED")
 			{

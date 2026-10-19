@@ -6,7 +6,8 @@ using TgPoster.Storage.Data.Entities;
 
 namespace TgPoster.Storage.Storages.Repost;
 
-internal sealed class SetRepostDestinationsActiveStorage(PosterContext context) : ISetRepostDestinationsActiveStorage
+internal sealed class SetRepostDestinationsActiveStorage(PosterContext context, GuidFactory guidFactory)
+	: ISetRepostDestinationsActiveStorage
 {
 	public Task<Guid?> GetTelegramSessionIdAsync(Guid settingsId, Guid userId, CancellationToken ct)
 	{
@@ -26,6 +27,28 @@ internal sealed class SetRepostDestinationsActiveStorage(PosterContext context) 
 			.Where(x => x.RepostSettingsId == settingsId && destinationIds.Contains(x.Id))
 			.Select(x => new RepostDestinationState(x.Id, x.ChatId, x.IsActive, x.ChatStatus))
 			.ToListAsync(ct);
+	}
+
+	public Task<List<long>> GetBannedChatIdsAsync(Guid telegramSessionId, List<long> chatIds, CancellationToken ct)
+	{
+		return context.TelegramSessionChatBans
+			.Where(x => x.TelegramSessionId == telegramSessionId && chatIds.Contains(x.ChatId))
+			.Select(x => x.ChatId)
+			.ToListAsync(ct);
+	}
+
+	public async Task AddAccountBansAsync(
+		Guid telegramSessionId,
+		IReadOnlyDictionary<long, string> errorsByChatId,
+		CancellationToken ct
+	)
+	{
+		foreach (var (chatId, error) in errorsByChatId)
+		{
+			await context.AddOrUpdateChatBanAsync(guidFactory, telegramSessionId, chatId, error, ct);
+		}
+
+		await context.SaveChangesAsync(ct);
 	}
 
 	public async Task ActivateAsync(List<Guid> destinationIds, CancellationToken ct)

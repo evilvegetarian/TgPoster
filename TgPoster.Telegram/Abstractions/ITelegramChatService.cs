@@ -33,12 +33,12 @@ public interface ITelegramChatService
 	);
 
 	/// <summary>
-	/// Одним запросом getAllChats получает чаты, в которых состоит аккаунт, вместе с правами на отправку.
-	/// Чаты, где аккаунт заблокирован, в результат не попадают. Нужен для массовых проверок членства
+	/// Одним запросом getAllChats получает чаты, в которых состоит аккаунт, вместе с правами на отправку,
+	/// и отдельно — чаты, где аккаунт забанен или исключён. Нужен для массовых проверок членства
 	/// </summary>
 	/// <param name="sessionId"></param>
 	/// <returns></returns>
-	Task<TelegramOperationResult<IReadOnlyDictionary<long, TelegramChatInfo>>> TryGetJoinedChatsAsync(Guid sessionId);
+	Task<TelegramOperationResult<TelegramJoinedChats>> TryGetJoinedChatsAsync(Guid sessionId);
 
 	/// <summary>
 	///     Проверяет, что в чате можно отправлять сообщения, иначе бросает исключение

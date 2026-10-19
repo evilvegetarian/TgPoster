@@ -153,4 +153,16 @@ internal sealed class AddRepostDestinationStorage(PosterContext context, GuidFac
 
 		return destination.Id;
 	}
+
+	public async Task AddAccountBanAsync(Guid telegramSessionId, long chatId, string? error, CancellationToken ct)
+	{
+		await context.AddOrUpdateChatBanAsync(guidFactory, telegramSessionId, chatId, error, ct);
+		await context.SaveChangesAsync(ct);
+	}
+
+	public async Task RemoveAccountBanAsync(Guid telegramSessionId, long chatId, CancellationToken ct)
+	{
+		await context.RemoveChatBanAsync(telegramSessionId, chatId, ct);
+		await context.SaveChangesAsync(ct);
+	}
 }

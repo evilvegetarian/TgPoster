@@ -41,7 +41,7 @@ function showEnableResult(result: SetRepostDestinationsActiveResponse) {
 
     const reasons: string[] = [];
     if (result.notMemberCount > 0) {
-        reasons.push(`${result.notMemberCount} — аккаунт не состоит в чате, включите их по одному: тогда аккаунт вступит заново`);
+        reasons.push(`${result.notMemberCount} — аккаунт не состоит в чате или заблокирован в нём, включите их по одному: тогда аккаунт вступит заново, а бан проверится ещё раз`);
     }
     if (result.noPermissionCount > 0) {
         reasons.push(`${result.noPermissionCount} — нет прав на отправку сообщений или медиа`);

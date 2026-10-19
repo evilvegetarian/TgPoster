@@ -19,6 +19,8 @@ internal sealed class ImportRepostDestinationsConsumer(
 	ILogger<ImportRepostDestinationsConsumer> logger)
 	: IConsumer<ImportRepostDestinationsContract>
 {
+	private const string AccountRestrictedError = "Аккаунт ограничен в канале администратором";
+
 	public async Task Consume(ConsumeContext<ImportRepostDestinationsContract> context)
 	{
 		var jobId = context.Message.JobId;
@@ -66,6 +68,14 @@ internal sealed class ImportRepostDestinationsConsumer(
 
 		foreach (var item in items)
 		{
+			// Этот аккаунт уже получил отказ в канале. Другой аккаунт туда, возможно, напишет, а этот — нет
+			if (item.IsAccountBanned)
+			{
+				await storage.UpdateItemAsync(item.ItemId, AddDestinationOutcome.NotResolved, null,
+					"Аккаунт заблокирован в канале по данным прошлой попытки", ct);
+				continue;
+			}
+
 			// Права могли обновиться, пока задание стояло в очереди: лишний раз в Telegram не ходим
 			var knownRestriction = GetKnownRestriction(item);
 			if (knownRestriction != null)
@@ -109,6 +119,12 @@ internal sealed class ImportRepostDestinationsConsumer(
 					return;
 				}
 
+				// Бан именно этого аккаунта: записываем за ним, а не в общие данные канала
+				if (chatResult.Status is TelegramOperationStatus.ChannelBanned && item.TelegramId is { } bannedChatId)
+				{
+					await storage.AddAccountBanAsync(job.TelegramSessionId, bannedChatId, chatResult.ErrorMessage, ct);
+				}
+
 				await storage.UpdateItemAsync(item.ItemId, AddDestinationOutcome.NotResolved, null,
 					chatResult.ErrorMessage, ct);
 				continue;
@@ -119,16 +135,22 @@ internal sealed class ImportRepostDestinationsConsumer(
 				: info.IsGroup ? ChatType.Group
 				: ChatType.Unknown;
 
-			// В Discover Telegram-id мог быть пустым или устаревшим — фиксируем актуальные данные и права
+			// В Discover Telegram-id мог быть пустым или устаревшим — фиксируем актуальные данные и общие права
+			// участника. Личное ограничение аккаунта другие аккаунты не касается и идёт в реестр банов сессии
 			await storage.UpdateDiscoveredChannelAsync(
 				item.DiscoveredChannelId,
 				info.Id,
 				info.Title,
 				info.Username,
 				chatType,
-				info.CanSendMessages,
-				info.CanSendMedia,
+				info.MembersCanSendMessages,
+				info.MembersCanSendMedia,
 				ct);
+
+			if (info.IsAccountRestricted)
+			{
+				await storage.AddAccountBanAsync(job.TelegramSessionId, info.Id, AccountRestrictedError, ct);
+			}
 
 			// Повторная проверка уже по фактическому id из Telegram
 			var skipOutcome = GetSkipOutcome(info.Id, job.SourceChannelId, existingChatIds);
@@ -138,15 +160,19 @@ internal sealed class ImportRepostDestinationsConsumer(
 				continue;
 			}
 
+			var restrictionError = info.IsAccountRestricted ? AccountRestrictedError : null;
+
 			if (!info.CanSendMessages)
 			{
-				await storage.UpdateItemAsync(item.ItemId, AddDestinationOutcome.NoWritePermission, null, null, ct);
+				await storage.UpdateItemAsync(item.ItemId, AddDestinationOutcome.NoWritePermission, null,
+					restrictionError, ct);
 				continue;
 			}
 
 			if (!info.CanSendMedia)
 			{
-				await storage.UpdateItemAsync(item.ItemId, AddDestinationOutcome.NoMediaPermission, null, null, ct);
+				await storage.UpdateItemAsync(item.ItemId, AddDestinationOutcome.NoMediaPermission, null,
+					restrictionError, ct);
 				continue;
 			}
 

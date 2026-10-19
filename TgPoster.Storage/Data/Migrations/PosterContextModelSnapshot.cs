@@ -1840,6 +1840,58 @@ namespace TgPoster.Storage.Data.Migrations
                     b.ToTable("TelegramSessions");
                 });
 
+            modelBuilder.Entity("TgPoster.Storage.Data.Entities.TelegramSessionChatBan", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<long>("ChatId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTimeOffset?>("Created")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("CreatedById")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset?>("Deleted")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("DeletedById")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("DetectedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Error")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<Guid>("TelegramSessionId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset?>("Updated")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("UpdatedById")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedById");
+
+                    b.HasIndex("DeletedById");
+
+                    b.HasIndex("UpdatedById");
+
+                    b.HasIndex("TelegramSessionId", "ChatId")
+                        .IsUnique()
+                        .HasFilter("\"Deleted\" IS NULL");
+
+                    b.ToTable("TelegramSessionChatBans");
+                });
+
             modelBuilder.Entity("TgPoster.Storage.Data.Entities.User", b =>
                 {
                     b.Property<Guid>("Id")
@@ -2878,6 +2930,35 @@ namespace TgPoster.Storage.Data.Migrations
                     b.Navigation("UpdatedBy");
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("TgPoster.Storage.Data.Entities.TelegramSessionChatBan", b =>
+                {
+                    b.HasOne("TgPoster.Storage.Data.Entities.User", "CreatedBy")
+                        .WithMany()
+                        .HasForeignKey("CreatedById");
+
+                    b.HasOne("TgPoster.Storage.Data.Entities.User", "DeletedBy")
+                        .WithMany()
+                        .HasForeignKey("DeletedById");
+
+                    b.HasOne("TgPoster.Storage.Data.Entities.TelegramSession", "TelegramSession")
+                        .WithMany()
+                        .HasForeignKey("TelegramSessionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("TgPoster.Storage.Data.Entities.User", "UpdatedBy")
+                        .WithMany()
+                        .HasForeignKey("UpdatedById");
+
+                    b.Navigation("CreatedBy");
+
+                    b.Navigation("DeletedBy");
+
+                    b.Navigation("TelegramSession");
+
+                    b.Navigation("UpdatedBy");
                 });
 
             modelBuilder.Entity("TgPoster.Storage.Data.Entities.User", b =>

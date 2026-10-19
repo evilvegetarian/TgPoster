@@ -21,8 +21,11 @@ internal sealed class ListRepostSettingsStorage(PosterContext context) : IListRe
 				IsActive = x.IsActive,
 				DestinationsCount = x.Destinations.Count,
 				ActiveDestinationsCount = x.Destinations.Count(d => d.IsActive),
+				// Бан берётся из реестра банов аккаунта: в направлении хранится только членство в чате
 				ProblemDestinationsCount = x.Destinations.Count(d =>
-					d.ChatStatus == ChatStatus.Banned || d.ChatStatus == ChatStatus.Left)
+					d.ChatStatus == ChatStatus.Left
+					|| context.TelegramSessionChatBans
+						.Any(b => b.TelegramSessionId == x.TelegramSessionId && b.ChatId == d.ChatId))
 			})
 			.ToListAsync(ct);
 	}

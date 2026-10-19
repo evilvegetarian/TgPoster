@@ -165,18 +165,21 @@ internal sealed partial class ClassifyChannelWorker(
 			return BatchOutcome.Failed("Не задан ключ OpenRouter (OpenRouterOptions:SecretKey в конфиге воркера)");
 		}
 
+		// Сессии нужны уже при отборе: канал, где забанены все они, брать незачем
+		var sessionIds = await authService.GetSessionIdsForPurposeAsync(TelegramSessionPurpose.Classification, ct);
+
 		var now = timeProvider.GetUtcNow();
 		var channels = await storage.GetChannelsToClassifyAsync(
 			settings.BatchSize,
 			now - RetryDelay,
 			settings.ReclassifyAfterDays is { } days ? now.AddDays(-days) : null,
+			sessionIds,
 			ct);
 		if (channels.Count == 0)
 		{
 			return BatchOutcome.Success;
 		}
 
-		var sessionIds = await authService.GetSessionIdsForPurposeAsync(TelegramSessionPurpose.Classification, ct);
 		if (sessionIds.Count == 0)
 		{
 			logger.LogWarning("Нет Telegram-сессий с назначением Classification");
@@ -204,9 +207,20 @@ internal sealed partial class ClassifyChannelWorker(
 			try
 			{
 				await storage.MarkClassificationAttemptAsync(channel.Id, timeProvider.GetUtcNow(), ct);
-				while (availableSessions.Count > 0)
+
+				// Сессия с записанным баном в канале упрётся в тот же отказ — канал ей не отдаём
+				var channelSessions = availableSessions
+					.Where(sessionId => !channel.BannedSessionIds.Contains(sessionId))
+					.ToList();
+				if (channelSessions.Count == 0)
 				{
-					var sessionId = availableSessions[nextSession++ % availableSessions.Count];
+					logger.LogDebug("Канал {ChannelId} закрыт всем свободным сессиям, пропускаем", channel.Id);
+					continue;
+				}
+
+				while (channelSessions.Count > 0)
+				{
+					var sessionId = channelSessions[nextSession++ % channelSessions.Count];
 					var floodWait = await ClassifyChannelAsync(channel, sessionId, settings, ct);
 					if (floodWait is null)
 					{
@@ -217,6 +231,7 @@ internal sealed partial class ClassifyChannelWorker(
 						"Сессия {SessionId} получила FloodWait на {Seconds} с, канал {ChannelId} передаём следующей",
 						sessionId, floodWait, channel.Id);
 					availableSessions.Remove(sessionId);
+					channelSessions.Remove(sessionId);
 					floodWaits.Add(floodWait.Value);
 				}
 			}
@@ -465,6 +480,17 @@ internal sealed partial class ClassifyChannelWorker(
 			if (await resolved.HandleChannelUnavailableAsync(async () =>
 				    await storage.MarkChannelBannedAsync(channel.Id, ct)))
 			{
+				return PeerLookup.NotFound;
+			}
+
+			// Канал закрыт только этому аккаунту: бан пишется за сессией, канал остаётся в Discover для остальных
+			if (resolved.Status == TelegramOperationStatus.ChannelBanned)
+			{
+				if ((resolved.Value?.Id ?? channel.TelegramId) is { } chatId)
+				{
+					await storage.MarkAccountBannedAsync(channel.Id, sessionId, chatId, resolved.ErrorMessage, ct);
+				}
+
 				return PeerLookup.NotFound;
 			}
 

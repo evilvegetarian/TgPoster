@@ -168,6 +168,49 @@ public class ImportRepostDestinationsConsumerShould
 	}
 
 	[Fact]
+	public async Task RecordAccountRestrictionAsBanNotInDiscover_WhenAccountIsRestricted()
+	{
+		var item = SetupPendingItem(username: "mutedchan");
+		SetupChat(item, 4242, false, true, isAccountRestricted: true);
+
+		await ConsumeAsync();
+
+		storage.Verify(s => s.UpdateDiscoveredChannelAsync(
+			item.DiscoveredChannelId, 4242, It.IsAny<string?>(), It.IsAny<string?>(), ChatType.Channel,
+			true, true, It.IsAny<CancellationToken>()), Times.Once);
+		storage.Verify(s => s.AddAccountBanAsync(
+			sessionId, 4242, It.IsAny<string?>(), It.IsAny<CancellationToken>()), Times.Once);
+		VerifyItemOutcome(item, AddDestinationOutcome.NoWritePermission);
+		VerifyNoDestinationAdded();
+	}
+
+	[Fact]
+	public async Task RecordAccountBan_WhenTelegramRejectsAccountAndChannelIdIsKnown()
+	{
+		var item = SetupPendingItem(username: "bannedchan", telegramId: 777);
+		chatService.Setup(c => c.TryGetChatInfoAsync(sessionId, "@bannedchan", It.IsAny<bool>()))
+			.ReturnsAsync(TelegramOperationResult<TelegramChatInfo>.Failed(
+				TelegramOperationStatus.ChannelBanned, "CHANNEL_PRIVATE"));
+
+		await ConsumeAsync();
+
+		storage.Verify(s => s.AddAccountBanAsync(
+			sessionId, 777, "CHANNEL_PRIVATE", It.IsAny<CancellationToken>()), Times.Once);
+		VerifyItemOutcome(item, AddDestinationOutcome.NotResolved);
+	}
+
+	[Fact]
+	public async Task SkipWithoutTelegram_WhenAccountBanIsRecorded()
+	{
+		var item = SetupPendingItem(username: "bannedchan", telegramId: 777, isAccountBanned: true);
+
+		await ConsumeAsync();
+
+		VerifyItemOutcome(item, AddDestinationOutcome.NotResolved);
+		chatService.VerifyNoOtherCalls();
+	}
+
+	[Fact]
 	public async Task SkipSourceChannel_WhenResolvedIdMatchesSchedule()
 	{
 		var item = SetupPendingItem(username: "sourcechan");
@@ -370,7 +413,8 @@ public class ImportRepostDestinationsConsumerShould
 		string? inviteHash = null,
 		long? telegramId = null,
 		bool? canSendMessages = null,
-		bool? canSendMedia = null
+		bool? canSendMedia = null,
+		bool isAccountBanned = false
 	)
 	{
 		var item = new ImportJobPendingItem(
@@ -381,7 +425,8 @@ public class ImportRepostDestinationsConsumerShould
 			inviteHash,
 			1000,
 			canSendMessages,
-			canSendMedia);
+			canSendMedia,
+			isAccountBanned);
 		SetupPendingItems(item);
 
 		return item;
@@ -396,7 +441,8 @@ public class ImportRepostDestinationsConsumerShould
 		long chatId,
 		bool canSendMessages,
 		bool canSendMedia,
-		string? identifier = null
+		string? identifier = null,
+		bool isAccountRestricted = false
 	)
 	{
 		var info = new TelegramChatInfo
@@ -409,6 +455,10 @@ public class ImportRepostDestinationsConsumerShould
 			IsGroup = false,
 			CanSendMessages = canSendMessages,
 			CanSendMedia = canSendMedia,
+			// Личное ограничение аккаунта не меняет общих прав участника
+			MembersCanSendMessages = canSendMessages || isAccountRestricted,
+			MembersCanSendMedia = canSendMedia || isAccountRestricted,
+			IsAccountRestricted = isAccountRestricted,
 			Peer = TelegramPeer.Channel(chatId, 1)
 		};
 

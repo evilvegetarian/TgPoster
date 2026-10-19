@@ -24,6 +24,7 @@ internal class PosterContext(
 	public DbSet<PromptSetting> PromptSettings { get; set; }
 	public DbSet<YouTubeAccount> YouTubeAccounts { get; set; }
 	public DbSet<TelegramSession> TelegramSessions { get; set; }
+	public DbSet<TelegramSessionChatBan> TelegramSessionChatBans { get; set; }
 	public DbSet<Proxy> Proxies { get; set; }
 	public DbSet<RepostDestination> RepostDestinations { get; set; }
 	public DbSet<RepostSettings> RepostSettings { get; set; }

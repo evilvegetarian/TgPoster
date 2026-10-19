@@ -9,6 +9,7 @@ internal static class ChatMapper
 	{
 		var isCreator = c.flags.HasFlag(Channel.Flags.creator);
 		var isAdmin = c.admin_rights != null || isCreator;
+		var isBroadcast = c.IsChannel && !c.IsGroup;
 
 		var (canMsg, canMedia) = CalculatePermissions(
 			isCreator,
@@ -16,8 +17,11 @@ internal static class ChatMapper
 			c.admin_rights,
 			c.banned_rights,
 			c.default_banned_rights,
-			c.IsChannel && !c.IsGroup
+			isBroadcast
 		);
+
+		var defaultFlags = c.default_banned_rights?.flags ?? 0;
+		var personalFlags = c.banned_rights?.flags ?? 0;
 
 		return new TelegramChatInfo
 		{
@@ -31,6 +35,13 @@ internal static class ChatMapper
 			IsCreator = isCreator,
 			CanSendMessages = canMsg,
 			CanSendMedia = canMedia,
+			// В витрину канала пишут тольо админы, в группе права участника задаёт default_banned_rights
+			MembersCanSendMessages = !isBroadcast && !defaultFlags.HasFlag(ChatBannedRights.Flags.send_messages),
+			MembersCanSendMedia = !isBroadcast && !defaultFlags.HasFlag(ChatBannedRights.Flags.send_media),
+			// banned_rights — ограничения, наложенные лично на этот аккаунт, а не на всех участников
+			IsAccountRestricted = !isAdmin && (personalFlags.HasFlag(ChatBannedRights.Flags.view_messages)
+			                                   || personalFlags.HasFlag(ChatBannedRights.Flags.send_messages)
+			                                   || personalFlags.HasFlag(ChatBannedRights.Flags.send_media)),
 			ParticipantsCount = c.participants_count != 0 ? c.participants_count : null,
 			Peer = TelegramPeer.Channel(c.ID, c.access_hash)
 		};
@@ -46,6 +57,7 @@ internal static class ChatMapper
 		var canMedia = !isDeactivated
 		               && !(c.default_banned_rights?.flags.HasFlag(ChatBannedRights.Flags.send_media) ?? false);
 
+		// В обычной группе нет личных ограничений участника: права задаются только для всех сразу
 		return new TelegramChatInfo
 		{
 			Id = c.ID,
@@ -58,6 +70,8 @@ internal static class ChatMapper
 			IsCreator = isCreator,
 			CanSendMessages = canSend,
 			CanSendMedia = canMedia,
+			MembersCanSendMessages = canSend,
+			MembersCanSendMedia = canMedia,
 			ParticipantsCount = c.participants_count != 0 ? c.participants_count : null,
 			Peer = TelegramPeer.Chat(c.ID)
 		};
@@ -75,6 +89,8 @@ internal static class ChatMapper
 		IsCreator = false,
 		CanSendMessages = !u.IsBot,
 		CanSendMedia = true,
+		MembersCanSendMessages = !u.IsBot,
+		MembersCanSendMedia = true,
 		Peer = TelegramPeer.User(u.ID, u.access_hash)
 	};
 

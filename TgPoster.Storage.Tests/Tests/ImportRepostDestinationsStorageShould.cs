@@ -287,6 +287,42 @@ public sealed class ImportRepostDestinationsStorageShould(StorageTestFixture fix
 		destination.MaxRepostsPerDay.ShouldBe(7);
 	}
 
+	[Fact]
+	public async Task GetPendingItemsAsync_ShouldMarkChannelsWhereJobSessionIsBanned()
+	{
+		var session = await new TelegramSessionBuilder(context).CreateAsync();
+		var settings = await new RepostSettingsBuilder(context).WithTelegramSessionId(session.Id).CreateAsync();
+		var job = await CreateJobAsync(settings.Id);
+		var banned = await CreateDiscoveredChannelAsync();
+		var bannedForOther = await CreateDiscoveredChannelAsync();
+		await CreateItemAsync(job.Id, banned.Id, 0, AddDestinationOutcome.Pending);
+		await CreateItemAsync(job.Id, bannedForOther.Id, 1, AddDestinationOutcome.Pending);
+		await new TelegramSessionChatBanBuilder(context)
+			.WithTelegramSessionId(session.Id)
+			.WithChatId(banned.TelegramId!.Value)
+			.CreateAsync();
+		await new TelegramSessionChatBanBuilder(context).WithChatId(bannedForOther.TelegramId!.Value).CreateAsync();
+
+		var result = await sut.GetPendingItemsAsync(job.Id, CancellationToken.None);
+
+		result.Single(x => x.DiscoveredChannelId == banned.Id).IsAccountBanned.ShouldBeTrue();
+		result.Single(x => x.DiscoveredChannelId == bannedForOther.Id).IsAccountBanned.ShouldBeFalse();
+	}
+
+	[Fact]
+	public async Task AddAccountBanAsync_ShouldRecordBanOfSessionInChat()
+	{
+		var session = await new TelegramSessionBuilder(context).CreateAsync();
+
+		await sut.AddAccountBanAsync(session.Id, 4242, "CHANNEL_PRIVATE", CancellationToken.None);
+
+		var ban = await context.TelegramSessionChatBans
+			.AsNoTracking()
+			.SingleAsync(x => x.TelegramSessionId == session.Id);
+		ban.ChatId.ShouldBe(4242);
+		ban.Error.ShouldBe("CHANNEL_PRIVATE");
+	}
+
 	private async Task<RepostImportJob> CreateJobAsync(Guid repostSettingsId, bool autoJoin = true)
 	{
 		var job = new RepostImportJob

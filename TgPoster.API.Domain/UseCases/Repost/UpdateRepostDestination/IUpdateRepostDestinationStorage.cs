@@ -26,4 +26,23 @@ public interface IUpdateRepostDestinationStorage
 		int? maxRepostsPerDay,
 		CancellationToken ct
 	);
+
+	/// <summary>
+	/// Фиксирует бан аккаунта сессии в чате: автоматика больше не будет пробовать туда пересылать
+	/// </summary>
+	/// <param name="telegramSessionId"></param>
+	/// <param name="chatId"></param>
+	/// <param name="error"></param>
+	/// <param name="ct"></param>
+	/// <returns></returns>
+	Task AddAccountBanAsync(Guid telegramSessionId, long chatId, string? error, CancellationToken ct);
+
+	/// <summary>
+	/// Снимает зафиксированный бан аккаунта сессии в чате: доступ только что проверен
+	/// </summary>
+	/// <param name="telegramSessionId"></param>
+	/// <param name="chatId"></param>
+	/// <param name="ct"></param>
+	/// <returns></returns>
+	Task RemoveAccountBanAsync(Guid telegramSessionId, long chatId, CancellationToken ct);
 }

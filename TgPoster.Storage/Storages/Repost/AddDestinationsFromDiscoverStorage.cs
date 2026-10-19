@@ -26,6 +26,7 @@ internal sealed class AddDestinationsFromDiscoverStorage(PosterContext context, 
 
 	public Task<List<DiscoverCandidate>> GetCandidatesAsync(
 		IReadOnlyList<Guid> discoveredChannelIds,
+		Guid telegramSessionId,
 		CancellationToken ct
 	)
 	{
@@ -38,13 +39,16 @@ internal sealed class AddDestinationsFromDiscoverStorage(PosterContext context, 
 				x.Title,
 				x.InviteHash,
 				x.CanSendMessages,
-				x.CanSendMedia))
+				x.CanSendMedia,
+				context.TelegramSessionChatBans
+					.Any(b => b.TelegramSessionId == telegramSessionId && b.ChatId == x.TelegramId)))
 			.ToListAsync(ct);
 	}
 
 	public Task<List<DiscoverCandidate>> GetCandidatesByFilterAsync(
 		DiscoverImportFilter filter,
 		IReadOnlyCollection<long> excludedChatIds,
+		Guid telegramSessionId,
 		int limit,
 		CancellationToken ct
 	)
@@ -60,6 +64,10 @@ internal sealed class AddDestinationsFromDiscoverStorage(PosterContext context, 
 			.Where(x => x.TelegramId == null || !excludedChatIds.Contains(x.TelegramId.Value))
 			// Права из прошлых проверок: писать нельзя — резолвить и вступать незачем
 			.Where(x => x.CanSendMessages != false && x.CanSendMedia != false)
+			// Этот аккаунт в канале уже забанен: другим сессиям канал остаётся доступен
+			.Where(x => x.TelegramId == null
+			            || !context.TelegramSessionChatBans
+				            .Any(b => b.TelegramSessionId == telegramSessionId && b.ChatId == x.TelegramId))
 			// Канал без единого идентификатора в Telegram не открыть
 			.Where(x => x.Username != null || x.InviteHash != null || x.TelegramId != null)
 			.ApplyDiscoverSort(filter.SortBy, filter.SortDirection)
@@ -71,7 +79,8 @@ internal sealed class AddDestinationsFromDiscoverStorage(PosterContext context, 
 				x.Title,
 				x.InviteHash,
 				x.CanSendMessages,
-				x.CanSendMedia))
+				x.CanSendMedia,
+				false))
 			.ToListAsync(ct);
 	}
 

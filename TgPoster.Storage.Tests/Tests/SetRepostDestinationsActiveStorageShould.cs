@@ -17,7 +17,7 @@ public sealed class SetRepostDestinationsActiveStorageShould : IClassFixture<Sto
 	public SetRepostDestinationsActiveStorageShould(StorageTestFixture fixture)
 	{
 		context = fixture.GetDbContext();
-		sut = new SetRepostDestinationsActiveStorage(context);
+		sut = new SetRepostDestinationsActiveStorage(context, new GuidFactory());
 	}
 
 	[Fact]
@@ -85,6 +85,52 @@ public sealed class SetRepostDestinationsActiveStorageShould : IClassFixture<Sto
 		var deactivated = await LoadAsync(destination.Id);
 		deactivated.IsActive.ShouldBeFalse();
 		deactivated.ChatStatus.ShouldBe(ChatStatus.Left);
+	}
+
+	[Fact]
+	public async Task GetBannedChatIdsAsync_ShouldReturnOnlyActiveBansOfSession()
+	{
+		var banned = await new TelegramSessionChatBanBuilder(context).CreateAsync(ct);
+		var sessionId = banned.TelegramSessionId;
+		var removed = await new TelegramSessionChatBanBuilder(context)
+			.WithTelegramSessionId(sessionId)
+			.WithDeleted(DateTimeOffset.UtcNow)
+			.CreateAsync(ct);
+		var otherSession = await new TelegramSessionChatBanBuilder(context).CreateAsync(ct);
+		var notRequested = await new TelegramSessionChatBanBuilder(context)
+			.WithTelegramSessionId(sessionId)
+			.CreateAsync(ct);
+
+		var result = await sut.GetBannedChatIdsAsync(
+			sessionId,
+			[banned.ChatId, removed.ChatId, otherSession.ChatId, 42],
+			ct);
+
+		result.ShouldBe([banned.ChatId]);
+		result.ShouldNotContain(notRequested.ChatId);
+	}
+
+	[Fact]
+	public async Task AddAccountBansAsync_ShouldRecordEveryChatOnce()
+	{
+		var session = await new TelegramSessionBuilder(context).CreateAsync(ct);
+		await new TelegramSessionChatBanBuilder(context)
+			.WithTelegramSessionId(session.Id)
+			.WithChatId(111)
+			.CreateAsync(ct);
+
+		await sut.AddAccountBansAsync(
+			session.Id,
+			new Dictionary<long, string> { [111] = "CHANNEL_FORBIDDEN", [222] = "ограничен" },
+			ct);
+
+		var bans = await context.TelegramSessionChatBans
+			.AsNoTracking()
+			.Where(x => x.TelegramSessionId == session.Id)
+			.ToListAsync(ct);
+		bans.Count.ShouldBe(2);
+		bans.Single(x => x.ChatId == 111).Error.ShouldBe("CHANNEL_FORBIDDEN");
+		bans.Single(x => x.ChatId == 222).Error.ShouldBe("ограничен");
 	}
 
 	private async Task<(RepostSettings Settings, Guid UserId)> CreateSettingsAsync()

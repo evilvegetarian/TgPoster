@@ -11,4 +11,12 @@ public interface IUpdateCommentRepostStorage
 	///     Обновляет статус активности.
 	/// </summary>
 	Task UpdateAsync(Guid id, bool isActive, CancellationToken ct);
+
+	/// <summary>
+	/// Снимает зафиксированный бан аккаунта сессии в группе обсуждения этих настроек
+	/// </summary>
+	/// <param name="id"></param>
+	/// <param name="ct"></param>
+	/// <returns></returns>
+	Task RemoveAccountBanAsync(Guid id, CancellationToken ct);
 }

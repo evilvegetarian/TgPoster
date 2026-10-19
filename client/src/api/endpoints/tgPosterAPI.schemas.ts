@@ -1448,6 +1448,8 @@ export const RepostLogReason = {
   Banned: 'Banned',
   ForwardFailed: 'ForwardFailed',
   TopicClosed: 'TopicClosed',
+  NoWritePermission: 'NoWritePermission',
+  NoMediaPermission: 'NoMediaPermission',
 } as const;
 
 export interface RepostLogReasonCount {

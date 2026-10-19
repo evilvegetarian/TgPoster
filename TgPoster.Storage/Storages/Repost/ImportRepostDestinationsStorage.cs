@@ -52,8 +52,17 @@ internal sealed class ImportRepostDestinationsStorage(PosterContext context, Gui
 					channel.InviteHash,
 					channel.ParticipantsCount,
 					channel.CanSendMessages,
-					channel.CanSendMedia))
+					channel.CanSendMedia,
+					context.TelegramSessionChatBans.Any(b =>
+						b.TelegramSessionId == item.RepostImportJob.RepostSettings.TelegramSessionId
+						&& b.ChatId == channel.TelegramId)))
 			.ToListAsync(ct);
+	}
+
+	public async Task AddAccountBanAsync(Guid telegramSessionId, long chatId, string? error, CancellationToken ct)
+	{
+		await context.AddOrUpdateChatBanAsync(guidFactory, telegramSessionId, chatId, error, ct);
+		await context.SaveChangesAsync(ct);
 	}
 
 	public Task<List<long>> GetExistingChatIdsAsync(Guid repostSettingsId, CancellationToken ct)

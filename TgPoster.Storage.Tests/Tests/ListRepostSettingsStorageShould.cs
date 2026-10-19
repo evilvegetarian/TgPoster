@@ -64,7 +64,12 @@ public sealed class ListRepostSettingsStorageShould(StorageTestFixture fixture) 
 
 		await CreateDestinationAsync(settings.Id, true, ChatStatus.Active);
 		await CreateDestinationAsync(settings.Id, true, ChatStatus.Unknown);
-		await CreateDestinationAsync(settings.Id, false, ChatStatus.Banned);
+		// Бан берётся из реестра аккаунта, а не из статуса направления
+		var banned = await CreateDestinationAsync(settings.Id, false, ChatStatus.Active);
+		await new TelegramSessionChatBanBuilder(context)
+			.WithTelegramSessionId(session.Id)
+			.WithChatId(banned.ChatId)
+			.CreateAsync();
 		await CreateDestinationAsync(settings.Id, false, ChatStatus.Left);
 		await CreateDestinationAsync(settings.Id, false, ChatStatus.Active);
 

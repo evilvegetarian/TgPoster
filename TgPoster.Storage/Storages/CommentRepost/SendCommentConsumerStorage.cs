@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using Shared.Enums;
 using TgPoster.Storage.Data;
 using TgPoster.Storage.Data.Entities;
@@ -30,6 +31,54 @@ internal sealed class SendCommentConsumerStorage(PosterContext context, GuidFact
 		};
 
 		context.CommentRepostLogs.Add(log);
+		await context.SaveChangesAsync(ct);
+	}
+
+	public Task<bool> IsAccountBannedAsync(Guid telegramSessionId, long chatId, CancellationToken ct)
+	{
+		return context.TelegramSessionChatBans
+			.AnyAsync(x => x.TelegramSessionId == telegramSessionId && x.ChatId == chatId, ct);
+	}
+
+	public async Task MarkAccountBannedAsync(
+		Guid telegramSessionId,
+		long discussionGroupId,
+		string? error,
+		CancellationToken ct
+	)
+	{
+		await context.AddOrUpdateChatBanAsync(guidFactory, telegramSessionId, discussionGroupId, error, ct);
+
+		var settings = await context.CommentRepostSettings
+			.Where(x => x.TelegramSessionId == telegramSessionId
+			            && x.DiscussionGroupId == discussionGroupId
+			            && x.IsActive)
+			.ToListAsync(ct);
+
+		foreach (var setting in settings)
+		{
+			setting.IsActive = false;
+		}
+
+		await context.SaveChangesAsync(ct);
+	}
+
+	public async Task MarkChatWriteForbiddenAsync(Guid settingsId, long discussionGroupId, CancellationToken ct)
+	{
+		var settings = await context.CommentRepostSettings.FirstAsync(x => x.Id == settingsId, ct);
+		settings.IsActive = false;
+
+		// Группы обсуждения обычно нет в Discover — тогда записывать запрет некуда
+		var channels = await context.DiscoveredChannels
+			.IgnoreQueryFilters()
+			.Where(x => x.TelegramId == discussionGroupId)
+			.ToListAsync(ct);
+
+		foreach (var channel in channels)
+		{
+			channel.CanSendMessages = false;
+		}
+
 		await context.SaveChangesAsync(ct);
 	}
 }

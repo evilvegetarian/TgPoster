@@ -11,7 +11,9 @@ namespace TgPoster.Telegram.Abstractions;
 public interface ITelegramMessageService
 {
 	/// <summary>
-	///     Разрешает канал/чат по username
+	///     Разрешает канал/чат по username. Если канал недоступен именно этому аккаунту (бан, исключение),
+	///     возвращает <see cref="TelegramOperationStatus.ChannelBanned" />, а в Value — id и название канала,
+	///     чтобы бан можно было записать за этим аккаунтом
 	/// </summary>
 	/// <param name="sessionId">Идентификатор Telegram-сессии</param>
 	/// <param name="username">Username канала (без @)</param>
@@ -34,6 +36,20 @@ public interface ITelegramMessageService
 	/// <param name="waitOnFloodWait"></param>
 	/// <returns></returns>
 	Task<TelegramOperationResult<IReadOnlyList<TelegramChatInfo>>> GetJoinedChatsAsync(
+		Guid sessionId,
+		CancellationToken ct = default,
+		bool waitOnFloodWait = false
+	);
+
+	/// <summary>
+	/// Тем же запросом getAllChats получает чаты, где аккаунт участник, и отдельно — чаты, где его забанили
+	/// или исключили. По второму списку бан отличается от добровольного выхода
+	/// </summary>
+	/// <param name="sessionId"></param>
+	/// <param name="ct"></param>
+	/// <param name="waitOnFloodWait"></param>
+	/// <returns></returns>
+	Task<TelegramOperationResult<TelegramJoinedChats>> GetChatMembershipAsync(
 		Guid sessionId,
 		CancellationToken ct = default,
 		bool waitOnFloodWait = false

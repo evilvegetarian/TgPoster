@@ -33,7 +33,9 @@ internal sealed class RepostMessageConsumerStorage(PosterContext context, GuidFa
 						DelayMaxSeconds = d.DelayMaxSeconds,
 						RepostEveryNth = d.RepostEveryNth,
 						SkipProbability = d.SkipProbability,
-						MaxRepostsPerDay = d.MaxRepostsPerDay
+						MaxRepostsPerDay = d.MaxRepostsPerDay,
+						IsAccountBanned = context.TelegramSessionChatBans
+							.Any(b => b.TelegramSessionId == rs.TelegramSessionId && b.ChatId == d.ChatId)
 					}).ToList()
 			})
 			.FirstOrDefaultAsync(ct);
@@ -75,6 +77,64 @@ internal sealed class RepostMessageConsumerStorage(PosterContext context, GuidFa
 		destination.ChatStatus = chatStatus;
 		destination.IsActive = isActive;
 		destination.InfoUpdatedAt = DateTimeOffset.UtcNow;
+
+		await context.SaveChangesAsync(ct);
+	}
+
+	public async Task MarkAccountBannedAsync(Guid telegramSessionId, long chatId, string? error, CancellationToken ct)
+	{
+		await context.AddOrUpdateChatBanAsync(guidFactory, telegramSessionId, chatId, error, ct);
+
+		var destinations = await context.Set<RepostDestination>()
+			.Where(x => x.RepostSettings.TelegramSessionId == telegramSessionId && x.ChatId == chatId)
+			.ToListAsync(ct);
+
+		// Статус членства не трогаем: бан хранится только в реестре, «забанен» в интерфейсе вычисляется оттуда
+		var now = DateTimeOffset.UtcNow;
+		foreach (var destination in destinations)
+		{
+			destination.IsActive = false;
+			destination.InfoUpdatedAt = now;
+		}
+
+		await context.SaveChangesAsync(ct);
+	}
+
+	public async Task DeactivateDestinationAsync(Guid destinationId, CancellationToken ct)
+	{
+		var destination = await context.Set<RepostDestination>()
+			.FirstAsync(x => x.Id == destinationId, ct);
+
+		destination.IsActive = false;
+		destination.InfoUpdatedAt = DateTimeOffset.UtcNow;
+
+		await context.SaveChangesAsync(ct);
+	}
+
+	public async Task DisableForChatRestrictionAsync(
+		Guid destinationId,
+		bool? canSendMessages,
+		bool? canSendMedia,
+		CancellationToken ct
+	)
+	{
+		var destination = await context.Set<RepostDestination>()
+			.FirstAsync(x => x.Id == destinationId, ct);
+
+		destination.IsActive = false;
+		destination.InfoUpdatedAt = DateTimeOffset.UtcNow;
+
+		// Направления, добавленные до связки с Discover, ищем по id чата
+		var channels = context.DiscoveredChannels.IgnoreQueryFilters();
+		var discovered = destination.DiscoveredChannelId is { } discoveredChannelId
+			? await channels.FirstOrDefaultAsync(x => x.Id == discoveredChannelId, ct)
+			: await channels.FirstOrDefaultAsync(x => x.TelegramId == destination.ChatId, ct);
+
+		if (discovered != null)
+		{
+			discovered.CanSendMessages = canSendMessages ?? discovered.CanSendMessages;
+			discovered.CanSendMedia = canSendMedia ?? discovered.CanSendMedia;
+		}
 
 		await context.SaveChangesAsync(ct);
 	}

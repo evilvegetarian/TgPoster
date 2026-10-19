@@ -62,30 +62,60 @@ internal sealed class SetRepostDestinationsActiveUseCase(
 		CancellationToken ct
 	)
 	{
-		// Те же каналы, для которых одиночное включение провряет членство
+		// Те же каналы, для которых одиночное включение провряет членство. Бан в статусе не хранится,
+		// его ниже берём из реестра банов аккаунта
 		var candidates = destinations
-			.Where(d => !d.IsActive || d.ChatStatus is ChatStatus.Left or ChatStatus.Banned)
+			.Where(d => !d.IsActive || d.ChatStatus is ChatStatus.Left)
 			.ToList();
 
 		if (candidates.Count == 0)
 			return Result(0, 0, 0);
 
+		// Бан аккаунта зафиксирован прошлой попыткой: в списке чатов такой чат может выглядеть доступным,
+		// а пересылка снова упадёт. Перепроверяет бан только включение по одному
+		var bannedChatIds = (await storage.GetBannedChatIdsAsync(
+				sessionId,
+				candidates.Select(d => TelegramChatId.ResolveRaw(d.ChatId)).Distinct().ToList(),
+				ct))
+			.ToHashSet();
+
+		var notMember = candidates.Count(d => bannedChatIds.Contains(TelegramChatId.ResolveRaw(d.ChatId)));
+		candidates = candidates
+			.Where(d => !bannedChatIds.Contains(TelegramChatId.ResolveRaw(d.ChatId)))
+			.ToList();
+
+		if (candidates.Count == 0)
+			return Result(0, notMember, 0);
+
 		var joinedChats = await chatService.TryGetJoinedChatsAsync(sessionId);
 		if (!joinedChats.IsSuccess)
 			throw new RepostDestinationsMembershipCheckException(DescribeFailure(joinedChats));
 
-		var chats = joinedChats.Value!;
+		var membership = joinedChats.Value!;
 		List<Guid> toEnable = [];
-		var notMember = 0;
+		Dictionary<long, string> accountBans = [];
 		var noPermission = 0;
 
 		foreach (var destination in candidates)
 		{
-			if (!chats.TryGetValue(TelegramChatId.ResolveRaw(destination.ChatId), out var chat))
+			var chatId = TelegramChatId.ResolveRaw(destination.ChatId);
+
+			// Чат отдан недоступным — это бан аккаунта, его записываем, чтобы автоматика туда не ходила
+			if (membership.ForbiddenChatIds.Contains(chatId))
+			{
+				accountBans[chatId] = "CHANNEL_FORBIDDEN";
+				notMember++;
+				continue;
+			}
+
+			if (!membership.Chats.TryGetValue(chatId, out var chat))
 			{
 				notMember++;
 				continue;
 			}
+
+			if (chat.IsAccountRestricted)
+				accountBans[chatId] = "Аккаунт ограничен в чате администратором";
 
 			if (!chat.CanSendMessages || !chat.CanSendMedia)
 			{
@@ -95,6 +125,9 @@ internal sealed class SetRepostDestinationsActiveUseCase(
 
 			toEnable.Add(destination.Id);
 		}
+
+		if (accountBans.Count > 0)
+			await storage.AddAccountBansAsync(sessionId, accountBans, ct);
 
 		if (toEnable.Count > 0)
 			await storage.ActivateAsync(toEnable, ct);

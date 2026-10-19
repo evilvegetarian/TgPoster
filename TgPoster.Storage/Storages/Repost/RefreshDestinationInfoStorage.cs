@@ -6,7 +6,8 @@ using TgPoster.Storage.Data.Entities;
 
 namespace TgPoster.Storage.Storages.Repost;
 
-internal sealed class RefreshDestinationInfoStorage(PosterContext context) : IRefreshDestinationInfoStorage
+internal sealed class RefreshDestinationInfoStorage(PosterContext context, GuidFactory guidFactory)
+	: IRefreshDestinationInfoStorage
 {
 	public Task<Guid?> GetTelegramSessionIdAsync(Guid destinationId, CancellationToken ct)
 	{
@@ -30,7 +31,7 @@ internal sealed class RefreshDestinationInfoStorage(PosterContext context) : IRe
 		string? username,
 		int? memberCount,
 		ChatType chatType,
-		ChatStatus chatStatus,
+		ChatStatus? chatStatus,
 		string? avatarBase64,
 		CancellationToken ct
 	)
@@ -42,10 +43,16 @@ internal sealed class RefreshDestinationInfoStorage(PosterContext context) : IRe
 		destination.Username = username;
 		destination.MemberCount = memberCount;
 		destination.ChatType = chatType;
-		destination.ChatStatus = chatStatus;
+		destination.ChatStatus = chatStatus ?? destination.ChatStatus;
 		destination.AvatarBase64 = avatarBase64;
 		destination.InfoUpdatedAt = DateTimeOffset.UtcNow;
 
+		await context.SaveChangesAsync(ct);
+	}
+
+	public async Task AddAccountBanAsync(Guid telegramSessionId, long chatId, string? error, CancellationToken ct)
+	{
+		await context.AddOrUpdateChatBanAsync(guidFactory, telegramSessionId, chatId, error, ct);
 		await context.SaveChangesAsync(ct);
 	}
 }

@@ -90,6 +90,11 @@ internal sealed partial class TelegramChatService(
 			await alertService.NotifyAsync(sessionId, TelegramSessionProblem.FloodWait, ex.Message);
 			return Failed(TelegramOperationStatus.FloodWait, input, ex.Message, ex.X);
 		}
+		catch (RpcException ex) when (ex.Message is "CHANNEL_PRIVATE" or "USER_BANNED_IN_CHANNEL")
+		{
+			// Так Telegram отвечает на вступление в канал, из которого аккаунт забанен
+			return Failed(TelegramOperationStatus.ChannelBanned, input, ex.Message);
+		}
 		catch (RpcException ex)
 		{
 			return Failed(TelegramOperationStatus.UnknownError, input, ex.Message);
@@ -100,9 +105,7 @@ internal sealed partial class TelegramChatService(
 		}
 	}
 
-	public async Task<TelegramOperationResult<IReadOnlyDictionary<long, TelegramChatInfo>>> TryGetJoinedChatsAsync(
-		Guid sessionId
-	)
+	public async Task<TelegramOperationResult<TelegramJoinedChats>> TryGetJoinedChatsAsync(Guid sessionId)
 	{
 		try
 		{
@@ -111,11 +114,16 @@ internal sealed partial class TelegramChatService(
 			// Не GetAllDialogs: диалоги читаются страницами, и чат с новым сообщением между запросами выпадает
 			var joinedChats = await client.Messages_GetAllChats();
 
-			IReadOnlyDictionary<long, TelegramChatInfo> chats = joinedChats.chats
-				.Where(pair => pair.Value is Channel or Chat)
-				.ToDictionary(pair => pair.Key, pair => MapToInfo(pair.Value));
-
-			return TelegramOperationResult<IReadOnlyDictionary<long, TelegramChatInfo>>.Success(chats);
+			return TelegramOperationResult<TelegramJoinedChats>.Success(new TelegramJoinedChats
+			{
+				Chats = joinedChats.chats
+					.Where(pair => pair.Value is Channel or Chat)
+					.ToDictionary(pair => pair.Key, pair => MapToInfo(pair.Value)),
+				ForbiddenChatIds = joinedChats.chats.Values
+					.Where(chat => chat is ChannelForbidden or ChatForbidden)
+					.Select(chat => chat.ID)
+					.ToHashSet()
+			});
 		}
 		catch (TelegramAuthSessionNotFoundException ex)
 		{
@@ -297,7 +305,7 @@ internal sealed partial class TelegramChatService(
 		return TelegramOperationResult<TelegramChatInfo>.Failed(status, error, floodWaitSeconds);
 	}
 
-	private TelegramOperationResult<IReadOnlyDictionary<long, TelegramChatInfo>> JoinedChatsFailed(
+	private TelegramOperationResult<TelegramJoinedChats> JoinedChatsFailed(
 		TelegramOperationStatus status,
 		Guid sessionId,
 		string? error,
@@ -305,7 +313,7 @@ internal sealed partial class TelegramChatService(
 	)
 	{
 		logger.LogWarning("Telegram TryGetJoinedChats({SessionId}): {Status} ({Error})", sessionId, status, error);
-		return TelegramOperationResult<IReadOnlyDictionary<long, TelegramChatInfo>>.Failed(
+		return TelegramOperationResult<TelegramJoinedChats>.Failed(
 			status,
 			error,
 			floodWaitSeconds);

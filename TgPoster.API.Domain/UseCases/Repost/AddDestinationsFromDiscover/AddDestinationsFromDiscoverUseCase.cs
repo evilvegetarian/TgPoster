@@ -68,8 +68,8 @@ internal sealed class AddDestinationsFromDiscoverUseCase(
 		// Telegram здесь не трогаем: раскладываем каналы на "уже всё понятно по данным БД"
 		// и "нужен резолв" — второе уедет в фоновую обработку по одному каналу
 		var items = request.Filter == null
-			? await BuildItemsFromIdsAsync(request, settings.SourceChannelId, existingChatIds, ct)
-			: await BuildItemsFromFilterAsync(request.Filter, settings.SourceChannelId, existingChatIds, ct);
+			? await BuildItemsFromIdsAsync(request, settings, existingChatIds, ct)
+			: await BuildItemsFromFilterAsync(request.Filter, settings, existingChatIds, ct);
 
 		var jobId = await storage.CreateImportJobAsync(
 			request.RepostSettingsId,
@@ -108,19 +108,19 @@ internal sealed class AddDestinationsFromDiscoverUseCase(
 
 	private async Task<List<ImportJobItemDto>> BuildItemsFromIdsAsync(
 		AddDestinationsFromDiscoverCommand request,
-		long sourceChannelId,
+		RepostSettingsDefaults settings,
 		HashSet<long> existingChatIds,
 		CancellationToken ct
 	)
 	{
 		var requestedIds = request.DiscoveredChannelIds.Distinct().ToList();
 
-		var candidates = (await storage.GetCandidatesAsync(requestedIds, ct))
+		var candidates = (await storage.GetCandidatesAsync(requestedIds, settings.TelegramSessionId, ct))
 			.ToDictionary(x => x.Id);
 
 		return requestedIds
 			.Select(id => candidates.TryGetValue(id, out var candidate)
-				? BuildItem(candidate, sourceChannelId, existingChatIds)
+				? BuildItem(candidate, settings.SourceChannelId, existingChatIds)
 				: new ImportJobItemDto(id, id.ToString(), AddDestinationOutcome.NotResolved,
 					"Канал не найден в Discover"))
 			.ToList();
@@ -128,14 +128,16 @@ internal sealed class AddDestinationsFromDiscoverUseCase(
 
 	private async Task<List<ImportJobItemDto>> BuildItemsFromFilterAsync(
 		DiscoverImportFilter filter,
-		long sourceChannelId,
+		RepostSettingsDefaults settings,
 		HashSet<long> existingChatIds,
 		CancellationToken ct
 	)
 	{
+		var sourceChannelId = settings.SourceChannelId;
 		var candidates = await storage.GetCandidatesByFilterAsync(
 			filter,
 			[..existingChatIds, sourceChannelId],
+			settings.TelegramSessionId,
 			MaxChannelsPerFilterRequest,
 			ct);
 
@@ -161,6 +163,13 @@ internal sealed class AddDestinationsFromDiscoverUseCase(
 		if (skipOutcome != null)
 		{
 			return new ImportJobItemDto(candidate.Id, title, skipOutcome.Value, null);
+		}
+
+		// Этот аккаунт в канале уже забанен: в Telegram за тем же отказом не идём
+		if (candidate.IsAccountBanned)
+		{
+			return new ImportJobItemDto(candidate.Id, title, AddDestinationOutcome.NotResolved,
+				"Аккаунт заблокирован в канале по данным прошлой попытки");
 		}
 
 		// Права из прошлых проверок: если писать нельзя — нет смысла резолвить и вступать

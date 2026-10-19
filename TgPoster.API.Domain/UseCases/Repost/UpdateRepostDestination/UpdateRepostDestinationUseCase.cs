@@ -12,6 +12,8 @@ internal sealed class UpdateRepostDestinationUseCase(
 	ITelegramChatService chatService)
 	: IRequestHandler<UpdateRepostDestinationCommand>
 {
+	private const string AccountRestrictedError = "Аккаунт ограничен в чате администратором";
+
 	public async Task Handle(UpdateRepostDestinationCommand request, CancellationToken ct)
 	{
 		var destination = await storage.GetDestinationAsync(request.Id, ct);
@@ -24,7 +26,7 @@ internal sealed class UpdateRepostDestinationUseCase(
 		// аккаунт возвращается в чат, иначе следующий репост снова отключит направление
 		if (request.IsActive && NeedsRejoin(destination))
 		{
-			await RejoinAsync(destination);
+			await RejoinAsync(destination, ct);
 			chatStatus = ChatStatus.Active;
 		}
 
@@ -41,15 +43,19 @@ internal sealed class UpdateRepostDestinationUseCase(
 	}
 
 	private static bool NeedsRejoin(RepostDestinationInfo destination) =>
-		!destination.IsActive || destination.ChatStatus is ChatStatus.Left or ChatStatus.Banned;
+		!destination.IsActive || destination.ChatStatus is ChatStatus.Left || destination.IsAccountBanned;
 
 	/// <summary>
-	/// Проверяет, что аккаунт состоит в чате и может пересылать туда медиа. Если не состоит, вступает по username
+	/// Проверяет, что аккаунт состоит в чате и может пересылать туда медиа. Если не состоит, вступает по username.
+	/// Отказ из-за бана записывается в реестр банов аккаунта, успешная проверка снимает записанный бан
 	/// </summary>
 	/// <param name="destination"></param>
+	/// <param name="ct"></param>
 	/// <returns></returns>
-	private async Task RejoinAsync(RepostDestinationInfo destination)
+	private async Task RejoinAsync(RepostDestinationInfo destination, CancellationToken ct)
 	{
+		var rawChatId = TelegramChatId.ResolveRaw(destination.ChatId);
+
 		var chat = await chatService.TryGetChatInfoAsync(
 			destination.TelegramSessionId,
 			destination.ChatId.ToString(),
@@ -65,13 +71,22 @@ internal sealed class UpdateRepostDestinationUseCase(
 		}
 
 		if (!chat.IsSuccess)
+		{
+			if (chat.Status == TelegramOperationStatus.ChannelBanned)
+				await storage.AddAccountBanAsync(destination.TelegramSessionId, rawChatId, chat.ErrorMessage, ct);
+
 			throw new RepostDestinationRejoinException(DescribeFailure(chat));
+		}
 
 		var info = chat.Value!;
 
 		// Username мог перейит к другому чату: тогда вступили не туда, куда настроен репост
-		if (info.Id != TelegramChatId.ResolveRaw(destination.ChatId))
+		if (info.Id != rawChatId)
 			throw new RepostDestinationRejoinException($"username @{destination.Username} теперь у другого чата");
+
+		// Запрет, наложенный лично на аккаунт, — бан этого аккаунта, а не свойство чата
+		if (info.IsAccountRestricted)
+			await storage.AddAccountBanAsync(destination.TelegramSessionId, rawChatId, AccountRestrictedError, ct);
 
 		// Репост пересылает и медиа, поэтому нужны оба права, как при добавлении канала
 		if (!info.CanSendMessages)
@@ -79,6 +94,8 @@ internal sealed class UpdateRepostDestinationUseCase(
 
 		if (!info.CanSendMedia)
 			throw new TelegramChatNoMediaPermissionException(info.Title);
+
+		await storage.RemoveAccountBanAsync(destination.TelegramSessionId, rawChatId, ct);
 	}
 
 	private static string DescribeFailure(TelegramOperationResult<TelegramChatInfo> result) => result.Status switch

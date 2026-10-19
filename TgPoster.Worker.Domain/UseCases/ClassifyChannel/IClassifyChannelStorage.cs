@@ -20,17 +20,20 @@ public interface IClassifyChannelStorage
 	///     Выбрать каналы для классификации: сначала ни разу не классифицированные, среди них — давно не пробованные,
 	///     при прочих равных чаты раньше каналов.
 	///     Неудачные попытки откладываются до <paramref name="retryBefore" />, повторная классификация — только
-	///     для классифицированных раньше <paramref name="reclassifyBefore" />
+	///     для классифицированных раньше <paramref name="reclassifyBefore" />.
+	///     Каналы, где забанены все переданные сессии, не выбираются: открыть их некому
 	/// </summary>
 	/// <param name="batchSize"></param>
 	/// <param name="retryBefore"></param>
 	/// <param name="reclassifyBefore"></param>
+	/// <param name="sessionIds"></param>
 	/// <param name="ct"></param>
 	/// <returns></returns>
 	Task<List<ChannelForClassificationDto>> GetChannelsToClassifyAsync(
 		int batchSize,
 		DateTimeOffset retryBefore,
 		DateTimeOffset? reclassifyBefore,
+		IReadOnlyCollection<Guid> sessionIds,
 		CancellationToken ct
 	);
 
@@ -53,6 +56,24 @@ public interface IClassifyChannelStorage
 	);
 
 	Task MarkChannelBannedAsync(Guid channelId, CancellationToken ct);
+
+	/// <summary>
+	/// Канал закрыт только этому аккаунту: записать бан за сессией, а канал оставить в Discover для остальных.
+	/// Telegram-id канала сохраняется, если его ещё не было, иначе бан не найдётся при следующем отборе
+	/// </summary>
+	/// <param name="channelId"></param>
+	/// <param name="telegramSessionId"></param>
+	/// <param name="chatId"></param>
+	/// <param name="error"></param>
+	/// <param name="ct"></param>
+	/// <returns></returns>
+	Task MarkAccountBannedAsync(
+		Guid channelId,
+		Guid telegramSessionId,
+		long chatId,
+		string? error,
+		CancellationToken ct
+	);
 }
 
 public sealed class ChannelForClassificationDto
@@ -62,6 +83,11 @@ public sealed class ChannelForClassificationDto
 	public required string? Description { get; init; }
 	public required string? Username { get; init; }
 	public required long? TelegramId { get; init; }
+
+	/// <summary>
+	/// Сессии, у которых в этом канале записан бан: канал им не отдаётся
+	/// </summary>
+	public IReadOnlyList<Guid> BannedSessionIds { get; init; } = [];
 }
 
 /// <summary>

@@ -9,16 +9,28 @@ namespace TgPoster.Storage.Storages.DiscoverChannelLinks;
 internal sealed class DiscoverChannelLinksStorage(PosterContext context, GuidFactory guidFactory)
 	: IDiscoverChannelLinksStorage
 {
-	public Task<List<DiscoverChannelDto>> GetChannelsToProcessAsync(int channelBatchSize, CancellationToken ct)
+	public Task<List<DiscoverChannelDto>> GetChannelsToProcessAsync(
+		int channelBatchSize,
+		IReadOnlyCollection<Guid> sessionIds,
+		CancellationToken ct
+	)
 	{
 		//Пока это только ищу
 		var query = context.DiscoveredChannels
 			.Where(x=>!x.IsBanned)
 			.Where(x => x.Category == "18+");
 
+		var sessionCount = sessionIds.Count;
+
 		return query
 			.Where(x => x.Status == DiscoveryStatus.Pending || x.Status == DiscoveryStatus.Completed)
 			.Where(x => x.Username != null)
+			// Бан записан у каждой сессии — парсить некому, иначе канал занимал бы место в очереди каждый запуск
+			.Where(x => sessionCount == 0
+			            || x.TelegramId == null
+			            || context.TelegramSessionChatBans
+				            .Count(b => b.ChatId == x.TelegramId && sessionIds.Contains(b.TelegramSessionId))
+			            < sessionCount)
 			// Сначала ни разу не парсенные, затем самые давние: иначе повторно парсятся одни и те же каналы
 			.OrderBy(x => x.LastDiscoveredAt != null)
 			.ThenBy(x => x.LastDiscoveredAt)
@@ -30,7 +42,11 @@ internal sealed class DiscoverChannelLinksStorage(PosterContext context, GuidFac
 				Username = x.Username,
 				TelegramId = x.TelegramId,
 				InviteHash = x.InviteHash,
-				LastParsedId = x.LastParsedId
+				LastParsedId = x.LastParsedId,
+				BannedSessionIds = context.TelegramSessionChatBans
+					.Where(b => b.ChatId == x.TelegramId)
+					.Select(b => b.TelegramSessionId)
+					.ToList()
 			})
 			.ToListAsync(ct);
 	}
@@ -72,6 +88,22 @@ internal sealed class DiscoverChannelLinksStorage(PosterContext context, GuidFac
 	{
 		var entity = await context.DiscoveredChannels.Where(x => x.Id == id).FirstOrDefaultAsync(ct);
 		entity!.IsBanned = true;
+		await context.SaveChangesAsync(ct);
+	}
+
+	public async Task MarkAccountBannedAsync(
+		Guid channelId,
+		Guid telegramSessionId,
+		long chatId,
+		string? error,
+		CancellationToken ct
+	)
+	{
+		await context.AddOrUpdateChatBanAsync(guidFactory, telegramSessionId, chatId, error, ct);
+
+		var channel = await context.DiscoveredChannels.FirstAsync(x => x.Id == channelId, ct);
+		channel.TelegramId ??= chatId;
+
 		await context.SaveChangesAsync(ct);
 	}
 

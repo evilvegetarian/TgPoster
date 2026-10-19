@@ -68,25 +68,127 @@ public class RepostMessageConsumerShould
 	{
 		await ConsumeAsync();
 
-		tgMessages.Verify(x => x.GetJoinedChatsAsync(sessionId, It.IsAny<CancellationToken>(), true), Times.Once);
+		tgMessages.Verify(x => x.GetChatMembershipAsync(sessionId, It.IsAny<CancellationToken>(), true), Times.Once);
 		tgMessages.Verify(x => x.GetAllDialogsAsync(
 			It.IsAny<Guid>(), It.IsAny<CancellationToken>(), It.IsAny<bool>()), Times.Never);
 	}
 
 	[Fact]
-	public async Task WriteBannedLogAndDisableDestination_WhenAccountBanned()
+	public async Task WriteBannedLogAndRecordAccountBan_WhenAccountBanned()
 	{
 		SetupForward(TelegramOperationResult<int?>.Failed(
-			TelegramOperationStatus.ChannelBanned, "CHANNEL_BANNED"));
+			TelegramOperationStatus.ChannelBanned, "CHANNEL_PRIVATE"));
 
 		await ConsumeAsync();
 
 		var entry = loggedEntries.ShouldHaveSingleItem();
 		entry.Status.ShouldBe(RepostStatus.Failed);
 		entry.Reason.ShouldBe(RepostLogReason.Banned);
-		entry.Error.ShouldBe("CHANNEL_BANNED");
+		entry.Error.ShouldBe("CHANNEL_PRIVATE");
+		storage.Verify(s => s.MarkAccountBannedAsync(
+			sessionId, DestinationChatId, "CHANNEL_PRIVATE", It.IsAny<CancellationToken>()), Times.Once);
+		storage.Verify(s => s.DisableForChatRestrictionAsync(
+			It.IsAny<Guid>(), It.IsAny<bool?>(), It.IsAny<bool?>(), It.IsAny<CancellationToken>()), Times.Never);
+	}
+
+	[Fact]
+	public async Task DisableWithoutTelegram_WhenAccountBanIsAlreadyRecorded()
+	{
+		SetupRepostData(isAccountBanned: true);
+
+		await ConsumeAsync();
+
+		var entry = loggedEntries.ShouldHaveSingleItem();
+		entry.Status.ShouldBe(RepostStatus.Failed);
+		entry.Reason.ShouldBe(RepostLogReason.Banned);
+		storage.Verify(s => s.DeactivateDestinationAsync(destinationId, It.IsAny<CancellationToken>()), Times.Once);
+		storage.Verify(s => s.IncrementRepostCounterAsync(
+			It.IsAny<Guid>(), It.IsAny<CancellationToken>()), Times.Never);
+		tgMessages.VerifyNoOtherCalls();
+	}
+
+	[Fact]
+	public async Task NeverStoreBannedStatusInDestination()
+	{
+		SetupForward(TelegramOperationResult<int?>.Failed(TelegramOperationStatus.ChannelBanned, "CHANNEL_PRIVATE"));
+
+		await ConsumeAsync();
+
 		storage.Verify(s => s.UpdateDestinationStatusAsync(
-			destinationId, ChatStatus.Banned, false, It.IsAny<CancellationToken>()), Times.Once);
+			It.IsAny<Guid>(), ChatStatus.Banned, It.IsAny<bool>(), It.IsAny<CancellationToken>()), Times.Never);
+	}
+
+	[Fact]
+	public async Task DisableAndRecordInDiscover_WhenChatForbidsWriting()
+	{
+		SetupForward(TelegramOperationResult<int?>.Failed(
+			TelegramOperationStatus.NoWritePermission, "CHAT_WRITE_FORBIDDEN"));
+
+		await ConsumeAsync();
+
+		var entry = loggedEntries.ShouldHaveSingleItem();
+		entry.Status.ShouldBe(RepostStatus.Failed);
+		entry.Reason.ShouldBe(RepostLogReason.NoWritePermission);
+		storage.Verify(s => s.DisableForChatRestrictionAsync(
+			destinationId, false, null, It.IsAny<CancellationToken>()), Times.Once);
+		VerifyAccountBanNotRecorded();
+	}
+
+	[Fact]
+	public async Task DisableAndRecordInDiscover_WhenChatForbidsMedia()
+	{
+		SetupForward(TelegramOperationResult<int?>.Failed(
+			TelegramOperationStatus.NoMediaPermission, "CHAT_SEND_MEDIA_FORBIDDEN"));
+
+		await ConsumeAsync();
+
+		var entry = loggedEntries.ShouldHaveSingleItem();
+		entry.Reason.ShouldBe(RepostLogReason.NoMediaPermission);
+		storage.Verify(s => s.DisableForChatRestrictionAsync(
+			destinationId, null, false, It.IsAny<CancellationToken>()), Times.Once);
+		VerifyAccountBanNotRecorded();
+	}
+
+	[Fact]
+	public async Task NotRecordAccountBan_WhenAccountIsNotMemberOfDestination()
+	{
+		SetupJoinedChats(DestinationChatId + 1);
+
+		await ConsumeAsync();
+
+		VerifyAccountBanNotRecorded();
+	}
+
+	[Fact]
+	public async Task RecordAccountBanInsteadOfLeft_WhenChatIsForbiddenForAccount()
+	{
+		SetupMembership([], [DestinationChatId]);
+
+		await ConsumeAsync();
+
+		var entry = loggedEntries.ShouldHaveSingleItem();
+		entry.Reason.ShouldBe(RepostLogReason.Banned);
+		storage.Verify(s => s.MarkAccountBannedAsync(
+			sessionId, DestinationChatId, "CHANNEL_FORBIDDEN", It.IsAny<CancellationToken>()), Times.Once);
+		storage.Verify(s => s.UpdateDestinationStatusAsync(
+			It.IsAny<Guid>(), ChatStatus.Left, It.IsAny<bool>(), It.IsAny<CancellationToken>()), Times.Never);
+		VerifyNotForwarded();
+	}
+
+	[Fact]
+	public async Task RecordAccountBanWithoutForward_WhenAccountIsRestrictedInChat()
+	{
+		SetupMembership([ChatInfo(DestinationChatId, isAccountRestricted: true)], []);
+
+		await ConsumeAsync();
+
+		var entry = loggedEntries.ShouldHaveSingleItem();
+		entry.Reason.ShouldBe(RepostLogReason.Banned);
+		storage.Verify(s => s.MarkAccountBannedAsync(
+			sessionId, DestinationChatId, It.IsAny<string?>(), It.IsAny<CancellationToken>()), Times.Once);
+		storage.Verify(s => s.DisableForChatRestrictionAsync(
+			It.IsAny<Guid>(), It.IsAny<bool?>(), It.IsAny<bool?>(), It.IsAny<CancellationToken>()), Times.Never);
+		VerifyNotForwarded();
 	}
 
 	[Fact]
@@ -106,9 +208,9 @@ public class RepostMessageConsumerShould
 	[Fact]
 	public async Task WriteDialogsUnavailableLog_WhenJoinedChatsCannotBeLoaded()
 	{
-		tgMessages.Setup(x => x.GetJoinedChatsAsync(
+		tgMessages.Setup(x => x.GetChatMembershipAsync(
 				sessionId, It.IsAny<CancellationToken>(), It.IsAny<bool>()))
-			.ReturnsAsync(TelegramOperationResult<IReadOnlyList<TelegramChatInfo>>.Failed(
+			.ReturnsAsync(TelegramOperationResult<TelegramJoinedChats>.Failed(
 				TelegramOperationStatus.SessionNotFound, "сессия не найдена"));
 
 		await ConsumeAsync();
@@ -162,9 +264,9 @@ public class RepostMessageConsumerShould
 	[Fact]
 	public async Task NotChangeDestinationStatus_WhenJoinedChatsCannotBeLoaded()
 	{
-		tgMessages.Setup(x => x.GetJoinedChatsAsync(
+		tgMessages.Setup(x => x.GetChatMembershipAsync(
 				sessionId, It.IsAny<CancellationToken>(), It.IsAny<bool>()))
-			.ReturnsAsync(TelegramOperationResult<IReadOnlyList<TelegramChatInfo>>.Failed(
+			.ReturnsAsync(TelegramOperationResult<TelegramJoinedChats>.Failed(
 				TelegramOperationStatus.FloodWait, "FLOOD_WAIT_X"));
 
 		await ConsumeAsync();
@@ -238,10 +340,15 @@ public class RepostMessageConsumerShould
 		return sut.Consume(context.Object);
 	}
 
+	private void VerifyAccountBanNotRecorded() =>
+		storage.Verify(s => s.MarkAccountBannedAsync(
+			It.IsAny<Guid>(), It.IsAny<long>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()), Times.Never);
+
 	private void SetupRepostData(
 		int? telegramMessageId = SourceTelegramMessageId,
 		int repostEveryNth = 1,
-		int? maxRepostsPerDay = null
+		int? maxRepostsPerDay = null,
+		bool isAccountBanned = false
 	) =>
 		storage.Setup(s => s.GetRepostDataAsync(messageId, settingsId, It.IsAny<CancellationToken>()))
 			.ReturnsAsync(new RepostDataDto
@@ -256,15 +363,22 @@ public class RepostMessageConsumerShould
 						Id = destinationId,
 						ChatIdentifier = DestinationChatId,
 						RepostEveryNth = repostEveryNth,
-						MaxRepostsPerDay = maxRepostsPerDay
+						MaxRepostsPerDay = maxRepostsPerDay,
+						IsAccountBanned = isAccountBanned
 					}
 				]
 			});
 
-	private void SetupJoinedChats(long chatId) =>
-		tgMessages.Setup(x => x.GetJoinedChatsAsync(
+	private void SetupJoinedChats(long chatId) => SetupMembership([ChatInfo(chatId)], []);
+
+	private void SetupMembership(TelegramChatInfo[] chats, long[] forbiddenChatIds) =>
+		tgMessages.Setup(x => x.GetChatMembershipAsync(
 				sessionId, It.IsAny<CancellationToken>(), It.IsAny<bool>()))
-			.ReturnsAsync(TelegramOperationResult<IReadOnlyList<TelegramChatInfo>>.Success([ChatInfo(chatId)]));
+			.ReturnsAsync(TelegramOperationResult<TelegramJoinedChats>.Success(new TelegramJoinedChats
+			{
+				Chats = chats.ToDictionary(c => c.Id),
+				ForbiddenChatIds = forbiddenChatIds.ToHashSet()
+			}));
 
 	private void SetupSourceChannel(TelegramOperationResult<TelegramChatInfo> result) =>
 		tgMessages.Setup(x => x.ResolveChannelAsync(
@@ -277,11 +391,17 @@ public class RepostMessageConsumerShould
 				It.IsAny<CancellationToken>(), It.IsAny<bool>()))
 			.ReturnsAsync(result);
 
-	private static TelegramChatInfo ChatInfo(long id) => new()
+	private void VerifyNotForwarded() =>
+		tgMessages.Verify(x => x.ForwardMessageAsync(
+			It.IsAny<Guid>(), It.IsAny<TelegramPeer>(), It.IsAny<TelegramPeer>(), It.IsAny<int>(),
+			It.IsAny<CancellationToken>(), It.IsAny<bool>()), Times.Never);
+
+	private static TelegramChatInfo ChatInfo(long id, bool isAccountRestricted = false) => new()
 	{
 		Id = id,
 		AccessHash = 1,
 		Title = $"chat-{id}",
+		IsAccountRestricted = isAccountRestricted,
 		Peer = TelegramPeer.Channel(id, 1)
 	};
 }

@@ -5,7 +5,7 @@ using TgPoster.Worker.Domain.UseCases.ClassifyChannel;
 
 namespace TgPoster.Storage.Storages.ClassifyChannel;
 
-internal sealed class ClassifyChannelStorage(PosterContext context) : IClassifyChannelStorage
+internal sealed class ClassifyChannelStorage(PosterContext context, GuidFactory guidFactory) : IClassifyChannelStorage
 {
 	public Task<ClassifierSettingsDto?> GetSettingsAsync(CancellationToken ct) =>
 		context.ClassifierSettings
@@ -54,9 +54,12 @@ internal sealed class ClassifyChannelStorage(PosterContext context) : IClassifyC
 		int batchSize,
 		DateTimeOffset retryBefore,
 		DateTimeOffset? reclassifyBefore,
+		IReadOnlyCollection<Guid> sessionIds,
 		CancellationToken ct
 	)
 	{
+		var sessionCount = sessionIds.Count;
+
 		// Postgres при ORDER BY ASC ставит NULL в конец, поэтому «ни разу не пробовали» поднимаем отдельным ключом.
 		// Чаты идут раньше каналов: парсер ссылок пока берёт только чаты, и им категория нужна в первую очередь
 		return context.DiscoveredChannels
@@ -64,6 +67,11 @@ internal sealed class ClassifyChannelStorage(PosterContext context) : IClassifyC
 			.Where(x => x.LastClassifiedAt == null
 			            || (reclassifyBefore != null && x.LastClassifiedAt < reclassifyBefore))
 			.Where(x => x.LastClassificationAttemptAt == null || x.LastClassificationAttemptAt < retryBefore)
+			.Where(x => sessionCount == 0
+			            || x.TelegramId == null
+			            || context.TelegramSessionChatBans
+				            .Count(b => b.ChatId == x.TelegramId && sessionIds.Contains(b.TelegramSessionId))
+			            < sessionCount)
 			.OrderBy(x => x.LastClassifiedAt != null)
 			.ThenBy(x => x.LastClassificationAttemptAt != null)
 			.ThenBy(x => x.PeerType != "chat")
@@ -76,7 +84,11 @@ internal sealed class ClassifyChannelStorage(PosterContext context) : IClassifyC
 				Title = x.Title,
 				Description = x.Description,
 				Username = x.Username,
-				TelegramId = x.TelegramId
+				TelegramId = x.TelegramId,
+				BannedSessionIds = context.TelegramSessionChatBans
+					.Where(b => b.ChatId == x.TelegramId)
+					.Select(b => b.TelegramSessionId)
+					.ToList()
 			})
 			.ToListAsync(ct);
 	}
@@ -117,6 +129,22 @@ internal sealed class ClassifyChannelStorage(PosterContext context) : IClassifyC
 		{
 			entity.IsBanned = true;
 		}
+
+		await context.SaveChangesAsync(ct);
+	}
+
+	public async Task MarkAccountBannedAsync(
+		Guid channelId,
+		Guid telegramSessionId,
+		long chatId,
+		string? error,
+		CancellationToken ct
+	)
+	{
+		await context.AddOrUpdateChatBanAsync(guidFactory, telegramSessionId, chatId, error, ct);
+
+		var channel = await context.DiscoveredChannels.FirstAsync(x => x.Id == channelId, ct);
+		channel.TelegramId ??= chatId;
 
 		await context.SaveChangesAsync(ct);
 	}

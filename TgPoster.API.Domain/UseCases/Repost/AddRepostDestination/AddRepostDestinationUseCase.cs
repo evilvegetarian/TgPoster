@@ -27,16 +27,26 @@ internal sealed class AddRepostDestinationUseCase(
 			: ChatType.Unknown;
 
 		// Фиксируем в Discover статусы прав ДО валидации — чтобы Discover знал и о каналах,
-		// куда постить нельзя
+		// куда постить нельзя. Туда идут только общие права участника: личное ограничение аккаунта
+		// другие аккаунты не касается и пишется в реестр банов этой сессии
 		var discoveredChannelId = await storage.UpsertDiscoveredChannelAsync(
 			info.Id,
 			fullInfo.Title,
 			fullInfo.Username,
 			fullInfo.MemberCount,
 			chatType,
-			info.CanSendMessages,
-			info.CanSendMedia,
+			info.MembersCanSendMessages,
+			info.MembersCanSendMedia,
 			ct);
+
+		if (info.IsAccountRestricted)
+		{
+			await storage.AddAccountBanAsync(
+				settingsInfo.TelegramSessionId,
+				info.Id,
+				"Аккаунт ограничен в чате администратором",
+				ct);
+		}
 
 		if (await storage.DestinationExistsAsync(request.RepostSettingsId, info.Id, ct))
 		{
@@ -76,6 +86,9 @@ internal sealed class AddRepostDestinationUseCase(
 			settingsInfo.DefaultSkipProbability,
 			settingsInfo.DefaultMaxRepostsPerDay,
 			ct);
+
+		// Аккаунт только что открыл чат и проверил права: прежний бан больше не повод отключать направление
+		await storage.RemoveAccountBanAsync(settingsInfo.TelegramSessionId, info.Id, ct);
 
 		return new AddRepostDestinationResponse
 		{

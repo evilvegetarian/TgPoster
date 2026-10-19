@@ -116,6 +116,7 @@ public class ClassifyChannelWorkerShould
 				ClassifierDefaults.BatchSize,
 				It.IsAny<DateTimeOffset>(),
 				It.IsAny<DateTimeOffset?>(),
+				It.IsAny<IReadOnlyCollection<Guid>>(),
 				It.IsAny<CancellationToken>()),
 			Times.Once);
 	}
@@ -129,7 +130,7 @@ public class ClassifyChannelWorkerShould
 		await sut.ClassifyChannelsAsync();
 
 		storage.Verify(s => s.GetChannelsToClassifyAsync(
-				3, FixedNow.AddHours(-6), null, It.IsAny<CancellationToken>()),
+				3, FixedNow.AddHours(-6), null, It.IsAny<IReadOnlyCollection<Guid>>(), It.IsAny<CancellationToken>()),
 			Times.Once);
 	}
 
@@ -143,7 +144,7 @@ public class ClassifyChannelWorkerShould
 		await sut.ClassifyChannelsAsync();
 
 		storage.Verify(s => s.GetChannelsToClassifyAsync(
-				3, FixedNow.AddHours(-6), FixedNow.AddDays(-30), It.IsAny<CancellationToken>()),
+				3, FixedNow.AddHours(-6), FixedNow.AddDays(-30), It.IsAny<IReadOnlyCollection<Guid>>(), It.IsAny<CancellationToken>()),
 			Times.Once);
 	}
 
@@ -168,9 +169,71 @@ public class ClassifyChannelWorkerShould
 		await sut.ClassifyChannelsAsync();
 
 		VerifyCompleted();
-		authService.Verify(s => s.GetSessionIdsForPurposeAsync(
-				It.IsAny<TelegramSessionPurpose>(), It.IsAny<CancellationToken>()),
-			Times.Never);
+	}
+
+	[Fact]
+	public async Task PassSessionsToQueue_SoChannelsBannedForAllOfThemAreSkipped()
+	{
+		SetupQueue();
+		var sut = CreateSut();
+
+		await sut.ClassifyChannelsAsync();
+
+		storage.Verify(s => s.GetChannelsToClassifyAsync(
+				It.IsAny<int>(), It.IsAny<DateTimeOffset>(), It.IsAny<DateTimeOffset?>(),
+				It.Is<IReadOnlyCollection<Guid>>(ids => ids.SequenceEqual(new[] { firstSessionId })),
+				It.IsAny<CancellationToken>()),
+			Times.Once);
+	}
+
+	[Fact]
+	public async Task GiveChannelToAnotherSession_WhenFirstSessionIsBannedInIt()
+	{
+		SetupSessions(firstSessionId, secondSessionId);
+		var channel = CreateChannel("bannedforfirst");
+		var banned = new ChannelForClassificationDto
+		{
+			Id = channel.Id,
+			Title = channel.Title,
+			Description = channel.Description,
+			Username = channel.Username,
+			TelegramId = channel.TelegramId,
+			BannedSessionIds = [firstSessionId]
+		};
+		SetupQueue(banned);
+		var sut = CreateSut();
+
+		await sut.ClassifyChannelsAsync();
+
+		tgMessages.Verify(x => x.ResolveChannelAsync(
+			firstSessionId, It.IsAny<string>(), It.IsAny<CancellationToken>(), It.IsAny<bool>()), Times.Never);
+		tgMessages.Verify(x => x.ResolveChannelAsync(
+			secondSessionId, "bannedforfirst", It.IsAny<CancellationToken>(), It.IsAny<bool>()), Times.Once);
+	}
+
+	[Fact]
+	public async Task RecordAccountBanInsteadOfGlobalBan_WhenChannelIsClosedForSession()
+	{
+		var channel = CreateChannel("closedchan");
+		SetupQueue(channel);
+		tgMessages.Setup(x => x.ResolveChannelAsync(
+				firstSessionId, "closedchan", It.IsAny<CancellationToken>(), It.IsAny<bool>()))
+			.ReturnsAsync(new TelegramOperationResult<TelegramChatInfo>
+			{
+				Status = TelegramOperationStatus.ChannelBanned,
+				ErrorMessage = "CHANNEL_FORBIDDEN",
+				Value = new TelegramChatInfo
+				{
+					Id = 9001, AccessHash = 1, Title = "closed", Peer = TelegramPeer.Channel(9001, 1)
+				}
+			});
+		var sut = CreateSut();
+
+		await sut.ClassifyChannelsAsync();
+
+		storage.Verify(s => s.MarkAccountBannedAsync(
+			channel.Id, firstSessionId, 9001, "CHANNEL_FORBIDDEN", It.IsAny<CancellationToken>()), Times.Once);
+		storage.Verify(s => s.MarkChannelBannedAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()), Times.Never);
 	}
 
 	[Fact]
@@ -306,7 +369,7 @@ public class ClassifyChannelWorkerShould
 	public async Task ReportFailedAndRethrow_WhenStorageThrows()
 	{
 		storage.Setup(s => s.GetChannelsToClassifyAsync(
-				It.IsAny<int>(), It.IsAny<DateTimeOffset>(), It.IsAny<DateTimeOffset?>(), It.IsAny<CancellationToken>()))
+				It.IsAny<int>(), It.IsAny<DateTimeOffset>(), It.IsAny<DateTimeOffset?>(), It.IsAny<IReadOnlyCollection<Guid>>(), It.IsAny<CancellationToken>()))
 			.ThrowsAsync(new InvalidOperationException("db is down"));
 		var sut = CreateSut();
 
@@ -451,7 +514,7 @@ public class ClassifyChannelWorkerShould
 
 	private void SetupQueue(params ChannelForClassificationDto[] channels) =>
 		storage.Setup(s => s.GetChannelsToClassifyAsync(
-				It.IsAny<int>(), It.IsAny<DateTimeOffset>(), It.IsAny<DateTimeOffset?>(), It.IsAny<CancellationToken>()))
+				It.IsAny<int>(), It.IsAny<DateTimeOffset>(), It.IsAny<DateTimeOffset?>(), It.IsAny<IReadOnlyCollection<Guid>>(), It.IsAny<CancellationToken>()))
 			.ReturnsAsync([..channels]);
 
 	private void SetupResolveFails() =>
@@ -499,7 +562,7 @@ public class ClassifyChannelWorkerShould
 
 	private void VerifyQueueNeverRequested() =>
 		storage.Verify(s => s.GetChannelsToClassifyAsync(
-				It.IsAny<int>(), It.IsAny<DateTimeOffset>(), It.IsAny<DateTimeOffset?>(), It.IsAny<CancellationToken>()),
+				It.IsAny<int>(), It.IsAny<DateTimeOffset>(), It.IsAny<DateTimeOffset?>(), It.IsAny<IReadOnlyCollection<Guid>>(), It.IsAny<CancellationToken>()),
 			Times.Never);
 
 	private static ChannelForClassificationDto CreateChannel(string username) => new()

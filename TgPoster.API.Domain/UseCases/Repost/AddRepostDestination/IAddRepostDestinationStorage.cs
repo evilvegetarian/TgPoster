@@ -26,8 +26,8 @@ public interface IAddRepostDestinationStorage
 	/// <param name="username">Username канала (без @).</param>
 	/// <param name="memberCount">Количество участников/подписчиков.</param>
 	/// <param name="chatType">Тип чата (канал/группа).</param>
-	/// <param name="canSendMessages">Может ли аккаунт писать в чат.</param>
-	/// <param name="canSendMedia">Может ли аккаунт слать медиа в чат.</param>
+	/// <param name="canSendMessages">Может ли рядовой участник писать в чат (общее право, без личных ограничений аккаунта).</param>
+	/// <param name="canSendMedia">Может ли рядовой участник слать медиа в чат (общее право, без личных ограничений аккаунта).</param>
 	/// <param name="ct">Токен отмены.</param>
 	/// <returns>Id записи Discover.</returns>
 	Task<Guid> UpsertDiscoveredChannelAsync(
@@ -77,4 +77,23 @@ public interface IAddRepostDestinationStorage
 		int? maxRepostsPerDay,
 		CancellationToken ct
 	);
+
+	/// <summary>
+	/// Фиксирует бан аккаунта сессии в чате: автоматика больше не будет пробовать туда пересылать
+	/// </summary>
+	/// <param name="telegramSessionId"></param>
+	/// <param name="chatId"></param>
+	/// <param name="error"></param>
+	/// <param name="ct"></param>
+	/// <returns></returns>
+	Task AddAccountBanAsync(Guid telegramSessionId, long chatId, string? error, CancellationToken ct);
+
+	/// <summary>
+	/// Снимает зафиксированный бан аккаунта сессии в чате: доступ только что проверен
+	/// </summary>
+	/// <param name="telegramSessionId"></param>
+	/// <param name="chatId"></param>
+	/// <param name="ct"></param>
+	/// <returns></returns>
+	Task RemoveAccountBanAsync(Guid telegramSessionId, long chatId, CancellationToken ct);
 }

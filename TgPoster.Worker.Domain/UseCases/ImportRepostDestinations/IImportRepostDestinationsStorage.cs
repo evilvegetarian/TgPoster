@@ -42,6 +42,7 @@ public sealed record ImportJobData(
 /// <param name="ParticipantsCount">Количество подписчиков по данным Discover</param>
 /// <param name="CanSendMessages">Известное право на отправку сообщений (null — не проверялось)</param>
 /// <param name="CanSendMedia">Известное право на отправку медиа (null — не проверялось)</param>
+/// <param name="IsAccountBanned"></param>
 public sealed record ImportJobPendingItem(
 	Guid ItemId,
 	Guid DiscoveredChannelId,
@@ -50,7 +51,8 @@ public sealed record ImportJobPendingItem(
 	string? InviteHash,
 	int? ParticipantsCount,
 	bool? CanSendMessages,
-	bool? CanSendMedia);
+	bool? CanSendMedia,
+	bool IsAccountBanned = false);
 
 public interface IImportRepostDestinationsStorage
 {
@@ -64,6 +66,7 @@ public interface IImportRepostDestinationsStorage
 
 	/// <summary>
 	///     Получить каналы задания, ожидающие обработки, вместе с актуальными данными из Discover
+	///     и признаком бана аккаунта сессии задания в канале
 	/// </summary>
 	/// <param name="jobId">Id задания</param>
 	/// <param name="ct">Токен отмены</param>
@@ -120,6 +123,16 @@ public interface IImportRepostDestinationsStorage
 	Task SetSessionFloodWaitAsync(Guid telegramSessionId, DateTimeOffset floodWaitUntil, CancellationToken ct);
 
 	/// <summary>
+	/// Фиксирует бан аккаунта сессии в канале: импорт и репост больше не будут туда ходить этим аккаунтом
+	/// </summary>
+	/// <param name="telegramSessionId"></param>
+	/// <param name="chatId"></param>
+	/// <param name="error"></param>
+	/// <param name="ct"></param>
+	/// <returns></returns>
+	Task AddAccountBanAsync(Guid telegramSessionId, long chatId, string? error, CancellationToken ct);
+
+	/// <summary>
 	///     Обновить в Discover данные канала, полученные из Telegram
 	/// </summary>
 	/// <param name="discoveredChannelId">Id записи в Discover</param>
@@ -127,8 +140,8 @@ public interface IImportRepostDestinationsStorage
 	/// <param name="title">Название канала</param>
 	/// <param name="username">Username без @</param>
 	/// <param name="chatType">Тип чата</param>
-	/// <param name="canSendMessages">Можно ли отправлять сообщения</param>
-	/// <param name="canSendMedia">Можно ли отправлять медиа</param>
+	/// <param name="canSendMessages">Может ли рядовой участник отправлять сообщения (без личных ограничений аккаунта)</param>
+	/// <param name="canSendMedia">Может ли рядовой участник отправлять медиа (без личных ограничений аккаунта)</param>
 	/// <param name="ct">Токен отмены</param>
 	Task UpdateDiscoveredChannelAsync(
 		Guid discoveredChannelId,

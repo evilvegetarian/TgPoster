@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Shouldly;
+using TgPoster.Storage.Tests.Builders;
 using TgPoster.Storage.Data;
 using TgPoster.Storage.Data.Entities;
 using TgPoster.Storage.Data.Enum;
@@ -14,7 +15,7 @@ public sealed class ClassifyChannelStorageShould(StorageTestFixture fixture)
 	private static readonly DateTimeOffset Now = new(2026, 9, 26, 12, 0, 0, TimeSpan.Zero);
 
 	private readonly PosterContext context = fixture.GetDbContext();
-	private readonly ClassifyChannelStorage sut = new(fixture.GetDbContext());
+	private readonly ClassifyChannelStorage sut = new(fixture.GetDbContext(), new GuidFactory());
 
 	[Fact]
 	public async Task EnsureSettingsAsync_ShouldCreateOnce_AndKeepExistingValues()
@@ -45,7 +46,7 @@ public sealed class ClassifyChannelStorageShould(StorageTestFixture fixture)
 		context.DiscoveredChannels.AddRange(oldAttempt, newerAttempt, neverAttempted, classified);
 		await context.SaveChangesAsync(CancellationToken.None);
 
-		var result = await sut.GetChannelsToClassifyAsync(10, Now, Now.AddDays(-30), CancellationToken.None);
+		var result = await sut.GetChannelsToClassifyAsync(10, Now, Now.AddDays(-30), [], CancellationToken.None);
 
 		result.Select(x => x.Id).ShouldBe([neverAttempted.Id, oldAttempt.Id, newerAttempt.Id, classified.Id]);
 	}
@@ -67,7 +68,7 @@ public sealed class ClassifyChannelStorageShould(StorageTestFixture fixture)
 			neverAttemptedChannel, neverAttemptedChat, attemptedChannel, attemptedChat, unknownType);
 		await context.SaveChangesAsync(CancellationToken.None);
 
-		var result = await sut.GetChannelsToClassifyAsync(10, Now, null, CancellationToken.None);
+		var result = await sut.GetChannelsToClassifyAsync(10, Now, null, [], CancellationToken.None);
 
 		result[0].Id.ShouldBe(neverAttemptedChat.Id);
 		result.Take(3).Select(x => x.Id).ShouldBe([neverAttemptedChat.Id, neverAttemptedChannel.Id, unknownType.Id],
@@ -84,7 +85,7 @@ public sealed class ClassifyChannelStorageShould(StorageTestFixture fixture)
 		context.DiscoveredChannels.AddRange(recentlyFailed, failedLongAgo);
 		await context.SaveChangesAsync(CancellationToken.None);
 
-		var result = await sut.GetChannelsToClassifyAsync(10, Now.AddHours(-6), null, CancellationToken.None);
+		var result = await sut.GetChannelsToClassifyAsync(10, Now.AddHours(-6), null, [], CancellationToken.None);
 
 		result.Select(x => x.Id).ShouldBe([failedLongAgo.Id]);
 	}
@@ -106,8 +107,8 @@ public sealed class ClassifyChannelStorageShould(StorageTestFixture fixture)
 		context.DiscoveredChannels.AddRange(stale, fresh);
 		await context.SaveChangesAsync(CancellationToken.None);
 
-		var withWindow = await sut.GetChannelsToClassifyAsync(10, Now, Now.AddDays(-30), CancellationToken.None);
-		var withoutWindow = await sut.GetChannelsToClassifyAsync(10, Now, null, CancellationToken.None);
+		var withWindow = await sut.GetChannelsToClassifyAsync(10, Now, Now.AddDays(-30), [], CancellationToken.None);
+		var withoutWindow = await sut.GetChannelsToClassifyAsync(10, Now, null, [], CancellationToken.None);
 
 		withWindow.Select(x => x.Id).ShouldBe([stale.Id]);
 		withoutWindow.ShouldBeEmpty();
@@ -124,10 +125,58 @@ public sealed class ClassifyChannelStorageShould(StorageTestFixture fixture)
 			NewChannel());
 		await context.SaveChangesAsync(CancellationToken.None);
 
-		var result = await sut.GetChannelsToClassifyAsync(2, Now, null, CancellationToken.None);
+		var result = await sut.GetChannelsToClassifyAsync(2, Now, null, [], CancellationToken.None);
 
 		result.Count.ShouldBe(2);
 		result.ShouldAllBe(x => x.Username != null);
+	}
+
+	[Fact]
+	public async Task GetChannelsToClassifyAsync_ShouldSkipChannelBannedForAllSessions_AndReturnBannedSessions()
+	{
+		await ClearChannelsAsync();
+		var first = await new TelegramSessionBuilder(context).CreateAsync();
+		var second = await new TelegramSessionBuilder(context).CreateAsync();
+		var bannedForAll = NewChannel(c => c.TelegramId = Random.Shared.NextInt64(1_000_000, long.MaxValue));
+		var bannedForFirst = NewChannel(c => c.TelegramId = Random.Shared.NextInt64(1_000_000, long.MaxValue));
+		context.DiscoveredChannels.AddRange(bannedForAll, bannedForFirst);
+		await context.SaveChangesAsync(CancellationToken.None);
+		foreach (var (sessionId, chatId) in new[]
+		         {
+			         (first.Id, bannedForAll.TelegramId!.Value),
+			         (second.Id, bannedForAll.TelegramId!.Value),
+			         (first.Id, bannedForFirst.TelegramId!.Value)
+		         })
+		{
+			await new TelegramSessionChatBanBuilder(context)
+				.WithTelegramSessionId(sessionId)
+				.WithChatId(chatId)
+				.CreateAsync();
+		}
+
+		var result = await sut.GetChannelsToClassifyAsync(10, Now, null, [first.Id, second.Id], CancellationToken.None);
+
+		var channel = result.ShouldHaveSingleItem();
+		channel.Id.ShouldBe(bannedForFirst.Id);
+		channel.BannedSessionIds.ShouldBe([first.Id]);
+	}
+
+	[Fact]
+	public async Task MarkAccountBannedAsync_ShouldRecordBanAndNotHideChannel()
+	{
+		var session = await new TelegramSessionBuilder(context).CreateAsync();
+		var channel = NewChannel();
+		context.DiscoveredChannels.Add(channel);
+		await context.SaveChangesAsync(CancellationToken.None);
+
+		await sut.MarkAccountBannedAsync(channel.Id, session.Id, 9001, "CHANNEL_FORBIDDEN", CancellationToken.None);
+
+		using var check = fixture.GetDbContext();
+		var saved = await check.DiscoveredChannels.IgnoreQueryFilters().FirstAsync(x => x.Id == channel.Id);
+		saved.IsBanned.ShouldBeFalse();
+		saved.TelegramId.ShouldBe(9001);
+		(await check.TelegramSessionChatBans.AnyAsync(x => x.TelegramSessionId == session.Id && x.ChatId == 9001))
+			.ShouldBeTrue();
 	}
 
 	[Fact]

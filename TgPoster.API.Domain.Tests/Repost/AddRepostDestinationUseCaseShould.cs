@@ -143,7 +143,58 @@ public class AddRepostDestinationUseCaseShould
 			It.IsAny<Guid>(), 15, 120, 3, 40, 7, It.IsAny<CancellationToken>()), Times.Once);
 	}
 
-	private TelegramChatInfo SetupChat(bool canSendMessages, bool canSendMedia)
+	[Fact]
+	public async Task RecordMembersRightsInDiscoverAndAccountBan_WhenAccountIsRestricted()
+	{
+		var info = SetupChat(false, true, isAccountRestricted: true);
+
+		await Should.ThrowAsync<TelegramChatNoWritePermissionException>(async () =>
+			await sut.Handle(new AddRepostDestinationCommand(Guid.NewGuid(), "@channel"), CancellationToken.None));
+
+		storage.Verify(s => s.UpsertDiscoveredChannelAsync(
+			info.Id, It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<int?>(),
+			It.IsAny<ChatType>(), true, true, It.IsAny<CancellationToken>()), Times.Once);
+		storage.Verify(s => s.AddAccountBanAsync(
+			sessionId, info.Id, It.IsAny<string?>(), It.IsAny<CancellationToken>()), Times.Once);
+		storage.Verify(s => s.RemoveAccountBanAsync(
+			It.IsAny<Guid>(), It.IsAny<long>(), It.IsAny<CancellationToken>()), Times.Never);
+	}
+
+	[Fact]
+	public async Task NotRecordAccountBan_WhenChatItselfForbidsWriting()
+	{
+		SetupChat(false, false);
+
+		await Should.ThrowAsync<TelegramChatNoWritePermissionException>(async () =>
+			await sut.Handle(new AddRepostDestinationCommand(Guid.NewGuid(), "@channel"), CancellationToken.None));
+
+		storage.Verify(s => s.AddAccountBanAsync(
+			It.IsAny<Guid>(), It.IsAny<long>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()), Times.Never);
+	}
+
+	[Fact]
+	public async Task RemoveAccountBan_WhenDestinationAdded()
+	{
+		var info = SetupChat(true, true);
+
+		await sut.Handle(new AddRepostDestinationCommand(Guid.NewGuid(), "@channel"), CancellationToken.None);
+
+		storage.Verify(s => s.RemoveAccountBanAsync(sessionId, info.Id, It.IsAny<CancellationToken>()), Times.Once);
+	}
+
+	[Fact]
+	public async Task KeepAccountBan_WhenChatForbidsMedia()
+	{
+		SetupChat(true, false);
+
+		await Should.ThrowAsync<TelegramChatNoMediaPermissionException>(async () =>
+			await sut.Handle(new AddRepostDestinationCommand(Guid.NewGuid(), "@channel"), CancellationToken.None));
+
+		storage.Verify(s => s.RemoveAccountBanAsync(
+			It.IsAny<Guid>(), It.IsAny<long>(), It.IsAny<CancellationToken>()), Times.Never);
+	}
+
+	private TelegramChatInfo SetupChat(bool canSendMessages, bool canSendMedia, bool isAccountRestricted = false)
 	{
 		var info = new TelegramChatInfo
 		{
@@ -155,6 +206,10 @@ public class AddRepostDestinationUseCaseShould
 			IsGroup = false,
 			CanSendMessages = canSendMessages,
 			CanSendMedia = canSendMedia,
+			// Личное ограничение аккаунта не меняет общих прав участника
+			MembersCanSendMessages = canSendMessages || isAccountRestricted,
+			MembersCanSendMedia = canSendMedia || isAccountRestricted,
+			IsAccountRestricted = isAccountRestricted,
 			Peer = TelegramPeer.Channel(12345, 999)
 		};
 

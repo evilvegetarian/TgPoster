@@ -20,6 +20,15 @@ internal sealed class SendCommentConsumer(
 		logger.LogInformation("Начал отправку комментария для поста {PostId} в канале {ChannelId}",
 			command.OriginalPostId, command.WatchedChannelId);
 
+		// Команды могли встать в очередь до бана: за тем же отказом в Telegram не ходим
+		if (await storage.IsAccountBannedAsync(sessionId, command.DiscussionGroupId, ct))
+		{
+			logger.LogWarning("Аккаунт заблокирован в группе обсуждения {GroupId}, комментарий не отправлен",
+				command.DiscussionGroupId);
+			await LogFailureAsync(command, "Аккаунт заблокирован в группе обсуждения по данным прошлой попытки", ct);
+			return;
+		}
+
 		var dialogsResult = await tgMessages.GetAllDialogsAsync(sessionId, ct);
 		if (!dialogsResult.IsSuccess)
 		{
@@ -90,6 +99,20 @@ internal sealed class SendCommentConsumer(
 
 		if (!sendResult.IsSuccess)
 		{
+			if (sendResult.Status == TelegramOperationStatus.ChannelBanned)
+			{
+				logger.LogWarning(
+					"Аккаунт заблокирован в группе обсуждения {GroupId}: {Error}. Комментарии этой сессии в неё отключены",
+					command.DiscussionGroupId, sendResult.ErrorMessage);
+				await storage.MarkAccountBannedAsync(sessionId, command.DiscussionGroupId, sendResult.ErrorMessage,
+					ct);
+			}
+
+			if (sendResult.Status == TelegramOperationStatus.NoWritePermission)
+			{
+				await RecordWriteForbiddenAsync(command, sendResult.ErrorMessage, ct);
+			}
+
 			logger.LogError("Не удалось отправить комментарий для поста {PostId}: {Status} {Error}",
 				command.OriginalPostId, sendResult.Status, sendResult.ErrorMessage);
 			await LogFailureAsync(command, sendResult.ErrorMessage ?? sendResult.Status.ToString(), ct);
@@ -105,6 +128,46 @@ internal sealed class SendCommentConsumer(
 			ct);
 
 		logger.LogInformation("Комментарий успешно отправлен для поста {PostId}", command.OriginalPostId);
+	}
+
+	/// <summary>
+	/// CHAT_WRITE_FORBIDDEN приходит и при общем запрете чата, и при муте этого аккаунта. По данным чата
+	/// из getAllChats решаем, куда записать: личное ограничение — в реестр банов, общий запрет — в Discover.
+	/// В обоих случаях настройки выключаются, иначе каждый новый пост давал бы заведомо неудачную попытку
+	/// </summary>
+	/// <param name="command"></param>
+	/// <param name="error"></param>
+	/// <param name="ct"></param>
+	/// <returns></returns>
+	private async Task RecordWriteForbiddenAsync(SendCommentCommand command, string? error, CancellationToken ct)
+	{
+		var groupId = command.DiscussionGroupId;
+		var membership = await tgMessages.GetChatMembershipAsync(command.TelegramSessionId, ct);
+		if (!membership.IsSuccess)
+		{
+			// Чей это запрет, не узнать: не пишем никуда, чтобы личное ограничение не легло в общие данные чата
+			logger.LogWarning("Не удалось проверить права в группе обсуждения {GroupId}: {Status} {Error}",
+				groupId, membership.Status, membership.ErrorMessage);
+			return;
+		}
+
+		var chats = membership.Value!;
+		var isAccountRestricted = chats.ForbiddenChatIds.Contains(groupId)
+		                          || (chats.Chats.TryGetValue(groupId, out var group) && group.IsAccountRestricted);
+
+		if (isAccountRestricted)
+		{
+			logger.LogWarning(
+				"Аккаунт ограничен в группе обсуждения {GroupId}: {Error}. Комментарии этой сессии в неё отключены",
+				groupId, error);
+			await storage.MarkAccountBannedAsync(command.TelegramSessionId, groupId, error, ct);
+			return;
+		}
+
+		logger.LogWarning(
+			"В группу обсуждения {GroupId} нельзя писать: {Error}. Настройки комментариев {SettingsId} выключены",
+			groupId, error, command.CommentRepostSettingsId);
+		await storage.MarkChatWriteForbiddenAsync(command.CommentRepostSettingsId, groupId, ct);
 	}
 
 	private Task LogFailureAsync(SendCommentCommand command, string errorMessage, CancellationToken ct)

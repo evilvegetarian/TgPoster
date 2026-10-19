@@ -58,5 +58,15 @@ public enum RepostLogReason
 	/// <summary>
 	///     Тема форума в целевом чате закрыта — Telegram не принимает пересылку
 	/// </summary>
-	TopicClosed = 10
+	TopicClosed = 10,
+
+	/// <summary>
+	/// В целевом чате нельзя писать рядовым участникам, направление отключено
+	/// </summary>
+	NoWritePermission = 11,
+
+	/// <summary>
+	/// В целевом чате нельзя отправлять медиа, направление отключено
+	/// </summary>
+	NoMediaPermission = 12
 }

@@ -16,6 +16,7 @@ public interface IRefreshDestinationInfoStorage
 
 	/// <summary>
 	///     Обновляет информацию о канале для destination.
+	///     Статус членства, переданный как null, не меняется
 	/// </summary>
 	Task UpdateDestinationInfoAsync(
 		Guid destinationId,
@@ -23,8 +24,18 @@ public interface IRefreshDestinationInfoStorage
 		string? username,
 		int? memberCount,
 		ChatType chatType,
-		ChatStatus chatStatus,
+		ChatStatus? chatStatus,
 		string? avatarBase64,
 		CancellationToken ct
 	);
+
+	/// <summary>
+	/// Фиксирует бан аккаунта сессии в чате: автоматика больше не будет пробовать туда пересылать
+	/// </summary>
+	/// <param name="telegramSessionId"></param>
+	/// <param name="chatId"></param>
+	/// <param name="error"></param>
+	/// <param name="ct"></param>
+	/// <returns></returns>
+	Task AddAccountBanAsync(Guid telegramSessionId, long chatId, string? error, CancellationToken ct);
 }

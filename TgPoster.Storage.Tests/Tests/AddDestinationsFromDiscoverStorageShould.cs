@@ -78,7 +78,7 @@ public sealed class AddDestinationsFromDiscoverStorageShould(StorageTestFixture 
 		var requested = await CreateDiscoveredChannelAsync();
 		var other = await CreateDiscoveredChannelAsync();
 
-		var result = await sut.GetCandidatesAsync([requested.Id], CancellationToken.None);
+		var result = await sut.GetCandidatesAsync([requested.Id], Guid.NewGuid(), CancellationToken.None);
 
 		result.Count.ShouldBe(1);
 		result[0].Id.ShouldBe(requested.Id);
@@ -93,7 +93,7 @@ public sealed class AddDestinationsFromDiscoverStorageShould(StorageTestFixture 
 	{
 		var channel = await CreateDiscoveredChannelAsync(canSendMessages: false, canSendMedia: true);
 
-		var result = await sut.GetCandidatesAsync([channel.Id], CancellationToken.None);
+		var result = await sut.GetCandidatesAsync([channel.Id], Guid.NewGuid(), CancellationToken.None);
 
 		result.Single().CanSendMessages.ShouldBe(false);
 		result.Single().CanSendMedia.ShouldBe(true);
@@ -104,7 +104,7 @@ public sealed class AddDestinationsFromDiscoverStorageShould(StorageTestFixture 
 	{
 		var banned = await CreateDiscoveredChannelAsync(isBanned: true);
 
-		var result = await sut.GetCandidatesAsync([banned.Id], CancellationToken.None);
+		var result = await sut.GetCandidatesAsync([banned.Id], Guid.NewGuid(), CancellationToken.None);
 
 		result.ShouldBeEmpty();
 	}
@@ -171,7 +171,7 @@ public sealed class AddDestinationsFromDiscoverStorageShould(StorageTestFixture 
 		var otherCategory = await CreateDiscoveredChannelAsync(category: NewCategory(), peerType: "channel");
 
 		var result = await sut.GetCandidatesByFilterAsync(
-			FilterFor(category, peerType: "channel"), [], 100, CancellationToken.None);
+			FilterFor(category, peerType: "channel"), [], Guid.NewGuid(), 100, CancellationToken.None);
 
 		result.Select(x => x.Id).ShouldBe([matching.Id]);
 		result.ShouldNotContain(x => x.Id == otherType.Id);
@@ -186,7 +186,7 @@ public sealed class AddDestinationsFromDiscoverStorageShould(StorageTestFixture 
 		var expected = await CreateDiscoveredChannelAsync(category: category);
 
 		var result = await sut.GetCandidatesByFilterAsync(
-			FilterFor(category), [excluded.TelegramId!.Value], 100, CancellationToken.None);
+			FilterFor(category), [excluded.TelegramId!.Value], Guid.NewGuid(), 100, CancellationToken.None);
 
 		result.Select(x => x.Id).ShouldBe([expected.Id]);
 	}
@@ -200,7 +200,7 @@ public sealed class AddDestinationsFromDiscoverStorageShould(StorageTestFixture 
 		var expected = await CreateDiscoveredChannelAsync(category: category, canSendMessages: true);
 
 		var result = await sut.GetCandidatesByFilterAsync(
-			FilterFor(category), [], 100, CancellationToken.None);
+			FilterFor(category), [], Guid.NewGuid(), 100, CancellationToken.None);
 
 		result.Select(x => x.Id).ShouldBe([expected.Id]);
 	}
@@ -213,7 +213,7 @@ public sealed class AddDestinationsFromDiscoverStorageShould(StorageTestFixture 
 		await CreateDiscoveredChannelAsync(category: category, withIdentifiers: false);
 
 		var result = await sut.GetCandidatesByFilterAsync(
-			FilterFor(category), [], 100, CancellationToken.None);
+			FilterFor(category), [], Guid.NewGuid(), 100, CancellationToken.None);
 
 		result.Select(x => x.Id).ShouldBe([expected.Id]);
 	}
@@ -225,7 +225,7 @@ public sealed class AddDestinationsFromDiscoverStorageShould(StorageTestFixture 
 		await CreateDiscoveredChannelAsync(category: category, isBanned: true);
 
 		var result = await sut.GetCandidatesByFilterAsync(
-			FilterFor(category), [], 100, CancellationToken.None);
+			FilterFor(category), [], Guid.NewGuid(), 100, CancellationToken.None);
 
 		result.ShouldBeEmpty();
 	}
@@ -239,7 +239,7 @@ public sealed class AddDestinationsFromDiscoverStorageShould(StorageTestFixture 
 		var second = await CreateDiscoveredChannelAsync(category: category, participantsCount: 5000);
 
 		var result = await sut.GetCandidatesByFilterAsync(
-			FilterFor(category), [], 2, CancellationToken.None);
+			FilterFor(category), [], Guid.NewGuid(), 2, CancellationToken.None);
 
 		result.Select(x => x.Id).ShouldBe([biggest.Id, second.Id]);
 	}
@@ -254,7 +254,7 @@ public sealed class AddDestinationsFromDiscoverStorageShould(StorageTestFixture 
 
 		var filter = FilterFor(category) with { MinParticipants = 1000, MaxParticipants = 10000 };
 
-		var result = await sut.GetCandidatesByFilterAsync(filter, [], 100, CancellationToken.None);
+		var result = await sut.GetCandidatesByFilterAsync(filter, [], Guid.NewGuid(), 100, CancellationToken.None);
 
 		result.Select(x => x.Id).ShouldBe([expected.Id]);
 	}
@@ -298,6 +298,44 @@ public sealed class AddDestinationsFromDiscoverStorageShould(StorageTestFixture 
 
 	private static DiscoverImportFilter FilterFor(string category, string? peerType = null) =>
 		new(category, null, peerType, null, null, DiscoverSortBy.Participants, SortDirection.Desc);
+
+	[Fact]
+	public async Task GetCandidatesAsync_ShouldMarkOnlyChannelsWhereSessionIsBanned()
+	{
+		var session = await new TelegramSessionBuilder(context).CreateAsync();
+		var banned = await CreateDiscoveredChannelAsync();
+		var free = await CreateDiscoveredChannelAsync();
+		await new TelegramSessionChatBanBuilder(context)
+			.WithTelegramSessionId(session.Id)
+			.WithChatId(banned.TelegramId!.Value)
+			.CreateAsync();
+		// Бан другой сессии к этой не относится
+		await new TelegramSessionChatBanBuilder(context).WithChatId(free.TelegramId!.Value).CreateAsync();
+
+		var result = await sut.GetCandidatesAsync([banned.Id, free.Id], session.Id, CancellationToken.None);
+
+		result.Single(x => x.Id == banned.Id).IsAccountBanned.ShouldBeTrue();
+		result.Single(x => x.Id == free.Id).IsAccountBanned.ShouldBeFalse();
+	}
+
+	[Fact]
+	public async Task GetCandidatesByFilterAsync_ShouldSkipChannelsWhereSessionIsBanned()
+	{
+		var category = NewCategory();
+		var session = await new TelegramSessionBuilder(context).CreateAsync();
+		var banned = await CreateDiscoveredChannelAsync(category: category);
+		var bannedForOther = await CreateDiscoveredChannelAsync(category: category);
+		await new TelegramSessionChatBanBuilder(context)
+			.WithTelegramSessionId(session.Id)
+			.WithChatId(banned.TelegramId!.Value)
+			.CreateAsync();
+		await new TelegramSessionChatBanBuilder(context).WithChatId(bannedForOther.TelegramId!.Value).CreateAsync();
+
+		var result = await sut.GetCandidatesByFilterAsync(
+			FilterFor(category), [], session.Id, 100, CancellationToken.None);
+
+		result.Select(x => x.Id).ShouldBe([bannedForOther.Id]);
+	}
 
 	private async Task<Guid> CreateJobAsync(Guid repostSettingsId, RepostImportStatus status)
 	{

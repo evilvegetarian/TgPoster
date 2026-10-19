@@ -19,4 +19,15 @@ internal sealed class UpdateCommentRepostStorage(PosterContext context) : IUpdat
 		settings.IsActive = isActive;
 		await context.SaveChangesAsync(ct);
 	}
+
+	public async Task RemoveAccountBanAsync(Guid id, CancellationToken ct)
+	{
+		var settings = await context.CommentRepostSettings
+			.Where(x => x.Id == id)
+			.Select(x => new { x.TelegramSessionId, x.DiscussionGroupId })
+			.FirstAsync(ct);
+
+		await context.RemoveChatBanAsync(settings.TelegramSessionId, settings.DiscussionGroupId, ct);
+		await context.SaveChangesAsync(ct);
+	}
 }

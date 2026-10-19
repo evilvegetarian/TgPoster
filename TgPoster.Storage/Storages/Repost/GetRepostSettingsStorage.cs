@@ -38,7 +38,11 @@ internal sealed class GetRepostSettingsStorage(PosterContext context) : IGetRepo
 					Username = d.Username,
 					MemberCount = d.MemberCount,
 					ChatType = d.ChatType,
-					ChatStatus = d.ChatStatus,
+					// Бан хранится только в реестре банов аккаунта, в направлении — лишь членство в чате
+					ChatStatus = context.TelegramSessionChatBans
+						.Any(b => b.TelegramSessionId == x.TelegramSessionId && b.ChatId == d.ChatId)
+						? ChatStatus.Banned
+						: d.ChatStatus,
 					AvatarBase64 = d.AvatarBase64,
 					InfoUpdatedAt = d.InfoUpdatedAt,
 					DiscoveredChannelId = d.DiscoveredChannelId,

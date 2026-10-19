@@ -92,6 +92,66 @@ public class DiscoverChannelLinksWorkerShould
 	}
 
 	[Fact]
+	public async Task RecordAccountBan_NotGlobalBanOrError_WhenChannelIsClosedForSession()
+	{
+		SetupResolve(firstChannel, new TelegramOperationResult<TelegramChatInfo>
+		{
+			Status = TelegramOperationStatus.ChannelBanned,
+			ErrorMessage = "CHANNEL_FORBIDDEN",
+			Value = new TelegramChatInfo
+			{
+				Id = 9001, AccessHash = 1, Title = "closed", Peer = TelegramPeer.Channel(9001, 1)
+			}
+		});
+		var sut = CreateSut();
+
+		await sut.ProcessChannelsAsync();
+
+		storage.Verify(s => s.MarkAccountBannedAsync(
+			firstChannel.Id, firstSessionId, 9001, "CHANNEL_FORBIDDEN", It.IsAny<CancellationToken>()), Times.Once);
+		storage.Verify(s => s.ChannelBanned(It.IsAny<Guid>(), It.IsAny<CancellationToken>()), Times.Never);
+		VerifyNeverMarkedAsError();
+	}
+
+	[Fact]
+	public async Task GiveChannelToAnotherSession_WhenAssignedSessionIsBannedInIt()
+	{
+		var bannedForFirst = new DiscoverChannelDto
+		{
+			Id = Guid.NewGuid(),
+			Username = "banned_for_first",
+			TelegramId = 9001,
+			BannedSessionIds = [firstSessionId]
+		};
+		SetupSessions(firstSessionId, secondSessionId);
+		SetupQueue(bannedForFirst);
+		SetupResolve(bannedForFirst,
+			TelegramOperationResult<TelegramChatInfo>.Failed(TelegramOperationStatus.AccessDenied, "fail"));
+		var sut = CreateSut();
+
+		await sut.ProcessChannelsAsync();
+
+		tgMessages.Verify(s => s.ResolveChannelAsync(
+			firstSessionId, It.IsAny<string>(), It.IsAny<CancellationToken>(), It.IsAny<bool>()), Times.Never);
+		tgMessages.Verify(s => s.ResolveChannelAsync(
+			secondSessionId, "banned_for_first", It.IsAny<CancellationToken>(), It.IsAny<bool>()), Times.Once);
+	}
+
+	[Fact]
+	public async Task PassDiscoverSessionsToQueue()
+	{
+		SetupSessions(firstSessionId, secondSessionId);
+		var sut = CreateSut();
+
+		await sut.ProcessChannelsAsync();
+
+		storage.Verify(s => s.GetChannelsToProcessAsync(
+			It.IsAny<int>(),
+			It.Is<IReadOnlyCollection<Guid>>(ids => ids.SequenceEqual(new[] { firstSessionId, secondSessionId })),
+			It.IsAny<CancellationToken>()), Times.Once);
+	}
+
+	[Fact]
 	public async Task MarkChannelAsError_AndReportFailure_WhenEveryChannelThrows()
 	{
 		SetupResolveThrows(firstChannel, "boom");
@@ -133,7 +193,7 @@ public class DiscoverChannelLinksWorkerShould
 
 	private void SetupQueue(params DiscoverChannelDto[] channels) =>
 		storage
-			.Setup(s => s.GetChannelsToProcessAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+			.Setup(s => s.GetChannelsToProcessAsync(It.IsAny<int>(), It.IsAny<IReadOnlyCollection<Guid>>(), It.IsAny<CancellationToken>()))
 			.ReturnsAsync([..channels]);
 
 	private void SetupResolve(DiscoverChannelDto channel, TelegramOperationResult<TelegramChatInfo> result) =>

@@ -27,6 +27,28 @@ public interface ISetRepostDestinationsActiveStorage
 	);
 
 	/// <summary>
+	/// Возвращает те из указанных чатов, в которых у аккаунта сессии зафиксирован бан
+	/// </summary>
+	/// <param name="telegramSessionId"></param>
+	/// <param name="chatIds"></param>
+	/// <param name="ct"></param>
+	/// <returns></returns>
+	Task<List<long>> GetBannedChatIdsAsync(Guid telegramSessionId, List<long> chatIds, CancellationToken ct);
+
+	/// <summary>
+	/// Фиксирует баны аккаунта сессии в чатах: ключ — id чата, значение — причина
+	/// </summary>
+	/// <param name="telegramSessionId"></param>
+	/// <param name="errorsByChatId"></param>
+	/// <param name="ct"></param>
+	/// <returns></returns>
+	Task AddAccountBansAsync(
+		Guid telegramSessionId,
+		IReadOnlyDictionary<long, string> errorsByChatId,
+		CancellationToken ct
+	);
+
+	/// <summary>
 	/// Включает каналы и помечает чат доступным: членство уже проверено
 	/// </summary>
 	/// <param name="destinationIds"></param>

@@ -151,7 +151,104 @@ public class UpdateRepostDestinationUseCaseShould
 			await sut.Handle(Enable(), CancellationToken.None));
 
 		chatService.Verify(c => c.TryGetChatInfoAsync(sessionId, Username, It.IsAny<bool>()), Times.Never);
+		storage.Verify(s => s.AddAccountBanAsync(
+			sessionId, ChatId, "Чат заблокирован для этого пользователя", It.IsAny<CancellationToken>()), Times.Once);
 		VerifyNotUpdated();
+	}
+
+	[Fact]
+	public async Task RecheckAccess_WhenActiveDestinationHasRecordedBan()
+	{
+		SetupDestination(true, ChatStatus.Active, isAccountBanned: true);
+		SetupChat(ChatId.ToString(), false, TelegramOperationResult<TelegramChatInfo>.Success(ChatInfo(ChatId)));
+
+		await sut.Handle(Enable(), CancellationToken.None);
+
+		chatService.Verify(c => c.TryGetChatInfoAsync(sessionId, ChatId.ToString(), false), Times.Once);
+		storage.Verify(s => s.RemoveAccountBanAsync(sessionId, ChatId, It.IsAny<CancellationToken>()), Times.Once);
+	}
+
+	[Fact]
+	public async Task NeverStoreBannedStatus_WhenSavingDestinationWithRecordedBan()
+	{
+		SetupDestination(false, ChatStatus.Active, isAccountBanned: true);
+
+		await sut.Handle(Disable(), CancellationToken.None);
+
+		storage.Verify(s => s.UpdateDestinationAsync(
+			id, false, ChatStatus.Active, 0, 0, 1, 0, null, It.IsAny<CancellationToken>()), Times.Once);
+	}
+
+	[Fact]
+	public async Task RecordAccountBan_WhenRejoinFailsWithBan()
+	{
+		SetupDestination(false, ChatStatus.Left);
+		SetupNotMember();
+		SetupChat(Username, true, TelegramOperationResult<TelegramChatInfo>.Failed(
+			TelegramOperationStatus.ChannelBanned, "CHANNEL_PRIVATE"));
+
+		await Should.ThrowAsync<RepostDestinationRejoinException>(async () =>
+			await sut.Handle(Enable(), CancellationToken.None));
+
+		storage.Verify(s => s.AddAccountBanAsync(
+			sessionId, ChatId, "CHANNEL_PRIVATE", It.IsAny<CancellationToken>()), Times.Once);
+		storage.Verify(s => s.RemoveAccountBanAsync(
+			It.IsAny<Guid>(), It.IsAny<long>(), It.IsAny<CancellationToken>()), Times.Never);
+	}
+
+	[Fact]
+	public async Task NotRecordAccountBan_WhenJoinFailsForOtherReason()
+	{
+		SetupDestination(false, ChatStatus.Left);
+		SetupNotMember();
+		SetupChat(Username, true, TelegramOperationResult<TelegramChatInfo>.Failed(
+			TelegramOperationStatus.AccessDenied, "Заявка отправлена, ожидайте одобрения"));
+
+		await Should.ThrowAsync<RepostDestinationRejoinException>(async () =>
+			await sut.Handle(Enable(), CancellationToken.None));
+
+		storage.Verify(s => s.AddAccountBanAsync(
+			It.IsAny<Guid>(), It.IsAny<long>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()), Times.Never);
+	}
+
+	[Fact]
+	public async Task RemoveAccountBan_WhenAccessIsConfirmed()
+	{
+		SetupDestination(false, ChatStatus.Banned);
+		SetupChat(ChatId.ToString(), false, TelegramOperationResult<TelegramChatInfo>.Success(ChatInfo(ChatId)));
+
+		await sut.Handle(Enable(), CancellationToken.None);
+
+		storage.Verify(s => s.RemoveAccountBanAsync(sessionId, ChatId, It.IsAny<CancellationToken>()), Times.Once);
+	}
+
+	[Fact]
+	public async Task RecordAccountBan_WhenAccountIsRestrictedInChat()
+	{
+		SetupDestination(false, ChatStatus.Banned);
+		SetupChat(ChatId.ToString(), false, TelegramOperationResult<TelegramChatInfo>.Success(
+			ChatInfo(ChatId, canSendMedia: false, isAccountRestricted: true)));
+
+		await Should.ThrowAsync<TelegramChatNoMediaPermissionException>(async () =>
+			await sut.Handle(Enable(), CancellationToken.None));
+
+		storage.Verify(s => s.AddAccountBanAsync(
+			sessionId, ChatId, It.IsAny<string?>(), It.IsAny<CancellationToken>()), Times.Once);
+		VerifyNotUpdated();
+	}
+
+	[Fact]
+	public async Task KeepAccountBan_WhenChatForbidsMedia()
+	{
+		SetupDestination(false, ChatStatus.Banned);
+		SetupChat(ChatId.ToString(), false,
+			TelegramOperationResult<TelegramChatInfo>.Success(ChatInfo(ChatId, canSendMedia: false)));
+
+		await Should.ThrowAsync<TelegramChatNoMediaPermissionException>(async () =>
+			await sut.Handle(Enable(), CancellationToken.None));
+
+		storage.Verify(s => s.RemoveAccountBanAsync(
+			It.IsAny<Guid>(), It.IsAny<long>(), It.IsAny<CancellationToken>()), Times.Never);
 	}
 
 	[Fact]
@@ -184,9 +281,14 @@ public class UpdateRepostDestinationUseCaseShould
 
 	private UpdateRepostDestinationCommand Disable() => new(id, false, 0, 0, 1, 0, null);
 
-	private void SetupDestination(bool isActive, ChatStatus chatStatus, string? username = Username) =>
+	private void SetupDestination(
+		bool isActive,
+		ChatStatus chatStatus,
+		string? username = Username,
+		bool isAccountBanned = false
+	) =>
 		storage.Setup(s => s.GetDestinationAsync(id, It.IsAny<CancellationToken>()))
-			.ReturnsAsync(new RepostDestinationInfo(sessionId, ChatId, username, isActive, chatStatus));
+			.ReturnsAsync(new RepostDestinationInfo(sessionId, ChatId, username, isActive, chatStatus, isAccountBanned));
 
 	private void SetupNotMember() =>
 		SetupChat(ChatId.ToString(), false, TelegramOperationResult<TelegramChatInfo>.Failed(
@@ -200,8 +302,10 @@ public class UpdateRepostDestinationUseCaseShould
 			It.IsAny<Guid>(), It.IsAny<bool>(), It.IsAny<ChatStatus>(), It.IsAny<int>(), It.IsAny<int>(),
 			It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int?>(), It.IsAny<CancellationToken>()), Times.Never);
 
-	private static TelegramChatInfo ChatInfo(long chatId, bool canSendMedia = true) => new()
+	private static TelegramChatInfo ChatInfo(long chatId, bool canSendMedia = true, bool isAccountRestricted = false) =>
+		new()
 	{
+		IsAccountRestricted = isAccountRestricted,
 		Id = chatId,
 		AccessHash = 1,
 		Title = "Вебкам World",

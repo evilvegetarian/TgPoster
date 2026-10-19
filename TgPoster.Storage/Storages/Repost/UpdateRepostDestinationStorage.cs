@@ -6,7 +6,8 @@ using TgPoster.Storage.Data.Entities;
 
 namespace TgPoster.Storage.Storages.Repost;
 
-internal sealed class UpdateRepostDestinationStorage(PosterContext context) : IUpdateRepostDestinationStorage
+internal sealed class UpdateRepostDestinationStorage(PosterContext context, GuidFactory guidFactory)
+	: IUpdateRepostDestinationStorage
 {
 	public Task<RepostDestinationInfo?> GetDestinationAsync(Guid id, CancellationToken ct)
 	{
@@ -17,7 +18,9 @@ internal sealed class UpdateRepostDestinationStorage(PosterContext context) : IU
 				x.ChatId,
 				x.Username,
 				x.IsActive,
-				x.ChatStatus))
+				x.ChatStatus,
+				context.TelegramSessionChatBans.Any(b =>
+					b.TelegramSessionId == x.RepostSettings.TelegramSessionId && b.ChatId == x.ChatId)))
 			.FirstOrDefaultAsync(ct);
 	}
 
@@ -44,6 +47,18 @@ internal sealed class UpdateRepostDestinationStorage(PosterContext context) : IU
 		destination.SkipProbability = skipProbability;
 		destination.MaxRepostsPerDay = maxRepostsPerDay;
 
+		await context.SaveChangesAsync(ct);
+	}
+
+	public async Task AddAccountBanAsync(Guid telegramSessionId, long chatId, string? error, CancellationToken ct)
+	{
+		await context.AddOrUpdateChatBanAsync(guidFactory, telegramSessionId, chatId, error, ct);
+		await context.SaveChangesAsync(ct);
+	}
+
+	public async Task RemoveAccountBanAsync(Guid telegramSessionId, long chatId, CancellationToken ct)
+	{
+		await context.RemoveChatBanAsync(telegramSessionId, chatId, ct);
 		await context.SaveChangesAsync(ct);
 	}
 }

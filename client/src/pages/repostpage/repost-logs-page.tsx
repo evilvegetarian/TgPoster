@@ -33,6 +33,8 @@ const REASON_LABELS: Record<RepostLogReason, string> = {
     Banned: "Аккаунт забанен в канале",
     ForwardFailed: "Telegram отклонил пересылку",
     TopicClosed: "Тема форума закрыта",
+    NoWritePermission: "В чат нельзя писать",
+    NoMediaPermission: "В чат нельзя отправлять медиа",
 }
 
 function statusVariant(status: RepostStatus): "default" | "destructive" | "secondary" | "outline" {

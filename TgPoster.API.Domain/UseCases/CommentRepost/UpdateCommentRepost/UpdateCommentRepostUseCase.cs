@@ -14,6 +14,11 @@ internal sealed class UpdateCommentRepostUseCase(
 		if (!await storage.ExistsAsync(request.Id, identity.Current.UserId, ct))
 			throw new CommentRepostSettingsNotFoundException(request.Id);
 
+		// Настройки выключаются при бане аккаунта в группе обсуждения. Ручное включение — повод попробовать
+		// снова, иначе отправка комментариев пропускалась бы по старой записи о бане
+		if (request.IsActive)
+			await storage.RemoveAccountBanAsync(request.Id, ct);
+
 		await storage.UpdateAsync(request.Id, request.IsActive, ct);
 	}
 }

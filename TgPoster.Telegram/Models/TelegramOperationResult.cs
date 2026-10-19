@@ -11,8 +11,11 @@ public readonly struct TelegramOperationResult
 
 	public bool IsSuccess => Status == TelegramOperationStatus.Success;
 
-	public bool IsChannelUnavailable => Status is TelegramOperationStatus.UsernameNotFound
-		or TelegramOperationStatus.ChannelBanned;
+	/// <summary>
+	/// Канала нет для всех: username не занят. Бан конкретного аккаунта (<see cref="TelegramOperationStatus.ChannelBanned" />)
+	/// сюда не входит — его записывают за аккаунтом, а не помечают канал недоступным
+	/// </summary>
+	public bool IsChannelUnavailable => Status is TelegramOperationStatus.UsernameNotFound;
 
 	public static TelegramOperationResult Success() => new() { Status = TelegramOperationStatus.Success };
 
@@ -36,8 +39,11 @@ public readonly struct TelegramOperationResult<T>
 
 	public bool IsSuccess => Status == TelegramOperationStatus.Success;
 
-	public bool IsChannelUnavailable => Status is TelegramOperationStatus.UsernameNotFound
-		or TelegramOperationStatus.ChannelBanned;
+	/// <summary>
+	/// Канала нет для всех: username не занят. Бан конкретного аккаунта (<see cref="TelegramOperationStatus.ChannelBanned" />)
+	/// сюда не входит — его записывают за аккаунтом, а не помечают канал недоступным
+	/// </summary>
+	public bool IsChannelUnavailable => Status is TelegramOperationStatus.UsernameNotFound;
 
 	public static TelegramOperationResult<T> Success(T value) =>
 		new() { Status = TelegramOperationStatus.Success, Value = value };

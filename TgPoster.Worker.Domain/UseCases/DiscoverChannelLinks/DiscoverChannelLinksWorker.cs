@@ -105,7 +105,7 @@ internal sealed partial class DiscoverChannelLinksWorker(
 			return RunOutcome.Success;
 		}
 
-		var channels = await storage.GetChannelsToProcessAsync(ChannelsPerSession * sessionIds.Count, ct);
+		var channels = await storage.GetChannelsToProcessAsync(ChannelsPerSession * sessionIds.Count, sessionIds, ct);
 		if (channels.Count == 0)
 		{
 			logger.LogInformation("Нет каналов для обработки DiscoverChannelLinks");
@@ -118,7 +118,7 @@ internal sealed partial class DiscoverChannelLinksWorker(
 		// Раскладываем каналы по сессиям round-robin: если каналов меньше, чем сессий,
 		// лишние аккаунты просто не задействуются
 		var buckets = channels
-			.Select((channel, index) => (channel, sessionId: sessionIds[index % sessionIds.Count]))
+			.Select((channel, index) => (channel, sessionId: PickSession(sessionIds, index, channel.BannedSessionIds)))
 			.GroupBy(x => x.sessionId, x => x.channel)
 			.ToList();
 
@@ -267,6 +267,29 @@ internal sealed partial class DiscoverChannelLinksWorker(
 	}
 
 	/// <summary>
+	/// Сессия по кругу, начиная с позиции канала, но не из тех, что в канале забанены. Отбор каналов
+	/// не пропускает канал, где забанены все сессии, так что свободная найдётся
+	/// </summary>
+	/// <param name="sessionIds"></param>
+	/// <param name="index"></param>
+	/// <param name="bannedSessionIds"></param>
+	/// <returns></returns>
+	private static Guid PickSession(List<Guid> sessionIds, int index, IReadOnlyList<Guid> bannedSessionIds)
+	{
+		for (var offset = 0; offset < sessionIds.Count; offset++)
+		{
+			var sessionId = sessionIds[(index + offset) % sessionIds.Count];
+			if (!bannedSessionIds.Contains(sessionId))
+			{
+				return sessionId;
+			}
+		}
+
+		// Бан появился между отборм и раздачей: сессия заново упрётся в него и запишет бан ещё раз
+		return sessionIds[index % sessionIds.Count];
+	}
+
+	/// <summary>
 	///     Найти канал в Telegram. Канал, который не удалось открыть по его собственной вине, помечается
 	///     ошибкой, иначе он оставался бы первым в очереди и занимал сессию на каждом запуске
 	/// </summary>
@@ -289,6 +312,21 @@ internal sealed partial class DiscoverChannelLinksWorker(
 				    () => WithDbLockAsync(() => storage.ChannelBanned(channelDto.Id, ct), ct)))
 			{
 				logger.LogError("Канал {channel} забанен", channelDto.Username);
+				return ChannelResolution.NotFound;
+			}
+
+			// Канал закрыт только этому аккаунту: бан пишется за сессией, а канал остаётся в Discover
+			// и в очереди — следующий запуск отдаст его другой сессии
+			if (resolved.Status is TelegramOperationStatus.ChannelBanned)
+			{
+				logger.LogWarning("Канал @{Channel} закрыт сессии {SessionId}: {Error}",
+					channelDto.Username, session.SessionId, resolved.ErrorMessage);
+				if ((resolved.Value?.Id ?? channelDto.TelegramId) is { } chatId)
+				{
+					await WithDbLockAsync(() => storage.MarkAccountBannedAsync(
+						channelDto.Id, session.SessionId, chatId, resolved.ErrorMessage, ct), ct);
+				}
+
 				return ChannelResolution.NotFound;
 			}
 

@@ -269,6 +269,126 @@ public sealed class RepostMessageConsumerStorageShould(StorageTestFixture fixtur
 	}
 
 	[Fact]
+	public async Task GetRepostDataAsync_WithRecordedAccountBan_ShouldMarkOnlyBannedDestination()
+	{
+		var session = await new TelegramSessionBuilder(context).CreateAsync();
+		var schedule = await new ScheduleBuilder(context).CreateAsync();
+		var msg = await new MessageBuilder(context).WithScheduleId(schedule.Id).CreateAsync();
+		var settings = await new RepostSettingsBuilder(context)
+			.WithScheduleId(schedule.Id)
+			.WithTelegramSessionId(session.Id)
+			.WithIsActive(true)
+			.CreateAsync();
+		var banned = await new RepostDestinationBuilder(context).WithRepostSettingsId(settings.Id).CreateAsync();
+		var available = await new RepostDestinationBuilder(context).WithRepostSettingsId(settings.Id).CreateAsync();
+		await new TelegramSessionChatBanBuilder(context)
+			.WithTelegramSessionId(session.Id)
+			.WithChatId(banned.ChatId)
+			.CreateAsync();
+		// Бан другого аккаунта в этом чате к сессии настроек не относится
+		await new TelegramSessionChatBanBuilder(context)
+			.WithChatId(available.ChatId)
+			.CreateAsync();
+
+		var result = await sut.GetRepostDataAsync(msg.Id, settings.Id, CancellationToken.None);
+
+		result.ShouldNotBeNull();
+		result.Destinations.Single(x => x.Id == banned.Id).IsAccountBanned.ShouldBeTrue();
+		result.Destinations.Single(x => x.Id == available.Id).IsAccountBanned.ShouldBeFalse();
+	}
+
+	[Fact]
+	public async Task MarkAccountBannedAsync_ShouldRecordBanAndDisableDestinationsOfSessionInAllSettings()
+	{
+		var session = await new TelegramSessionBuilder(context).CreateAsync();
+		var chatId = Random.Shared.NextInt64(1_000_000, long.MaxValue);
+		var first = await CreateDestinationAsync(session.Id, chatId);
+		var second = await CreateDestinationAsync(session.Id, chatId);
+		var otherChat = await CreateDestinationAsync(session.Id, chatId - 1);
+		var otherSession = await CreateDestinationAsync((await new TelegramSessionBuilder(context).CreateAsync()).Id,
+			chatId);
+
+		await sut.MarkAccountBannedAsync(session.Id, chatId, "CHANNEL_PRIVATE", CancellationToken.None);
+
+		var ban = await context.TelegramSessionChatBans
+			.AsNoTracking()
+			.SingleAsync(x => x.TelegramSessionId == session.Id);
+		ban.ChatId.ShouldBe(chatId);
+		ban.Error.ShouldBe("CHANNEL_PRIVATE");
+		foreach (var id in new[] { first.Id, second.Id })
+		{
+			var destination = await LoadDestinationAsync(id);
+			destination.IsActive.ShouldBeFalse();
+			// Бан хранится только в реестре, статус членства остаётся прежним
+			destination.ChatStatus.ShouldBe(ChatStatus.Active);
+		}
+
+		(await LoadDestinationAsync(otherChat.Id)).IsActive.ShouldBeTrue();
+		(await LoadDestinationAsync(otherSession.Id)).IsActive.ShouldBeTrue();
+	}
+
+	[Fact]
+	public async Task DeactivateDestinationAsync_ShouldDisableAndKeepMembership()
+	{
+		var session = await new TelegramSessionBuilder(context).CreateAsync();
+		var destination = await CreateDestinationAsync(session.Id, Random.Shared.NextInt64(1_000_000, long.MaxValue));
+
+		await sut.DeactivateDestinationAsync(destination.Id, CancellationToken.None);
+
+		var updated = await LoadDestinationAsync(destination.Id);
+		updated.IsActive.ShouldBeFalse();
+		updated.ChatStatus.ShouldBe(ChatStatus.Active);
+	}
+
+	[Fact]
+	public async Task MarkAccountBannedAsync_Twice_ShouldKeepSingleBan()
+	{
+		var session = await new TelegramSessionBuilder(context).CreateAsync();
+
+		await sut.MarkAccountBannedAsync(session.Id, 555, "CHANNEL_PRIVATE", CancellationToken.None);
+		await sut.MarkAccountBannedAsync(session.Id, 555, "CHAT_RESTRICTED", CancellationToken.None);
+
+		var ban = await context.TelegramSessionChatBans
+			.AsNoTracking()
+			.SingleAsync(x => x.TelegramSessionId == session.Id);
+		ban.Error.ShouldBe("CHAT_RESTRICTED");
+	}
+
+	[Fact]
+	public async Task DisableForChatRestrictionAsync_ShouldDisableDestinationAndRecordRestrictionInDiscover()
+	{
+		var session = await new TelegramSessionBuilder(context).CreateAsync();
+		var chatId = Random.Shared.NextInt64(1_000_000, long.MaxValue);
+		var discovered = await CreateDiscoveredChannelAsync(chatId);
+		var destination = await CreateDestinationAsync(session.Id, chatId, discovered.Id);
+
+		await sut.DisableForChatRestrictionAsync(destination.Id, null, false, CancellationToken.None);
+
+		var updated = await LoadDestinationAsync(destination.Id);
+		updated.IsActive.ShouldBeFalse();
+		updated.ChatStatus.ShouldBe(ChatStatus.Active);
+		var channel = await context.DiscoveredChannels.AsNoTracking().SingleAsync(x => x.Id == discovered.Id);
+		channel.CanSendMessages.ShouldBe(true);
+		channel.CanSendMedia.ShouldBe(false);
+		(await context.TelegramSessionChatBans.AnyAsync(x => x.TelegramSessionId == session.Id)).ShouldBeFalse();
+	}
+
+	[Fact]
+	public async Task DisableForChatRestrictionAsync_WithoutDiscoverLink_ShouldFindChannelByChatId()
+	{
+		var session = await new TelegramSessionBuilder(context).CreateAsync();
+		var chatId = Random.Shared.NextInt64(1_000_000, long.MaxValue);
+		var discovered = await CreateDiscoveredChannelAsync(chatId);
+		var destination = await CreateDestinationAsync(session.Id, chatId);
+
+		await sut.DisableForChatRestrictionAsync(destination.Id, false, null, CancellationToken.None);
+
+		var channel = await context.DiscoveredChannels.AsNoTracking().SingleAsync(x => x.Id == discovered.Id);
+		channel.CanSendMessages.ShouldBe(false);
+		channel.CanSendMedia.ShouldBe(true);
+	}
+
+	[Fact]
 	public async Task UpdateDestinationStatusAsync_WithBannedStatus_ShouldDeactivateDestination()
 	{
 		var schedule = await new ScheduleBuilder(context).CreateAsync();
@@ -467,4 +587,49 @@ public sealed class RepostMessageConsumerStorageShould(StorageTestFixture fixtur
 
 		logs.ShouldBeEmpty();
 	}
+
+	private async Task<RepostDestination> CreateDestinationAsync(
+		Guid sessionId,
+		long chatId,
+		Guid? discoveredChannelId = null
+	)
+	{
+		var schedule = await new ScheduleBuilder(context).CreateAsync();
+		var settings = await new RepostSettingsBuilder(context)
+			.WithScheduleId(schedule.Id)
+			.WithTelegramSessionId(sessionId)
+			.CreateAsync();
+		var destination = new RepostDestinationBuilder(context)
+			.WithRepostSettingsId(settings.Id)
+			.WithChatIdentifier(chatId)
+			.WithIsActive(true)
+			.WithChatStatus(ChatStatus.Active)
+			.Build();
+		destination.DiscoveredChannelId = discoveredChannelId;
+
+		await context.AddAsync(destination);
+		await context.SaveChangesAsync();
+
+		return destination;
+	}
+
+	private async Task<DiscoveredChannel> CreateDiscoveredChannelAsync(long telegramId)
+	{
+		var channel = new DiscoveredChannel
+		{
+			Id = Guid.NewGuid(),
+			TelegramId = telegramId,
+			Status = DiscoveryStatus.Completed,
+			CanSendMessages = true,
+			CanSendMedia = true
+		};
+
+		await context.DiscoveredChannels.AddAsync(channel);
+		await context.SaveChangesAsync();
+
+		return channel;
+	}
+
+	private Task<RepostDestination> LoadDestinationAsync(Guid id) =>
+		context.Set<RepostDestination>().AsNoTracking().FirstAsync(x => x.Id == id);
 }

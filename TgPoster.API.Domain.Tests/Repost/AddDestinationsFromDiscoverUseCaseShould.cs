@@ -107,6 +107,31 @@ public class AddDestinationsFromDiscoverUseCaseShould
 	}
 
 	[Fact]
+	public async Task SkipChannelWhereAccountIsBanned_WithoutQueueing()
+	{
+		var candidate = SetupCandidate(username: "bannedchan", telegramId: 4242, isAccountBanned: true);
+
+		var response = await Handle(candidate);
+
+		response.PendingCount.ShouldBe(0);
+		var result = response.Results.Single();
+		result.Outcome.ShouldBe(AddDestinationOutcome.NotResolved);
+		result.Error!.ShouldContain("заблокирован");
+		VerifyNothingPublished();
+	}
+
+	[Fact]
+	public async Task RequestCandidatesWithSessionOfSettings()
+	{
+		var candidate = SetupCandidate(username: "chan");
+
+		await Handle(candidate);
+
+		storage.Verify(s => s.GetCandidatesAsync(
+			It.IsAny<IReadOnlyList<Guid>>(), sessionId, It.IsAny<CancellationToken>()), Times.Once);
+	}
+
+	[Fact]
 	public async Task SkipChannelBannedFromWriting_WithoutQueueing()
 	{
 		var candidate = SetupCandidate(username: "readonlychan", canSendMessages: false);
@@ -297,6 +322,7 @@ public class AddDestinationsFromDiscoverUseCaseShould
 		storage.Verify(s => s.GetCandidatesByFilterAsync(
 			It.IsAny<DiscoverImportFilter>(),
 			It.Is<IReadOnlyCollection<long>>(x => x.Contains(555L) && x.Contains(SourceChannelId)),
+			It.IsAny<Guid>(),
 			200,
 			It.IsAny<CancellationToken>()), Times.Once);
 	}
@@ -334,6 +360,7 @@ public class AddDestinationsFromDiscoverUseCaseShould
 		storage.Setup(s => s.GetCandidatesByFilterAsync(
 				It.IsAny<DiscoverImportFilter>(),
 				It.IsAny<IReadOnlyCollection<long>>(),
+				It.IsAny<Guid>(),
 				It.IsAny<int>(),
 				It.IsAny<CancellationToken>()))
 			.ReturnsAsync(candidates.ToList());
@@ -347,7 +374,8 @@ public class AddDestinationsFromDiscoverUseCaseShould
 		string? username = null,
 		long? telegramId = null,
 		bool? canSendMessages = null,
-		bool? canSendMedia = null
+		bool? canSendMedia = null,
+		bool isAccountBanned = false
 	)
 	{
 		var candidate = new DiscoverCandidate(
@@ -357,14 +385,15 @@ public class AddDestinationsFromDiscoverUseCaseShould
 			"Тестовый канал",
 			null,
 			canSendMessages,
-			canSendMedia);
+			canSendMedia,
+			isAccountBanned);
 		SetupCandidates(candidate);
 
 		return candidate;
 	}
 
 	private void SetupCandidates(params DiscoverCandidate[] candidates) =>
-		storage.Setup(s => s.GetCandidatesAsync(It.IsAny<IReadOnlyList<Guid>>(), It.IsAny<CancellationToken>()))
+		storage.Setup(s => s.GetCandidatesAsync(It.IsAny<IReadOnlyList<Guid>>(), It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
 			.ReturnsAsync(candidates.ToList());
 
 	private void VerifyNothingPublished() =>

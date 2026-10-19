@@ -29,6 +29,15 @@ public sealed class TelegramChatInfo
 	/// <summary>Можно отправлять медиа</summary>
 	public bool CanSendMedia { get; init; }
 
+	/// <summary>Рядовой участник может писать в чат: общая настройка чата без учёта прав и ограничений этого аккаунта</summary>
+	public bool MembersCanSendMessages { get; init; }
+
+	/// <summary>Рядовой участник может отправлять медиа: общая настройка чата без учёта прав и ограничений этого аккаунта</summary>
+	public bool MembersCanSendMedia { get; init; }
+
+	/// <summary>Этот аккаунт лично ограничен в чате: ему запретили писать, отправлять медиа или читать</summary>
+	public bool IsAccountRestricted { get; init; }
+
 	/// <summary>Пользователь является администратором</summary>
 	public bool IsAdmin { get; init; }
 

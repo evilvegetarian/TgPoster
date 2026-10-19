@@ -23,6 +23,43 @@ public interface IRepostMessageConsumerStorage
 	Task UpdateDestinationStatusAsync(Guid destinationId, ChatStatus chatStatus, bool isActive, CancellationToken ct);
 
 	/// <summary>
+	/// Отключает направление, не меняя статус членства в чате
+	/// </summary>
+	/// <param name="destinationId"></param>
+	/// <param name="ct"></param>
+	/// <returns></returns>
+	Task DeactivateDestinationAsync(Guid destinationId, CancellationToken ct);
+
+	/// <summary>
+	/// Фиксирует бан аккаунта в чате и отключает все направления этой сессии в этот чат, в том числе
+	/// из других настроек репоста: туда аккаунт тоже не перешлёт. Статус членства в направлениях
+	/// не меняется — бан хранится только в реестре
+	/// </summary>
+	/// <param name="telegramSessionId"></param>
+	/// <param name="chatId"></param>
+	/// <param name="error"></param>
+	/// <param name="ct"></param>
+	/// <returns></returns>
+	Task MarkAccountBannedAsync(Guid telegramSessionId, long chatId, string? error, CancellationToken ct);
+
+	/// <summary>
+	/// Отключает направление из-за общего запрета чата и записывает запрет в Discover. Статус доступа
+	/// аккаунта к чату не меняется: аккаунт в чате состоит, запрет действует на всех рядовых участников.
+	/// Право, переданное как null, в Discover не меняется
+	/// </summary>
+	/// <param name="destinationId"></param>
+	/// <param name="canSendMessages"></param>
+	/// <param name="canSendMedia"></param>
+	/// <param name="ct"></param>
+	/// <returns></returns>
+	Task DisableForChatRestrictionAsync(
+		Guid destinationId,
+		bool? canSendMessages,
+		bool? canSendMedia,
+		CancellationToken ct
+	);
+
+	/// <summary>
 	///     Инкрементирует счётчик репостов для destination и возвращает новое значение.
 	/// </summary>
 	Task<int> IncrementRepostCounterAsync(Guid destinationId, CancellationToken ct);
@@ -86,4 +123,9 @@ public sealed class RepostDestinationDataDto
 	public int RepostEveryNth { get; init; } = 1;
 	public int SkipProbability { get; init; }
 	public int? MaxRepostsPerDay { get; init; }
+
+	/// <summary>
+	/// У аккаунта сессии зафиксирован бан в этом чате
+	/// </summary>
+	public bool IsAccountBanned { get; init; }
 }

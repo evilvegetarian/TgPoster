@@ -38,5 +38,16 @@ public enum TelegramOperationStatus
 	/// пока не выйдет из ненужных
 	/// </summary>
 	ChannelsLimitReached,
+
+	/// <summary>
+	/// В чате нельзя писать рядовым участникам (CHAT_WRITE_FORBIDDEN, платные сообщения): общая настройка чата,
+	/// а не бан аккаунта
+	/// </summary>
+	NoWritePermission,
+
+	/// <summary>
+	/// В чате нельзя отправлять медиа (CHAT_SEND_*_FORBIDDEN): общая настройка чата, а не бан аккаунта
+	/// </summary>
+	NoMediaPermission,
 	UnknownError
 }
