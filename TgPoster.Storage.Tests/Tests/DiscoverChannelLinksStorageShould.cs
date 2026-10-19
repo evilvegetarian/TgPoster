@@ -120,6 +120,36 @@ public sealed class DiscoverChannelLinksStorageShould(StorageTestFixture fixture
 	}
 
 	[Fact]
+	public async Task GetChannelsToProcessAsync_ShouldPutAllChatsBeforeChannels()
+	{
+		await ClearChannelsAsync();
+		var now = DateTimeOffset.UtcNow;
+		var neverParsedChannel = NewQueueChannel(c => c.PeerType = "channel");
+		var unknownType = NewQueueChannel(c => c.PeerType = null);
+		var neverParsedChat = NewQueueChannel();
+		var parsedChat = NewQueueChannel(c =>
+		{
+			c.Status = DiscoveryStatus.Completed;
+			c.LastDiscoveredAt = now.AddHours(-1);
+		});
+		var parsedChannel = NewQueueChannel(c =>
+		{
+			c.PeerType = "channel";
+			c.Status = DiscoveryStatus.Completed;
+			c.LastDiscoveredAt = now.AddDays(-7);
+		});
+		context.DiscoveredChannels.AddRange(neverParsedChannel, unknownType, neverParsedChat, parsedChat, parsedChannel);
+		await context.SaveChangesAsync(CancellationToken.None);
+		context.ChangeTracker.Clear();
+
+		var result = await sut.GetChannelsToProcessAsync(10, [], CancellationToken.None);
+
+		result.Take(2).Select(x => x.Id).ShouldBe([neverParsedChat.Id, parsedChat.Id]);
+		result.Skip(2).Take(2).Select(x => x.Id).ShouldBe([neverParsedChannel.Id, unknownType.Id], ignoreOrder: true);
+		result.Skip(4).Select(x => x.Id).ShouldBe([parsedChannel.Id]);
+	}
+
+	[Fact]
 	public async Task GetChannelsToProcessAsync_ShouldSkipChannelsWithError()
 	{
 		await ClearChannelsAsync();

@@ -60,7 +60,7 @@ internal sealed class ClassifyChannelStorage(PosterContext context, GuidFactory 
 	{
 		var sessionCount = sessionIds.Count;
 
-		// Чаты идут раньше любых каналов: парсер ссылок пока берёт только чаты, и им категория нужна в первую очередь.
+		// Чаты идут раньше любых каналов: и парсер ссылок, и классификатор в первую очередь работают с чатами.
 		// Postgres при ORDER BY ASC ставит NULL в конец, поэтому «ни разу не пробовали» поднимаем отдельным ключом
 		return context.DiscoveredChannels
 			.Where(x => x.Username != null)

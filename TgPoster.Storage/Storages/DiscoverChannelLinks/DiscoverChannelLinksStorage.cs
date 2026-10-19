@@ -31,8 +31,10 @@ internal sealed class DiscoverChannelLinksStorage(PosterContext context, GuidFac
 			            || context.TelegramSessionChatBans
 				            .Count(b => b.ChatId == x.TelegramId && sessionIds.Contains(b.TelegramSessionId))
 			            < sessionCount)
-			// Сначала ни разу не парсенные, затем самые давние: иначе повторно парсятся одни и те же каналы
-			.OrderBy(x => x.LastDiscoveredAt != null)
+			// Чаты идут раньше любых каналов. Внутри — сначала ни разу не парсенные, затем самые давние:
+			// иначе повторно парсятся одни и те же каналы
+			.OrderBy(x => x.PeerType != "chat")
+			.ThenBy(x => x.LastDiscoveredAt != null)
 			.ThenBy(x => x.LastDiscoveredAt)
 			.ThenBy(x => x.Id)
 			.Take(channelBatchSize)
