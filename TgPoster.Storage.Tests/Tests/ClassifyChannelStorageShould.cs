@@ -52,7 +52,7 @@ public sealed class ClassifyChannelStorageShould(StorageTestFixture fixture)
 	}
 
 	[Fact]
-	public async Task GetChannelsToClassifyAsync_ShouldPreferChats_WithinSameAttemptGroup()
+	public async Task GetChannelsToClassifyAsync_ShouldPutAllChatsBeforeChannels()
 	{
 		await ClearChannelsAsync();
 		var neverAttemptedChannel = NewChannel();
@@ -63,17 +63,23 @@ public sealed class ClassifyChannelStorageShould(StorageTestFixture fixture)
 			c.PeerType = "chat";
 			c.LastClassificationAttemptAt = Now.AddDays(-1);
 		});
+		var staleChat = NewChannel(c =>
+		{
+			c.PeerType = "chat";
+			c.LastClassifiedAt = Now.AddDays(-40);
+			c.LastClassificationAttemptAt = Now.AddDays(-40);
+		});
 		var unknownType = NewChannel(c => c.PeerType = null);
 		context.DiscoveredChannels.AddRange(
-			neverAttemptedChannel, neverAttemptedChat, attemptedChannel, attemptedChat, unknownType);
+			neverAttemptedChannel, neverAttemptedChat, attemptedChannel, attemptedChat, staleChat, unknownType);
 		await context.SaveChangesAsync(CancellationToken.None);
 
-		var result = await sut.GetChannelsToClassifyAsync(10, Now, null, [], CancellationToken.None);
+		var result = await sut.GetChannelsToClassifyAsync(10, Now, Now.AddDays(-30), [], CancellationToken.None);
 
-		result[0].Id.ShouldBe(neverAttemptedChat.Id);
-		result.Take(3).Select(x => x.Id).ShouldBe([neverAttemptedChat.Id, neverAttemptedChannel.Id, unknownType.Id],
+		result.Take(3).Select(x => x.Id).ShouldBe([neverAttemptedChat.Id, attemptedChat.Id, staleChat.Id]);
+		result.Skip(3).Take(2).Select(x => x.Id).ShouldBe([neverAttemptedChannel.Id, unknownType.Id],
 			ignoreOrder: true);
-		result.Skip(3).Select(x => x.Id).ShouldBe([attemptedChat.Id, attemptedChannel.Id]);
+		result.Skip(5).Select(x => x.Id).ShouldBe([attemptedChannel.Id]);
 	}
 
 	[Fact]

@@ -60,8 +60,8 @@ internal sealed class ClassifyChannelStorage(PosterContext context, GuidFactory 
 	{
 		var sessionCount = sessionIds.Count;
 
-		// Postgres при ORDER BY ASC ставит NULL в конец, поэтому «ни разу не пробовали» поднимаем отдельным ключом.
-		// Чаты идут раньше каналов: парсер ссылок пока берёт только чаты, и им категория нужна в первую очередь
+		// Чаты идут раньше любых каналов: парсер ссылок пока берёт только чаты, и им категория нужна в первую очередь.
+		// Postgres при ORDER BY ASC ставит NULL в конец, поэтому «ни разу не пробовали» поднимаем отдельным ключом
 		return context.DiscoveredChannels
 			.Where(x => x.Username != null)
 			.Where(x => x.LastClassifiedAt == null
@@ -72,9 +72,9 @@ internal sealed class ClassifyChannelStorage(PosterContext context, GuidFactory 
 			            || context.TelegramSessionChatBans
 				            .Count(b => b.ChatId == x.TelegramId && sessionIds.Contains(b.TelegramSessionId))
 			            < sessionCount)
-			.OrderBy(x => x.LastClassifiedAt != null)
+			.OrderBy(x => x.PeerType != "chat")
+			.ThenBy(x => x.LastClassifiedAt != null)
 			.ThenBy(x => x.LastClassificationAttemptAt != null)
-			.ThenBy(x => x.PeerType != "chat")
 			.ThenBy(x => x.LastClassificationAttemptAt)
 			.ThenBy(x => x.Id)
 			.Take(batchSize)
