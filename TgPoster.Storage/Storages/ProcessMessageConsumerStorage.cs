@@ -96,7 +96,7 @@ internal sealed class ProcessMessageConsumerStorage(PosterContext context, GuidF
 		return context.Messages
 			.Where(x => x.ScheduleId == scheduleId)
 			.Where(x => x.TimePosting > DateTimeOffset.UtcNow)
-			.Where(x => x.Status != MessageStatus.Cancel || x.Status != MessageStatus.Error)
+			.Where(x => x.Status != MessageStatus.Cancel && x.Status != MessageStatus.Error)
 			.OrderByDescending(x => x.TimePosting)
 			.Select(x => x.TimePosting)
 			.FirstOrDefaultAsync(ct);
