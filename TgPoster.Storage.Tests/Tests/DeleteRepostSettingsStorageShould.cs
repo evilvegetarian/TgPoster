@@ -21,9 +21,10 @@ public sealed class DeleteRepostSettingsStorageShould : IClassFixture<StorageTes
 	[Fact]
 	public async Task RepostSettingsExistsAsync_WithExistingSettings_ShouldReturnTrue()
 	{
-		var settings = await new RepostSettingsBuilder(context).CreateAsync();
+		var schedule = await new ScheduleBuilder(context).CreateAsync();
+		var settings = await new RepostSettingsBuilder(context).WithScheduleId(schedule.Id).CreateAsync();
 
-		var result = await sut.RepostSettingsExistsAsync(settings.Id, CancellationToken.None);
+		var result = await sut.RepostSettingsExistsAsync(settings.Id, schedule.UserId, CancellationToken.None);
 
 		result.ShouldBeTrue();
 	}
@@ -33,7 +34,17 @@ public sealed class DeleteRepostSettingsStorageShould : IClassFixture<StorageTes
 	{
 		var nonExistingId = Guid.NewGuid();
 
-		var result = await sut.RepostSettingsExistsAsync(nonExistingId, CancellationToken.None);
+		var result = await sut.RepostSettingsExistsAsync(nonExistingId, Guid.NewGuid(), CancellationToken.None);
+
+		result.ShouldBeFalse();
+	}
+
+	[Fact]
+	public async Task RepostSettingsExistsAsync_WithSettingsOfAnotherUser_ShouldReturnFalse()
+	{
+		var settings = await new RepostSettingsBuilder(context).CreateAsync();
+
+		var result = await sut.RepostSettingsExistsAsync(settings.Id, Guid.NewGuid(), CancellationToken.None);
 
 		result.ShouldBeFalse();
 	}

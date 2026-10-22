@@ -5,12 +5,13 @@ namespace TgPoster.API.Domain.UseCases.Repost.UpdateRepostDestination;
 public interface IUpdateRepostDestinationStorage
 {
 	/// <summary>
-	/// Получает сессию, чат и текущий статус целевого канала
+	/// Получает сессию, чат и текущий статус целевого канала, если его настройки репоста принадлежат пользователю
 	/// </summary>
 	/// <param name="id"></param>
+	/// <param name="userId"></param>
 	/// <param name="ct"></param>
 	/// <returns></returns>
-	Task<RepostDestinationInfo?> GetDestinationAsync(Guid id, CancellationToken ct);
+	Task<RepostDestinationInfo?> GetDestinationAsync(Guid id, Guid userId, CancellationToken ct);
 
 	/// <summary>
 	///     Обновляет настройки целевого канала.

@@ -17,7 +17,7 @@ public sealed class CreateRepostSettingsStorageShould(StorageTestFixture fixture
 	{
 		var schedule = await new ScheduleBuilder(context).CreateAsync();
 
-		var result = await sut.ScheduleExistsAsync(schedule.Id, CancellationToken.None);
+		var result = await sut.ScheduleExistsAsync(schedule.Id, schedule.UserId, CancellationToken.None);
 
 		result.ShouldBeTrue();
 	}
@@ -27,7 +27,17 @@ public sealed class CreateRepostSettingsStorageShould(StorageTestFixture fixture
 	{
 		var nonExistingId = Guid.NewGuid();
 
-		var result = await sut.ScheduleExistsAsync(nonExistingId, CancellationToken.None);
+		var result = await sut.ScheduleExistsAsync(nonExistingId, Guid.NewGuid(), CancellationToken.None);
+
+		result.ShouldBeFalse();
+	}
+
+	[Fact]
+	public async Task ScheduleExistsAsync_WithScheduleOfAnotherUser_ShouldReturnFalse()
+	{
+		var schedule = await new ScheduleBuilder(context).CreateAsync();
+
+		var result = await sut.ScheduleExistsAsync(schedule.Id, Guid.NewGuid(), CancellationToken.None);
 
 		result.ShouldBeFalse();
 	}
@@ -39,7 +49,7 @@ public sealed class CreateRepostSettingsStorageShould(StorageTestFixture fixture
 			.WithIsActive(true)
 			.CreateAsync();
 
-		var result = await sut.TelegramSessionExistsAndActiveAsync(session.Id, CancellationToken.None);
+		var result = await sut.TelegramSessionExistsAndActiveAsync(session.Id, session.UserId, CancellationToken.None);
 
 		result.ShouldBeTrue();
 	}
@@ -51,7 +61,7 @@ public sealed class CreateRepostSettingsStorageShould(StorageTestFixture fixture
 			.WithIsActive(false)
 			.CreateAsync();
 
-		var result = await sut.TelegramSessionExistsAndActiveAsync(session.Id, CancellationToken.None);
+		var result = await sut.TelegramSessionExistsAndActiveAsync(session.Id, session.UserId, CancellationToken.None);
 
 		result.ShouldBeFalse();
 	}
@@ -61,7 +71,20 @@ public sealed class CreateRepostSettingsStorageShould(StorageTestFixture fixture
 	{
 		var nonExistingId = Guid.NewGuid();
 
-		var result = await sut.TelegramSessionExistsAndActiveAsync(nonExistingId, CancellationToken.None);
+		var result = await sut.TelegramSessionExistsAndActiveAsync(
+			nonExistingId, Guid.NewGuid(), CancellationToken.None);
+
+		result.ShouldBeFalse();
+	}
+
+	[Fact]
+	public async Task TelegramSessionExistsAndActiveAsync_WithSessionOfAnotherUser_ShouldReturnFalse()
+	{
+		var session = await new TelegramSessionBuilder(context)
+			.WithIsActive(true)
+			.CreateAsync();
+
+		var result = await sut.TelegramSessionExistsAndActiveAsync(session.Id, Guid.NewGuid(), CancellationToken.None);
 
 		result.ShouldBeFalse();
 	}

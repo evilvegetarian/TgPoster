@@ -19,13 +19,15 @@ public sealed class AddRepostDestinationStorageShould(StorageTestFixture fixture
 	[Fact]
 	public async Task GetSettingsInfoAsync_WithExistingSettings_ShouldReturnSessionIdAndDefaults()
 	{
+		var schedule = await new ScheduleBuilder(context).CreateAsync();
 		var session = await new TelegramSessionBuilder(context).CreateAsync();
 		var settings = await new RepostSettingsBuilder(context)
+			.WithScheduleId(schedule.Id)
 			.WithTelegramSessionId(session.Id)
 			.WithDefaultSettings(15, 120, 3, 40, 7)
 			.CreateAsync();
 
-		var result = await sut.GetSettingsInfoAsync(settings.Id, CancellationToken.None);
+		var result = await sut.GetSettingsInfoAsync(settings.Id, schedule.UserId, CancellationToken.None);
 
 		result.ShouldNotBeNull();
 		result.TelegramSessionId.ShouldBe(session.Id);
@@ -41,7 +43,17 @@ public sealed class AddRepostDestinationStorageShould(StorageTestFixture fixture
 	{
 		var nonExistingId = Guid.NewGuid();
 
-		var result = await sut.GetSettingsInfoAsync(nonExistingId, CancellationToken.None);
+		var result = await sut.GetSettingsInfoAsync(nonExistingId, Guid.NewGuid(), CancellationToken.None);
+
+		result.ShouldBeNull();
+	}
+
+	[Fact]
+	public async Task GetSettingsInfoAsync_WithSettingsOfAnotherUser_ShouldReturnNull()
+	{
+		var settings = await new RepostSettingsBuilder(context).CreateAsync();
+
+		var result = await sut.GetSettingsInfoAsync(settings.Id, Guid.NewGuid(), CancellationToken.None);
 
 		result.ShouldBeNull();
 	}

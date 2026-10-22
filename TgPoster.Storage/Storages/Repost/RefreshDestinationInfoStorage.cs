@@ -9,10 +9,10 @@ namespace TgPoster.Storage.Storages.Repost;
 internal sealed class RefreshDestinationInfoStorage(PosterContext context, GuidFactory guidFactory)
 	: IRefreshDestinationInfoStorage
 {
-	public Task<Guid?> GetTelegramSessionIdAsync(Guid destinationId, CancellationToken ct)
+	public Task<Guid?> GetTelegramSessionIdAsync(Guid destinationId, Guid userId, CancellationToken ct)
 	{
 		return context.Set<RepostDestination>()
-			.Where(x => x.Id == destinationId)
+			.Where(x => x.Id == destinationId && x.RepostSettings.Schedule.UserId == userId)
 			.Select(x => (Guid?)x.RepostSettings.TelegramSessionId)
 			.FirstOrDefaultAsync(ct);
 	}

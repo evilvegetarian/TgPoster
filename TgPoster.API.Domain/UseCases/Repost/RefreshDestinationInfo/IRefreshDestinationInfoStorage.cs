@@ -5,9 +5,14 @@ namespace TgPoster.API.Domain.UseCases.Repost.RefreshDestinationInfo;
 public interface IRefreshDestinationInfoStorage
 {
 	/// <summary>
-	///     Получает TelegramSessionId через цепочку RepostDestination -> RepostSettings.
+	/// Получает TelegramSessionId через цепочку RepostDestination -> RepostSettings, если настройки репоста
+	/// принадлежат пользователю
 	/// </summary>
-	Task<Guid?> GetTelegramSessionIdAsync(Guid destinationId, CancellationToken ct);
+	/// <param name="destinationId"></param>
+	/// <param name="userId"></param>
+	/// <param name="ct"></param>
+	/// <returns></returns>
+	Task<Guid?> GetTelegramSessionIdAsync(Guid destinationId, Guid userId, CancellationToken ct);
 
 	/// <summary>
 	///     Получает ChatId для destination.

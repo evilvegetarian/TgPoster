@@ -3,14 +3,22 @@ namespace TgPoster.API.Domain.UseCases.Repost.CreateRepostSettings;
 public interface ICreateRepostSettingsStorage
 {
 	/// <summary>
-	///     Проверяет существует ли Schedule с указанным ID.
+	/// Проверяет, что Schedule существует и принадлежит пользователю
 	/// </summary>
-	Task<bool> ScheduleExistsAsync(Guid scheduleId, CancellationToken ct);
+	/// <param name="scheduleId"></param>
+	/// <param name="userId"></param>
+	/// <param name="ct"></param>
+	/// <returns></returns>
+	Task<bool> ScheduleExistsAsync(Guid scheduleId, Guid userId, CancellationToken ct);
 
 	/// <summary>
-	///     Проверяет существует ли активная TelegramSession с указанным ID.
+	/// Проверяет, что TelegramSession существует, активна и принадлежит пользователю
 	/// </summary>
-	Task<bool> TelegramSessionExistsAndActiveAsync(Guid telegramSessionId, CancellationToken ct);
+	/// <param name="telegramSessionId"></param>
+	/// <param name="userId"></param>
+	/// <param name="ct"></param>
+	/// <returns></returns>
+	Task<bool> TelegramSessionExistsAndActiveAsync(Guid telegramSessionId, Guid userId, CancellationToken ct);
 
 	/// <summary>
 	///     Создает настройки репоста и целевые каналы. Возвращает ID созданных настроек.

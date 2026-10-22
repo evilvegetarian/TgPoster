@@ -10,10 +10,10 @@ namespace TgPoster.Storage.Storages.Repost;
 internal sealed class AddRepostDestinationStorage(PosterContext context, GuidFactory guidFactory)
 	: IAddRepostDestinationStorage
 {
-	public Task<RepostSettingsInfo?> GetSettingsInfoAsync(Guid repostSettingsId, CancellationToken ct)
+	public Task<RepostSettingsInfo?> GetSettingsInfoAsync(Guid repostSettingsId, Guid userId, CancellationToken ct)
 	{
 		return context.Set<RepostSettings>()
-			.Where(x => x.Id == repostSettingsId)
+			.Where(x => x.Id == repostSettingsId && x.Schedule.UserId == userId)
 			.Select(x => new RepostSettingsInfo(
 				x.TelegramSessionId,
 				x.DefaultDelayMinSeconds,

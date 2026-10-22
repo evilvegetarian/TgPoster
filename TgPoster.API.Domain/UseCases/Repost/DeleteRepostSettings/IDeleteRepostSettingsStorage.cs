@@ -3,9 +3,13 @@ namespace TgPoster.API.Domain.UseCases.Repost.DeleteRepostSettings;
 public interface IDeleteRepostSettingsStorage
 {
 	/// <summary>
-	///     Проверяет существуют ли настройки репоста с указанным ID.
+	/// Проверяет, что настройки репоста существуют и принадлежат пользователю
 	/// </summary>
-	Task<bool> RepostSettingsExistsAsync(Guid id, CancellationToken ct);
+	/// <param name="id"></param>
+	/// <param name="userId"></param>
+	/// <param name="ct"></param>
+	/// <returns></returns>
+	Task<bool> RepostSettingsExistsAsync(Guid id, Guid userId, CancellationToken ct);
 
 	/// <summary>
 	///     Удаляет настройки репоста и все связанные destinations.

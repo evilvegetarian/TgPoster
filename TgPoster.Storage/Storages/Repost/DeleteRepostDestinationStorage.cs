@@ -7,9 +7,10 @@ namespace TgPoster.Storage.Storages.Repost;
 
 internal sealed class DeleteRepostDestinationStorage(PosterContext context) : IDeleteRepostDestinationStorage
 {
-	public Task<bool> DestinationExistsAsync(Guid id, CancellationToken ct)
+	public Task<bool> DestinationExistsAsync(Guid id, Guid userId, CancellationToken ct)
 	{
-		return context.Set<RepostDestination>().AnyAsync(x => x.Id == id, ct);
+		return context.Set<RepostDestination>()
+			.AnyAsync(x => x.Id == id && x.RepostSettings.Schedule.UserId == userId, ct);
 	}
 
 	public async Task DeleteDestinationAsync(Guid id, CancellationToken ct)

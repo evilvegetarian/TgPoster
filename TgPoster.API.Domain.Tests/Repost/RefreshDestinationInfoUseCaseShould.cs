@@ -1,4 +1,5 @@
 using Moq;
+using Security.IdentityServices;
 using Shared.Enums;
 using Shouldly;
 using TgPoster.API.Domain.UseCases.Repost.RefreshDestinationInfo;
@@ -17,15 +18,19 @@ public sealed class RefreshDestinationInfoUseCaseShould
 	private readonly Guid sessionId = Guid.NewGuid();
 	private readonly Mock<IRefreshDestinationInfoStorage> storage = new();
 	private readonly RefreshDestinationInfoUseCase sut;
+	private readonly Guid userId = Guid.NewGuid();
 
 	public RefreshDestinationInfoUseCaseShould()
 	{
-		storage.Setup(s => s.GetTelegramSessionIdAsync(destinationId, It.IsAny<CancellationToken>()))
+		var identityProvider = new Mock<IIdentityProvider>();
+		identityProvider.Setup(x => x.Current).Returns(new Identity(userId));
+
+		storage.Setup(s => s.GetTelegramSessionIdAsync(destinationId, userId, It.IsAny<CancellationToken>()))
 			.ReturnsAsync(sessionId);
 		storage.Setup(s => s.GetChatIdAsync(destinationId, It.IsAny<CancellationToken>()))
 			.ReturnsAsync(ChatId);
 
-		sut = new RefreshDestinationInfoUseCase(storage.Object, chatService.Object);
+		sut = new RefreshDestinationInfoUseCase(storage.Object, chatService.Object, identityProvider.Object);
 	}
 
 	[Fact]
@@ -72,7 +77,7 @@ public sealed class RefreshDestinationInfoUseCaseShould
 	[Fact]
 	public async Task ThrowNotFoundWithoutTelegram_WhenDestinationMissing()
 	{
-		storage.Setup(s => s.GetTelegramSessionIdAsync(destinationId, It.IsAny<CancellationToken>()))
+		storage.Setup(s => s.GetTelegramSessionIdAsync(destinationId, userId, It.IsAny<CancellationToken>()))
 			.ReturnsAsync((Guid?)null);
 
 		await Should.ThrowAsync<RepostDestinationNotFoundException>(async () =>

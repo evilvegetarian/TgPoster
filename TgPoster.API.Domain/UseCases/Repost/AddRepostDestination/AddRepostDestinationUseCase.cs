@@ -1,4 +1,5 @@
 using MediatR;
+using Security.IdentityServices;
 using Shared.Enums;
 using TgPoster.Exceptions.BadRequest;
 using TgPoster.Exceptions.NotFound;
@@ -8,12 +9,13 @@ namespace TgPoster.API.Domain.UseCases.Repost.AddRepostDestination;
 
 internal sealed class AddRepostDestinationUseCase(
 	IAddRepostDestinationStorage storage,
-	ITelegramChatService chatService)
+	ITelegramChatService chatService,
+	IIdentityProvider identity)
 	: IRequestHandler<AddRepostDestinationCommand, AddRepostDestinationResponse>
 {
 	public async Task<AddRepostDestinationResponse> Handle(AddRepostDestinationCommand request, CancellationToken ct)
 	{
-		var settingsInfo = await storage.GetSettingsInfoAsync(request.RepostSettingsId, ct);
+		var settingsInfo = await storage.GetSettingsInfoAsync(request.RepostSettingsId, identity.Current.UserId, ct);
 		if (settingsInfo == null)
 		{
 			throw new RepostSettingsNotFoundException(request.RepostSettingsId);

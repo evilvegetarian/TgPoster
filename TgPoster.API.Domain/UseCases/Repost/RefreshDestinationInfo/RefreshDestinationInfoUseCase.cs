@@ -1,4 +1,5 @@
 using MediatR;
+using Security.IdentityServices;
 using Shared.Enums;
 using TgPoster.Exceptions.NotFound;
 using TgPoster.Telegram.Abstractions;
@@ -8,12 +9,13 @@ namespace TgPoster.API.Domain.UseCases.Repost.RefreshDestinationInfo;
 
 internal sealed class RefreshDestinationInfoUseCase(
 	IRefreshDestinationInfoStorage storage,
-	ITelegramChatService chatService)
+	ITelegramChatService chatService,
+	IIdentityProvider identity)
 	: IRequestHandler<RefreshDestinationInfoCommand>
 {
 	public async Task Handle(RefreshDestinationInfoCommand request, CancellationToken ct)
 	{
-		var sessionId = await storage.GetTelegramSessionIdAsync(request.DestinationId, ct);
+		var sessionId = await storage.GetTelegramSessionIdAsync(request.DestinationId, identity.Current.UserId, ct);
 		if (sessionId == null)
 		{
 			throw new RepostDestinationNotFoundException(request.DestinationId);

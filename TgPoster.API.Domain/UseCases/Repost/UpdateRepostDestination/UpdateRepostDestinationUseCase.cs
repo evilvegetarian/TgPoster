@@ -1,4 +1,5 @@
 using MediatR;
+using Security.IdentityServices;
 using Shared.Enums;
 using TgPoster.Exceptions.BadRequest;
 using TgPoster.Exceptions.NotFound;
@@ -9,14 +10,15 @@ namespace TgPoster.API.Domain.UseCases.Repost.UpdateRepostDestination;
 
 internal sealed class UpdateRepostDestinationUseCase(
 	IUpdateRepostDestinationStorage storage,
-	ITelegramChatService chatService)
+	ITelegramChatService chatService,
+	IIdentityProvider identity)
 	: IRequestHandler<UpdateRepostDestinationCommand>
 {
 	private const string AccountRestrictedError = "Аккаунт ограничен в чате администратором";
 
 	public async Task Handle(UpdateRepostDestinationCommand request, CancellationToken ct)
 	{
-		var destination = await storage.GetDestinationAsync(request.Id, ct);
+		var destination = await storage.GetDestinationAsync(request.Id, identity.Current.UserId, ct);
 		if (destination == null)
 			throw new RepostDestinationNotFoundException(request.Id);
 

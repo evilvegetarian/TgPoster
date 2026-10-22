@@ -27,15 +27,15 @@ public sealed class UpdateRepostDestinationStorageShould : IClassFixture<Storage
 			.WithIsActive(false)
 			.WithChatStatus(ChatStatus.Left)
 			.CreateAsync();
-		var sessionId = await context.RepostSettings
+		var settings = await context.RepostSettings
 			.Where(x => x.Id == destination.RepostSettingsId)
-			.Select(x => x.TelegramSessionId)
+			.Select(x => new { x.TelegramSessionId, x.Schedule.UserId })
 			.FirstAsync();
 
-		var result = await sut.GetDestinationAsync(destination.Id, CancellationToken.None);
+		var result = await sut.GetDestinationAsync(destination.Id, settings.UserId, CancellationToken.None);
 
 		result.ShouldNotBeNull();
-		result.TelegramSessionId.ShouldBe(sessionId);
+		result.TelegramSessionId.ShouldBe(settings.TelegramSessionId);
 		result.ChatId.ShouldBe(1375846471);
 		result.Username.ShouldBe("wc_world");
 		result.IsActive.ShouldBeFalse();
@@ -45,7 +45,17 @@ public sealed class UpdateRepostDestinationStorageShould : IClassFixture<Storage
 	[Fact]
 	public async Task GetDestinationAsync_WithNonExistingDestination_ShouldReturnNull()
 	{
-		var result = await sut.GetDestinationAsync(Guid.NewGuid(), CancellationToken.None);
+		var result = await sut.GetDestinationAsync(Guid.NewGuid(), Guid.NewGuid(), CancellationToken.None);
+
+		result.ShouldBeNull();
+	}
+
+	[Fact]
+	public async Task GetDestinationAsync_WithDestinationOfAnotherUser_ShouldReturnNull()
+	{
+		var destination = await new RepostDestinationBuilder(context).CreateAsync();
+
+		var result = await sut.GetDestinationAsync(destination.Id, Guid.NewGuid(), CancellationToken.None);
 
 		result.ShouldBeNull();
 	}
@@ -94,16 +104,16 @@ public sealed class UpdateRepostDestinationStorageShould : IClassFixture<Storage
 			.WithChatIdentifier(1375846471)
 			.WithChatStatus(ChatStatus.Active)
 			.CreateAsync();
-		var sessionId = await context.RepostSettings
+		var settings = await context.RepostSettings
 			.Where(x => x.Id == destination.RepostSettingsId)
-			.Select(x => x.TelegramSessionId)
+			.Select(x => new { x.TelegramSessionId, x.Schedule.UserId })
 			.FirstAsync();
 		await new TelegramSessionChatBanBuilder(context)
-			.WithTelegramSessionId(sessionId)
+			.WithTelegramSessionId(settings.TelegramSessionId)
 			.WithChatId(1375846471)
 			.CreateAsync();
 
-		var result = await sut.GetDestinationAsync(destination.Id, CancellationToken.None);
+		var result = await sut.GetDestinationAsync(destination.Id, settings.UserId, CancellationToken.None);
 
 		result.ShouldNotBeNull();
 		result.IsAccountBanned.ShouldBeTrue();

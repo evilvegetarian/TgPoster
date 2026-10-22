@@ -3,9 +3,13 @@ namespace TgPoster.API.Domain.UseCases.Repost.DeleteRepostDestination;
 public interface IDeleteRepostDestinationStorage
 {
 	/// <summary>
-	///     Проверяет существует ли destination с указанным ID.
+	/// Проверяет, что целевой канал существует и его настройки репоста принадлежат пользователю
 	/// </summary>
-	Task<bool> DestinationExistsAsync(Guid id, CancellationToken ct);
+	/// <param name="id"></param>
+	/// <param name="userId"></param>
+	/// <param name="ct"></param>
+	/// <returns></returns>
+	Task<bool> DestinationExistsAsync(Guid id, Guid userId, CancellationToken ct);
 
 	/// <summary>
 	///     Удаляет целевой канал.

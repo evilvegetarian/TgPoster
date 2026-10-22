@@ -54,4 +54,36 @@ public sealed class RefreshDestinationInfoStorageShould(StorageTestFixture fixtu
 			.ToListAsync();
 		bans.ShouldHaveSingleItem().Error.ShouldBe("повторно");
 	}
+
+	[Fact]
+	public async Task GetTelegramSessionIdAsync_WithOwnDestination_ShouldReturnSessionId()
+	{
+		var destination = await new RepostDestinationBuilder(context).CreateAsync();
+		var settings = await context.RepostSettings
+			.Where(x => x.Id == destination.RepostSettingsId)
+			.Select(x => new { x.TelegramSessionId, x.Schedule.UserId })
+			.FirstAsync();
+
+		var result = await sut.GetTelegramSessionIdAsync(destination.Id, settings.UserId, CancellationToken.None);
+
+		result.ShouldBe(settings.TelegramSessionId);
+	}
+
+	[Fact]
+	public async Task GetTelegramSessionIdAsync_WithDestinationOfAnotherUser_ShouldReturnNull()
+	{
+		var destination = await new RepostDestinationBuilder(context).CreateAsync();
+
+		var result = await sut.GetTelegramSessionIdAsync(destination.Id, Guid.NewGuid(), CancellationToken.None);
+
+		result.ShouldBeNull();
+	}
+
+	[Fact]
+	public async Task GetTelegramSessionIdAsync_WithNonExistingDestination_ShouldReturnNull()
+	{
+		var result = await sut.GetTelegramSessionIdAsync(Guid.NewGuid(), Guid.NewGuid(), CancellationToken.None);
+
+		result.ShouldBeNull();
+	}
 }

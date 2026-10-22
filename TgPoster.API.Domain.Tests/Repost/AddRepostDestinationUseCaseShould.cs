@@ -1,4 +1,5 @@
 using Moq;
+using Security.IdentityServices;
 using Shared.Enums;
 using Shouldly;
 using TgPoster.API.Domain.UseCases.Repost.AddRepostDestination;
@@ -16,13 +17,16 @@ public class AddRepostDestinationUseCaseShould
 	private readonly Guid sessionId = Guid.NewGuid();
 	private readonly Mock<IAddRepostDestinationStorage> storage;
 	private readonly AddRepostDestinationUseCase sut;
+	private readonly Guid userId = Guid.NewGuid();
 
 	public AddRepostDestinationUseCaseShould()
 	{
 		storage = new Mock<IAddRepostDestinationStorage>();
 		chatService = new Mock<ITelegramChatService>();
+		var identityProvider = new Mock<IIdentityProvider>();
+		identityProvider.Setup(x => x.Current).Returns(new Identity(userId));
 
-		storage.Setup(s => s.GetSettingsInfoAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+		storage.Setup(s => s.GetSettingsInfoAsync(It.IsAny<Guid>(), userId, It.IsAny<CancellationToken>()))
 			.ReturnsAsync(new RepostSettingsInfo(sessionId, 0, 0, 1, 0, null));
 
 		storage.Setup(s => s.UpsertDiscoveredChannelAsync(
@@ -30,13 +34,13 @@ public class AddRepostDestinationUseCaseShould
 				It.IsAny<ChatType>(), It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
 			.ReturnsAsync(discoveredId);
 
-		sut = new AddRepostDestinationUseCase(storage.Object, chatService.Object);
+		sut = new AddRepostDestinationUseCase(storage.Object, chatService.Object, identityProvider.Object);
 	}
 
 	[Fact]
 	public async Task ThrowRepostSettingsNotFoundException_WhenSettingsMissing()
 	{
-		storage.Setup(s => s.GetSettingsInfoAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+		storage.Setup(s => s.GetSettingsInfoAsync(It.IsAny<Guid>(), userId, It.IsAny<CancellationToken>()))
 			.ReturnsAsync((RepostSettingsInfo?)null);
 
 		var command = new AddRepostDestinationCommand(Guid.NewGuid(), "@channel");
@@ -130,7 +134,7 @@ public class AddRepostDestinationUseCaseShould
 	[Fact]
 	public async Task CopyDefaultSettingsToNewDestination()
 	{
-		storage.Setup(s => s.GetSettingsInfoAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+		storage.Setup(s => s.GetSettingsInfoAsync(It.IsAny<Guid>(), userId, It.IsAny<CancellationToken>()))
 			.ReturnsAsync(new RepostSettingsInfo(sessionId, 15, 120, 3, 40, 7));
 		SetupChat(true, true);
 

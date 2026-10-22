@@ -1,4 +1,5 @@
 using MediatR;
+using Security.IdentityServices;
 using TgPoster.Exceptions.BadRequest;
 using TgPoster.Exceptions.NotFound;
 using TgPoster.Telegram.Abstractions;
@@ -7,17 +8,20 @@ namespace TgPoster.API.Domain.UseCases.Repost.CreateRepostSettings;
 
 internal sealed class CreateRepostSettingsUseCase(
 	ICreateRepostSettingsStorage storage,
-	ITelegramChatService chatService)
+	ITelegramChatService chatService,
+	IIdentityProvider identity)
 	: IRequestHandler<CreateRepostSettingsCommand, CreateRepostSettingsResponse>
 {
 	public async Task<CreateRepostSettingsResponse> Handle(CreateRepostSettingsCommand request, CancellationToken ct)
 	{
-		if (!await storage.ScheduleExistsAsync(request.ScheduleId, ct))
+		var userId = identity.Current.UserId;
+
+		if (!await storage.ScheduleExistsAsync(request.ScheduleId, userId, ct))
 		{
 			throw new ScheduleNotFoundException(request.ScheduleId);
 		}
 
-		if (!await storage.TelegramSessionExistsAndActiveAsync(request.TelegramSessionId, ct))
+		if (!await storage.TelegramSessionExistsAndActiveAsync(request.TelegramSessionId, userId, ct))
 		{
 			throw new TelegramSessionEntityNotFoundException(request.TelegramSessionId);
 		}

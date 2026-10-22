@@ -8,14 +8,15 @@ namespace TgPoster.Storage.Storages.Repost;
 internal sealed class CreateRepostSettingsStorage(PosterContext context, GuidFactory guidFactory)
 	: ICreateRepostSettingsStorage
 {
-	public Task<bool> ScheduleExistsAsync(Guid scheduleId, CancellationToken ct)
+	public Task<bool> ScheduleExistsAsync(Guid scheduleId, Guid userId, CancellationToken ct)
 	{
-		return context.Schedules.AnyAsync(x => x.Id == scheduleId, ct);
+		return context.Schedules.AnyAsync(x => x.Id == scheduleId && x.UserId == userId, ct);
 	}
 
-	public Task<bool> TelegramSessionExistsAndActiveAsync(Guid telegramSessionId, CancellationToken ct)
+	public Task<bool> TelegramSessionExistsAndActiveAsync(Guid telegramSessionId, Guid userId, CancellationToken ct)
 	{
-		return context.TelegramSessions.AnyAsync(x => x.Id == telegramSessionId && x.IsActive, ct);
+		return context.TelegramSessions.AnyAsync(
+			x => x.Id == telegramSessionId && x.UserId == userId && x.IsActive, ct);
 	}
 
 	public async Task<Guid> CreateRepostSettingsAsync(

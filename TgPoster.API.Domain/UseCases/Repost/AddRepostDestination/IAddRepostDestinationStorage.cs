@@ -8,9 +8,10 @@ public interface IAddRepostDestinationStorage
 	///     Получает сессию и общие настройки RepostSettings, копируемые на новый канал.
 	/// </summary>
 	/// <param name="repostSettingsId">Id настроек репоста.</param>
+	/// <param name="userId">Id текущего пользователя.</param>
 	/// <param name="ct">Токен отмены.</param>
-	/// <returns>Информация о настройках репоста или null, если настройки не найдены.</returns>
-	Task<RepostSettingsInfo?> GetSettingsInfoAsync(Guid repostSettingsId, CancellationToken ct);
+	/// <returns>Информация о настройках репоста или null, если настройки не найдены или принадлежат другому пользователю.</returns>
+	Task<RepostSettingsInfo?> GetSettingsInfoAsync(Guid repostSettingsId, Guid userId, CancellationToken ct);
 
 	/// <summary>
 	///     Проверяет существует ли уже destination с таким ChatIdentifier для данного RepostSettings.

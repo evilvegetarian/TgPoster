@@ -9,10 +9,10 @@ namespace TgPoster.Storage.Storages.Repost;
 internal sealed class UpdateRepostDestinationStorage(PosterContext context, GuidFactory guidFactory)
 	: IUpdateRepostDestinationStorage
 {
-	public Task<RepostDestinationInfo?> GetDestinationAsync(Guid id, CancellationToken ct)
+	public Task<RepostDestinationInfo?> GetDestinationAsync(Guid id, Guid userId, CancellationToken ct)
 	{
 		return context.Set<RepostDestination>()
-			.Where(x => x.Id == id)
+			.Where(x => x.Id == id && x.RepostSettings.Schedule.UserId == userId)
 			.Select(x => new RepostDestinationInfo(
 				x.RepostSettings.TelegramSessionId,
 				x.ChatId,

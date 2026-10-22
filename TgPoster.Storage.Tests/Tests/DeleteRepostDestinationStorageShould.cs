@@ -22,8 +22,12 @@ public sealed class DeleteRepostDestinationStorageShould : IClassFixture<Storage
 	public async Task DestinationExistsAsync_WithExistingDestination_ShouldReturnTrue()
 	{
 		var destination = await new RepostDestinationBuilder(context).CreateAsync();
+		var ownerId = await context.RepostSettings
+			.Where(x => x.Id == destination.RepostSettingsId)
+			.Select(x => x.Schedule.UserId)
+			.FirstAsync();
 
-		var result = await sut.DestinationExistsAsync(destination.Id, CancellationToken.None);
+		var result = await sut.DestinationExistsAsync(destination.Id, ownerId, CancellationToken.None);
 
 		result.ShouldBeTrue();
 	}
@@ -33,7 +37,17 @@ public sealed class DeleteRepostDestinationStorageShould : IClassFixture<Storage
 	{
 		var nonExistingId = Guid.NewGuid();
 
-		var result = await sut.DestinationExistsAsync(nonExistingId, CancellationToken.None);
+		var result = await sut.DestinationExistsAsync(nonExistingId, Guid.NewGuid(), CancellationToken.None);
+
+		result.ShouldBeFalse();
+	}
+
+	[Fact]
+	public async Task DestinationExistsAsync_WithDestinationOfAnotherUser_ShouldReturnFalse()
+	{
+		var destination = await new RepostDestinationBuilder(context).CreateAsync();
+
+		var result = await sut.DestinationExistsAsync(destination.Id, Guid.NewGuid(), CancellationToken.None);
 
 		result.ShouldBeFalse();
 	}

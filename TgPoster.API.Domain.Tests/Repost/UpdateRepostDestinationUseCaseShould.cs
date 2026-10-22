@@ -1,4 +1,5 @@
 using Moq;
+using Security.IdentityServices;
 using Shared.Enums;
 using Shouldly;
 using TgPoster.API.Domain.UseCases.Repost.UpdateRepostDestination;
@@ -19,10 +20,14 @@ public class UpdateRepostDestinationUseCaseShould
 	private readonly Guid sessionId = Guid.NewGuid();
 	private readonly Mock<IUpdateRepostDestinationStorage> storage = new();
 	private readonly UpdateRepostDestinationUseCase sut;
+	private readonly Guid userId = Guid.NewGuid();
 
 	public UpdateRepostDestinationUseCaseShould()
 	{
-		sut = new UpdateRepostDestinationUseCase(storage.Object, chatService.Object);
+		var identityProvider = new Mock<IIdentityProvider>();
+		identityProvider.Setup(x => x.Current).Returns(new Identity(userId));
+
+		sut = new UpdateRepostDestinationUseCase(storage.Object, chatService.Object, identityProvider.Object);
 	}
 
 	[Fact]
@@ -40,7 +45,7 @@ public class UpdateRepostDestinationUseCaseShould
 	[Fact]
 	public async Task ThrowRepostDestinationNotFoundException_WhenNotExists()
 	{
-		storage.Setup(s => s.GetDestinationAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+		storage.Setup(s => s.GetDestinationAsync(It.IsAny<Guid>(), userId, It.IsAny<CancellationToken>()))
 			.ReturnsAsync((RepostDestinationInfo?)null);
 
 		var command = new UpdateRepostDestinationCommand(Guid.NewGuid(), true, 0, 0, 1, 0, null);
@@ -287,7 +292,7 @@ public class UpdateRepostDestinationUseCaseShould
 		string? username = Username,
 		bool isAccountBanned = false
 	) =>
-		storage.Setup(s => s.GetDestinationAsync(id, It.IsAny<CancellationToken>()))
+		storage.Setup(s => s.GetDestinationAsync(id, userId, It.IsAny<CancellationToken>()))
 			.ReturnsAsync(new RepostDestinationInfo(sessionId, ChatId, username, isActive, chatStatus, isAccountBanned));
 
 	private void SetupNotMember() =>
