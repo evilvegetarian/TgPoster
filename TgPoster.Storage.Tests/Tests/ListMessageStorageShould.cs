@@ -313,9 +313,12 @@ public sealed class ListMessageStorageShould(StorageTestFixture fixture) : IClas
 		var schedule = await new ScheduleBuilder(context).CreateAsync();
 		var messages = new List<Message>
 		{
-			await new MessageBuilder(context).WithSchedule(schedule).WithIsVerified(false).CreateAsync(),
-			await new MessageBuilder(context).WithSchedule(schedule).WithIsVerified(true).CreateAsync(),
-			await new MessageBuilder(context).WithSchedule(schedule).WithIsVerified(false).CreateAsync()
+			await new MessageBuilder(context).WithSchedule(schedule).WithIsVerified(false)
+				.WithStatus(Data.Enum.MessageStatus.Register).CreateAsync(),
+			await new MessageBuilder(context).WithSchedule(schedule).WithIsVerified(true)
+				.WithStatus(Data.Enum.MessageStatus.Register).CreateAsync(),
+			await new MessageBuilder(context).WithSchedule(schedule).WithIsVerified(false)
+				.WithStatus(Data.Enum.MessageStatus.Register).CreateAsync()
 		};
 
 		var request = CreateQuery(schedule.Id, MessageStatus.NotApproved, MessageSortBy.CreatedAt,
@@ -330,6 +333,26 @@ public sealed class ListMessageStorageShould(StorageTestFixture fixture) : IClas
 			.Select(m => m.Id);
 		result.Items.Select(m => m.Id).ShouldBe(expectedIds);
 		result.Items.ShouldAllBe(x => !x.IsVerified);
+	}
+
+	[Fact]
+	public async Task GetMessagesAsync_FilteredByMessageStatusNotApproved_ShouldIncludeOverdueRegisteredOnly()
+	{
+		var schedule = await new ScheduleBuilder(context).CreateAsync();
+		var overdue = await new MessageBuilder(context).WithSchedule(schedule).WithIsVerified(false)
+			.WithStatus(Data.Enum.MessageStatus.Register).WithTimeMessage(DateTimeOffset.UtcNow.AddHours(-3))
+			.CreateAsync();
+		var failed = await new MessageBuilder(context).WithSchedule(schedule).WithIsVerified(false)
+			.WithStatus(Data.Enum.MessageStatus.Error).WithTimeMessage(DateTimeOffset.UtcNow.AddHours(-3))
+			.CreateAsync();
+
+		var request = CreateQuery(schedule.Id, MessageStatus.NotApproved, MessageSortBy.CreatedAt,
+			SortDirection.Desc);
+
+		var result = await sut.GetMessagesAsync(request, Ct);
+
+		result.Items.Select(m => m.Id).ShouldContain(overdue.Id);
+		result.Items.Select(m => m.Id).ShouldNotContain(failed.Id);
 	}
 
 	[Fact]

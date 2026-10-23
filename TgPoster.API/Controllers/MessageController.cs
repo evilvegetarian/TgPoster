@@ -191,6 +191,7 @@ public class MessageController(ISender sender) : ControllerBase
 	/// <returns>Результат выполнения операции</returns>
 	[HttpPatch(Routes.Message.ApproveMessages)]
 	[ProducesResponseType(StatusCodes.Status204NoContent)]
+	[ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
 	[ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
 	[ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
 	public async Task<IActionResult> ApproveMessages(

@@ -20,7 +20,8 @@ internal class SenderMessageStorage(PosterContext context) : ISenderMessageStora
 			.Where(x=>x.IsActive)
 			.Where(x => x.Messages.Any(m => m.TimePosting > time
 			                                && m.TimePosting <= plusMinute
-			                                && m.Status == MessageStatus.Register))
+			                                && m.Status == MessageStatus.Register
+			                                && m.IsVerified))
 			.Select(x => new MessageDetail
 			{
 				ChannelId = x.ChannelId,
@@ -42,7 +43,8 @@ internal class SenderMessageStorage(PosterContext context) : ISenderMessageStora
 				MessageDto = x.Messages
 					.Where(m => m.TimePosting > time
 					            && m.TimePosting <= plusMinute
-					            && m.Status == MessageStatus.Register)
+					            && m.Status == MessageStatus.Register
+					            && m.IsVerified)
 					.Select(m => new MessageDto
 					{
 						Id = m.Id,

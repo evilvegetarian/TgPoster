@@ -152,4 +152,24 @@ public class CreateMessageStorageShould(StorageTestFixture fixture) : IClassFixt
 		createdMessage.TextMessage.ShouldBeNull();
 		createdMessage.MessageFiles.Count.ShouldBe(1);
 	}
+
+	[Fact]
+	public async Task CreateMessagesAsync_ShouldSaveVerifiedMessage()
+	{
+		var schedule = await new ScheduleBuilder(context).CreateAsync();
+
+		var messageId = await sut.CreateMessagesAsync(
+			schedule.Id,
+			"Manual message",
+			DateTimeOffset.UtcNow.AddHours(1),
+			[],
+			true,
+			null,
+			CancellationToken.None);
+
+		var createdMessage = await context.Messages
+			.AsNoTracking()
+			.SingleAsync(x => x.Id == messageId);
+		createdMessage.IsVerified.ShouldBeTrue();
+	}
 }

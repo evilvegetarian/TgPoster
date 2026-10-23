@@ -80,6 +80,28 @@ public class ParseChannelUseCaseStorageShould(StorageTestFixture fixture) : ICla
 		message.MessageFiles.Count(x => x.TgFileId == videoId).ShouldBe(1);
 	}
 
+	[Theory]
+	[InlineData(true, false)]
+	[InlineData(false, true)]
+	public async Task CreateMessages_ShouldSaveVerificationFromSource(bool isNeedVerified, bool expectedIsVerified)
+	{
+		var schedule = await new ScheduleBuilder(context).CreateAsync();
+		var messageDto = new MessageDto
+		{
+			Text = Guid.NewGuid().ToString(),
+			ScheduleId = schedule.Id,
+			IsNeedVerified = isNeedVerified,
+			TimePosting = DateTimeOffset.UtcNow.AddHours(1)
+		};
+
+		await sut.CreateMessagesAsync([messageDto], CancellationToken.None);
+
+		var message = await context.Messages
+			.AsNoTracking()
+			.SingleAsync(m => m.ScheduleId == schedule.Id);
+		message.IsVerified.ShouldBe(expectedIsVerified);
+	}
+
 	[Fact]
 	public async Task UpdateChannelParsingParameters_WithValidData_ShouldUpdate()
 	{

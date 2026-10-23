@@ -39,8 +39,9 @@ internal sealed class ListMessageStorage(PosterContext context) : IListMessageSt
 				                               && message.Status != Data.Enum.MessageStatus.Send);
 				break;
 			case MessageStatus.NotApproved:
+				// Просроченные тоже показываем: неподтверждённый пост не уходит, а при подтверждении встаёт в свободный слот
 				query = query.Where(message => !message.IsVerified
-				                               && message.TimePosting > DateTimeOffset.UtcNow);
+				                               && message.Status == Data.Enum.MessageStatus.Register);
 				break;
 			case MessageStatus.Delivered:
 				query = query.Where(message => message.Status == Data.Enum.MessageStatus.Send);

@@ -59,6 +59,29 @@ public class SenderMessageStorageShould(StorageTestFixture fixture) : IClassFixt
 	}
 
 	[Fact]
+	public async Task GetMessagesAsync_ShouldSkipUnverifiedMessages()
+	{
+		var schedule = await new ScheduleBuilder(context).CreateAsync();
+		var verifiedSchedule = await new ScheduleBuilder(context).CreateAsync();
+		var now = DateTimeOffset.UtcNow;
+		var unverified = CreateMessage(schedule.Id, now.AddMinutes(3), MessageStatus.Register);
+		unverified.IsVerified = false;
+		var verified = CreateMessage(verifiedSchedule.Id, now.AddMinutes(3), MessageStatus.Register);
+		var unverifiedInVerifiedSchedule = CreateMessage(verifiedSchedule.Id, now.AddMinutes(4), MessageStatus.Register);
+		unverifiedInVerifiedSchedule.IsVerified = false;
+		await context.Messages.AddRangeAsync(unverified, verified, unverifiedInVerifiedSchedule);
+		await context.SaveChangesAsync();
+
+		var result = await sut.GetMessagesAsync();
+
+		result.ShouldNotContain(x => x.ChannelId == schedule.ChannelId);
+		var messageIds = result.SelectMany(x => x.MessageDto).Select(x => x.Id).ToList();
+		messageIds.ShouldContain(verified.Id);
+		messageIds.ShouldNotContain(unverified.Id);
+		messageIds.ShouldNotContain(unverifiedInVerifiedSchedule.Id);
+	}
+
+	[Fact]
 	public async Task UpdateStatusInHandleMessageAsync_ShouldUpdateStatusForGivenIds()
 	{
 		var schedule = await new ScheduleBuilder(context).CreateAsync();

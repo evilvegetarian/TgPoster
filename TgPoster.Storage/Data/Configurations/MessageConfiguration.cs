@@ -13,8 +13,11 @@ internal class MessageConfiguration : BaseEntityConfiguration<Message>
 		builder.Property(x => x.TextMessage)
 			.HasMaxLength(4096);
 
+		// Дефолт true нужен, чтобы ручные и уже существующие посты считались подтверждёнными,
+		// а sentinel true — иначе EF не отправит false в INSERT и база подставит свой дефолт
 		builder.Property(x => x.IsVerified)
-			.HasDefaultValue(true);
+			.HasDefaultValue(true)
+			.HasSentinel(true);
 
 		builder.Property(x => x.SendError)
 			.HasMaxLength(1000);

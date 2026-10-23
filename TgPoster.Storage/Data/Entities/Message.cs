@@ -35,7 +35,7 @@ public sealed class Message : BaseEntity
 	///     Сообщение верифицировано
 	///     Дефолтно ставится true
 	/// </summary>
-	public bool IsVerified { get; set; }
+	public bool IsVerified { get; set; } = true;
 
 	/// <summary>
 	///     ID сообщения в Telegram после отправки.

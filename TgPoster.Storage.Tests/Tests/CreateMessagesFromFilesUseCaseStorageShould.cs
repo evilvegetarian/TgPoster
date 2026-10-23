@@ -158,4 +158,26 @@ public class CreateMessagesFromFilesUseCaseStorageShould(StorageTestFixture fixt
 		messages.SelectMany(x => x.MessageFiles.Select(file => file.TgFileId)).ShouldContain(file1.FileId);
 		messages.SelectMany(x => x.MessageFiles.Select(file => file.TgFileId)).ShouldContain(file2.FileId);
 	}
+
+	[Fact]
+	public async Task CreateMessages_ShouldSaveVerifiedMessages()
+	{
+		var schedule = await new ScheduleBuilder(_context).CreateAsync();
+		var file = new MediaFileResult
+		{
+			FileId = "photo-verified",
+			MimeType = "image/jpeg"
+		};
+
+		await _sut.CreateMessagesAsync(
+			schedule.Id,
+			[file],
+			[DateTimeOffset.UtcNow.AddHours(3)],
+			CancellationToken.None);
+
+		var message = await _context.Messages
+			.AsNoTracking()
+			.SingleAsync(x => x.ScheduleId == schedule.Id);
+		message.IsVerified.ShouldBeTrue();
+	}
 }
