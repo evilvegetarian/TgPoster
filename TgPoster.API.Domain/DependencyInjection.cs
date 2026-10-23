@@ -2,6 +2,7 @@ using System.Reflection;
 using Amazon.S3;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Shared;
 using TgPoster.API.Domain.ConfigModels;
 using TgPoster.API.Domain.Monitoring;
@@ -34,6 +35,7 @@ public static class DependencyInjection
 				ForcePathStyle = true
 			}));
 
+		services.TryAddSingleton(TimeProvider.System);
 		services.AddShared();
 		services
 			.AddScoped<ITelegramService, TelegramService>()

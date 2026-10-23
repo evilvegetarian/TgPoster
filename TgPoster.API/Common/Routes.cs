@@ -179,6 +179,11 @@ internal static class Routes
 		internal const string ScrapeChannels = Root + "/scrape";
 	}
 
+	internal static class Dashboard
+	{
+		internal const string Root = Base + "/dashboard";
+	}
+
 	internal static class Discover
 	{
 		internal const string Root = Base + "/discover";

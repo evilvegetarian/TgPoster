@@ -727,6 +727,103 @@ export interface CrossPostTargetResponse {
   delayMinutes: number;
 }
 
+export interface DashboardFailedPost {
+  id?: string;
+  scheduleId?: string;
+  scheduleName?: string;
+  timePosting?: string;
+  /** @nullable */
+  sendError?: string | null;
+  /** @nullable */
+  textPreview?: string | null;
+}
+
+export interface DashboardParsingProblem {
+  id?: string;
+  channel?: string;
+  scheduleId?: string;
+  scheduleName?: string;
+  /** @nullable */
+  lastParseDate?: string | null;
+}
+
+export interface DashboardRepostError {
+  error?: string;
+  count?: number;
+}
+
+export interface DashboardReposts {
+  successCount?: number;
+  failedCount?: number;
+  skippedCount?: number;
+  topErrors?: DashboardRepostError[];
+}
+
+export interface DashboardResponse {
+  schedules: DashboardSchedule[];
+  upcomingPosts: DashboardUpcomingPost[];
+  failedPosts: DashboardFailedPost[];
+  failedPostsTotal: number;
+  reposts: DashboardReposts;
+  telegramSessions: DashboardSession[];
+  parsingProblems: DashboardParsingProblem[];
+  workers: DashboardWorker[];
+}
+
+export interface DashboardSchedule {
+  id?: string;
+  name?: string;
+  channelName?: string;
+  isActive?: boolean;
+  hasSlots?: boolean;
+  plannedCount?: number;
+  awaitingApprovalCount?: number;
+  /** @nullable */
+  nextPostAt?: string | null;
+  /** @nullable */
+  lastPlannedAt?: string | null;
+  /** @nullable */
+  queueDays?: number | null;
+  failedLast24h?: number;
+}
+
+export interface DashboardSession {
+  id?: string;
+  /** @nullable */
+  name?: string | null;
+  phoneMasked?: string;
+  status?: TelegramSessionStatus;
+  isActive?: boolean;
+  /** @nullable */
+  floodWaitUntil?: string | null;
+  hasProblem?: boolean;
+}
+
+export interface DashboardUpcomingPost {
+  id?: string;
+  scheduleId?: string;
+  scheduleName?: string;
+  timePosting?: string;
+  /** @nullable */
+  textPreview?: string | null;
+  photoCount?: number;
+  videoCount?: number;
+  needApprove?: boolean;
+}
+
+export interface DashboardWorker {
+  jobName?: string;
+  status?: WorkerJobStateStatus;
+  /** @nullable */
+  lastFinishedAt?: string | null;
+  /** @nullable */
+  nextRunAt?: string | null;
+  /** @nullable */
+  cooldownUntil?: string | null;
+  /** @nullable */
+  lastError?: string | null;
+}
+
 export interface DayListResponse {
   items: DayResponse[];
 }
@@ -2101,6 +2198,17 @@ export interface VerifyCodeResponse {
   /** @nullable */
   message?: string | null;
 }
+
+export type WorkerJobStateStatus = typeof WorkerJobStateStatus[keyof typeof WorkerJobStateStatus];
+
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const WorkerJobStateStatus = {
+  Idle: 'Idle',
+  Running: 'Running',
+  CooldownWait: 'CooldownWait',
+  Failed: 'Failed',
+} as const;
 
 export interface YouTubeAccountListResponse {
   items: YouTubeAccountResponse[];
