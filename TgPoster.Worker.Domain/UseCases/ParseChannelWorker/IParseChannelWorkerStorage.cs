@@ -6,4 +6,5 @@ public interface IParseChannelWorkerStorage
 	Task SetWaitingStatusAsync(Guid id);
 	Task SetInHandleStatusAsync(List<Guid> ids);
 	Task SetErrorStatusAsync(Guid id);
+	Task<Guid?> GetScheduleIdAsync(Guid id, CancellationToken ct);
 }

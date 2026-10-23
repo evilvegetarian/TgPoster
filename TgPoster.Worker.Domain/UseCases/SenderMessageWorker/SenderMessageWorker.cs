@@ -1,9 +1,11 @@
 using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using Hangfire;
 using MassTransit;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Security.Cryptography;
+using Shared.CrossPosting;
 using Shared.Telegram;
 using Shared.Utilities;
 using Shared.YouTube;
@@ -11,6 +13,7 @@ using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using TgPoster.Worker.Domain.ConfigModels;
+using TgPoster.Worker.Domain.Services.ScheduleAlerts;
 using TgPoster.Worker.Domain.UseCases.RepostMessageConsumer;
 
 namespace TgPoster.Worker.Domain.UseCases.SenderMessageWorker;
@@ -24,13 +27,17 @@ public class SenderMessageWorker(
 	IPublishEndpoint publishEndpoint,
 	TelegramBotManager botManager,
 	IHostApplicationLifetime lifetime,
-	TelegramExecuteServices telegramExecuteServices
+	TelegramExecuteServices telegramExecuteServices,
+	IScheduleAlertService scheduleAlertService
 )
 {
 	private const string UnknownTelegramError = "Неизвестная ошибка Telegram";
+	private const int PostPreviewLength = 80;
 
 	private const string InterruptedByRestartError =
 		"Отправка прервана перезапуском воркера. Проверьте канал перед повтором";
+
+	private static readonly TimeSpan RecoveryAlertsTimeout = TimeSpan.FromSeconds(30);
 
 	public async Task<List<InterruptedMessage>> RecoverAfterRestartAsync(CancellationToken ct)
 	{
@@ -40,6 +47,15 @@ public class SenderMessageWorker(
 		logger.LogInformation(
 			"Восстановление после перезапуска воркера: будущие зависшие посты возвращены в очередь, прошедших помечено ошибкой: {InterruptedCount}",
 			interrupted.Count);
+
+		// Метод вызывается синхронно при старте воркера: недоступный Telegram не должен надолго задерживать запуск
+		using var alertsCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
+		alertsCts.CancelAfter(RecoveryAlertsTimeout);
+		foreach (var schedule in interrupted.GroupBy(x => x.ScheduleId))
+		{
+			await scheduleAlertService.NotifyAsync(schedule.Key, ScheduleProblem.PostsInterrupted,
+				$"Прервано постов: {schedule.Count()}", ct: alertsCts.Token);
+		}
 
 		return interrupted;
 	}
@@ -113,7 +129,7 @@ public class SenderMessageWorker(
 					ct);
 			if (!result.IsSuccess)
 			{
-				await storage.UpdateErrorStatusMessageAsync(messageId, result.Error ?? UnknownTelegramError, ct);
+				await HandleSendFailureAsync(messageId, message, result, ct);
 				return;
 			}
 
@@ -135,7 +151,7 @@ public class SenderMessageWorker(
 			var result = await telegramExecuteServices.SendTextAsync(bot, chatId, text, ct, ParseMode.Html);
 			if (!result.IsSuccess)
 			{
-				await storage.UpdateErrorStatusMessageAsync(messageId, result.Error ?? UnknownTelegramError, ct);
+				await HandleSendFailureAsync(messageId, message, result, ct);
 				return;
 			}
 
@@ -166,6 +182,46 @@ public class SenderMessageWorker(
 		{
 			await UploadVideosToYouTubeAsync(bot, message, youTubeAccount);
 		}
+	}
+
+	/// <summary>
+	/// Помечает пост ошибкой и оповещает владельца расписания
+	/// </summary>
+	/// <param name="messageId"></param>
+	/// <param name="message"></param>
+	/// <param name="result"></param>
+	/// <param name="ct"></param>
+	private async Task HandleSendFailureAsync(
+		Guid messageId,
+		MessageDto message,
+		TelegramSendResult result,
+		CancellationToken ct
+	)
+	{
+		var error = result.Error ?? UnknownTelegramError;
+		await storage.UpdateErrorStatusMessageAsync(messageId, error, ct);
+
+		var problem = result.IsAccessLost ? ScheduleProblem.BotLostAccess : ScheduleProblem.PostFailed;
+		await scheduleAlertService.NotifyAsync(message.ScheduleId, problem, BuildPostFailedDetails(message, error),
+			ct: ct);
+	}
+
+	/// <summary>
+	/// Собирает подробности оповещения о неотправленном посте: время, причина и начало текста поста
+	/// </summary>
+	/// <param name="message"></param>
+	/// <param name="error"></param>
+	/// <returns></returns>
+	internal static string BuildPostFailedDetails(MessageDto message, string error)
+	{
+		var time = message.TimePosting.UtcDateTime.ToString("dd.MM HH:mm", CultureInfo.InvariantCulture);
+		var details = $"Пост на {time} UTC не отправлен: {error}";
+
+		// Пост хранится в Telegram-HTML, а оповещение уходит простым текстом — теги в превью только мешают
+		var preview = TelegramHtmlToText.Convert(message.Message);
+		return string.IsNullOrEmpty(preview)
+			? details
+			: $"{details}\nТекст: {ScheduleAlertService.Truncate(preview, PostPreviewLength)}";
 	}
 
 	private async Task UploadVideosToYouTubeAsync(

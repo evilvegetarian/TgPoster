@@ -40,4 +40,29 @@ public sealed class TelegramExecuteServicesShould
 		result.Error.ShouldNotBeNull();
 		result.Error.ShouldContain("403");
 	}
+
+	[Fact]
+	public async Task ReturnAccessLost_WhenBotLostRightsInChannel()
+	{
+		bot.Setup(b => b.SendRequest(It.IsAny<SendMessageRequest>(), It.IsAny<CancellationToken>()))
+			.ThrowsAsync(new ApiRequestException("Bad Request: need administrator rights in the channel chat", 400));
+
+		var result = await sut.SendTextAsync(bot.Object, 100, "text", CancellationToken.None);
+
+		result.IsSuccess.ShouldBeFalse();
+		result.IsAccessLost.ShouldBeTrue();
+	}
+
+	[Fact]
+	public async Task ReturnNotAccessLost_WhenTelegramRejectsContent()
+	{
+		bot.Setup(b => b.SendRequest(It.IsAny<SendMediaGroupRequest>(), It.IsAny<CancellationToken>()))
+			.ThrowsAsync(new ApiRequestException("Bad Request: message caption is too long", 400));
+
+		var result = await sut.SendMediaGroupAsync(bot.Object, 100, [new InputMediaPhoto("file-id")],
+			CancellationToken.None);
+
+		result.IsSuccess.ShouldBeFalse();
+		result.IsAccessLost.ShouldBeFalse();
+	}
 }

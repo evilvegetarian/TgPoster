@@ -1,6 +1,8 @@
 using System.Net;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
+using Shared.Alerts;
 using TgPoster.Telegram.Abstractions;
 using TgPoster.Telegram.Configuration;
 using TgPoster.Telegram.Internal;
@@ -27,7 +29,8 @@ public static class DependencyInjection
 		services.AddScoped<ITelegramChatService, TelegramChatService>();
 		services.AddScoped<ITelegramMessageService, TelegramMessageService>();
 		services.AddScoped<ITelegramPublicLookupService, TelegramPublicLookupService>();
-		services.AddSingleton<SessionAlertThrottle>();
+		services.TryAddSingleton(TimeProvider.System);
+		services.AddSingleton<AlertThrottle>();
 		services.AddScoped<ITelegramSessionAlertService, TelegramSessionAlertService>();
 
 		services.AddOptions<TelegramPublicLookupOptions>().BindConfiguration("TelegramPublicLookup");

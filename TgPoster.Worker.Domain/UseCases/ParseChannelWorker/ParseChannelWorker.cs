@@ -1,6 +1,7 @@
 using Hangfire;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using TgPoster.Worker.Domain.Services.ScheduleAlerts;
 using TgPoster.Worker.Domain.UseCases.ParseChannel;
 
 namespace TgPoster.Worker.Domain.UseCases.ParseChannelWorker;
@@ -8,6 +9,7 @@ namespace TgPoster.Worker.Domain.UseCases.ParseChannelWorker;
 internal class ParseChannelWorker(
 	IParseChannelWorkerStorage storage,
 	ParseChannelUseCase parseChannelUseCase,
+	IScheduleAlertService alertService,
 	ILogger<ParseChannelWorker> logger,
 	IHostApplicationLifetime lifetime)
 {
@@ -27,17 +29,28 @@ internal class ParseChannelWorker(
 
 		await storage.SetInHandleStatusAsync(ids);
 
+		var ct = lifetime.ApplicationStopping;
 		foreach (var id in ids)
 		{
 			try
 			{
-				await parseChannelUseCase.Handle(id, lifetime.ApplicationStopping);
-				await storage.SetWaitingStatusAsync(id);
+				// False — источник уже помечен ошибкой или настроек нет: Waiting перетёр бы Failed
+				if (await parseChannelUseCase.Handle(id, ct))
+				{
+					await storage.SetWaitingStatusAsync(id);
+				}
 			}
 			catch (Exception e)
 			{
 				logger.LogError(e, "Во время парсинга произошла ошибка. Id настроек парсинга: {Id}.", id);
 				await storage.SetErrorStatusAsync(id);
+
+				// Остановка воркера прерывает парсинг отменой — это не поломка источника
+				if (!ct.IsCancellationRequested && await storage.GetScheduleIdAsync(id, ct) is { } scheduleId)
+				{
+					await alertService.NotifyAsync(scheduleId, ScheduleProblem.ParsingFailed, e.Message,
+						throttleKey: id, ct: ct);
+				}
 			}
 		}
 	}

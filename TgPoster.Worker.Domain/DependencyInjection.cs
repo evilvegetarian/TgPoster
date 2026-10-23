@@ -10,6 +10,7 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Shared;
 using Shared.Services;
 using TgPoster.Worker.Domain.ConfigModels;
+using TgPoster.Worker.Domain.Services.ScheduleAlerts;
 using TgPoster.Worker.Domain.UseCases;
 using TgPoster.Worker.Domain.UseCases.ClassifyChannel;
 using TgPoster.Worker.Domain.UseCases.CleanupChannels;
@@ -26,6 +27,7 @@ using TgPoster.Worker.Domain.UseCases.ParseChannelConsumer;
 using TgPoster.Worker.Domain.UseCases.ParseChannelWorker;
 using TgPoster.Worker.Domain.UseCases.ProcessMessageConsumer;
 using TgPoster.Worker.Domain.UseCases.RepostMessageConsumer;
+using TgPoster.Worker.Domain.UseCases.ScheduleQueueCheck;
 using TgPoster.Worker.Domain.UseCases.SendCommentConsumer;
 using TgPoster.Worker.Domain.UseCases.SenderMessageWorker;
 using TgPoster.Worker.Domain.UseCases.UpdateChannelStats;
@@ -81,6 +83,8 @@ public static class DependencyInjection
 		services.AddScoped<ParseChannelUseCase>();
 		services.AddScoped<CommentRepostMonitorWorker>();
 		services.AddScoped<TelegramExecuteServices>();
+		services.AddScoped<IScheduleAlertService, ScheduleAlertService>();
+		services.AddScoped<ScheduleQueueCheckWorker>();
 		services.AddScoped<DiscoverChannelLinksWorker>();
 		services.AddScoped<ClassifyChannelWorker>();
 		services.AddScoped<UpdateChannelStatsWorker>();
@@ -166,6 +170,11 @@ public static class DependencyInjection
 			"comment-repost-monitor-job",
 			worker => worker.CheckForNewPostsAsync(),
 			Cron.Minutely());
+
+		recurringJobManager.AddOrUpdate<ScheduleQueueCheckWorker>(
+			"schedule-queue-check-job",
+			worker => worker.CheckAsync(),
+			Cron.Hourly());
 
 		//Каждый 1 часов
 		recurringJobManager.AddOrUpdate<DiscoverChannelLinksWorker>(

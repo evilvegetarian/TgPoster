@@ -6,10 +6,16 @@ using Telegram.Bot.Types.Enums;
 
 namespace TgPoster.Worker.Domain.UseCases;
 
-public sealed record TelegramSendResult(bool IsSuccess, int? MessageId = null, string? Error = null)
+public sealed record TelegramSendResult(
+	bool IsSuccess,
+	int? MessageId = null,
+	string? Error = null,
+	bool IsAccessLost = false)
 {
 	public static TelegramSendResult Success(int? messageId = null) => new(true, messageId);
-	public static TelegramSendResult Failure(string error) => new(false, Error: error);
+
+	public static TelegramSendResult Failure(string error, bool isAccessLost = false) =>
+		new(false, Error: error, IsAccessLost: isAccessLost);
 }
 
 public class TelegramExecuteServices(ILogger<TelegramExecuteServices> logger)
@@ -88,7 +94,8 @@ public class TelegramExecuteServices(ILogger<TelegramExecuteServices> logger)
 		catch (ApiRequestException ex)
 		{
 			logger.LogError(ex, "Ошибка при отправке медиа-группы в чат {ChatId}", chatId);
-			return TelegramSendResult.Failure($"{ex.ErrorCode}: {ex.Message}");
+			return TelegramSendResult.Failure($"{ex.ErrorCode}: {ex.Message}",
+				TelegramErrorClassifier.IsAccessLost(ex));
 		}
 		catch (RequestException ex)
 		{
@@ -119,7 +126,8 @@ public class TelegramExecuteServices(ILogger<TelegramExecuteServices> logger)
 		catch (ApiRequestException ex)
 		{
 			logger.LogError(ex, "Ошибка при отправке сообщения в чат {ChatId}", chatId);
-			return TelegramSendResult.Failure($"{ex.ErrorCode}: {ex.Message}");
+			return TelegramSendResult.Failure($"{ex.ErrorCode}: {ex.Message}",
+				TelegramErrorClassifier.IsAccessLost(ex));
 		}
 		catch (RequestException ex)
 		{

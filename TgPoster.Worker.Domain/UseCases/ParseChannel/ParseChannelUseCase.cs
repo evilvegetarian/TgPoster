@@ -2,6 +2,7 @@ using MassTransit;
 using Microsoft.Extensions.Logging;
 using TgPoster.Telegram.Abstractions;
 using TgPoster.Telegram.Models;
+using TgPoster.Worker.Domain.Services.ScheduleAlerts;
 
 namespace TgPoster.Worker.Domain.UseCases.ParseChannel;
 
@@ -9,15 +10,24 @@ internal class ParseChannelUseCase(
 	IParseChannelUseCaseStorage storage,
 	IPublishEndpoint publishEndpoint,
 	ITelegramMessageService tgMessages,
+	IScheduleAlertService alertService,
 	ILogger<ParseChannelUseCase> logger)
 {
-	public async Task Handle(Guid id, CancellationToken ct)
+	/// <summary>
+	/// Парсит канал-источник и отправляет новые посты на обработку. False — парсинг не удался насовсем:
+	/// настроек нет или канал не найден либо недоступен (тогда источник уже помечен ошибкой). Временные
+	/// сбои Telegram (FloodWait, таймаут) не считаются неудачей — источник попробуют в следующий раз
+	/// </summary>
+	/// <param name="id"></param>
+	/// <param name="ct"></param>
+	/// <returns></returns>
+	public async Task<bool> Handle(Guid id, CancellationToken ct)
 	{
 		var parameters = await storage.GetChannelParsingParametersAsync(id, ct);
 		if (parameters is null)
 		{
 			logger.LogError("Параметров нет, интересно почему..... Id: {id}", id);
-			return;
+			return false;
 		}
 
 		logger.LogInformation("Начали парсить данный канал: {ChannelName}", parameters.ChannelName);
@@ -37,8 +47,14 @@ internal class ParseChannelUseCase(
 		{
 			logger.LogError("Не удалось найти канал по имени: {ChannelName} ({Status})", channelName,
 				resolveResult.Status);
+			if (IsSourceUnavailable(resolveResult.Status))
+			{
+				await MarkSourceUnavailableAsync(id, parameters, resolveResult.Status, ct);
+				return false;
+			}
+
 			await storage.UpdateChannelParsingParametersAsync(id, lastParseId ?? 0, checkNewPosts, ct);
-			return;
+			return true;
 		}
 
 		var channel = resolveResult.Value!;
@@ -60,8 +76,14 @@ internal class ParseChannelUseCase(
 			{
 				logger.LogError("Ошибка при получении истории канала {ChannelName}: {Status} {Error}",
 					channelName, historyResult.Status, historyResult.ErrorMessage);
+				if (IsSourceUnavailable(historyResult.Status))
+				{
+					await MarkSourceUnavailableAsync(id, parameters, historyResult.Status, ct);
+					return false;
+				}
+
 				await storage.UpdateChannelParsingParametersAsync(id, tempLastParseId, checkNewPosts, ct);
-				return;
+				return true;
 			}
 
 			var history = historyResult.Value!;
@@ -144,6 +166,38 @@ internal class ParseChannelUseCase(
 		await storage.UpdateChannelParsingParametersAsync(id, tempLastParseId, checkNewPosts, ct);
 		logger.LogInformation("Парсинг канала завершен. Задачи на обработку ({count}) отправлены в очередь.",
 			validGroups.Count);
+		return true;
+	}
+
+	/// <summary>
+	/// Отказ Telegram, который не пройдёт сам: канала нет, аккаунт парсинга в нём забанен или у него нет доступа
+	/// </summary>
+	/// <param name="status"></param>
+	/// <returns></returns>
+	private static bool IsSourceUnavailable(TelegramOperationStatus status) =>
+		status is TelegramOperationStatus.UsernameNotFound
+			or TelegramOperationStatus.ChannelBanned
+			or TelegramOperationStatus.AccessDenied;
+
+	/// <summary>
+	/// Помечает источник ошибкой и оповещает владельца расписания. Троттлинг оповещения — по источнику, чтобы
+	/// сломанный источник не заглушал оповещения о других источниках того же расписания
+	/// </summary>
+	/// <param name="id"></param>
+	/// <param name="parameters"></param>
+	/// <param name="status"></param>
+	/// <param name="ct"></param>
+	private async Task MarkSourceUnavailableAsync(
+		Guid id,
+		ParseChannelParsingSettings parameters,
+		TelegramOperationStatus status,
+		CancellationToken ct
+	)
+	{
+		await storage.UpdateErrorStatusAsync(id, ct);
+		await alertService.NotifyAsync(parameters.ScheduleId, ScheduleProblem.ParsingFailed,
+			$"Источник @{parameters.ChannelName}: канал не найден или недоступен ({status})", throttleKey: id,
+			ct: ct);
 	}
 }
 

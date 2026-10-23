@@ -61,6 +61,12 @@ internal class ScheduleBuilder(PosterContext context)
 		return this;
 	}
 
+	public ScheduleBuilder WithIsActive(bool isActive)
+	{
+		schedule.IsActive = isActive;
+		return this;
+	}
+
 	public async Task<Schedule> CreateAsync(CancellationToken ct = default)
 	{
 		await context.Schedules.AddRangeAsync(schedule);

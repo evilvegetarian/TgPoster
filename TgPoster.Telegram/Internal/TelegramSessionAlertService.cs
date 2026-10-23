@@ -1,5 +1,6 @@
 using System.Text;
 using Microsoft.Extensions.Logging;
+using Shared.Alerts;
 using Shared.Telegram;
 using Telegram.Bot;
 using TgPoster.Telegram.Abstractions;
@@ -13,9 +14,11 @@ namespace TgPoster.Telegram.Internal;
 internal sealed class TelegramSessionAlertService(
 	ILogger<TelegramSessionAlertService> logger,
 	ITelegramSessionAlertRepository repository,
-	SessionAlertThrottle throttle,
+	AlertThrottle throttle,
 	TelegramBotManager botManager) : ITelegramSessionAlertService
 {
+	private static readonly TimeSpan Cooldown = TimeSpan.FromMinutes(30);
+
 	public async Task NotifyAsync(
 		Guid sessionId,
 		TelegramSessionProblem problem,
@@ -25,7 +28,7 @@ internal sealed class TelegramSessionAlertService(
 	{
 		try
 		{
-			if (!throttle.TryAcquire(sessionId, problem))
+			if (!throttle.TryAcquire(sessionId, problem, Cooldown))
 			{
 				logger.LogDebug(
 					"Оповещение о проблеме {Problem} с сессией {SessionId} пропущено: недавно уже отправляли",

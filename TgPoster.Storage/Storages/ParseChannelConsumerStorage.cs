@@ -20,4 +20,12 @@ internal class ParseChannelConsumerStorage(PosterContext context) : IParseChanne
 		channelParsingParameters!.Status = ParsingStatus.Failed;
 		await context.SaveChangesAsync();
 	}
+
+	public Task<Guid?> GetScheduleIdAsync(Guid id, CancellationToken ct)
+	{
+		return context.ChannelParsingParameters
+			.Where(x => x.Id == id)
+			.Select(x => (Guid?)x.ScheduleId)
+			.FirstOrDefaultAsync(ct);
+	}
 }

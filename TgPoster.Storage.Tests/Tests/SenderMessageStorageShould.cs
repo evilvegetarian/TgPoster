@@ -53,7 +53,7 @@ public class SenderMessageStorageShould(StorageTestFixture fixture) : IClassFixt
 
 		result.ShouldNotBeNull();
 		result.Count.ShouldBeGreaterThanOrEqualTo(1);
-		result.SelectMany(x => x.MessageDto).Any(m => m.Id == msgInWindow.Id).ShouldBeTrue();
+		result.SelectMany(x => x.MessageDto).Single(m => m.Id == msgInWindow.Id).ScheduleId.ShouldBe(schedule.Id);
 		result.SelectMany(x => x.MessageDto).Any(m => m.Id == msgOutOfWindow.Id).ShouldBeFalse();
 		result.SelectMany(x => x.MessageDto).Any(m => m.Id == msgWrongStatus.Id).ShouldBeFalse();
 	}

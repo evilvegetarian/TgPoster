@@ -101,4 +101,23 @@ public class ParseChannelWorkerStorageShould : IClassFixture<StorageTestFixture>
 		channelParsingParameters.ShouldNotBeNull();
 		channelParsingParameters.Status.ShouldBe(ParsingStatus.Failed);
 	}
+
+	[Fact]
+	public async Task GetScheduleIdAsync_ShouldReturnScheduleOfParsingSettings()
+	{
+		var schedule = await new ScheduleBuilder(context).CreateAsync();
+		var cpp = await new ChannelParsingSettingBuilder(context).WithScheduleId(schedule.Id).CreateAsync();
+
+		var result = await sut.GetScheduleIdAsync(cpp.Id, CancellationToken.None);
+
+		result.ShouldBe(schedule.Id);
+	}
+
+	[Fact]
+	public async Task GetScheduleIdAsync_ShouldReturnNull_WhenParsingSettingsNotFound()
+	{
+		var result = await sut.GetScheduleIdAsync(Guid.NewGuid(), CancellationToken.None);
+
+		result.ShouldBeNull();
+	}
 }

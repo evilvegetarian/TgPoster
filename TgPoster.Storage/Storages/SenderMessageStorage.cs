@@ -48,6 +48,7 @@ internal class SenderMessageStorage(PosterContext context) : ISenderMessageStora
 					.Select(m => new MessageDto
 					{
 						Id = m.Id,
+						ScheduleId = m.ScheduleId,
 						Message = m.TextMessage,
 						TimePosting = m.TimePosting,
 						Signature = x.SignatureEnabled ? x.SignatureFooter : null,

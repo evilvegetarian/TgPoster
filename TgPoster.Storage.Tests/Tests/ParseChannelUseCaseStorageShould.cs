@@ -34,6 +34,7 @@ public class ParseChannelUseCaseStorageShould(StorageTestFixture fixture) : ICla
 		result.ChannelName.ShouldBe(cpp.Channel);
 		result.AvoidWords.ShouldBe(cpp.AvoidWords);
 		result.LastParsedId.ShouldBe(cpp.LastParseId);
+		result.ScheduleId.ShouldBe(schedule.Id);
 	}
 
 	[Fact]
