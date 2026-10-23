@@ -94,6 +94,12 @@ internal class MessageBuilder(PosterContext context)
 		return this;
 	}
 
+	public MessageBuilder WithSendError(string? value)
+	{
+		message.SendError = value;
+		return this;
+	}
+
 	public MessageBuilder WithChannelParsingSettingId(Guid? value)
 	{
 		message.ChannelParsingSettingId = value;

@@ -20,6 +20,12 @@ internal class GetMessageStorage(PosterContext context) : IGetMessageStorage
 				ScheduleId = message.ScheduleId,
 				TimePosting = message.TimePosting,
 				IsSent = message.Status == Data.Enum.MessageStatus.Send,
+				DeliveryStatus = message.Status == Data.Enum.MessageStatus.Register ? MessageDeliveryStatus.Planned
+					: message.Status == Data.Enum.MessageStatus.InHandle ? MessageDeliveryStatus.Sending
+					: message.Status == Data.Enum.MessageStatus.Send ? MessageDeliveryStatus.Sent
+					: message.Status == Data.Enum.MessageStatus.Error ? MessageDeliveryStatus.Failed
+					: MessageDeliveryStatus.Cancelled,
+				SendError = message.SendError,
 				HasYouTubeAccount = message.Schedule.YouTubeAccountId.HasValue,
 				CrossPostEnabled = message.CrossPostEnabled,
 				CrossPostFormat = message.CrossPostFormat,

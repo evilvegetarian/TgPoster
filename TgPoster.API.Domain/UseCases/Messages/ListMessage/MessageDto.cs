@@ -12,6 +12,8 @@ public sealed class MessageDto
 	public List<FileDto> Files { get; set; } = [];
 	public DateTimeOffset? Created { get; set; }
 	public bool IsSent { get; set; }
+	public required MessageDeliveryStatus DeliveryStatus { get; set; }
+	public string? SendError { get; set; }
 	public bool HasYouTubeAccount { get; set; }
 	public bool CrossPostEnabled { get; set; }
 	public CrossPostFormat? CrossPostFormat { get; set; }

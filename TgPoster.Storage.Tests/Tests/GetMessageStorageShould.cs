@@ -1,5 +1,6 @@
 using Shared.Enums;
 using Shouldly;
+using TgPoster.API.Domain.UseCases.Messages.ListMessage;
 using TgPoster.Storage.Data;
 using TgPoster.Storage.Data.Enum;
 using TgPoster.Storage.Storages;
@@ -147,5 +148,44 @@ public class GetMessageStorageShould(StorageTestFixture fixture) : IClassFixture
 
 		result.ShouldNotBeNull();
 		result.IsSent.ShouldBeTrue();
+	}
+
+	[Theory]
+	[InlineData(Data.Enum.MessageStatus.Register, MessageDeliveryStatus.Planned)]
+	[InlineData(Data.Enum.MessageStatus.InHandle, MessageDeliveryStatus.Sending)]
+	[InlineData(Data.Enum.MessageStatus.Send, MessageDeliveryStatus.Sent)]
+	[InlineData(Data.Enum.MessageStatus.Error, MessageDeliveryStatus.Failed)]
+	[InlineData(Data.Enum.MessageStatus.Cancel, MessageDeliveryStatus.Cancelled)]
+	public async Task GetMessagesAsync_ShouldMapStatusToDeliveryStatus(
+		Data.Enum.MessageStatus status,
+		MessageDeliveryStatus expected
+	)
+	{
+		var schedule = await new ScheduleBuilder(context).CreateAsync();
+		var message = await new MessageBuilder(context)
+			.WithSchedule(schedule)
+			.WithStatus(status)
+			.CreateAsync();
+
+		var result = await sut.GetMessagesAsync(message.Id, schedule.UserId, CancellationToken.None);
+
+		result.ShouldNotBeNull();
+		result.DeliveryStatus.ShouldBe(expected);
+	}
+
+	[Fact]
+	public async Task GetMessagesAsync_WithErrorStatus_ShouldReturnSendError()
+	{
+		var schedule = await new ScheduleBuilder(context).CreateAsync();
+		var message = await new MessageBuilder(context)
+			.WithSchedule(schedule)
+			.WithStatus(Data.Enum.MessageStatus.Error)
+			.WithSendError("403: Forbidden: bot was kicked")
+			.CreateAsync();
+
+		var result = await sut.GetMessagesAsync(message.Id, schedule.UserId, CancellationToken.None);
+
+		result.ShouldNotBeNull();
+		result.SendError.ShouldBe("403: Forbidden: bot was kicked");
 	}
 }

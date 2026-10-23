@@ -29,6 +29,8 @@ internal sealed class ListMessageUseCase(
 			NeedApprove = !m.IsVerified,
 			CanApprove = true,
 			IsSent = m.IsSent,
+			DeliveryStatus = m.DeliveryStatus,
+			SendError = m.SendError,
 			HasVideo = m.Files.Any(f => f.ContentType.GetFileType() == FileTypes.Video),
 			HasYouTubeAccount = m.HasYouTubeAccount,
 			CrossPostEnabled = m.CrossPostEnabled,

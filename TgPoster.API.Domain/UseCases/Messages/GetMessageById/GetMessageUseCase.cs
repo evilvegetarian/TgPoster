@@ -31,6 +31,8 @@ internal sealed class GetMessageUseCase(
 			CanApprove = true,
 			NeedApprove = !message.IsVerified,
 			IsSent = message.IsSent,
+			DeliveryStatus = message.DeliveryStatus,
+			SendError = message.SendError,
 			HasYouTubeAccount = message.HasYouTubeAccount,
 			CrossPostEnabled = message.CrossPostEnabled,
 			CrossPostFormat = message.CrossPostFormat,

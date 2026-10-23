@@ -12,6 +12,17 @@ public sealed record MessageResponse
 	public required bool CanApprove { get; init; }
 	public List<FileResponse> Files { get; init; } = [];
 	public required bool IsSent { get; init; }
+
+	/// <summary>
+	/// Статус доставки поста
+	/// </summary>
+	public required MessageDeliveryStatus DeliveryStatus { get; init; }
+
+	/// <summary>
+	/// Причина последней неудачной отправки
+	/// </summary>
+	public string? SendError { get; init; }
+
 	public required bool HasVideo { get; init; }
 	public required bool HasYouTubeAccount { get; init; }
 

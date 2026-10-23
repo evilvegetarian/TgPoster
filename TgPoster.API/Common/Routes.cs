@@ -63,6 +63,7 @@ internal static class Routes
 		internal const string UpdateAllTime = Root + "/{scheduleId:guid}/times";
 		internal const string Shuffle = Root + "/{scheduleId:guid}/shuffle";
 		internal const string RetryCrossPost = Root + "/{id:guid}/cross-posts/{crossPostId:guid}/retry";
+		internal const string Retry = Root + "/retry";
 	}
 
 	internal static class File

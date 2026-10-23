@@ -15,6 +15,7 @@ using TgPoster.API.Domain.UseCases.Messages.GetTime;
 using TgPoster.API.Domain.UseCases.Messages.ListMessage;
 using TgPoster.API.Domain.UseCases.Messages.LoadFilesMessage;
 using TgPoster.API.Domain.UseCases.Messages.RetryCrossPost;
+using TgPoster.API.Domain.UseCases.Messages.RetryMessages;
 using TgPoster.API.Domain.UseCases.Messages.ShuffleMessages;
 using TgPoster.API.Domain.UseCases.Messages.UpdateAllTime;
 using TgPoster.API.Mapper;
@@ -303,5 +304,22 @@ public class MessageController(ISender sender) : ControllerBase
 	{
 		await sender.Send(new RetryCrossPostCommand(id, crossPostId), ct);
 		return NoContent();
+	}
+
+	/// <summary>
+	/// Повторить отправку упавших постов: сейчас или в ближайшие свободные слоты расписания
+	/// </summary>
+	/// <param name="request"></param>
+	/// <param name="ct"></param>
+	/// <returns></returns>
+	[HttpPost(Routes.Message.Retry)]
+	[ProducesResponseType(StatusCodes.Status200OK, Type = typeof(RetryMessagesResponse))]
+	[ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
+	[ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
+	[ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
+	public async Task<IActionResult> Retry([FromBody] [Required] RetryMessagesRequest request, CancellationToken ct)
+	{
+		var response = await sender.Send(new RetryMessagesCommand(request.Ids, request.Mode), ct);
+		return Ok(response);
 	}
 }

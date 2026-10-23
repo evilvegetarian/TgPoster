@@ -1,11 +1,13 @@
 using Shared.Services;
 using Shouldly;
 using TgPoster.Exceptions.Base;
+using TgPoster.Exceptions.BadRequest;
 
 namespace Shared.Tests;
 
 public sealed class TimePostingServiceShould
 {
+	private static readonly DateTimeOffset From = new(2026, 10, 19, 10, 0, 0, TimeSpan.Zero);
 	private readonly TimePostingService sut = new();
 
 	[Fact]
@@ -112,4 +114,87 @@ public sealed class TimePostingServiceShould
 		resultTime.Date.ShouldBe(now.AddDays(7).Date);
 		resultTime.TimeOfDay.ShouldBe(postingTime.ToTimeSpan());
 	}
+
+	[Fact]
+	public void ThrowNotFoundTime_WhenFreeSlotsRequestedForEmptySchedule()
+	{
+		var scheduleTime = new Dictionary<DayOfWeek, List<TimeOnly>>();
+
+		Should.Throw<NotFoundTimeException>(() => sut.GetFreeSlots(1, scheduleTime, [], From));
+	}
+
+	[Fact]
+	public void SkipOccupiedSlots_WhenGettingFreeSlots()
+	{
+		var scheduleTime = new Dictionary<DayOfWeek, List<TimeOnly>>
+		{
+			{ From.DayOfWeek, [new TimeOnly(11, 0), new TimeOnly(12, 0), new TimeOnly(13, 0)] }
+		};
+
+		var result = sut.GetFreeSlots(2, scheduleTime, [At(0, 12)], From);
+
+		result.ShouldBe([At(0, 11), At(0, 13)]);
+	}
+
+	[Fact]
+	public void ReturnFreeSlotsAscendingAndStrictlyAfterFrom_WhenScheduleTimesUnsorted()
+	{
+		var scheduleTime = new Dictionary<DayOfWeek, List<TimeOnly>>
+		{
+			{ From.DayOfWeek, [new TimeOnly(15, 0), new TimeOnly(10, 0), new TimeOnly(9, 0), new TimeOnly(11, 0)] }
+		};
+
+		var result = sut.GetFreeSlots(3, scheduleTime, [], From);
+
+		result.ShouldBe([At(0, 11), At(0, 15), At(7, 9)]);
+	}
+
+	[Fact]
+	public void ReturnFreeSlotsAcrossDays_WhenCurrentDayHasNotEnoughSlots()
+	{
+		var scheduleTime = new Dictionary<DayOfWeek, List<TimeOnly>>
+		{
+			{ From.DayOfWeek, [new TimeOnly(11, 0)] },
+			{ From.AddDays(1).DayOfWeek, [new TimeOnly(9, 0)] }
+		};
+
+		var result = sut.GetFreeSlots(3, scheduleTime, [], From);
+
+		result.ShouldBe([At(0, 11), At(1, 9), At(7, 11)]);
+	}
+
+	[Theory]
+	[InlineData(0, true)]
+	[InlineData(30, true)]
+	[InlineData(59, true)]
+	[InlineData(60, false)]
+	[InlineData(-1, false)]
+	public void CompareOccupiedTimeWithMinutePrecision_WhenGettingFreeSlots(int offsetSeconds, bool isOccupied)
+	{
+		var scheduleTime = new Dictionary<DayOfWeek, List<TimeOnly>>
+		{
+			{ From.DayOfWeek, [new TimeOnly(11, 0)] }
+		};
+
+		var result = sut.GetFreeSlots(1, scheduleTime, [At(0, 11).AddSeconds(offsetSeconds)], From);
+
+		result.ShouldBe([isOccupied ? At(7, 11) : At(0, 11)]);
+	}
+
+	[Fact]
+	public void ReturnFoundFreeSlots_WhenSearchLimitReached()
+	{
+		var scheduleTime = new Dictionary<DayOfWeek, List<TimeOnly>>
+		{
+			{ From.DayOfWeek, [new TimeOnly(11, 0)] }
+		};
+
+		var result = sut.GetFreeSlots(1000, scheduleTime, [], From);
+
+		result.Count.ShouldBe(58);
+		result.Last().ShouldBe(At(399, 11));
+	}
+
+	private static DateTimeOffset At(int dayOffset, int hour) =>
+		new DateTimeOffset(From.Date, TimeSpan.Zero).AddDays(dayOffset).AddHours(hour);
 }
