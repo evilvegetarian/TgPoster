@@ -1119,6 +1119,18 @@ export const MessageCrossPostFormat = {
   Announcement: 'Announcement',
 } as const;
 
+export type MessageDeliveryStatus = typeof MessageDeliveryStatus[keyof typeof MessageDeliveryStatus];
+
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const MessageDeliveryStatus = {
+  Planned: 'Planned',
+  Sending: 'Sending',
+  Sent: 'Sent',
+  Failed: 'Failed',
+  Cancelled: 'Cancelled',
+} as const;
+
 export interface MessageResponse {
   id: string;
   /** @nullable */
@@ -1129,6 +1141,9 @@ export interface MessageResponse {
   canApprove: boolean;
   files?: FileResponse[];
   isSent: boolean;
+  deliveryStatus: MessageDeliveryStatus;
+  /** @nullable */
+  sendError?: string | null;
   hasVideo: boolean;
   hasYouTubeAccount: boolean;
   crossPostEnabled: boolean;
@@ -1505,6 +1520,37 @@ export const RepostStatus = {
   Success: 'Success',
   Failed: 'Failed',
   Skipped: 'Skipped',
+} as const;
+
+export interface RetriedMessage {
+  id: string;
+  timePosting: string;
+}
+
+/**
+ * Повтор отправки упавших постов
+ */
+export interface RetryMessagesRequest {
+  /**
+   * Id постов, отправка которых завершилась ошибкой
+   * @minItems 1
+   * @maxItems 1000
+   */
+  ids: string[];
+  mode: RetryMode;
+}
+
+export interface RetryMessagesResponse {
+  items: RetriedMessage[];
+}
+
+export type RetryMode = typeof RetryMode[keyof typeof RetryMode];
+
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const RetryMode = {
+  Now: 'Now',
+  NextFreeSlot: 'NextFreeSlot',
 } as const;
 
 export interface ScheduleListResponse {

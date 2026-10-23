@@ -34,7 +34,9 @@ import type {
   PostApiV1MessageBatchFromFilesBody,
   PostApiV1MessageBody,
   ProblemDetails,
-  PutApiV1MessageIdBody
+  PutApiV1MessageIdBody,
+  RetryMessagesRequest,
+  RetryMessagesResponse
 } from '../tgPosterAPI.schemas';
 
 import { customInstance } from '../../axios-instance';
@@ -1078,6 +1080,70 @@ export const usePostApiV1MessageIdCrossPostsCrossPostIdRetry = <TError = Problem
       > => {
 
       const mutationOptions = getPostApiV1MessageIdCrossPostsCrossPostIdRetryMutationOptions(options);
+
+      return useMutation(mutationOptions, queryClient);
+    }
+    /**
+ * @summary Повторить отправку упавших постов: сейчас или в ближайшие свободные слоты расписания
+ */
+export const postApiV1MessageRetry = (
+    retryMessagesRequest: RetryMessagesRequest,
+ signal?: AbortSignal
+) => {
+      
+      
+      return customInstance<RetryMessagesResponse>(
+      {url: `/api/v1/message/retry`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: retryMessagesRequest, signal
+    },
+      );
+    }
+  
+
+
+export const getPostApiV1MessageRetryMutationOptions = <TError = ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postApiV1MessageRetry>>, TError,{data: RetryMessagesRequest}, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof postApiV1MessageRetry>>, TError,{data: RetryMessagesRequest}, TContext> => {
+
+const mutationKey = ['postApiV1MessageRetry'];
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof postApiV1MessageRetry>>, {data: RetryMessagesRequest}> = (props) => {
+          const {data} = props ?? {};
+
+          return  postApiV1MessageRetry(data,)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type PostApiV1MessageRetryMutationResult = NonNullable<Awaited<ReturnType<typeof postApiV1MessageRetry>>>
+    export type PostApiV1MessageRetryMutationBody = RetryMessagesRequest
+    export type PostApiV1MessageRetryMutationError = ProblemDetails
+
+    /**
+ * @summary Повторить отправку упавших постов: сейчас или в ближайшие свободные слоты расписания
+ */
+export const usePostApiV1MessageRetry = <TError = ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postApiV1MessageRetry>>, TError,{data: RetryMessagesRequest}, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof postApiV1MessageRetry>>,
+        TError,
+        {data: RetryMessagesRequest},
+        TContext
+      > => {
+
+      const mutationOptions = getPostApiV1MessageRetryMutationOptions(options);
 
       return useMutation(mutationOptions, queryClient);
     }

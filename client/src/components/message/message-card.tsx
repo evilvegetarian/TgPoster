@@ -1,5 +1,5 @@
 import {useState, useRef, useEffect} from "react"
-import {Clock, Loader2, Trash2, Youtube} from "lucide-react"
+import {Check, Clock, Loader2, RotateCw, Trash2, Youtube} from "lucide-react"
 import {format} from "date-fns"
 import {ru} from "date-fns/locale"
 import {useQueryClient} from "@tanstack/react-query"
@@ -21,9 +21,15 @@ import {
 import {MediaAlbum} from "./media-album"
 import {EditMessageDialog} from "./edit-message-dialog"
 import {CrossPostStatusBadges} from "@/components/cross-post/cross-post-status-badges.tsx"
+import {Tooltip, TooltipContent, TooltipTrigger} from "@/components/ui/tooltip"
+import {MessageDeliveryStatus, RetryMode} from "@/api/endpoints/tgPosterAPI.schemas"
 import type {MessageResponse} from "@/api/endpoints/tgPosterAPI.schemas"
 import {usePostApiV1YoutubeMessageId} from "@/api/endpoints/you-tube-account/you-tube-account"
-import {useDeleteApiV1Message} from "@/api/endpoints/message/message"
+import {
+    useDeleteApiV1Message,
+    usePatchApiV1Message,
+    usePostApiV1MessageRetry
+} from "@/api/endpoints/message/message"
 import {toast} from "sonner"
 
 interface MessageCardProps {
@@ -70,7 +76,56 @@ export function MessageCard({message, isSelected, onSelectionChange, availableTi
         }
     })
 
+    const {mutate: retryMessage, isPending: isRetrying} = usePostApiV1MessageRetry({
+        mutation: {
+            onSuccess: (response) => {
+                const retried = response.items[0]
+                toast.success("Повтор запланирован", {
+                    description: retried
+                        ? `Новое время отправки: ${format(new Date(retried.timePosting), "dd.MM.yyyy HH:mm", {locale: ru})}`
+                        : undefined
+                })
+                queryClient.invalidateQueries({queryKey: ["/api/v1/message"]})
+            },
+            onError: (error) => {
+                toast.error("Ошибка", {description: error.title ?? "Не удалось повторить отправку"})
+            }
+        }
+    })
+
+    const {mutate: approveMessage, isPending: isApproving} = usePatchApiV1Message({
+        mutation: {
+            onSuccess: () => {
+                toast.success("Пост подтверждён")
+                queryClient.invalidateQueries({queryKey: ["/api/v1/message"]})
+            },
+            onError: (error) => {
+                toast.error("Ошибка", {description: error.title ?? "Не удалось подтвердить пост"})
+            }
+        }
+    })
+
+    const isFailed = message.deliveryStatus === MessageDeliveryStatus.Failed
+    const canBeApproved = message.needApprove && !message.isSent
+    const isTimePassed = !!message.timePosting && new Date(message.timePosting).getTime() < Date.now()
+
     const getStatusBadge = (needApprove: boolean, canApprove: boolean, isSent: boolean) => {
+        if (message.deliveryStatus === MessageDeliveryStatus.Failed) {
+            const badge = <Badge variant="destructive">Ошибка отправки</Badge>
+            if (!message.sendError) return badge
+            return (
+                <Tooltip>
+                    <TooltipTrigger asChild>{badge}</TooltipTrigger>
+                    <TooltipContent className="max-w-xs">{message.sendError}</TooltipContent>
+                </Tooltip>
+            )
+        }
+        if (message.deliveryStatus === MessageDeliveryStatus.Sending) {
+            return <Badge variant="default" className="bg-amber-600 hover:bg-amber-600">Отправляется</Badge>
+        }
+        if (message.deliveryStatus === MessageDeliveryStatus.Cancelled) {
+            return <Badge variant="secondary" className="bg-gray-200 text-gray-700 hover:bg-gray-200">Отменён</Badge>
+        }
         if (needApprove && !canApprove) {
             return <Badge variant="secondary" className="bg-gray-200 text-gray-700 hover:bg-gray-200">Ожидает подтверждения</Badge>
         }
@@ -100,7 +155,57 @@ export function MessageCard({message, isSelected, onSelectionChange, availableTi
                                         {message.timePosting && format(new Date(message.timePosting), "dd.MM.yyyy HH:mm", {locale: ru})}
                                     </div>
                                 </div>
-                                <div className="flex items-center gap-2">
+                                <div className="flex flex-wrap items-center justify-end gap-2">
+                                    {isFailed && (
+                                        <>
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                className="gap-2"
+                                                disabled={isRetrying}
+                                                onClick={() => retryMessage({data: {ids: [message.id], mode: RetryMode.Now}})}
+                                            >
+                                                <RotateCw className="h-4 w-4"/>
+                                                Повторить сейчас
+                                            </Button>
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                disabled={isRetrying}
+                                                onClick={() => retryMessage({data: {ids: [message.id], mode: RetryMode.NextFreeSlot}})}
+                                            >
+                                                В свободный слот
+                                            </Button>
+                                        </>
+                                    )}
+                                    {canBeApproved && (isTimePassed ? (
+                                        <Tooltip>
+                                            <TooltipTrigger asChild>
+                                                <Button
+                                                    size="sm"
+                                                    className="gap-2"
+                                                    disabled={isApproving}
+                                                    onClick={() => approveMessage({data: {messagesIds: [message.id]}})}
+                                                >
+                                                    <Check className="h-4 w-4"/>
+                                                    Подтвердить
+                                                </Button>
+                                            </TooltipTrigger>
+                                            <TooltipContent className="max-w-xs">
+                                                Время прошло — после подтверждения пост встанет в ближайший свободный слот
+                                            </TooltipContent>
+                                        </Tooltip>
+                                    ) : (
+                                        <Button
+                                            size="sm"
+                                            className="gap-2"
+                                            disabled={isApproving}
+                                            onClick={() => approveMessage({data: {messagesIds: [message.id]}})}
+                                        >
+                                            <Check className="h-4 w-4"/>
+                                            Подтвердить
+                                        </Button>
+                                    ))}
                                     {message.hasVideo && message.hasYouTubeAccount && (
                                         <Button
                                             variant="outline"
