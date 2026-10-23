@@ -27,6 +27,23 @@ public class SenderMessageWorker(
 	TelegramExecuteServices telegramExecuteServices
 )
 {
+	private const string UnknownTelegramError = "Неизвестная ошибка Telegram";
+
+	private const string InterruptedByRestartError =
+		"Отправка прервана перезапуском воркера. Проверьте канал перед повтором";
+
+	public async Task<List<InterruptedMessage>> RecoverAfterRestartAsync(CancellationToken ct)
+	{
+		var interrupted = await storage.RecoverInHandleMessagesAsync(DateTimeOffset.UtcNow,
+			InterruptedByRestartError, ct);
+
+		logger.LogInformation(
+			"Восстановление после перезапуска воркера: будущие зависшие посты возвращены в очередь, прошедших помечено ошибкой: {InterruptedCount}",
+			interrupted.Count);
+
+		return interrupted;
+	}
+
 	public async Task ProcessMessagesAsync()
 	{
 		var messageDetails = await storage.GetMessagesAsync();
@@ -52,7 +69,8 @@ public class SenderMessageWorker(
 				catch (Exception e)
 				{
 					logger.LogError(e, "Ошибка во время отправки сообщения {id}", message.Id);
-					await storage.UpdateSendStatusMessageAsync(message.Id);
+					await storage.UpdateErrorStatusMessageAsync(message.Id,
+						$"Не удалось запланировать отправку: {e.Message}", lifetime.ApplicationStopping);
 				}
 			}
 		}
@@ -95,7 +113,7 @@ public class SenderMessageWorker(
 					ct);
 			if (!result.IsSuccess)
 			{
-				await storage.UpdateErrorStatusMessageAsync(messageId, ct);
+				await storage.UpdateErrorStatusMessageAsync(messageId, result.Error ?? UnknownTelegramError, ct);
 				return;
 			}
 
@@ -117,7 +135,7 @@ public class SenderMessageWorker(
 			var result = await telegramExecuteServices.SendTextAsync(bot, chatId, text, ct, ParseMode.Html);
 			if (!result.IsSuccess)
 			{
-				await storage.UpdateErrorStatusMessageAsync(messageId, ct);
+				await storage.UpdateErrorStatusMessageAsync(messageId, result.Error ?? UnknownTelegramError, ct);
 				return;
 			}
 

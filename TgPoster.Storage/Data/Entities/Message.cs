@@ -43,6 +43,11 @@ public sealed class Message : BaseEntity
 	public int? TelegramMessageId { get; set; }
 
 	/// <summary>
+	/// Причина последней неудачной отправки, null после успешной отправки
+	/// </summary>
+	public string? SendError { get; set; }
+
+	/// <summary>
 	///     Id настройки парсинга канала (null если сообщение создано вручную)
 	/// </summary>
 	public Guid? ChannelParsingSettingId { get; set; }

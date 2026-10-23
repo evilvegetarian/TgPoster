@@ -6,14 +6,16 @@ using Telegram.Bot.Types.Enums;
 
 namespace TgPoster.Worker.Domain.UseCases;
 
-public sealed record TelegramSendResult(bool IsSuccess, int? MessageId = null)
+public sealed record TelegramSendResult(bool IsSuccess, int? MessageId = null, string? Error = null)
 {
 	public static TelegramSendResult Success(int? messageId = null) => new(true, messageId);
-	public static TelegramSendResult Failure() => new(false);
+	public static TelegramSendResult Failure(string error) => new(false, Error: error);
 }
 
 public class TelegramExecuteServices(ILogger<TelegramExecuteServices> logger)
 {
+	private const string TimeoutError = "Таймаут запроса к Telegram";
+
 	/// <summary>
 	///     Отправляет медиа-группу с повтором при ошибках Telegram API
 	/// </summary>
@@ -81,12 +83,17 @@ public class TelegramExecuteServices(ILogger<TelegramExecuteServices> logger)
 		catch (RequestException ex) when (ex.InnerException is TaskCanceledException)
 		{
 			logger.LogWarning(ex, "Таймаут при отправке медиа-группы в чат {ChatId}", chatId);
-			return TelegramSendResult.Failure();
+			return TelegramSendResult.Failure(TimeoutError);
+		}
+		catch (ApiRequestException ex)
+		{
+			logger.LogError(ex, "Ошибка при отправке медиа-группы в чат {ChatId}", chatId);
+			return TelegramSendResult.Failure($"{ex.ErrorCode}: {ex.Message}");
 		}
 		catch (RequestException ex)
 		{
 			logger.LogError(ex, "Ошибка при отправке медиа-группы в чат {ChatId}", chatId);
-			return TelegramSendResult.Failure();
+			return TelegramSendResult.Failure(ex.Message);
 		}
 	}
 
@@ -107,12 +114,17 @@ public class TelegramExecuteServices(ILogger<TelegramExecuteServices> logger)
 		catch (RequestException ex) when (ex.InnerException is TaskCanceledException)
 		{
 			logger.LogWarning(ex, "Таймаут при отправке сообщения в чат {ChatId}", chatId);
-			return TelegramSendResult.Failure();
+			return TelegramSendResult.Failure(TimeoutError);
+		}
+		catch (ApiRequestException ex)
+		{
+			logger.LogError(ex, "Ошибка при отправке сообщения в чат {ChatId}", chatId);
+			return TelegramSendResult.Failure($"{ex.ErrorCode}: {ex.Message}");
 		}
 		catch (RequestException ex)
 		{
 			logger.LogError(ex, "Ошибка при отправке сообщения в чат {ChatId}", chatId);
-			return TelegramSendResult.Failure();
+			return TelegramSendResult.Failure(ex.Message);
 		}
 	}
 

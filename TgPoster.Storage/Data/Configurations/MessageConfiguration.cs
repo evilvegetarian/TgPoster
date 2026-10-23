@@ -16,6 +16,9 @@ internal class MessageConfiguration : BaseEntityConfiguration<Message>
 		builder.Property(x => x.IsVerified)
 			.HasDefaultValue(true);
 
+		builder.Property(x => x.SendError)
+			.HasMaxLength(1000);
+
 		// Дефолт true нужен, чтобы уже существующие посты участвовали в кросс-постинге,
 		// а sentinel true — иначе EF не отправит false в INSERT и база подставит свой дефолт
 		builder.Property(x => x.CrossPostEnabled)

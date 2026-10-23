@@ -143,6 +143,13 @@ public static class DependencyInjection
 		});
 
 		using var scope = app.Services.CreateScope();
+
+		// Hangfire хранит задачи в памяти и не переживает рестарт: отложенные SendMessageAsync пропадают,
+		// а их посты навсегда остаются InHandle. Разбираем такие посты до запуска джобов
+		var senderMessageWorker = scope.ServiceProvider.GetRequiredService<SenderMessageWorker>();
+		senderMessageWorker.RecoverAfterRestartAsync(CancellationToken.None)
+			.GetAwaiter().GetResult();
+
 		var recurringJobManager = scope.ServiceProvider.GetRequiredService<IRecurringJobManager>();
 
 		recurringJobManager.AddOrUpdate<SenderMessageWorker>(

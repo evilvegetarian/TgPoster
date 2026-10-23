@@ -837,6 +837,10 @@ namespace TgPoster.Storage.Data.Migrations
                     b.Property<Guid>("ScheduleId")
                         .HasColumnType("uuid");
 
+                    b.Property<string>("SendError")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
                     b.Property<int>("Status")
                         .HasColumnType("integer");
 

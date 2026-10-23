@@ -9,6 +9,8 @@ namespace TgPoster.Storage.Storages;
 
 internal class SenderMessageStorage(PosterContext context) : ISenderMessageStorage
 {
+	private const int SendErrorMaxLength = 1000;
+
 	public Task<List<MessageDetail>> GetMessagesAsync()
 	{
 		var time = DateTimeOffset.UtcNow;
@@ -84,6 +86,7 @@ internal class SenderMessageStorage(PosterContext context) : ISenderMessageStora
 		if (message != null)
 		{
 			message.Status = MessageStatus.Send;
+			message.SendError = null;
 			await context.SaveChangesAsync();
 		}
 	}
@@ -107,14 +110,43 @@ internal class SenderMessageStorage(PosterContext context) : ISenderMessageStora
 		}
 	}
 
-	public async Task UpdateErrorStatusMessageAsync(Guid id, CancellationToken ct)
+	public async Task UpdateErrorStatusMessageAsync(Guid id, string error, CancellationToken ct)
 	{
 		var message = await context.Messages.FirstOrDefaultAsync(m => m.Id == id, ct);
 		if (message != null)
 		{
 			message.Status = MessageStatus.Error;
+			message.SendError = TruncateSendError(error);
 			await context.SaveChangesAsync(ct);
 		}
+	}
+
+	public async Task<List<InterruptedMessage>> RecoverInHandleMessagesAsync(
+		DateTimeOffset now,
+		string interruptedError,
+		CancellationToken ct
+	)
+	{
+		var messages = await context.Messages
+			.Where(m => m.Status == MessageStatus.InHandle)
+			.ToListAsync(ct);
+
+		List<InterruptedMessage> interrupted = [];
+		foreach (var message in messages)
+		{
+			if (message.TimePosting > now)
+			{
+				message.Status = MessageStatus.Register;
+				continue;
+			}
+
+			message.Status = MessageStatus.Error;
+			message.SendError = TruncateSendError(interruptedError);
+			interrupted.Add(new InterruptedMessage(message.Id, message.ScheduleId));
+		}
+
+		await context.SaveChangesAsync(ct);
+		return interrupted;
 	}
 
 	public async Task SaveTelegramMessageIdAsync(Guid messageId, int telegramMessageId, CancellationToken ct)
@@ -151,4 +183,7 @@ internal class SenderMessageStorage(PosterContext context) : ISenderMessageStora
 				}))
 			.ToListAsync(ct);
 	}
+
+	private static string TruncateSendError(string error) =>
+		error.Length > SendErrorMaxLength ? error[..SendErrorMaxLength] : error;
 }

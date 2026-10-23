@@ -4,6 +4,7 @@ using TgPoster.Storage.Data.Entities;
 using TgPoster.Storage.Data.Enum;
 using TgPoster.Storage.Storages;
 using TgPoster.Storage.Tests.Builders;
+using TgPoster.Worker.Domain.UseCases.SenderMessageWorker;
 
 namespace TgPoster.Storage.Tests.Tests;
 
@@ -171,17 +172,91 @@ public class SenderMessageStorageShould(StorageTestFixture fixture) : IClassFixt
 		await context.Messages.AddAsync(msg);
 		await context.SaveChangesAsync();
 
-		await sut.UpdateErrorStatusMessageAsync(msg.Id, CancellationToken.None);
+		await sut.UpdateErrorStatusMessageAsync(msg.Id, "403: Forbidden: bot was kicked", CancellationToken.None);
 		await context.Entry(msg).ReloadAsync();
 
 		msg.Status.ShouldBe(MessageStatus.Error);
+		msg.SendError.ShouldBe("403: Forbidden: bot was kicked");
+	}
+
+	[Fact]
+	public async Task UpdateErrorStatusMessageAsync_WithLongError_ShouldTruncateTo1000()
+	{
+		var schedule = await new ScheduleBuilder(context).CreateAsync();
+		var msg = new Message
+		{
+			Id = Guid.NewGuid(),
+			ScheduleId = schedule.Id,
+			TimePosting = DateTimeOffset.UtcNow.AddMinutes(1),
+			Status = MessageStatus.InHandle,
+			TextMessage = "long-error",
+			IsTextMessage = false
+		};
+		await context.Messages.AddAsync(msg);
+		await context.SaveChangesAsync();
+		var longError = new string('x', 1500);
+
+		await sut.UpdateErrorStatusMessageAsync(msg.Id, longError, CancellationToken.None);
+		await context.Entry(msg).ReloadAsync();
+
+		msg.Status.ShouldBe(MessageStatus.Error);
+		msg.SendError.ShouldBe(longError[..1000]);
 	}
 
 	[Fact]
 	public async Task UpdateErrorStatusMessageAsync_WithNonExistentId_ShouldNotThrow()
 	{
 		var nonExistentId = Guid.NewGuid();
-		await Should.NotThrowAsync(() => sut.UpdateErrorStatusMessageAsync(nonExistentId, CancellationToken.None));
+		await Should.NotThrowAsync(() =>
+			sut.UpdateErrorStatusMessageAsync(nonExistentId, "error", CancellationToken.None));
+	}
+
+	[Fact]
+	public async Task RecoverInHandleMessagesAsync_ShouldRequeueFutureAndFailPastInHandleMessages()
+	{
+		var schedule = await new ScheduleBuilder(context).CreateAsync();
+		var now = DateTimeOffset.UtcNow;
+		var future = CreateMessage(schedule.Id, now.AddMinutes(3), MessageStatus.InHandle);
+		var past = CreateMessage(schedule.Id, now.AddMinutes(-3), MessageStatus.InHandle);
+		var registered = CreateMessage(schedule.Id, now.AddMinutes(-3), MessageStatus.Register);
+		var sent = CreateMessage(schedule.Id, now.AddMinutes(-3), MessageStatus.Send);
+		await context.Messages.AddRangeAsync(future, past, registered, sent);
+		await context.SaveChangesAsync();
+
+		var result = await sut.RecoverInHandleMessagesAsync(now, "interrupted", CancellationToken.None);
+		await context.Entry(future).ReloadAsync();
+		await context.Entry(past).ReloadAsync();
+		await context.Entry(registered).ReloadAsync();
+		await context.Entry(sent).ReloadAsync();
+
+		future.Status.ShouldBe(MessageStatus.Register);
+		future.SendError.ShouldBeNull();
+		past.Status.ShouldBe(MessageStatus.Error);
+		past.SendError.ShouldBe("interrupted");
+		registered.Status.ShouldBe(MessageStatus.Register);
+		registered.SendError.ShouldBeNull();
+		sent.Status.ShouldBe(MessageStatus.Send);
+		sent.SendError.ShouldBeNull();
+		result.ShouldContain(new InterruptedMessage(past.Id, schedule.Id));
+		result.ShouldNotContain(x => x.MessageId == future.Id);
+		result.ShouldNotContain(x => x.MessageId == registered.Id);
+		result.ShouldNotContain(x => x.MessageId == sent.Id);
+	}
+
+	[Fact]
+	public async Task UpdateSendStatusMessageAsync_ShouldClearSendError()
+	{
+		var schedule = await new ScheduleBuilder(context).CreateAsync();
+		var msg = CreateMessage(schedule.Id, DateTimeOffset.UtcNow.AddMinutes(1), MessageStatus.Error);
+		msg.SendError = "previous error";
+		await context.Messages.AddAsync(msg);
+		await context.SaveChangesAsync();
+
+		await sut.UpdateSendStatusMessageAsync(msg.Id);
+		await context.Entry(msg).ReloadAsync();
+
+		msg.Status.ShouldBe(MessageStatus.Send);
+		msg.SendError.ShouldBeNull();
 	}
 
 	[Fact]
@@ -333,4 +408,15 @@ public class SenderMessageStorageShould(StorageTestFixture fixture) : IClassFixt
 
 		result.ShouldBeEmpty();
 	}
+
+	private static Message CreateMessage(Guid scheduleId, DateTimeOffset timePosting, MessageStatus status) =>
+		new()
+		{
+			Id = Guid.NewGuid(),
+			ScheduleId = scheduleId,
+			TimePosting = timePosting,
+			Status = status,
+			TextMessage = status.ToString(),
+			IsTextMessage = false
+		};
 }
