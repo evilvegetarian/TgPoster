@@ -6,6 +6,7 @@ import {Input} from "@/components/ui/input";
 import {Tabs, TabsList, TabsTrigger} from "@/components/ui/tabs";
 import {ConfirmActionDialog} from "@/pages/repostpage/confirm-action-dialog.tsx";
 import {RepostDestinationRow} from "@/pages/repostpage/repost-destination-row.tsx";
+import {RepostRemovedDestinations} from "@/pages/repostpage/repost-removed-destinations.tsx";
 import {canBeEnabled, isProblemDestination} from "@/pages/repostpage/repost-destination-utils.ts";
 import {
     usePostApiV1RepostSettingsSettingsIdDestinationsDelete,
@@ -16,13 +17,14 @@ import type {
     SetRepostDestinationsActiveResponse,
 } from "@/api/endpoints/tgPosterAPI.schemas.ts";
 
-type DestinationFilter = "all" | "active" | "inactive" | "problem";
+type DestinationFilter = "all" | "active" | "inactive";
+
+const REMOVED_TAB = "removed";
 
 const FILTERS: {value: DestinationFilter; label: string; match: (d: RepostDestinationDto) => boolean}[] = [
     {value: "all", label: "Все", match: () => true},
     {value: "active", label: "Вкл", match: (d) => d.isActive},
     {value: "inactive", label: "Выкл", match: (d) => !d.isActive},
-    {value: "problem", label: "Проблемные", match: isProblemDestination},
 ];
 
 function matchesSearch(destination: RepostDestinationDto, query: string): boolean {
@@ -56,17 +58,28 @@ function showEnableResult(result: SetRepostDestinationsActiveResponse) {
 interface RepostDestinationsListProps {
     settingsId: string;
     destinations: RepostDestinationDto[];
+    removedDestinations: RepostDestinationDto[];
     onChanged: () => void;
 }
 
-export function RepostDestinationsList({settingsId, destinations, onChanged}: RepostDestinationsListProps) {
-    const [filter, setFilter] = useState<DestinationFilter>("all");
+export function RepostDestinationsList({
+    settingsId,
+    destinations,
+    removedDestinations,
+    onChanged,
+}: RepostDestinationsListProps) {
+    const [filter, setFilter] = useState<DestinationFilter | typeof REMOVED_TAB>("all");
     const [search, setSearch] = useState("");
     const [isBulkDeleteOpen, setIsBulkDeleteOpen] = useState(false);
 
+    // Баны и чаты без аккаунта уходят из общего списка к удалённым: репост туда всё равно не дойдёт
+    const listed = destinations.filter((d) => !isProblemDestination(d));
+    const removed = [...destinations.filter(isProblemDestination), ...removedDestinations];
+
     const query = search.trim().toLowerCase();
     const activeFilter = FILTERS.find((f) => f.value === filter) ?? FILTERS[0];
-    const visible = destinations.filter((d) => activeFilter.match(d) && matchesSearch(d, query));
+    const visible = listed.filter((d) => activeFilter.match(d) && matchesSearch(d, query));
+    const visibleRemoved = removed.filter((d) => matchesSearch(d, query));
     const toEnable = visible.filter(canBeEnabled);
     const toDisable = visible.filter((d) => d.isActive);
 
@@ -116,13 +129,16 @@ export function RepostDestinationsList({settingsId, destinations, onChanged}: Re
     return (
         <div className="space-y-3">
             <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-                <Tabs value={filter} onValueChange={(value) => setFilter(value as DestinationFilter)}>
+                <Tabs value={filter} onValueChange={(value) => setFilter(value as DestinationFilter | typeof REMOVED_TAB)}>
                     <TabsList>
                         {FILTERS.map((f) => (
                             <TabsTrigger key={f.value} value={f.value} className="text-xs">
-                                {f.label} ({destinations.filter(f.match).length})
+                                {f.label} ({listed.filter(f.match).length})
                             </TabsTrigger>
                         ))}
+                        <TabsTrigger value={REMOVED_TAB} className="text-xs">
+                            Баны и удалённые ({removed.length})
+                        </TabsTrigger>
                     </TabsList>
                 </Tabs>
                 <div className="relative md:w-64">
@@ -136,10 +152,18 @@ export function RepostDestinationsList({settingsId, destinations, onChanged}: Re
                 </div>
             </div>
 
-            {visible.length > 0 && (
+            {filter === REMOVED_TAB && (
+                <RepostRemovedDestinations
+                    settingsId={settingsId}
+                    destinations={visibleRemoved}
+                    onChanged={onChanged}
+                />
+            )}
+
+            {filter !== REMOVED_TAB && visible.length > 0 && (
                 <div className="flex flex-wrap items-center gap-2">
                     <span className="text-xs text-muted-foreground mr-1">
-                        Показано {visible.length} из {destinations.length}:
+                        Показано {visible.length} из {listed.length}:
                     </span>
                     <Button
                         variant="outline"
@@ -175,7 +199,7 @@ export function RepostDestinationsList({settingsId, destinations, onChanged}: Re
                 </div>
             )}
 
-            {visible.length === 0 ? (
+            {filter !== REMOVED_TAB && (visible.length === 0 ? (
                 <p className="text-sm text-muted-foreground p-4 border rounded text-center">
                     Под фильтр не подходит ни один канал
                 </p>
@@ -185,7 +209,7 @@ export function RepostDestinationsList({settingsId, destinations, onChanged}: Re
                         <RepostDestinationRow key={dest.id} destination={dest} onChanged={onChanged}/>
                     ))}
                 </div>
-            )}
+            ))}
 
             <ConfirmActionDialog
                 open={isBulkDeleteOpen}

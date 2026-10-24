@@ -96,4 +96,19 @@ public sealed record RepostDestinationDto
 	/// Успешные репосты за текущие сутки по UTC — с ними сравнивается дневной лимит
 	/// </summary>
 	public required int RepostsToday { get; init; }
+
+	/// <summary>
+	/// Ошибка Telegram, с которой аккаунт получил бан в чате; null, если бана нет
+	/// </summary>
+	public string? BanError { get; init; }
+
+	/// <summary>
+	/// Когда записан бан аккаунта в чате
+	/// </summary>
+	public DateTimeOffset? BannedAt { get; init; }
+
+	/// <summary>
+	/// Когда канал удалён из списка; null у неудалённых
+	/// </summary>
+	public DateTimeOffset? DeletedAt { get; init; }
 }

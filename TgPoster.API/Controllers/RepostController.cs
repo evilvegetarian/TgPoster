@@ -15,7 +15,9 @@ using TgPoster.API.Domain.UseCases.Repost.GetRepostLogsSummary;
 using TgPoster.API.Domain.UseCases.Repost.GetRepostSettings;
 using TgPoster.API.Domain.UseCases.Repost.ListRepostLogs;
 using TgPoster.API.Domain.UseCases.Repost.ListRepostSettings;
+using TgPoster.API.Domain.UseCases.Repost.PurgeRepostDestinations;
 using TgPoster.API.Domain.UseCases.Repost.RefreshDestinationInfo;
+using TgPoster.API.Domain.UseCases.Repost.RestoreRepostDestination;
 using TgPoster.API.Domain.UseCases.Repost.SetRepostDestinationsActive;
 using TgPoster.API.Domain.UseCases.Repost.UpdateRepostDestination;
 using TgPoster.API.Domain.UseCases.Repost.UpdateRepostSettings;
@@ -333,6 +335,52 @@ public sealed class RepostController(ISender sender) : ControllerBase
 	)
 	{
 		await sender.Send(new DeleteRepostDestinationsCommand(settingsId, request.DestinationIds), ct);
+
+		return NoContent();
+	}
+
+	/// <summary>
+	/// Удаление каналов насовсем: и из общего списка, и из списка банов и удалённых
+	/// </summary>
+	/// <param name="settingsId"></param>
+	/// <param name="request"></param>
+	/// <param name="ct"></param>
+	/// <returns></returns>
+	[HttpPost(Routes.Repost.PurgeDestinations)]
+	[ProducesResponseType(StatusCodes.Status204NoContent)]
+	[ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
+	[ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
+	[ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
+	public async Task<IActionResult> PurgeDestinations(
+		[FromRoute] [Required] Guid settingsId,
+		[FromBody] [Required] DeleteRepostDestinationsRequest request,
+		CancellationToken ct
+	)
+	{
+		await sender.Send(new PurgeRepostDestinationsCommand(settingsId, request.DestinationIds), ct);
+
+		return NoContent();
+	}
+
+	/// <summary>
+	/// Возврат удалённого канала в общий список: возвращается выключенным, включение проверит доступ заново
+	/// </summary>
+	/// <param name="settingsId"></param>
+	/// <param name="id"></param>
+	/// <param name="ct"></param>
+	/// <returns></returns>
+	[HttpPost(Routes.Repost.RestoreDestination)]
+	[ProducesResponseType(StatusCodes.Status204NoContent)]
+	[ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
+	[ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
+	[ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
+	public async Task<IActionResult> RestoreDestination(
+		[FromRoute] [Required] Guid settingsId,
+		[FromRoute] [Required] Guid id,
+		CancellationToken ct
+	)
+	{
+		await sender.Send(new RestoreRepostDestinationCommand(settingsId, id), ct);
 
 		return NoContent();
 	}

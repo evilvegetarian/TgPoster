@@ -1,7 +1,7 @@
 import type {RepostDestinationDto} from "@/api/endpoints/tgPosterAPI.schemas.ts";
 import {ChatStatus} from "@/api/endpoints/tgPosterAPI.schemas.ts";
 
-// Проблемный — аккаунт забанен в чате или вышел из него, репост туда не дойдёт
+// Проблемный — аккаунт забанен в чате или его там нет: репост туда не дойдёт, канал живёт во вкладке «Баны и удалённые»
 export function isProblemDestination(destination: RepostDestinationDto): boolean {
     return destination.chatStatus === ChatStatus.Banned || destination.chatStatus === ChatStatus.Left;
 }

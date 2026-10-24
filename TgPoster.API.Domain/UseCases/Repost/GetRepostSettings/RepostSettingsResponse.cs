@@ -69,4 +69,10 @@ public sealed record RepostSettingsResponse
 	///     Список каналов для репоста.
 	/// </summary>
 	public required List<RepostDestinationDto> Destinations { get; init; }
+
+	/// <summary>
+	/// Удалённые из списка каналы, которые ещё можно вернуть. Если тот же чат добавлен заново, его удалённая
+	/// копия сюда не попадает
+	/// </summary>
+	public required List<RepostDestinationDto> RemovedDestinations { get; init; }
 }

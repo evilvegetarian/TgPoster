@@ -1608,6 +1608,12 @@ export interface RepostDestinationDto {
   /** @nullable */
   lastRepostAt: string | null;
   repostsToday: number;
+  /** @nullable */
+  banError?: string | null;
+  /** @nullable */
+  bannedAt?: string | null;
+  /** @nullable */
+  deletedAt?: string | null;
 }
 
 export interface RepostImportJobResponse {
@@ -1732,6 +1738,7 @@ export interface RepostSettingsResponse {
   defaultMaxRepostsPerDay: number | null;
   created: string;
   destinations: RepostDestinationDto[];
+  removedDestinations: RepostDestinationDto[];
 }
 
 export type RepostStatus = typeof RepostStatus[keyof typeof RepostStatus];

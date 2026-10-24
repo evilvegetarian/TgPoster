@@ -47,7 +47,8 @@ public class GetRepostSettingsUseCaseShould
 			DefaultSkipProbability = 0,
 			DefaultMaxRepostsPerDay = null,
 			Created = DateTimeOffset.UtcNow,
-			Destinations = []
+			Destinations = [],
+			RemovedDestinations = []
 		};
 		getAsyncSetup.ReturnsAsync(expectedResponse);
 
@@ -92,7 +93,8 @@ public class GetRepostSettingsUseCaseShould
 			DefaultSkipProbability = 0,
 			DefaultMaxRepostsPerDay = null,
 			Created = DateTimeOffset.UtcNow,
-			Destinations = []
+			Destinations = [],
+			RemovedDestinations = []
 		};
 		getAsyncSetup.ReturnsAsync(expectedResponse);
 
@@ -139,7 +141,8 @@ public class GetRepostSettingsUseCaseShould
 			DefaultSkipProbability = 0,
 			DefaultMaxRepostsPerDay = null,
 			Created = DateTimeOffset.UtcNow,
-			Destinations = destinations
+			Destinations = destinations,
+			RemovedDestinations = []
 		};
 		getAsyncSetup.ReturnsAsync(expectedResponse);
 

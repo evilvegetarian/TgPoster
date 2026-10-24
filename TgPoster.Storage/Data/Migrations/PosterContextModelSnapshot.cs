@@ -1333,6 +1333,9 @@ namespace TgPoster.Storage.Data.Migrations
                     b.Property<int?>("MemberCount")
                         .HasColumnType("integer");
 
+                    b.Property<DateTimeOffset?>("PurgedAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<int>("RepostCounter")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")

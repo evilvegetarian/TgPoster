@@ -172,6 +172,75 @@ public class GetRepostSettingsStorageShould(StorageTestFixture fixture) : IClass
 		withoutLogs.RepostsToday.ShouldBe(0);
 	}
 
+	[Fact]
+	public async Task GetAsync_ShouldReturnBanErrorOfAccount()
+	{
+		var schedule = await new ScheduleBuilder(context).CreateAsync(ct);
+		var session = await new TelegramSessionBuilder(context).WithUserId(schedule.UserId).CreateAsync(ct);
+		var settings = await new RepostSettingsBuilder(context)
+			.WithSchedule(schedule)
+			.WithTelegramSession(session)
+			.CreateAsync(ct);
+		var banned = await new RepostDestinationBuilder(context).WithRepostSettingsId(settings.Id).CreateAsync(ct);
+		var healthy = await new RepostDestinationBuilder(context).WithRepostSettingsId(settings.Id).CreateAsync(ct);
+		await new TelegramSessionChatBanBuilder(context)
+			.WithTelegramSessionId(session.Id)
+			.WithChatId(banned.ChatId)
+			.CreateAsync(ct);
+
+		var response = await sut.GetAsync(settings.Id, schedule.UserId, ct);
+
+		response.ShouldNotBeNull();
+		var bannedDto = response.Destinations.Single(x => x.Id == banned.Id);
+		bannedDto.BanError.ShouldBe("CHANNEL_PRIVATE");
+		bannedDto.BannedAt.ShouldNotBeNull();
+		response.Destinations.Single(x => x.Id == healthy.Id).BanError.ShouldBeNull();
+	}
+
+	[Fact]
+	public async Task GetAsync_ShouldReturnRemovedDestinations_ExceptPurgedAndReaddedChats()
+	{
+		var schedule = await new ScheduleBuilder(context).CreateAsync(ct);
+		var settings = await new RepostSettingsBuilder(context).WithSchedule(schedule).CreateAsync(ct);
+		var otherSettings = await new RepostSettingsBuilder(context).CreateAsync(ct);
+		await CreateRemovedAsync(settings.Id, 101, DateTimeOffset.UtcNow.AddDays(-2));
+		var removedLast = await CreateRemovedAsync(settings.Id, 101, DateTimeOffset.UtcNow.AddDays(-1));
+		await CreateRemovedAsync(settings.Id, 102, DateTimeOffset.UtcNow.AddDays(-1), purged: true);
+		await CreateRemovedAsync(settings.Id, 103, DateTimeOffset.UtcNow.AddDays(-1));
+		var readded = await new RepostDestinationBuilder(context)
+			.WithRepostSettingsId(settings.Id)
+			.WithChatIdentifier(103)
+			.CreateAsync(ct);
+		await CreateRemovedAsync(otherSettings.Id, 104, DateTimeOffset.UtcNow);
+
+		var response = await sut.GetAsync(settings.Id, schedule.UserId, ct);
+
+		response.ShouldNotBeNull();
+		response.Destinations.Select(x => x.Id).ShouldBe([readded.Id]);
+		var single = response.RemovedDestinations.ShouldHaveSingleItem();
+		single.Id.ShouldBe(removedLast.Id);
+		single.DeletedAt.ShouldNotBeNull();
+		single.IsActive.ShouldBeFalse();
+	}
+
+	private async Task<RepostDestination> CreateRemovedAsync(
+		Guid settingsId,
+		long chatId,
+		DateTimeOffset deletedAt,
+		bool purged = false
+	)
+	{
+		var destination = new RepostDestinationBuilder(context)
+			.WithRepostSettingsId(settingsId)
+			.WithChatIdentifier(chatId)
+			.Build();
+		destination.Deleted = deletedAt;
+		destination.PurgedAt = purged ? deletedAt : null;
+		context.Add(destination);
+		await context.SaveChangesAsync(ct);
+		return destination;
+	}
+
 	private void AddLog(Guid messageId, Guid destinationId, RepostStatus status, DateTime? repostedAt) =>
 		context.Add(new RepostLog
 		{

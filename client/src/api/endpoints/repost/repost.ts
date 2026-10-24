@@ -971,6 +971,134 @@ export const usePostApiV1RepostSettingsSettingsIdDestinationsDelete = <TError = 
       return useMutation(mutationOptions, queryClient);
     }
     /**
+ * @summary Удаление каналов насовсем: и из общего списка, и из списка банов и удалённых
+ */
+export const postApiV1RepostSettingsSettingsIdDestinationsPurge = (
+    settingsId: string,
+    deleteRepostDestinationsRequest: DeleteRepostDestinationsRequest,
+ signal?: AbortSignal
+) => {
+      
+      
+      return customInstance<void>(
+      {url: `/api/v1/repost/settings/${settingsId}/destinations/purge`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: deleteRepostDestinationsRequest, signal
+    },
+      );
+    }
+  
+
+
+export const getPostApiV1RepostSettingsSettingsIdDestinationsPurgeMutationOptions = <TError = ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postApiV1RepostSettingsSettingsIdDestinationsPurge>>, TError,{settingsId: string;data: DeleteRepostDestinationsRequest}, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof postApiV1RepostSettingsSettingsIdDestinationsPurge>>, TError,{settingsId: string;data: DeleteRepostDestinationsRequest}, TContext> => {
+
+const mutationKey = ['postApiV1RepostSettingsSettingsIdDestinationsPurge'];
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof postApiV1RepostSettingsSettingsIdDestinationsPurge>>, {settingsId: string;data: DeleteRepostDestinationsRequest}> = (props) => {
+          const {settingsId,data} = props ?? {};
+
+          return  postApiV1RepostSettingsSettingsIdDestinationsPurge(settingsId,data,)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type PostApiV1RepostSettingsSettingsIdDestinationsPurgeMutationResult = NonNullable<Awaited<ReturnType<typeof postApiV1RepostSettingsSettingsIdDestinationsPurge>>>
+    export type PostApiV1RepostSettingsSettingsIdDestinationsPurgeMutationBody = DeleteRepostDestinationsRequest
+    export type PostApiV1RepostSettingsSettingsIdDestinationsPurgeMutationError = ProblemDetails
+
+    /**
+ * @summary Удаление каналов насовсем: и из общего списка, и из списка банов и удалённых
+ */
+export const usePostApiV1RepostSettingsSettingsIdDestinationsPurge = <TError = ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postApiV1RepostSettingsSettingsIdDestinationsPurge>>, TError,{settingsId: string;data: DeleteRepostDestinationsRequest}, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof postApiV1RepostSettingsSettingsIdDestinationsPurge>>,
+        TError,
+        {settingsId: string;data: DeleteRepostDestinationsRequest},
+        TContext
+      > => {
+
+      const mutationOptions = getPostApiV1RepostSettingsSettingsIdDestinationsPurgeMutationOptions(options);
+
+      return useMutation(mutationOptions, queryClient);
+    }
+    /**
+ * @summary Возврат удалённого канала в общий список: возвращается выключенным, включение проверит доступ заново
+ */
+export const postApiV1RepostSettingsSettingsIdDestinationsIdRestore = (
+    settingsId: string,
+    id: string,
+ signal?: AbortSignal
+) => {
+      
+      
+      return customInstance<void>(
+      {url: `/api/v1/repost/settings/${settingsId}/destinations/${id}/restore`, method: 'POST', signal
+    },
+      );
+    }
+  
+
+
+export const getPostApiV1RepostSettingsSettingsIdDestinationsIdRestoreMutationOptions = <TError = ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postApiV1RepostSettingsSettingsIdDestinationsIdRestore>>, TError,{settingsId: string;id: string}, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof postApiV1RepostSettingsSettingsIdDestinationsIdRestore>>, TError,{settingsId: string;id: string}, TContext> => {
+
+const mutationKey = ['postApiV1RepostSettingsSettingsIdDestinationsIdRestore'];
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof postApiV1RepostSettingsSettingsIdDestinationsIdRestore>>, {settingsId: string;id: string}> = (props) => {
+          const {settingsId,id} = props ?? {};
+
+          return  postApiV1RepostSettingsSettingsIdDestinationsIdRestore(settingsId,id,)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type PostApiV1RepostSettingsSettingsIdDestinationsIdRestoreMutationResult = NonNullable<Awaited<ReturnType<typeof postApiV1RepostSettingsSettingsIdDestinationsIdRestore>>>
+    
+    export type PostApiV1RepostSettingsSettingsIdDestinationsIdRestoreMutationError = ProblemDetails
+
+    /**
+ * @summary Возврат удалённого канала в общий список: возвращается выключенным, включение проверит доступ заново
+ */
+export const usePostApiV1RepostSettingsSettingsIdDestinationsIdRestore = <TError = ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postApiV1RepostSettingsSettingsIdDestinationsIdRestore>>, TError,{settingsId: string;id: string}, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof postApiV1RepostSettingsSettingsIdDestinationsIdRestore>>,
+        TError,
+        {settingsId: string;id: string},
+        TContext
+      > => {
+
+      const mutationOptions = getPostApiV1RepostSettingsSettingsIdDestinationsIdRestoreMutationOptions(options);
+
+      return useMutation(mutationOptions, queryClient);
+    }
+    /**
  * @summary Обновление информации о целевом канале из Telegram.
  */
 export const postApiV1RepostDestinationsIdRefresh = (

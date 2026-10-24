@@ -93,6 +93,11 @@ public sealed class RepostDestination : BaseEntity
 	/// </summary>
 	public int RepostCounter { get; set; }
 
+	/// <summary>
+	/// Удалён насовсем: не показывается даже в списке банов и удалённых
+	/// </summary>
+	public DateTimeOffset? PurgedAt { get; set; }
+
 	#region Navigation Properties
 
 	/// <summary>

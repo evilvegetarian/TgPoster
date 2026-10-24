@@ -90,6 +90,7 @@ export function RepostSettingsCard({settings}: RepostSettingsCardProps) {
     }
 
     const destinations = detailedSettings?.destinations ?? [];
+    const removedDestinations = detailedSettings?.removedDestinations ?? [];
 
     return (
         <Card className="relative hover:shadow-md transition-shadow">
@@ -137,9 +138,9 @@ export function RepostSettingsCard({settings}: RepostSettingsCardProps) {
                             <Badge
                                 variant="destructive"
                                 className="text-xs"
-                                title="Аккаунт забанен в чате или вышел из него"
+                                title="Аккаунт забанен в чате или его там нет — они во вкладке «Баны и удалённые»"
                             >
-                                проблемных: {settings.problemDestinationsCount}
+                                баны и без доступа: {settings.problemDestinationsCount}
                             </Badge>
                         )}
                     </div>
@@ -179,7 +180,7 @@ export function RepostSettingsCard({settings}: RepostSettingsCardProps) {
                             Загрузка каналов...
                         </span>
                     </div>
-                ) : destinations.length === 0 ? (
+                ) : destinations.length === 0 && removedDestinations.length === 0 ? (
                     <p className="text-sm text-muted-foreground p-4 border rounded text-center">
                         Целевые каналы не добавлены.{" "}
                         <Button
@@ -194,6 +195,7 @@ export function RepostSettingsCard({settings}: RepostSettingsCardProps) {
                     <RepostDestinationsList
                         settingsId={settings.id}
                         destinations={destinations}
+                        removedDestinations={removedDestinations}
                         onChanged={handleChanged}
                     />
                 )}
