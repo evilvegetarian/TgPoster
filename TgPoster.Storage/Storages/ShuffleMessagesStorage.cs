@@ -19,7 +19,12 @@ internal sealed class ShuffleMessagesStorage(PosterContext context) : IShuffleMe
 			.Where(x => x.TimePosting > DateTime.UtcNow)
 			.Where(x => x.Status == MessageStatus.Register)
 			.OrderBy(x => x.TimePosting)
-			.Select(x => new MessageSlot(x.Id, x.TimePosting))
+			.Select(x => new MessageSlot(
+				x.Id,
+				x.TimePosting,
+				x.MessageFiles.Any(f => f.ParentFileId == null && f.FileType == FileTypes.Video),
+				x.MessageFiles.Any(f => f.ParentFileId == null && f.FileType == FileTypes.Photo),
+				x.ChannelParsingSettingId))
 			.ToListAsync(ct);
 	}
 

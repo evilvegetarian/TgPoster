@@ -45,6 +45,39 @@ public class ShuffleMessagesStorageShould : IClassFixture<StorageTestFixture>
 	}
 
 	[Fact]
+	public async Task GetMessagesAsync_ShouldReturnContentAndSource()
+	{
+		var schedule = await new ScheduleBuilder(_context).CreateAsync();
+		var setting = await new ChannelParsingSettingBuilder(_context).WithSchedule(schedule).CreateAsync();
+		var video = await new MessageBuilder(_context)
+			.WithSchedule(schedule)
+			.WithStatus(MessageStatus.Register)
+			.WithTimeMessage(DateTimeOffset.UtcNow.AddHours(1))
+			.WithVideoMessageFile()
+			.WithChannelParsingSettingId(setting.Id)
+			.CreateAsync();
+		var photo = await new MessageBuilder(_context)
+			.WithSchedule(schedule)
+			.WithStatus(MessageStatus.Register)
+			.WithTimeMessage(DateTimeOffset.UtcNow.AddHours(2))
+			.WithPhotoMessageFile()
+			.CreateAsync();
+		var text = await new MessageBuilder(_context)
+			.WithSchedule(schedule)
+			.WithStatus(MessageStatus.Register)
+			.WithTimeMessage(DateTimeOffset.UtcNow.AddHours(3))
+			.CreateAsync();
+
+		var result = await sut.GetMessagesAsync(schedule.Id, CancellationToken.None);
+
+		result.Select(x => (x.Id, x.HasVideo, x.HasPhoto, x.ChannelParsingSettingId)).ShouldBe([
+			(video.Id, true, false, (Guid?)setting.Id),
+			(photo.Id, false, true, null),
+			(text.Id, false, false, null)
+		]);
+	}
+
+	[Fact]
 	public async Task UpdateTimeAsync_ShouldAssignTimesByIndex()
 	{
 		var schedule = await new ScheduleBuilder(_context).CreateAsync();

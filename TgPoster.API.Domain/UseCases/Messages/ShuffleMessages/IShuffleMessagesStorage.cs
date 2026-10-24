@@ -12,4 +12,13 @@ public interface IShuffleMessagesStorage
 /// </summary>
 /// <param name="Id">Идентификатор сообщения</param>
 /// <param name="TimePosting">Время публикации сообщения</param>
-public record MessageSlot(Guid Id, DateTimeOffset TimePosting);
+/// <param name="HasVideo">Среди файлов верхнего уровня есть видео</param>
+/// <param name="HasPhoto">Среди файлов верхнего уровня есть фото</param>
+/// <param name="ChannelParsingSettingId">Источник парсинга, null — пост добавлен вручную</param>
+public record MessageSlot(
+	Guid Id,
+	DateTimeOffset TimePosting,
+	bool HasVideo,
+	bool HasPhoto,
+	Guid? ChannelParsingSettingId
+);

@@ -20,6 +20,7 @@ import {
     AlertDialogTitle,
     AlertDialogTrigger
 } from "@/components/ui/alert-dialog"
+import {Tooltip, TooltipContent, TooltipTrigger} from "@/components/ui/tooltip"
 import {MessageSortBy, MessageStatus, SortDirection} from "@/api/endpoints/tgPosterAPI.schemas"
 import {
     useDeleteApiV1Message,
@@ -197,20 +198,28 @@ export function MessagesPage() {
                 {scheduleId && (
                     <div className="flex items-center gap-2">
                         <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                                <Button variant="outline" disabled={shuffleMessages.isPending}>
-                                    {shuffleMessages.isPending
-                                        ? <Loader2 className="h-4 w-4 mr-2 animate-spin"/>
-                                        : <Shuffle className="h-4 w-4 mr-2"/>}
-                                    Перетасовать
-                                </Button>
-                            </AlertDialogTrigger>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <AlertDialogTrigger asChild>
+                                        <Button variant="outline" disabled={shuffleMessages.isPending}>
+                                            {shuffleMessages.isPending
+                                                ? <Loader2 className="h-4 w-4 mr-2 animate-spin"/>
+                                                : <Shuffle className="h-4 w-4 mr-2"/>}
+                                            Перетасовать
+                                        </Button>
+                                    </AlertDialogTrigger>
+                                </TooltipTrigger>
+                                <TooltipContent className="max-w-xs">
+                                    Случайный порядок: не больше 2 постов одного типа или из одного источника подряд
+                                </TooltipContent>
+                            </Tooltip>
                             <AlertDialogContent>
                                 <AlertDialogHeader>
                                     <AlertDialogTitle>Перетасовать сообщения?</AlertDialogTitle>
                                     <AlertDialogDescription>
                                         Времена публикации останутся прежними, но порядок сообщений по слотам
-                                        изменится случайным образом. Затронет все запланированные сообщения расписания.
+                                        изменится случайным образом: подряд не больше 2 постов одного типа или из
+                                        одного источника. Затронет все запланированные сообщения расписания.
                                     </AlertDialogDescription>
                                 </AlertDialogHeader>
                                 <AlertDialogFooter>

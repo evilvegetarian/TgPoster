@@ -1,5 +1,6 @@
 using MediatR;
 using Security.IdentityServices;
+using TgPoster.API.Domain.Services;
 using TgPoster.Exceptions.NotFound;
 
 namespace TgPoster.API.Domain.UseCases.Messages.ShuffleMessages;
@@ -9,6 +10,8 @@ internal sealed class ShuffleMessagesUseCase(
 	IIdentityProvider provider)
 	: IRequestHandler<ShuffleMessagesCommand>
 {
+	private const int MaxSameInRow = 2;
+
 	public async Task Handle(ShuffleMessagesCommand request, CancellationToken ct)
 	{
 		if (!await storage.ExistAsync(request.ScheduleId, provider.Current.UserId, ct))
@@ -22,10 +25,24 @@ internal sealed class ShuffleMessagesUseCase(
 			return;
 		}
 
-		var ids = slots.Select(x => x.Id).ToList();
-		// тасуем времена, оставляя тот же набор слотов, но меняя привязку сообщение->слот
-		var times = slots.Select(x => x.TimePosting).OrderBy(_ => Random.Shared.Next()).ToList();
+		var arranged = ContentAlternation.Arrange(
+			slots,
+			GetKind,
+			x => x.ChannelParsingSettingId,
+			MaxSameInRow,
+			Random.Shared);
+
+		// тот же набор слотов по возрастанию, сообщения встают в них в порядке раскладки
+		var ids = arranged.Select(x => x.Id).ToList();
+		var times = slots.Select(x => x.TimePosting).Order().ToList();
 
 		await storage.UpdateTimeAsync(ids, times, ct);
 	}
+
+	private static ContentKind GetKind(MessageSlot slot) => slot switch
+	{
+		{ HasVideo: true } => ContentKind.Video,
+		{ HasPhoto: true } => ContentKind.Photo,
+		_ => ContentKind.Text
+	};
 }
