@@ -26,7 +26,12 @@ import type {
 import type {
   CreateParseChannelRequest,
   CreateParseChannelResponse,
+  DiscoverStatusResponse,
+  GetApiV1ParseChannelRunsParams,
+  GetApiV1ParseChannelStatsParams,
   ParseChannelListResponse,
+  ParseChannelRunResponsePagedResponse,
+  ParseChannelStatsResponse,
   ProblemDetails,
   UpdateParseChannelRequest
 } from '../tgPosterAPI.schemas';
@@ -379,4 +384,281 @@ export const usePostApiV1ParseChannelIdRefresh = <TError = ProblemDetails,
 
       return useMutation(mutationOptions, queryClient);
     }
+    /**
+ * @summary Статистика парсинга по своим источникам: посты, отсев, журнал проходов и таймлайны по дням
+ */
+export const getApiV1ParseChannelStats = (
+    params?: GetApiV1ParseChannelStatsParams,
+ signal?: AbortSignal
+) => {
+      
+      
+      return customInstance<ParseChannelStatsResponse>(
+      {url: `/api/v1/parse-channel/stats`, method: 'GET',
+        params, signal
+    },
+      );
+    }
+  
+
+
+
+export const getGetApiV1ParseChannelStatsQueryKey = (params?: GetApiV1ParseChannelStatsParams,) => {
+    return [
+    `/api/v1/parse-channel/stats`, ...(params ? [params]: [])
+    ] as const;
+    }
+
     
+export const getGetApiV1ParseChannelStatsQueryOptions = <TData = Awaited<ReturnType<typeof getApiV1ParseChannelStats>>, TError = ProblemDetails>(params?: GetApiV1ParseChannelStatsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1ParseChannelStats>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetApiV1ParseChannelStatsQueryKey(params);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getApiV1ParseChannelStats>>> = ({ signal }) => getApiV1ParseChannelStats(params, signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getApiV1ParseChannelStats>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetApiV1ParseChannelStatsQueryResult = NonNullable<Awaited<ReturnType<typeof getApiV1ParseChannelStats>>>
+export type GetApiV1ParseChannelStatsQueryError = ProblemDetails
+
+
+export function useGetApiV1ParseChannelStats<TData = Awaited<ReturnType<typeof getApiV1ParseChannelStats>>, TError = ProblemDetails>(
+ params: undefined |  GetApiV1ParseChannelStatsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1ParseChannelStats>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getApiV1ParseChannelStats>>,
+          TError,
+          Awaited<ReturnType<typeof getApiV1ParseChannelStats>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetApiV1ParseChannelStats<TData = Awaited<ReturnType<typeof getApiV1ParseChannelStats>>, TError = ProblemDetails>(
+ params?: GetApiV1ParseChannelStatsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1ParseChannelStats>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getApiV1ParseChannelStats>>,
+          TError,
+          Awaited<ReturnType<typeof getApiV1ParseChannelStats>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetApiV1ParseChannelStats<TData = Awaited<ReturnType<typeof getApiV1ParseChannelStats>>, TError = ProblemDetails>(
+ params?: GetApiV1ParseChannelStatsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1ParseChannelStats>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Статистика парсинга по своим источникам: посты, отсев, журнал проходов и таймлайны по дням
+ */
+
+export function useGetApiV1ParseChannelStats<TData = Awaited<ReturnType<typeof getApiV1ParseChannelStats>>, TError = ProblemDetails>(
+ params?: GetApiV1ParseChannelStatsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1ParseChannelStats>>, TError, TData>>, }
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetApiV1ParseChannelStatsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+
+/**
+ * @summary Журнал парсинга по своим источникам, от свежих проходов к старым
+ */
+export const getApiV1ParseChannelRuns = (
+    params?: GetApiV1ParseChannelRunsParams,
+ signal?: AbortSignal
+) => {
+      
+      
+      return customInstance<ParseChannelRunResponsePagedResponse>(
+      {url: `/api/v1/parse-channel/runs`, method: 'GET',
+        params, signal
+    },
+      );
+    }
+  
+
+
+
+export const getGetApiV1ParseChannelRunsQueryKey = (params?: GetApiV1ParseChannelRunsParams,) => {
+    return [
+    `/api/v1/parse-channel/runs`, ...(params ? [params]: [])
+    ] as const;
+    }
+
+    
+export const getGetApiV1ParseChannelRunsQueryOptions = <TData = Awaited<ReturnType<typeof getApiV1ParseChannelRuns>>, TError = ProblemDetails>(params?: GetApiV1ParseChannelRunsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1ParseChannelRuns>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetApiV1ParseChannelRunsQueryKey(params);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getApiV1ParseChannelRuns>>> = ({ signal }) => getApiV1ParseChannelRuns(params, signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getApiV1ParseChannelRuns>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetApiV1ParseChannelRunsQueryResult = NonNullable<Awaited<ReturnType<typeof getApiV1ParseChannelRuns>>>
+export type GetApiV1ParseChannelRunsQueryError = ProblemDetails
+
+
+export function useGetApiV1ParseChannelRuns<TData = Awaited<ReturnType<typeof getApiV1ParseChannelRuns>>, TError = ProblemDetails>(
+ params: undefined |  GetApiV1ParseChannelRunsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1ParseChannelRuns>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getApiV1ParseChannelRuns>>,
+          TError,
+          Awaited<ReturnType<typeof getApiV1ParseChannelRuns>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetApiV1ParseChannelRuns<TData = Awaited<ReturnType<typeof getApiV1ParseChannelRuns>>, TError = ProblemDetails>(
+ params?: GetApiV1ParseChannelRunsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1ParseChannelRuns>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getApiV1ParseChannelRuns>>,
+          TError,
+          Awaited<ReturnType<typeof getApiV1ParseChannelRuns>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetApiV1ParseChannelRuns<TData = Awaited<ReturnType<typeof getApiV1ParseChannelRuns>>, TError = ProblemDetails>(
+ params?: GetApiV1ParseChannelRunsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1ParseChannelRuns>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Журнал парсинга по своим источникам, от свежих проходов к старым
+ */
+
+export function useGetApiV1ParseChannelRuns<TData = Awaited<ReturnType<typeof getApiV1ParseChannelRuns>>, TError = ProblemDetails>(
+ params?: GetApiV1ParseChannelRunsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1ParseChannelRuns>>, TError, TData>>, }
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetApiV1ParseChannelRunsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+
+/**
+ * @summary Состояние фоновой задачи парсинга каналов
+ */
+export const getApiV1ParseChannelStatus = (
+    
+ signal?: AbortSignal
+) => {
+      
+      
+      return customInstance<DiscoverStatusResponse>(
+      {url: `/api/v1/parse-channel/status`, method: 'GET', signal
+    },
+      );
+    }
+  
+
+
+
+export const getGetApiV1ParseChannelStatusQueryKey = () => {
+    return [
+    `/api/v1/parse-channel/status`
+    ] as const;
+    }
+
+    
+export const getGetApiV1ParseChannelStatusQueryOptions = <TData = Awaited<ReturnType<typeof getApiV1ParseChannelStatus>>, TError = ProblemDetails>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1ParseChannelStatus>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetApiV1ParseChannelStatusQueryKey();
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getApiV1ParseChannelStatus>>> = ({ signal }) => getApiV1ParseChannelStatus(signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getApiV1ParseChannelStatus>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetApiV1ParseChannelStatusQueryResult = NonNullable<Awaited<ReturnType<typeof getApiV1ParseChannelStatus>>>
+export type GetApiV1ParseChannelStatusQueryError = ProblemDetails
+
+
+export function useGetApiV1ParseChannelStatus<TData = Awaited<ReturnType<typeof getApiV1ParseChannelStatus>>, TError = ProblemDetails>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1ParseChannelStatus>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getApiV1ParseChannelStatus>>,
+          TError,
+          Awaited<ReturnType<typeof getApiV1ParseChannelStatus>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetApiV1ParseChannelStatus<TData = Awaited<ReturnType<typeof getApiV1ParseChannelStatus>>, TError = ProblemDetails>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1ParseChannelStatus>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getApiV1ParseChannelStatus>>,
+          TError,
+          Awaited<ReturnType<typeof getApiV1ParseChannelStatus>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetApiV1ParseChannelStatus<TData = Awaited<ReturnType<typeof getApiV1ParseChannelStatus>>, TError = ProblemDetails>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1ParseChannelStatus>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Состояние фоновой задачи парсинга каналов
+ */
+
+export function useGetApiV1ParseChannelStatus<TData = Awaited<ReturnType<typeof getApiV1ParseChannelStatus>>, TError = ProblemDetails>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1ParseChannelStatus>>, TError, TData>>, }
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetApiV1ParseChannelStatusQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+

@@ -3,9 +3,14 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TgPoster.API.Common;
+using TgPoster.API.Domain.UseCases.Discover.GetDiscoverStatus;
+using TgPoster.API.Domain.UseCases.Messages.ListMessage;
 using TgPoster.API.Domain.UseCases.Parse.CreateParseChannel;
 using TgPoster.API.Domain.UseCases.Parse.DeleteParseChannel;
+using TgPoster.API.Domain.UseCases.Parse.GetParseChannelStats;
+using TgPoster.API.Domain.UseCases.Parse.GetParseChannelStatus;
 using TgPoster.API.Domain.UseCases.Parse.ListParseChannel;
+using TgPoster.API.Domain.UseCases.Parse.ListParseChannelRuns;
 using TgPoster.API.Domain.UseCases.Parse.RefreshParseChannelInfo;
 using TgPoster.API.Mapper;
 using TgPoster.API.Models;
@@ -105,5 +110,51 @@ public class ParseChannelController(ISender sender) : ControllerBase
 	{
 		await sender.Send(new RefreshParseChannelInfoCommand(id), ct);
 		return NoContent();
+	}
+
+	/// <summary>
+	/// Статистика парсинга по своим источникам: посты, отсев, журнал проходов и таймлайны по дням
+	/// </summary>
+	/// <param name="request">Глубина таймлайнов</param>
+	/// <param name="ct">Токен отмены операции</param>
+	/// <returns>Статистика парсинга</returns>
+	[HttpGet(Routes.ParseChannel.Stats)]
+	[ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ParseChannelStatsResponse))]
+	[ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
+	[ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
+	public async Task<IActionResult> GetStats([FromQuery] GetDiscoverStatsRequest request, CancellationToken ct)
+	{
+		var stats = await sender.Send(new GetParseChannelStatsQuery(request.Days), ct);
+		return Ok(stats);
+	}
+
+	/// <summary>
+	/// Журнал парсинга по своим источникам, от свежих проходов к старым
+	/// </summary>
+	/// <param name="request">Фильтры и пагинация</param>
+	/// <param name="ct">Токен отмены операции</param>
+	/// <returns>Страница журнала</returns>
+	[HttpGet(Routes.ParseChannel.Runs)]
+	[ProducesResponseType(StatusCodes.Status200OK, Type = typeof(PagedResponse<ParseChannelRunResponse>))]
+	[ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
+	[ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
+	public async Task<IActionResult> GetRuns([FromQuery] ListParseChannelRunsRequest request, CancellationToken ct)
+	{
+		var response = await sender.Send(request.ToDomain(), ct);
+		return Ok(response);
+	}
+
+	/// <summary>
+	/// Состояние фоновой задачи парсинга каналов
+	/// </summary>
+	/// <param name="ct">Токен отмены операции</param>
+	/// <returns>Статус, прогресс и расписание задачи</returns>
+	[HttpGet(Routes.ParseChannel.Status)]
+	[ProducesResponseType(StatusCodes.Status200OK, Type = typeof(DiscoverStatusResponse))]
+	[ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
+	public async Task<IActionResult> GetStatus(CancellationToken ct)
+	{
+		var status = await sender.Send(new GetParseChannelStatusQuery(), ct);
+		return Ok(status);
 	}
 }

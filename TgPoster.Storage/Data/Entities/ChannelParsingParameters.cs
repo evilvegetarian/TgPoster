@@ -101,5 +101,10 @@ public sealed class ChannelParsingSetting : BaseEntity
 	/// </summary>
 	public ICollection<Message> ParsedMessages { get; set; } = [];
 
+	/// <summary>
+	/// Журнал проходов парсинга этого канала
+	/// </summary>
+	public ICollection<ChannelParsingRun> Runs { get; set; } = [];
+
 	#endregion
 }

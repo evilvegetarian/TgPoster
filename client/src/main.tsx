@@ -14,6 +14,7 @@ import {TelegramBotPage} from "@/pages/telegram-bot-page.tsx";
 import {ErrorPage} from "@/pages/error-page.tsx";
 import {ApproveMessagesPage} from "@/pages/approve-messages-page.tsx";
 import {ParseChannelPage} from "@/pages/parse-channel-page.tsx";
+import {ParseChannelStatsPage} from "@/pages/parse-channel-stats-page.tsx";
 import {MessagesPage} from "@/pages/messages-page.tsx";
 import {LogOutPage} from "@/pages/logout-page.tsx";
 import {SchedulePage} from "@/pages/schedulepage/schedule-page.tsx";
@@ -81,6 +82,10 @@ const router = createBrowserRouter([
                             {
                                 path: "/parse-channel",
                                 element:  <ParseChannelPage/>
+                            },
+                            {
+                                path: "/parse-channel/stats",
+                                element: <ParseChannelStatsPage/>
                             },
                             {
                                 path: "/logout",

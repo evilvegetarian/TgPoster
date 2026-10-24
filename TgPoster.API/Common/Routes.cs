@@ -82,6 +82,9 @@ internal static class Routes
 		internal const string Update = Root + "/{id:guid}";
 		internal const string Delete = Root + "/{id:guid}";
 		internal const string Refresh = Root + "/{id:guid}/refresh";
+		internal const string Stats = Root + "/stats";
+		internal const string Runs = Root + "/runs";
+		internal const string Status = Root + "/status";
 	}
 
 	internal static class OpenRouterSetting

@@ -13,4 +13,7 @@ public static class WorkerJobNames
 
 	/// <summary>Классификация обнаруженных каналов через LLM</summary>
 	public const string ClassifyChannels = "classify-channels-job";
+
+	/// <summary>Суточный парсинг каналов-источников</summary>
+	public const string ParseChannels = "process-parse-channel-job";
 }

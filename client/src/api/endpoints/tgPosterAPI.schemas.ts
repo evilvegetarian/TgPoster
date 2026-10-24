@@ -1318,6 +1318,15 @@ export interface ParseChannelListResponse {
   items: ParseChannelResponse[];
 }
 
+export interface ParseChannelPostTotals {
+  total: number;
+  planned: number;
+  awaitingApproval: number;
+  published: number;
+  failed: number;
+  canceled: number;
+}
+
 export interface ParseChannelResponse {
   id: string;
   scheduleId: string;
@@ -1343,6 +1352,116 @@ export interface ParseChannelResponse {
   totalMessagesCount?: number | null;
   parsedMessagesCount?: number;
   skipAds: boolean;
+}
+
+export interface ParseChannelRunResponse {
+  id: string;
+  parseChannelId: string;
+  channel: string;
+  scheduleName: string;
+  startedAt: string;
+  finishedAt: string;
+  status: ParseChannelRunStatus;
+  /** @nullable */
+  error?: string | null;
+  fetchedMessages: number;
+  posts: number;
+  skippedByAvoidWords: number;
+  skippedAsAds: number;
+  skippedAsDuplicates: number;
+  skippedEmpty: number;
+  published: number;
+  /** @nullable */
+  lastMessageId?: number | null;
+}
+
+export interface ParseChannelRunResponsePagedResponse {
+  currentPage?: number;
+  readonly totalPages?: number;
+  pageSize?: number;
+  totalCount?: number;
+  readonly hasPreviousPage?: boolean;
+  readonly hasNextPage?: boolean;
+  data?: ParseChannelRunResponse[];
+}
+
+export type ParseChannelRunStatus = typeof ParseChannelRunStatus[keyof typeof ParseChannelRunStatus];
+
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const ParseChannelRunStatus = {
+  Success: 'Success',
+  TemporaryFailure: 'TemporaryFailure',
+  SourceUnavailable: 'SourceUnavailable',
+  Failed: 'Failed',
+} as const;
+
+export interface ParseChannelRunTotals {
+  runs: number;
+  failedRuns: number;
+  fetchedMessages: number;
+  posts: number;
+  skippedByAvoidWords: number;
+  skippedAsAds: number;
+  skippedAsDuplicates: number;
+  skippedEmpty: number;
+  published: number;
+}
+
+export interface ParseChannelSourceStat {
+  id: string;
+  channel: string;
+  scheduleName: string;
+  status: ParseChannelSourceStatus;
+  runs: number;
+  failedRuns: number;
+  published: number;
+  skipped: number;
+  /** @nullable */
+  lastRunAt?: string | null;
+  lastRunStatus?: ParseChannelRunStatus;
+  parsedMessagesCount: number;
+  /** @nullable */
+  totalMessagesCount?: number | null;
+}
+
+export type ParseChannelSourceStatus = typeof ParseChannelSourceStatus[keyof typeof ParseChannelSourceStatus];
+
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const ParseChannelSourceStatus = {
+  New: 'New',
+  InHandle: 'InHandle',
+  Canceled: 'Canceled',
+  Waiting: 'Waiting',
+  Finished: 'Finished',
+  Failed: 'Failed',
+} as const;
+
+export interface ParseChannelSourceStatusCount {
+  status: ParseChannelSourceStatus;
+  count: number;
+}
+
+export interface ParseChannelSourceTotals {
+  total: number;
+  active: number;
+  failed: number;
+}
+
+export interface ParseChannelStatsResponse {
+  sources: ParseChannelSourceTotals;
+  posts: ParseChannelPostTotals;
+  last24Hours: ParseChannelRunTotals;
+  last7Days: ParseChannelRunTotals;
+  last30Days: ParseChannelRunTotals;
+  period: ParseChannelRunTotals;
+  /** @nullable */
+  lastRunAt?: string | null;
+  sourcesByStatus: ParseChannelSourceStatusCount[];
+  publishedByDay: DiscoverDailyCount[];
+  skippedByDay: DiscoverDailyCount[];
+  topSources: ParseChannelSourceStat[];
 }
 
 /**
@@ -2435,6 +2554,42 @@ export type PutApiV1MessageIdBody = {
   /** Кросс-постить ли пост; null — не менять */
   CrossPostEnabled?: boolean;
   CrossPostFormat?: MessageCrossPostFormat;
+};
+
+export type GetApiV1ParseChannelStatsParams = {
+/**
+ * Глубина таймлайнов «по дням» в днях, включая сегодня. По умолчанию — 30
+ * @minimum 1
+ * @maximum 365
+ */
+Days?: number;
+};
+
+export type GetApiV1ParseChannelRunsParams = {
+/**
+ * Только проходы этого источника
+ */
+ParseChannelId?: string;
+/**
+ * Только проходы с этим итогом
+ */
+Status?: ParseChannelRunStatus;
+/**
+ * Начало периода по времени прохода (включительно)
+ */
+From?: string;
+/**
+ * Конец периода по времени прохода (включительно)
+ */
+To?: string;
+/**
+ * Номер страницы.
+ */
+PageNumber?: number;
+/**
+ * Размер страницы.
+ */
+PageSize?: number;
 };
 
 export type GetApiV1PromptSettingParams = {

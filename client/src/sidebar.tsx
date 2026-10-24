@@ -72,6 +72,11 @@ export function SideBar() {
                 icon: MessageCircleMore
             },
             {
+                title: "Статистика парсинга",
+                path: "/parse-channel/stats",
+                icon: BarChart3
+            },
+            {
                 title: "OpenRouter",
                 path: "/open-router",
                 icon: MessageCircleMore

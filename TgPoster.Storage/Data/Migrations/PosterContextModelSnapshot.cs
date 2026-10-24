@@ -157,6 +157,85 @@ namespace TgPoster.Storage.Data.Migrations
                     b.ToTable("ChannelCleanupJobItems");
                 });
 
+            modelBuilder.Entity("TgPoster.Storage.Data.Entities.ChannelParsingRun", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ChannelParsingSettingId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset?>("Created")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("CreatedById")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset?>("Deleted")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("DeletedById")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Error")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
+                    b.Property<int>("FetchedMessages")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTimeOffset>("FinishedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("LastMessageId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Posts")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Published")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("SkippedAsAds")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("SkippedAsDuplicates")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("SkippedByAvoidWords")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("SkippedEmpty")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTimeOffset>("StartedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<DateTimeOffset?>("Updated")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("UpdatedById")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedById");
+
+                    b.HasIndex("DeletedById");
+
+                    b.HasIndex("UpdatedById");
+
+                    b.HasIndex("ChannelParsingSettingId", "StartedAt");
+
+                    b.ToTable("ChannelParsingRuns");
+                });
+
             modelBuilder.Entity("TgPoster.Storage.Data.Entities.ChannelParsingSetting", b =>
                 {
                     b.Property<Guid>("Id")
@@ -2180,6 +2259,35 @@ namespace TgPoster.Storage.Data.Migrations
                     b.Navigation("UpdatedBy");
                 });
 
+            modelBuilder.Entity("TgPoster.Storage.Data.Entities.ChannelParsingRun", b =>
+                {
+                    b.HasOne("TgPoster.Storage.Data.Entities.ChannelParsingSetting", "ChannelParsingSetting")
+                        .WithMany("Runs")
+                        .HasForeignKey("ChannelParsingSettingId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("TgPoster.Storage.Data.Entities.User", "CreatedBy")
+                        .WithMany()
+                        .HasForeignKey("CreatedById");
+
+                    b.HasOne("TgPoster.Storage.Data.Entities.User", "DeletedBy")
+                        .WithMany()
+                        .HasForeignKey("DeletedById");
+
+                    b.HasOne("TgPoster.Storage.Data.Entities.User", "UpdatedBy")
+                        .WithMany()
+                        .HasForeignKey("UpdatedById");
+
+                    b.Navigation("ChannelParsingSetting");
+
+                    b.Navigation("CreatedBy");
+
+                    b.Navigation("DeletedBy");
+
+                    b.Navigation("UpdatedBy");
+                });
+
             modelBuilder.Entity("TgPoster.Storage.Data.Entities.ChannelParsingSetting", b =>
                 {
                     b.HasOne("TgPoster.Storage.Data.Entities.User", "CreatedBy")
@@ -3058,6 +3166,8 @@ namespace TgPoster.Storage.Data.Migrations
             modelBuilder.Entity("TgPoster.Storage.Data.Entities.ChannelParsingSetting", b =>
                 {
                     b.Navigation("ParsedMessages");
+
+                    b.Navigation("Runs");
                 });
 
             modelBuilder.Entity("TgPoster.Storage.Data.Entities.CommentRepostSettings", b =>

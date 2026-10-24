@@ -20,6 +20,7 @@ internal class PosterContext(
 	public DbSet<CrossPost> CrossPosts { get; set; }
 	public DbSet<MessageFile> MessageFiles { get; set; }
 	public DbSet<ChannelParsingSetting> ChannelParsingParameters { get; set; }
+	public DbSet<ChannelParsingRun> ChannelParsingRuns { get; set; }
 	public DbSet<OpenRouterSetting> OpenRouterSettings { get; set; }
 	public DbSet<PromptSetting> PromptSettings { get; set; }
 	public DbSet<YouTubeAccount> YouTubeAccounts { get; set; }

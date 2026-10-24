@@ -166,7 +166,7 @@ public static class DependencyInjection
 			Cron.Minutely());
 
 		recurringJobManager.AddOrUpdate<ParseChannelWorker>(
-			"process-parse-channel-job",
+			WorkerJobNames.ParseChannels,
 			worker => worker.ProcessMessagesAsync(),
 			Cron.Daily());
 
@@ -225,6 +225,11 @@ public static class DependencyInjection
 				CancellationToken.None)
 			.GetAwaiter().GetResult();
 		statusStorage.EnsureRegisteredAsync(WorkerJobNames.ClassifyChannels, null, CancellationToken.None)
+			.GetAwaiter().GetResult();
+		statusStorage.EnsureRegisteredAsync(
+				WorkerJobNames.ParseChannels,
+				nextRunProvider.GetNextRunAt(WorkerJobNames.ParseChannels),
+				CancellationToken.None)
 			.GetAwaiter().GetResult();
 
 		var classifyStorage = scope.ServiceProvider.GetRequiredService<IClassifyChannelStorage>();

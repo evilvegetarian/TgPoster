@@ -1,6 +1,7 @@
 using MassTransit;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
+using Shared.Enums;
 using Shouldly;
 using TgPoster.Telegram.Abstractions;
 using TgPoster.Telegram.Models;
@@ -14,6 +15,7 @@ public sealed class ParseChannelUseCaseShould
 	private const string ChannelName = "source_channel";
 
 	private readonly Mock<IParseChannelUseCaseStorage> storage = new();
+	private readonly Mock<IParseChannelRunStorage> runStorage = new();
 	private readonly Mock<ITelegramMessageService> tgMessages = new();
 	private readonly Mock<IScheduleAlertService> alertService = new();
 	private readonly Mock<IPublishEndpoint> publishEndpoint = new();
@@ -31,10 +33,74 @@ public sealed class ParseChannelUseCaseShould
 
 		sut = new ParseChannelUseCase(
 			storage.Object,
+			runStorage.Object,
 			publishEndpoint.Object,
 			tgMessages.Object,
 			alertService.Object,
+			TimeProvider.System,
 			NullLogger<ParseChannelUseCase>.Instance);
+	}
+
+	[Fact]
+	public async Task RecordRunWithFilterCounts_WhenParsingSucceeded()
+	{
+		SetupSettings(skipAds: true);
+		SetupHistoryWithAdAlbumAndRegularPost();
+
+		await sut.Handle(id, CancellationToken.None);
+
+		var run = SingleRecordedRun();
+		run.ChannelParsingSettingId.ShouldBe(id);
+		run.Status.ShouldBe(ParseChannelRunStatus.Success);
+		run.FetchedMessages.ShouldBe(3);
+		run.Posts.ShouldBe(2);
+		run.SkippedAsAds.ShouldBe(1);
+		run.SkippedByAvoidWords.ShouldBe(0);
+		run.SkippedAsDuplicates.ShouldBe(0);
+		run.Published.ShouldBe(1);
+		run.LastMessageId.ShouldBe(52);
+		run.FinishedAt.ShouldBeGreaterThanOrEqualTo(run.StartedAt);
+	}
+
+	[Fact]
+	public async Task RecordAvoidWordsAndDuplicates_WhenPostsFiltered()
+	{
+		SetupSettings(skipAds: false, avoidWords: ["обычный"]);
+		SetupHistoryWithAdAlbumAndRegularPost();
+		storage.Setup(s => s.GetAlreadyParsedSourceIdsAsync(id, It.IsAny<IReadOnlyCollection<ParsedSourceCandidate>>(),
+				It.IsAny<CancellationToken>()))
+			.ReturnsAsync([50]);
+
+		await sut.Handle(id, CancellationToken.None);
+
+		var run = SingleRecordedRun();
+		run.SkippedByAvoidWords.ShouldBe(1);
+		run.SkippedAsDuplicates.ShouldBe(1);
+		run.Published.ShouldBe(0);
+	}
+
+	[Fact]
+	public async Task RecordTemporaryFailure_WhenFloodWait()
+	{
+		SetupResolve(TelegramOperationResult<TelegramChatInfo>.Failed(TelegramOperationStatus.FloodWait, floodWait: 60));
+
+		await sut.Handle(id, CancellationToken.None);
+
+		var run = SingleRecordedRun();
+		run.Status.ShouldBe(ParseChannelRunStatus.TemporaryFailure);
+		run.Error.ShouldNotBeNull();
+		run.Error.ShouldStartWith(nameof(TelegramOperationStatus.FloodWait));
+		run.Published.ShouldBe(0);
+	}
+
+	[Fact]
+	public async Task RecordSourceUnavailable_WhenChannelNotFound()
+	{
+		SetupResolve(TelegramOperationResult<TelegramChatInfo>.Failed(TelegramOperationStatus.UsernameNotFound));
+
+		await sut.Handle(id, CancellationToken.None);
+
+		SingleRecordedRun().Status.ShouldBe(ParseChannelRunStatus.SourceUnavailable);
 	}
 
 	[Fact]
@@ -210,7 +276,7 @@ public sealed class ParseChannelUseCaseShould
 			Peer = TelegramPeer.Channel(100, 1000)
 		}));
 
-	private void SetupSettings(bool skipAds, bool checkNewPosts = true)
+	private void SetupSettings(bool skipAds, bool checkNewPosts = true, string[]? avoidWords = null)
 	{
 		storage.Setup(s => s.GetChannelParsingParametersAsync(id, It.IsAny<CancellationToken>()))
 			.ReturnsAsync(new ParseChannelParsingSettings
@@ -220,9 +286,13 @@ public sealed class ParseChannelUseCaseShould
 				CheckNewPosts = checkNewPosts,
 				TelegramSessionId = sessionId,
 				ScheduleId = scheduleId,
-				SkipAds = skipAds
+				SkipAds = skipAds,
+				AvoidWords = avoidWords ?? []
 			});
 	}
+
+	private ParseChannelRunReport SingleRecordedRun() =>
+		(ParseChannelRunReport)runStorage.Invocations.ShouldHaveSingleItem().Arguments[0];
 
 	private void SetupHistoryWithAdAlbumAndRegularPost()
 	{

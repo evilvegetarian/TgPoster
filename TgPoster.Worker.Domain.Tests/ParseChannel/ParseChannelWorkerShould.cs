@@ -1,12 +1,16 @@
+using Hangfire.MemoryStorage;
 using MassTransit;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
+using Shared.Enums;
+using Shouldly;
 using TgPoster.Telegram.Abstractions;
 using TgPoster.Telegram.Models;
 using TgPoster.Worker.Domain.Services.ScheduleAlerts;
 using TgPoster.Worker.Domain.UseCases.ParseChannel;
 using TgPoster.Worker.Domain.UseCases.ParseChannelWorker;
+using TgPoster.Worker.Domain.UseCases.WorkerJobStatus;
 
 namespace TgPoster.Worker.Domain.Tests.ParseChannel;
 
@@ -16,6 +20,8 @@ public sealed class ParseChannelWorkerShould
 
 	private readonly Mock<IParseChannelWorkerStorage> storage = new();
 	private readonly Mock<IParseChannelUseCaseStorage> useCaseStorage = new();
+	private readonly Mock<IParseChannelRunStorage> runStorage = new();
+	private readonly Mock<IWorkerJobStatusStorage> statusStorage = new();
 	private readonly Mock<ITelegramMessageService> tgMessages = new();
 	private readonly Mock<IScheduleAlertService> alertService = new();
 	private readonly Guid id = Guid.NewGuid();
@@ -41,17 +47,80 @@ public sealed class ParseChannelWorkerShould
 
 		var useCase = new ParseChannelUseCase(
 			useCaseStorage.Object,
+			runStorage.Object,
 			Mock.Of<IPublishEndpoint>(),
 			tgMessages.Object,
 			alertService.Object,
+			TimeProvider.System,
 			NullLogger<ParseChannelUseCase>.Instance);
 
 		sut = new ParseChannelWorker(
 			storage.Object,
 			useCase,
+			runStorage.Object,
+			statusStorage.Object,
+			new HangfireNextRunProvider(new MemoryStorage()),
 			alertService.Object,
+			TimeProvider.System,
 			NullLogger<ParseChannelWorker>.Instance,
 			lifetime.Object);
+	}
+
+	[Fact]
+	public async Task ReportProgressAndCompletion_WhenSourcesProcessed()
+	{
+		SetupResolve(TelegramOperationResult<TelegramChatInfo>.Failed(TelegramOperationStatus.UsernameNotFound));
+
+		await sut.ProcessMessagesAsync();
+
+		statusStorage.Verify(s => s.ReportStartedAsync(WorkerJobNames.ParseChannels, It.IsAny<CancellationToken>()),
+			Times.Once);
+		statusStorage.Verify(s => s.ReportHeartbeatAsync(WorkerJobNames.ParseChannels, 0, 1, null,
+			It.IsAny<CancellationToken>()), Times.Once);
+		statusStorage.Verify(s => s.ReportCompletedAsync(WorkerJobNames.ParseChannels, It.IsAny<DateTimeOffset?>(),
+			It.IsAny<CancellationToken>()), Times.Once);
+	}
+
+	[Fact]
+	public async Task ReportJobFailed_WhenSourcesCannotBeLoaded()
+	{
+		storage.Setup(s => s.GetChannelParsingParametersAsync()).ThrowsAsync(new InvalidOperationException("БД недоступна"));
+
+		await Should.ThrowAsync<InvalidOperationException>(() => sut.ProcessMessagesAsync());
+
+		statusStorage.Verify(s => s.ReportFailedAsync(WorkerJobNames.ParseChannels, "БД недоступна",
+			It.IsAny<DateTimeOffset?>(), It.IsAny<CancellationToken>()), Times.Once);
+		statusStorage.Verify(s => s.ReportCompletedAsync(It.IsAny<string>(), It.IsAny<DateTimeOffset?>(),
+			It.IsAny<CancellationToken>()), Times.Never);
+	}
+
+	[Fact]
+	public async Task RecordFailedRun_WhenParsingThrows()
+	{
+		useCaseStorage.Setup(s => s.GetChannelParsingParametersAsync(id, It.IsAny<CancellationToken>()))
+			.ThrowsAsync(new InvalidOperationException("БД недоступна"));
+
+		await sut.ProcessMessagesAsync();
+
+		runStorage.Verify(s => s.AddRunAsync(
+			It.Is<ParseChannelRunReport>(r => r.ChannelParsingSettingId == id
+			                                  && r.Status == ParseChannelRunStatus.Failed
+			                                  && r.Error == "БД недоступна"),
+			It.IsAny<CancellationToken>()), Times.Once);
+	}
+
+	[Fact]
+	public async Task ContinueParsing_WhenRunJournalWriteFails()
+	{
+		useCaseStorage.Setup(s => s.GetChannelParsingParametersAsync(id, It.IsAny<CancellationToken>()))
+			.ThrowsAsync(new InvalidOperationException("БД недоступна"));
+		runStorage.Setup(s => s.AddRunAsync(It.IsAny<ParseChannelRunReport>(), It.IsAny<CancellationToken>()))
+			.ThrowsAsync(new InvalidOperationException("журнал недоступен"));
+
+		await sut.ProcessMessagesAsync();
+
+		alertService.Verify(a => a.NotifyAsync(scheduleId, ScheduleProblem.ParsingFailed, "БД недоступна", id,
+			It.IsAny<CancellationToken>()), Times.Once);
 	}
 
 	[Fact]

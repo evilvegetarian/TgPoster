@@ -4,7 +4,8 @@ import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card"
 import {Badge} from "@/components/ui/badge"
 import {Input} from "@/components/ui/input"
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select"
-import {Calendar, Edit, ExternalLink, Eye, EyeOff, Filter, Hash, Loader2, Plus, RefreshCw, Search, Settings, User} from "lucide-react"
+import {Link} from "react-router-dom"
+import {BarChart3, Calendar, Edit, ExternalLink, Eye, EyeOff, Filter, Hash, Loader2, Plus, RefreshCw, Search, Settings, User} from "lucide-react"
 import {toast} from "sonner"
 
 import {
@@ -187,10 +188,18 @@ export function ParseChannelPage() {
                         Управляйте настройками парсинга каналов и расписаниями публикаций
                     </p>
                 </div>
-                <Button onClick={() => setIsAddDialogOpen(true)} className="gap-2">
-                    <Plus className="h-4 w-4"/>
-                    Добавить настройку
-                </Button>
+                <div className="flex items-center gap-2">
+                    <Button variant="outline" className="gap-2" asChild>
+                        <Link to="/parse-channel/stats">
+                            <BarChart3 className="h-4 w-4"/>
+                            Статистика
+                        </Link>
+                    </Button>
+                    <Button onClick={() => setIsAddDialogOpen(true)} className="gap-2">
+                        <Plus className="h-4 w-4"/>
+                        Добавить настройку
+                    </Button>
+                </div>
             </div>
 
             {settings.length > 0 && (

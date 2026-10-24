@@ -1,6 +1,7 @@
 using MassTransit;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
+using Shared.Enums;
 using TgPoster.Telegram.Abstractions;
 using TgPoster.Telegram.Models;
 using TgPoster.Worker.Domain.Services.ScheduleAlerts;
@@ -13,6 +14,7 @@ public sealed class ParseChannelConsumerShould
 {
 	private readonly Mock<IParseChannelConsumerStorage> storage = new();
 	private readonly Mock<IParseChannelUseCaseStorage> useCaseStorage = new();
+	private readonly Mock<IParseChannelRunStorage> runStorage = new();
 	private readonly Mock<IScheduleAlertService> alertService = new();
 	private readonly Guid id = Guid.NewGuid();
 	private readonly Guid scheduleId = Guid.NewGuid();
@@ -24,16 +26,35 @@ public sealed class ParseChannelConsumerShould
 
 		var useCase = new ParseChannelUseCase(
 			useCaseStorage.Object,
+			runStorage.Object,
 			Mock.Of<IPublishEndpoint>(),
 			Mock.Of<ITelegramMessageService>(),
 			alertService.Object,
+			TimeProvider.System,
 			NullLogger<ParseChannelUseCase>.Instance);
 
 		sut = new ParseChannelConsumer(
 			NullLogger<ParseChannelConsumer>.Instance,
 			storage.Object,
 			useCase,
-			alertService.Object);
+			runStorage.Object,
+			alertService.Object,
+			TimeProvider.System);
+	}
+
+	[Fact]
+	public async Task RecordFailedRun_WhenParsingThrows()
+	{
+		useCaseStorage.Setup(s => s.GetChannelParsingParametersAsync(id, It.IsAny<CancellationToken>()))
+			.ThrowsAsync(new InvalidOperationException("БД недоступна"));
+
+		await sut.Consume(CreateContext(CancellationToken.None));
+
+		runStorage.Verify(s => s.AddRunAsync(
+			It.Is<ParseChannelRunReport>(r => r.ChannelParsingSettingId == id
+			                                  && r.Status == ParseChannelRunStatus.Failed
+			                                  && r.Error == "БД недоступна"),
+			It.IsAny<CancellationToken>()), Times.Once);
 	}
 
 	[Fact]
@@ -61,6 +82,8 @@ public sealed class ParseChannelConsumerShould
 
 		alertService.Verify(a => a.NotifyAsync(It.IsAny<Guid>(), It.IsAny<ScheduleProblem>(), It.IsAny<string>(),
 			It.IsAny<Guid?>(), It.IsAny<CancellationToken>()), Times.Never);
+		runStorage.Verify(s => s.AddRunAsync(It.IsAny<ParseChannelRunReport>(), It.IsAny<CancellationToken>()),
+			Times.Never);
 	}
 
 	private ConsumeContext<ParseChannelContract> CreateContext(CancellationToken ct)

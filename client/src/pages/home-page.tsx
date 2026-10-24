@@ -26,6 +26,12 @@ const JOB_NAMES: Record<string, string> = {
     "discover-channel-links-job": "Поиск каналов (Discover)",
     "classify-channels-job": "Классификатор каналов",
     "cleanup-s3-files-job": "Очистка файлов в S3",
+    "process-parse-channel-job": "Парсинг каналов",
+}
+
+const WORKER_LINKS: Record<string, string> = {
+    "classify-channels-job": "/discover/classification",
+    "process-parse-channel-job": "/parse-channel/stats",
 }
 
 const JOB_STATUS_LABELS: Record<string, string> = {
@@ -44,7 +50,7 @@ const SESSION_STATUS_LABELS: Record<string, string> = {
 }
 
 function workerLink(jobName: string | undefined): string {
-    return jobName === "classify-channels-job" ? "/discover/classification" : "/discover/stats"
+    return WORKER_LINKS[jobName ?? ""] ?? "/discover/stats"
 }
 
 function sessionName(session: DashboardSession): string {

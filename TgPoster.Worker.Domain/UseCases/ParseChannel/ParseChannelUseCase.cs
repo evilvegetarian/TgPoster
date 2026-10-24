@@ -1,5 +1,6 @@
 using MassTransit;
 using Microsoft.Extensions.Logging;
+using Shared.Enums;
 using TgPoster.Telegram.Abstractions;
 using TgPoster.Telegram.Models;
 using TgPoster.Worker.Domain.Services.AdDetection;
@@ -9,9 +10,11 @@ namespace TgPoster.Worker.Domain.UseCases.ParseChannel;
 
 internal class ParseChannelUseCase(
 	IParseChannelUseCaseStorage storage,
+	IParseChannelRunStorage runStorage,
 	IPublishEndpoint publishEndpoint,
 	ITelegramMessageService tgMessages,
 	IScheduleAlertService alertService,
+	TimeProvider timeProvider,
 	ILogger<ParseChannelUseCase> logger)
 {
 	/// <summary>
@@ -32,6 +35,7 @@ internal class ParseChannelUseCase(
 		}
 
 		logger.LogInformation("Начали парсить данный канал: {ChannelName}", parameters.ChannelName);
+		var startedAt = timeProvider.GetUtcNow();
 		await storage.UpdateInHandleStatusAsync(id, ct);
 
 		var channelName = parameters.ChannelName;
@@ -51,10 +55,14 @@ internal class ParseChannelUseCase(
 			if (IsSourceUnavailable(resolveResult.Status))
 			{
 				await MarkSourceUnavailableAsync(id, parameters, resolveResult.Status, ct);
+				await AddFailedRunAsync(id, startedAt, ParseChannelRunStatus.SourceUnavailable,
+					FormatError(resolveResult.Status, resolveResult.ErrorMessage), ct);
 				return false;
 			}
 
 			await storage.ReleaseAfterTemporaryFailureAsync(id, ct);
+			await AddFailedRunAsync(id, startedAt, ParseChannelRunStatus.TemporaryFailure,
+				FormatError(resolveResult.Status, resolveResult.ErrorMessage), ct);
 			return true;
 		}
 
@@ -84,10 +92,14 @@ internal class ParseChannelUseCase(
 				if (IsSourceUnavailable(historyResult.Status))
 				{
 					await MarkSourceUnavailableAsync(id, parameters, historyResult.Status, ct);
+					await AddFailedRunAsync(id, startedAt, ParseChannelRunStatus.SourceUnavailable,
+						FormatError(historyResult.Status, historyResult.ErrorMessage), ct);
 					return false;
 				}
 
 				await storage.ReleaseAfterTemporaryFailureAsync(id, ct);
+				await AddFailedRunAsync(id, startedAt, ParseChannelRunStatus.TemporaryFailure,
+					FormatError(historyResult.Status, historyResult.ErrorMessage), ct);
 				return true;
 			}
 
@@ -138,16 +150,24 @@ internal class ParseChannelUseCase(
 			                                        && avoidWords.Any(word =>
 				                                        msg.Text.Contains(word, StringComparison.OrdinalIgnoreCase))
 			)).ToList();
+		var skippedByAvoidWords = groupedMessages.Count - validGroups.Count;
 
+		var beforeAds = validGroups.Count;
 		if (parameters.SkipAds)
 		{
 			validGroups = SkipAdGroups(validGroups, channelName);
 		}
 
+		var skippedAsAds = beforeAds - validGroups.Count;
+
+		var beforeDuplicates = validGroups.Count;
 		validGroups = await SkipAlreadyParsedAsync(id, validGroups, channelName, ct);
+		var skippedAsDuplicates = beforeDuplicates - validGroups.Count;
 
 		logger.LogDebug("Найдено {Count} новых постов для обработки.", validGroups.Count);
 
+		var published = 0;
+		var skippedEmpty = 0;
 		foreach (var group in validGroups)
 		{
 			var command = new ProcessMessage
@@ -164,17 +184,66 @@ internal class ParseChannelUseCase(
 
 			if (group.Value.All(p => p.Text is null && p.Media is null))
 			{
+				skippedEmpty++;
 				continue;
 			}
 
 			await publishEndpoint.Publish(command, ct);
+			published++;
 		}
 
 		await storage.UpdateChannelParsingParametersAsync(id, newestId, checkNewPosts, ct);
+		await runStorage.AddRunAsync(new ParseChannelRunReport
+		{
+			ChannelParsingSettingId = id,
+			StartedAt = startedAt,
+			FinishedAt = timeProvider.GetUtcNow(),
+			Status = ParseChannelRunStatus.Success,
+			FetchedMessages = allMessages.Count,
+			Posts = groupedMessages.Count,
+			SkippedByAvoidWords = skippedByAvoidWords,
+			SkippedAsAds = skippedAsAds,
+			SkippedAsDuplicates = skippedAsDuplicates,
+			SkippedEmpty = skippedEmpty,
+			Published = published,
+			LastMessageId = newestId == 0 ? null : newestId
+		}, ct);
 		logger.LogInformation("Парсинг канала завершен. Задачи на обработку ({count}) отправлены в очередь.",
-			validGroups.Count);
+			published);
 		return true;
 	}
+
+	/// <summary>
+	/// Записать в журнал проход, который не дошёл до счётчиков: канал не получен или история оборвалась
+	/// </summary>
+	/// <param name="id"></param>
+	/// <param name="startedAt"></param>
+	/// <param name="status"></param>
+	/// <param name="error"></param>
+	/// <param name="ct"></param>
+	private Task AddFailedRunAsync(
+		Guid id,
+		DateTimeOffset startedAt,
+		ParseChannelRunStatus status,
+		string error,
+		CancellationToken ct
+	) => runStorage.AddRunAsync(new ParseChannelRunReport
+	{
+		ChannelParsingSettingId = id,
+		StartedAt = startedAt,
+		FinishedAt = timeProvider.GetUtcNow(),
+		Status = status,
+		Error = error
+	}, ct);
+
+	/// <summary>
+	/// Текст ошибки для журнала: статус Telegram и, если есть, его сообщение
+	/// </summary>
+	/// <param name="status"></param>
+	/// <param name="message"></param>
+	/// <returns></returns>
+	private static string FormatError(TelegramOperationStatus status, string? message) =>
+		string.IsNullOrWhiteSpace(message) ? status.ToString() : $"{status}: {message}";
 
 	/// <summary>
 	/// Отбрасывает группы, из которых пост уже создан раньше: повторный парсинг того же сообщения
