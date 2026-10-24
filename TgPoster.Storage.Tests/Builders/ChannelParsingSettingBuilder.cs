@@ -45,6 +45,12 @@ internal class ChannelParsingSettingBuilder(PosterContext context)
 		return this;
 	}
 
+	public ChannelParsingSettingBuilder WithSkipAds(bool skipAds)
+	{
+		setting.SkipAds = skipAds;
+		return this;
+	}
+
 	public ChannelParsingSetting Build() => setting;
 
 	public ChannelParsingSetting Create()

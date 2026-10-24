@@ -39,6 +39,7 @@ public class ParseChannelStorageShould(StorageTestFixture fixture) : IClassFixtu
 			true,
 			telegramSession.Id,
 			null,
+			true,
 			CancellationToken.None);
 
 		result.ShouldNotBe(Guid.Empty);
@@ -78,6 +79,7 @@ public class ParseChannelStorageShould(StorageTestFixture fixture) : IClassFixtu
 			true,
 			telegramSession.Id,
 			null,
+			true,
 			CancellationToken.None);
 
 		result.ShouldNotBe(Guid.Empty);
@@ -111,6 +113,7 @@ public class ParseChannelStorageShould(StorageTestFixture fixture) : IClassFixtu
 			true,
 			telegramSession.Id,
 			null,
+			true,
 			CancellationToken.None);
 
 		result.ShouldNotBe(Guid.Empty);
@@ -120,6 +123,35 @@ public class ParseChannelStorageShould(StorageTestFixture fixture) : IClassFixtu
 
 		createdParameters.ShouldNotBeNull();
 		createdParameters.AvoidWords.ShouldBeEmpty();
+	}
+
+	[Theory]
+	[InlineData(true)]
+	[InlineData(false)]
+	public async Task AddParseChannelParametersAsync_WithSkipAds_ShouldSaveIt(bool skipAds)
+	{
+		var schedule = await new ScheduleBuilder(context).CreateAsync();
+		var telegramSession = await new TelegramSessionBuilder(context).CreateAsync();
+
+		var result = await sut.AddParseChannelParametersAsync(
+			"TestChannel",
+			false,
+			schedule.Id,
+			false,
+			false,
+			[],
+			false,
+			null,
+			null,
+			false,
+			telegramSession.Id,
+			null,
+			skipAds,
+			CancellationToken.None);
+
+		var createdParameters = await context.ChannelParsingParameters.AsNoTracking()
+			.FirstAsync(x => x.Id == result);
+		createdParameters.SkipAds.ShouldBe(skipAds);
 	}
 
 	[Fact]

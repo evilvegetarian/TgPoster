@@ -14,6 +14,12 @@ internal class ChannelParsingParametersConfiguration : BaseEntityConfiguration<C
 		builder.Property(x => x.Channel).HasMaxLength(100);
 		builder.Property(x => x.TelegramSessionId).IsRequired();
 
+		// Дефолт true нужен, чтобы уже существующие источники тоже пропускали рекламу,
+		// а sentinel true — иначе EF не отправит false в INSERT и база подставит свой дефолт
+		builder.Property(x => x.SkipAds)
+			.HasDefaultValue(true)
+			.HasSentinel(true);
+
 		builder.HasOne(x => x.Schedule)
 			.WithMany(x => x.Parameters)
 			.HasForeignKey(x => x.ScheduleId);

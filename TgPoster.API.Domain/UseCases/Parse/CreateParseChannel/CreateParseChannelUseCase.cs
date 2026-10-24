@@ -27,7 +27,8 @@ internal class CreateParseChannelUseCase(
 
 		var id = await storage.AddParseChannelParametersAsync(chat.Username!, request.AlwaysCheckNewPosts,
 			request.ScheduleId, request.DeleteText, request.DeleteMedia, request.AvoidWords, request.NeedVerifiedPosts,
-			request.DateFrom, request.DateTo, request.UseAiForPosts, request.TelegramSessionId, totalMessagesCount, ct);
+			request.DateFrom, request.DateTo, request.UseAiForPosts, request.TelegramSessionId, totalMessagesCount,
+			request.SkipAds, ct);
 
 		return new CreateParseChannelResponse
 		{

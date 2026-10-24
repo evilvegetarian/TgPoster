@@ -27,7 +27,8 @@ public static class ChannelParsingParametersMapper
 			TelegramSessionName = entity.TelegramSession.Name,
 			TelegramSessionPhoneNumber = entity.TelegramSession.PhoneNumber,
 			TotalMessagesCount = entity.TotalMessagesCount,
-			ParsedMessagesCount = parsedMessagesCount
+			ParsedMessagesCount = parsedMessagesCount,
+			SkipAds = entity.SkipAds
 		};
 
 	public static ChannelParsingSetting ToEntity(this UpdateParseChannelCommand request) =>
@@ -44,6 +45,7 @@ public static class ChannelParsingParametersMapper
 			NeedVerifiedPosts = request.NeedVerifiedPosts,
 			DeleteMedia = request.DeleteMedia,
 			UseAiForPosts = request.UseAiForPosts,
-			TelegramSessionId = request.TelegramSessionId
+			TelegramSessionId = request.TelegramSessionId,
+			SkipAds = request.SkipAds
 		};
 }

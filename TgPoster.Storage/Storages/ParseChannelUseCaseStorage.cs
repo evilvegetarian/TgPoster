@@ -22,7 +22,8 @@ internal class ParseChannelUseCaseStorage(PosterContext context, GuidFactory gui
 				ToDate = ch.DateTo,
 				CheckNewPosts = ch.CheckNewPosts,
 				TelegramSessionId = ch.TelegramSessionId,
-				ScheduleId = ch.ScheduleId
+				ScheduleId = ch.ScheduleId,
+				SkipAds = ch.SkipAds
 			})
 			.FirstOrDefaultAsync(ct);
 	}

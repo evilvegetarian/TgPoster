@@ -53,6 +53,11 @@ public sealed record ParseChannelResponse
 	///     Количество спаршенных сообщений
 	/// </summary>
 	public int ParsedMessagesCount { get; init; }
+
+	/// <summary>
+	/// Пропускать рекламные посты источника
+	/// </summary>
+	public required bool SkipAds { get; init; }
 }
 
 public sealed record ParseChannelListResponse

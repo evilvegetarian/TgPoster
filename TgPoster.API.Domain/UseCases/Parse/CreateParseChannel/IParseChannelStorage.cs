@@ -15,6 +15,7 @@ public interface IParseChannelStorage
 		bool useAiForPosts,
 		Guid telegramSessionId,
 		int? totalMessagesCount,
+		bool skipAds,
 		CancellationToken ct
 	);
 

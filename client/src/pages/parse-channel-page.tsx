@@ -298,6 +298,11 @@ export function ParseChannelPage() {
                                             <CardTitle className="text-xl">Канал не указан</CardTitle>
                                         )}
                                         {getStatusBadge(setting.status, setting.isActive)}
+                                        {setting.skipAds === false && (
+                                            <Badge variant="outline" className="text-orange-500">
+                                                реклама не фильтруется
+                                            </Badge>
+                                        )}
                                     </div>
                                     <div className="flex items-center gap-2">
                                         <Button

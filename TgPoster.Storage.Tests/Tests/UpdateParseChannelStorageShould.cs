@@ -58,6 +58,20 @@ public class UpdateParseChannelStorageShould : IClassFixture<StorageTestFixture>
 			.FirstOrDefaultAsync(x => x.Id == parseChannel.Id, ct);
 		parseChannelUpdated!.AvoidWords.ShouldBe(avoids);
 	}
+
+	[Fact]
+	public async Task UpdateParseChannelAsync_WithSkipAdsDisabled_ShouldSaveFalse()
+	{
+		var parseChannel = await new ChannelParsingSettingBuilder(_context).CreateAsync(ct);
+		parseChannel.SkipAds = false;
+		_context.Entry(parseChannel).State = EntityState.Detached;
+
+		await sut.UpdateParseChannelAsync(parseChannel.ToCommand(), ct);
+
+		var parseChannelUpdated = await _context.ChannelParsingParameters.AsNoTracking()
+			.FirstAsync(x => x.Id == parseChannel.Id, ct);
+		parseChannelUpdated.SkipAds.ShouldBeFalse();
+	}
 }
 
 public static class UpdateParseChannelStorageShouldExtensions
@@ -75,5 +89,6 @@ public static class UpdateParseChannelStorageShouldExtensions
 			request.DateFrom,
 			request.DateTo,
 			request.UseAiForPosts,
-			request.TelegramSessionId);
+			request.TelegramSessionId,
+			request.SkipAds);
 }

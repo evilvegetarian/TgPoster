@@ -38,6 +38,17 @@ public class ParseChannelUseCaseStorageShould(StorageTestFixture fixture) : ICla
 	}
 
 	[Fact]
+	public async Task GetChannelParsingParameters_WithSkipAdsDisabled_ShouldReturnFalse()
+	{
+		var cpp = await new ChannelParsingSettingBuilder(context).WithSkipAds(false).CreateAsync();
+
+		var result = await sut.GetChannelParsingParametersAsync(cpp.Id, CancellationToken.None);
+
+		result.ShouldNotBeNull();
+		result.SkipAds.ShouldBeFalse();
+	}
+
+	[Fact]
 	public async Task CreateMessages_WithValidData_ShouldInsertsMessages()
 	{
 		var schedule = await new ScheduleBuilder(context).CreateAsync();

@@ -11,4 +11,5 @@ public class ParseChannelParsingSettings
 	public Guid TelegramBotId { get; set; }
 	public required Guid TelegramSessionId { get; set; }
 	public Guid ScheduleId { get; set; }
+	public bool SkipAds { get; set; }
 }

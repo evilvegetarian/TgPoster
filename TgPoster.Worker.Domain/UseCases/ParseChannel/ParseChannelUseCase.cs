@@ -2,6 +2,7 @@ using MassTransit;
 using Microsoft.Extensions.Logging;
 using TgPoster.Telegram.Abstractions;
 using TgPoster.Telegram.Models;
+using TgPoster.Worker.Domain.Services.AdDetection;
 using TgPoster.Worker.Domain.Services.ScheduleAlerts;
 
 namespace TgPoster.Worker.Domain.UseCases.ParseChannel;
@@ -139,6 +140,11 @@ internal class ParseChannelUseCase(
 				                                        msg.Text.Contains(word, StringComparison.OrdinalIgnoreCase))
 			)).ToList();
 
+		if (parameters.SkipAds)
+		{
+			validGroups = SkipAdGroups(validGroups, channelName);
+		}
+
 		logger.LogDebug("Найдено {Count} новых постов для обработки.", validGroups.Count);
 
 		foreach (var group in validGroups)
@@ -167,6 +173,46 @@ internal class ParseChannelUseCase(
 		logger.LogInformation("Парсинг канала завершен. Задачи на обработку ({count}) отправлены в очередь.",
 			validGroups.Count);
 		return true;
+	}
+
+	/// <summary>
+	/// Отбрасывает группы (альбомы), где хоть одно сообщение похоже на рекламу, и пишет в лог, сколько групп
+	/// отброшено и по каким правилам
+	/// </summary>
+	/// <param name="groups"></param>
+	/// <param name="channelName"></param>
+	/// <returns></returns>
+	private List<KeyValuePair<long, List<TelegramMessage>>> SkipAdGroups(
+		List<KeyValuePair<long, List<TelegramMessage>>> groups,
+		string channelName
+	)
+	{
+		List<KeyValuePair<long, List<TelegramMessage>>> result = [];
+		Dictionary<string, int> skippedByRule = [];
+		foreach (var group in groups)
+		{
+			var ad = group.Value
+				.Select(message => new { message.Id, Detection = AdDetector.Detect(message.Text, message.Entities) })
+				.FirstOrDefault(x => x.Detection.IsAd);
+			if (ad is not { Detection.Reason: { } rule })
+			{
+				result.Add(group);
+				continue;
+			}
+
+			logger.LogDebug("Рекламный пост {MessageId} канала {ChannelName} пропущен по правилу {Rule}",
+				ad.Id, channelName, rule);
+			skippedByRule[rule] = skippedByRule.GetValueOrDefault(rule) + 1;
+		}
+
+		if (result.Count < groups.Count)
+		{
+			logger.LogInformation("Канал {ChannelName}: отброшено рекламных постов {SkippedCount} ({SkippedByRule})",
+				channelName, groups.Count - result.Count,
+				string.Join(", ", skippedByRule.Select(x => $"{x.Key}: {x.Value}")));
+		}
+
+		return result;
 	}
 
 	/// <summary>

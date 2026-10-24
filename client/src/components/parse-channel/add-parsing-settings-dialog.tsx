@@ -31,6 +31,7 @@ const parseChannelSchema = z.object({
     deleteMedia: z.boolean(),
     avoidWords: z.array(z.string()),
     needVerifiedPosts: z.boolean(),
+    skipAds: z.boolean(),
     dateFrom: z.string().optional(),
     dateTo: z.string().optional(),
     telegramSessionId: z.string().min(1, "Телегам аккаунт обязателен для заполнения"),
@@ -46,6 +47,7 @@ const defaultFormValues: ParseChannelFormData = {
     deleteMedia: false,
     avoidWords: [],
     needVerifiedPosts: false,
+    skipAds: true,
     dateFrom: "",
     dateTo: "",
     telegramSessionId: "",
@@ -356,6 +358,25 @@ export function AddParsingSettingsDialog({
                                         <Label>Требовать подтверждение</Label>
                                         <p className="text-sm text-muted-foreground">Подтверждать посты перед
                                             публикацией</p>
+                                    </div>
+                                    <Switch
+                                        checked={field.value}
+                                        onCheckedChange={field.onChange}
+                                        disabled={isLoading}
+                                    />
+                                </div>
+                            )}
+                        />
+
+                        <Controller
+                            name="skipAds"
+                            control={control}
+                            render={({field}) => (
+                                <div className="flex items-center justify-between">
+                                    <div className="space-y-0.5">
+                                        <Label>Пропускать рекламу</Label>
+                                        <p className="text-xs text-muted-foreground">Посты с маркировкой (erid,
+                                            «Реклама», #реклама) и реф-ссылками на ботов не попадут в очередь</p>
                                     </div>
                                     <Switch
                                         checked={field.value}

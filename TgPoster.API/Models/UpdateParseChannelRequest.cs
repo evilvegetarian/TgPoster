@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 
 namespace TgPoster.API.Models;
@@ -63,6 +64,12 @@ public class UpdateParseChannelRequest : IValidatableObject
 	///     Telegram сессия для парсинга канала (для доступа к приватным каналам).
 	/// </summary>
 	public required Guid TelegramSessionId { get; set; }
+
+	/// <summary>
+	/// Пропускать рекламные посты: маркировку erid, «Реклама», рекламные хэштеги, реф-ссылки на ботов. По умолчанию — да
+	/// </summary>
+	[DefaultValue(true)]
+	public bool SkipAds { get; set; } = true;
 
 	/// <summary>
 	///     Валидация запроса на обновление настроек парсинга канала

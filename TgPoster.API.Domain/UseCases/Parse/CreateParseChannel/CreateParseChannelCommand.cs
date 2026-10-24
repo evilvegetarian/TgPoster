@@ -13,4 +13,5 @@ public sealed record CreateParseChannelCommand(
 	DateTime? DateFrom,
 	DateTime? DateTo,
 	bool UseAiForPosts,
-	Guid TelegramSessionId) : IRequest<CreateParseChannelResponse>;
+	Guid TelegramSessionId,
+	bool SkipAds) : IRequest<CreateParseChannelResponse>;

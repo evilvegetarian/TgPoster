@@ -491,6 +491,8 @@ export interface CreateParseChannelRequest {
   useAiForPosts?: boolean;
   /** Telegram сессия для парсинга канала (для доступа к приватным каналам). */
   telegramSessionId: string;
+  /** Пропускать рекламные посты: маркировку erid, «Реклама», рекламные хэштеги, реф-ссылки на ботов. По умолчанию — да */
+  skipAds?: boolean;
 }
 
 export interface CreateParseChannelResponse {
@@ -1340,6 +1342,7 @@ export interface ParseChannelResponse {
   /** @nullable */
   totalMessagesCount?: number | null;
   parsedMessagesCount?: number;
+  skipAds: boolean;
 }
 
 /**
@@ -2011,6 +2014,8 @@ export interface UpdateParseChannelRequest {
   useAiForPosts?: boolean;
   /** Telegram сессия для парсинга канала (для доступа к приватным каналам). */
   telegramSessionId: string;
+  /** Пропускать рекламные посты: маркировку erid, «Реклама», рекламные хэштеги, реф-ссылки на ботов. По умолчанию — да */
+  skipAds?: boolean;
 }
 
 /**

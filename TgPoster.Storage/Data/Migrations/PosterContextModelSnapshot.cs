@@ -211,6 +211,11 @@ namespace TgPoster.Storage.Data.Migrations
                     b.Property<Guid>("ScheduleId")
                         .HasColumnType("uuid");
 
+                    b.Property<bool>("SkipAds")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true);
+
                     b.Property<int>("Status")
                         .HasColumnType("integer");
 

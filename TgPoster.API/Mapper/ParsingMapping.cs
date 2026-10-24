@@ -24,7 +24,8 @@ public static class ParsingMapping
 			request.DateFrom,
 			request.DateTo,
 			request.UseAiForPosts,
-			request.TelegramSessionId);
+			request.TelegramSessionId,
+			request.SkipAds);
 
 	/// <summary>
 	///     Преобразовать API модель в команду обновления парсинга канала
@@ -42,5 +43,6 @@ public static class ParsingMapping
 			request.DateFrom,
 			request.DateTo,
 			request.UseAiForPosts,
-			request.TelegramSessionId);
+			request.TelegramSessionId,
+			request.SkipAds);
 }

@@ -79,6 +79,11 @@ public sealed class ChannelParsingSetting : BaseEntity
 	/// </summary>
 	public int? TotalMessagesCount { get; set; }
 
+	/// <summary>
+	/// Пропускать рекламные посты источника
+	/// </summary>
+	public bool SkipAds { get; set; } = true;
+
 	#region Navigation Properties
 
 	/// <summary>

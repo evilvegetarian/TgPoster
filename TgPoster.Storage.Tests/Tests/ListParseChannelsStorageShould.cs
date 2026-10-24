@@ -25,4 +25,14 @@ public class ListParseChannelsStorageShould(StorageTestFixture fixture) : IClass
 		var result = await sut.GetChannelParsingParametersAsync(settings.Schedule.UserId, CancellationToken.None);
 		result.Count.ShouldBe(1);
 	}
+
+	[Fact]
+	public async Task GetChannelAsync_WithSkipAdsDisabled_ShouldReturnSkipAdsFalse()
+	{
+		var settings = await new ChannelParsingSettingBuilder(context).WithSkipAds(false).CreateAsync();
+
+		var result = await sut.GetChannelParsingParametersAsync(settings.Schedule.UserId, CancellationToken.None);
+
+		result.ShouldHaveSingleItem().SkipAds.ShouldBeFalse();
+	}
 }

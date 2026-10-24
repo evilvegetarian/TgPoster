@@ -21,6 +21,7 @@ internal class ParseChannelStorage(PosterContext context, GuidFactory factory) :
 		bool useAiForPosts,
 		Guid telegramSessionId,
 		int? totalMessagesCount,
+		bool skipAds,
 		CancellationToken ct
 	)
 	{
@@ -40,7 +41,8 @@ internal class ParseChannelStorage(PosterContext context, GuidFactory factory) :
 			DateTo = dateTo,
 			UseAiForPosts = useAiForPosts,
 			TelegramSessionId = telegramSessionId,
-			TotalMessagesCount = totalMessagesCount
+			TotalMessagesCount = totalMessagesCount,
+			SkipAds = skipAds
 		};
 		await context.AddAsync(param, ct);
 		await context.SaveChangesAsync(ct);

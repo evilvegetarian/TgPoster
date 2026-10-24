@@ -14,5 +14,6 @@ public record UpdateParseChannelCommand(
 	DateTime? DateFrom,
 	DateTime? DateTo,
 	bool UseAiForPosts,
-	Guid TelegramSessionId
+	Guid TelegramSessionId,
+	bool SkipAds
 ) : IRequest;
