@@ -54,15 +54,18 @@ internal class ParseChannelUseCase(
 				return false;
 			}
 
-			await storage.UpdateChannelParsingParametersAsync(id, lastParseId ?? 0, checkNewPosts, ct);
+			await storage.ReleaseAfterTemporaryFailureAsync(id, ct);
 			return true;
 		}
 
 		var channel = resolveResult.Value!;
 		List<TelegramMessage> allMessages = [];
-		var tempLastParseId = 0;
+		var newestId = lastParseId ?? 0;
 		const int limit = 100;
-		var offset = lastParseId ?? 0;
+
+		// История идёт от новых к старым: offset_id листает вниз, min_id отсекает уже спарсенное.
+		// Сбой посреди истории не двигает позицию и ничего не публикует — в следующий раз заберём всё заново
+		var offset = 0;
 		while (true)
 		{
 			var historyResult = await tgMessages.GetHistoryAsync(
@@ -71,6 +74,7 @@ internal class ParseChannelUseCase(
 				limit,
 				offsetDate: toDate ?? DateTime.Now,
 				offsetId: offset,
+				minId: lastParseId ?? 0,
 				ct: ct);
 
 			if (!historyResult.IsSuccess)
@@ -83,36 +87,31 @@ internal class ParseChannelUseCase(
 					return false;
 				}
 
-				await storage.UpdateChannelParsingParametersAsync(id, tempLastParseId, checkNewPosts, ct);
+				await storage.ReleaseAfterTemporaryFailureAsync(id, ct);
 				return true;
 			}
 
-			var history = historyResult.Value!;
-
-			var messageFiltered = history.Messages
-				.Where(x => fromDate is null || x.Date >= fromDate)
+			var page = historyResult.Value!.Messages
 				.Where(x => lastParseId is null || x.Id > lastParseId)
 				.ToList();
-
-			allMessages.AddRange(messageFiltered);
-
-			if (history.Messages.Count is not 0)
-			{
-				var maxId = history.Messages.Max(x => x.Id);
-				if (tempLastParseId < maxId)
-				{
-					tempLastParseId = maxId;
-				}
-			}
-
-			if (history.Messages.Count is 0
-			    || history.Messages.Any(x => x.Id < lastParseId)
-			    || history.Messages.Any(x => x.Date < fromDate))
+			if (page.Count == 0)
 			{
 				break;
 			}
 
-			offset = history.Messages[^1].Id;
+			allMessages.AddRange(page.Where(x => fromDate is null || x.Date >= fromDate));
+			newestId = Math.Max(newestId, page.Max(x => x.Id));
+
+			var oldestId = page.Min(x => x.Id);
+			var reachedEnd = historyResult.Value.Messages.Count < limit
+			                 || page.Any(x => x.Date < fromDate)
+			                 || (offset != 0 && oldestId >= offset);
+			if (reachedEnd)
+			{
+				break;
+			}
+
+			offset = oldestId;
 		}
 
 		var groupedMessages = new Dictionary<long, List<TelegramMessage>>();
@@ -145,6 +144,8 @@ internal class ParseChannelUseCase(
 			validGroups = SkipAdGroups(validGroups, channelName);
 		}
 
+		validGroups = await SkipAlreadyParsedAsync(id, validGroups, channelName, ct);
+
 		logger.LogDebug("Найдено {Count} новых постов для обработки.", validGroups.Count);
 
 		foreach (var group in validGroups)
@@ -169,10 +170,47 @@ internal class ParseChannelUseCase(
 			await publishEndpoint.Publish(command, ct);
 		}
 
-		await storage.UpdateChannelParsingParametersAsync(id, tempLastParseId, checkNewPosts, ct);
+		await storage.UpdateChannelParsingParametersAsync(id, newestId, checkNewPosts, ct);
 		logger.LogInformation("Парсинг канала завершен. Задачи на обработку ({count}) отправлены в очередь.",
 			validGroups.Count);
 		return true;
+	}
+
+	/// <summary>
+	/// Отбрасывает группы, из которых пост уже создан раньше: повторный парсинг того же сообщения
+	/// не должен давать второй пост
+	/// </summary>
+	/// <param name="id"></param>
+	/// <param name="groups"></param>
+	/// <param name="channelName"></param>
+	/// <param name="ct"></param>
+	/// <returns></returns>
+	private async Task<List<KeyValuePair<long, List<TelegramMessage>>>> SkipAlreadyParsedAsync(
+		Guid id,
+		List<KeyValuePair<long, List<TelegramMessage>>> groups,
+		string channelName,
+		CancellationToken ct
+	)
+	{
+		if (groups.Count == 0)
+		{
+			return groups;
+		}
+
+		var candidates = groups
+			.Select(g => new ParsedSourceCandidate(
+				g.Value.Min(m => m.Id),
+				g.Value.Select(m => m.Text).FirstOrDefault(t => !string.IsNullOrEmpty(t))))
+			.ToList();
+		var parsed = await storage.GetAlreadyParsedSourceIdsAsync(id, candidates, ct);
+		if (parsed.Count == 0)
+		{
+			return groups;
+		}
+
+		logger.LogInformation("Канал {ChannelName}: пропущено уже спарсенных постов {Count}", channelName,
+			parsed.Count);
+		return groups.Where(g => !parsed.Contains(g.Value.Min(m => m.Id))).ToList();
 	}
 
 	/// <summary>

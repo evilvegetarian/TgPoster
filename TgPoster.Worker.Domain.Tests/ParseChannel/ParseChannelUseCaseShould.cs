@@ -25,6 +25,9 @@ public sealed class ParseChannelUseCaseShould
 	public ParseChannelUseCaseShould()
 	{
 		SetupSettings(skipAds: false);
+		storage.Setup(s => s.GetAlreadyParsedSourceIdsAsync(id, It.IsAny<IReadOnlyCollection<ParsedSourceCandidate>>(),
+				It.IsAny<CancellationToken>()))
+			.ReturnsAsync([]);
 
 		sut = new ParseChannelUseCase(
 			storage.Object,
@@ -59,10 +62,90 @@ public sealed class ParseChannelUseCaseShould
 
 		result.ShouldBeTrue();
 		storage.Verify(s => s.UpdateErrorStatusAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()), Times.Never);
-		storage.Verify(s => s.UpdateChannelParsingParametersAsync(id, 42, true, It.IsAny<CancellationToken>()),
-			Times.Once);
+		storage.Verify(s => s.ReleaseAfterTemporaryFailureAsync(id, It.IsAny<CancellationToken>()), Times.Once);
+		VerifyPositionNotSaved();
 		alertService.Verify(a => a.NotifyAsync(It.IsAny<Guid>(), It.IsAny<ScheduleProblem>(), It.IsAny<string>(),
 			It.IsAny<Guid?>(), It.IsAny<CancellationToken>()), Times.Never);
+	}
+
+	[Fact]
+	public async Task ReleaseOneTimeSourceInsteadOfFinishing_WhenFloodWait()
+	{
+		SetupSettings(skipAds: false, checkNewPosts: false);
+		SetupResolve(TelegramOperationResult<TelegramChatInfo>.Failed(TelegramOperationStatus.FloodWait, floodWait: 60));
+
+		await sut.Handle(id, CancellationToken.None);
+
+		storage.Verify(s => s.ReleaseAfterTemporaryFailureAsync(id, It.IsAny<CancellationToken>()), Times.Once);
+		VerifyPositionNotSaved();
+	}
+
+	[Fact]
+	public async Task RequestOnlyNewerPosts_WhenSourceWasParsedBefore()
+	{
+		SetupHistoryWithAdAlbumAndRegularPost();
+
+		await sut.Handle(id, CancellationToken.None);
+
+		tgMessages.Verify(t => t.GetHistoryAsync(sessionId, It.IsAny<TelegramPeer>(), It.IsAny<int>(), 0,
+			It.IsAny<DateTime?>(), 42, It.IsAny<CancellationToken>(), It.IsAny<bool>()), Times.Once);
+	}
+
+	[Fact]
+	public async Task AdvancePositionToNewestPost_WhenParsingSucceeded()
+	{
+		SetupHistoryWithAdAlbumAndRegularPost();
+
+		await sut.Handle(id, CancellationToken.None);
+
+		storage.Verify(s => s.UpdateChannelParsingParametersAsync(id, 52, true, It.IsAny<CancellationToken>()),
+			Times.Once);
+	}
+
+	[Fact]
+	public async Task SkipAlreadyParsedPost_WhenSourceMessageWasParsedBefore()
+	{
+		SetupHistoryWithAdAlbumAndRegularPost();
+		storage.Setup(s => s.GetAlreadyParsedSourceIdsAsync(id, It.IsAny<IReadOnlyCollection<ParsedSourceCandidate>>(),
+				It.IsAny<CancellationToken>()))
+			.ReturnsAsync([52]);
+
+		await sut.Handle(id, CancellationToken.None);
+
+		VerifyPublished([52], Times.Never());
+		VerifyPublished([50, 51], Times.Once());
+		storage.Verify(s => s.GetAlreadyParsedSourceIdsAsync(id,
+			It.Is<IReadOnlyCollection<ParsedSourceCandidate>>(c =>
+				c.Any(x => x.SourceMessageId == 52 && x.Text == "Обычный пост")
+				&& c.Any(x => x.SourceMessageId == 50 && x.Text == "Скидки на всё!\nРеклама. ООО «Ромашка»")),
+			It.IsAny<CancellationToken>()), Times.Once);
+	}
+
+	[Fact]
+	public async Task KeepPositionAndPublishNothing_WhenHistoryFailsMidway()
+	{
+		SetupResolvedChannel();
+		var firstPage = Enumerable.Range(101, 100)
+			.Select(x => new TelegramMessage { Id = x, Date = DateTime.UtcNow, Text = $"Пост {x}" })
+			.OrderByDescending(x => x.Id)
+			.ToList();
+		tgMessages.Setup(t => t.GetHistoryAsync(sessionId, It.IsAny<TelegramPeer>(), It.IsAny<int>(), 0,
+				It.IsAny<DateTime?>(), It.IsAny<int>(), It.IsAny<CancellationToken>(), It.IsAny<bool>()))
+			.ReturnsAsync(TelegramOperationResult<TelegramHistoryPage>.Success(new TelegramHistoryPage
+			{
+				Messages = firstPage
+			}));
+		tgMessages.Setup(t => t.GetHistoryAsync(sessionId, It.IsAny<TelegramPeer>(), It.IsAny<int>(), 101,
+				It.IsAny<DateTime?>(), It.IsAny<int>(), It.IsAny<CancellationToken>(), It.IsAny<bool>()))
+			.ReturnsAsync(TelegramOperationResult<TelegramHistoryPage>.Failed(TelegramOperationStatus.Timeout));
+
+		var result = await sut.Handle(id, CancellationToken.None);
+
+		result.ShouldBeTrue();
+		storage.Verify(s => s.ReleaseAfterTemporaryFailureAsync(id, It.IsAny<CancellationToken>()), Times.Once);
+		VerifyPositionNotSaved();
+		publishEndpoint.Verify(p => p.Publish(It.IsAny<ProcessMessage>(), It.IsAny<CancellationToken>()),
+			Times.Never);
 	}
 
 	[Fact]
@@ -114,14 +197,27 @@ public sealed class ParseChannelUseCaseShould
 		VerifyPublished([50, 51], Times.Once());
 	}
 
-	private void SetupSettings(bool skipAds)
+	private void VerifyPositionNotSaved() =>
+		storage.Verify(s => s.UpdateChannelParsingParametersAsync(It.IsAny<Guid>(), It.IsAny<int>(),
+			It.IsAny<bool>(), It.IsAny<CancellationToken>()), Times.Never);
+
+	private void SetupResolvedChannel() =>
+		SetupResolve(TelegramOperationResult<TelegramChatInfo>.Success(new TelegramChatInfo
+		{
+			Id = 100,
+			AccessHash = 1000,
+			Title = "Источник",
+			Peer = TelegramPeer.Channel(100, 1000)
+		}));
+
+	private void SetupSettings(bool skipAds, bool checkNewPosts = true)
 	{
 		storage.Setup(s => s.GetChannelParsingParametersAsync(id, It.IsAny<CancellationToken>()))
 			.ReturnsAsync(new ParseChannelParsingSettings
 			{
 				ChannelName = ChannelName,
 				LastParsedId = 42,
-				CheckNewPosts = true,
+				CheckNewPosts = checkNewPosts,
 				TelegramSessionId = sessionId,
 				ScheduleId = scheduleId,
 				SkipAds = skipAds

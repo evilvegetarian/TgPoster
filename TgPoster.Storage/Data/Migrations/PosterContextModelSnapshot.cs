@@ -846,6 +846,9 @@ namespace TgPoster.Storage.Data.Migrations
                         .HasMaxLength(1000)
                         .HasColumnType("character varying(1000)");
 
+                    b.Property<int?>("SourceMessageId")
+                        .HasColumnType("integer");
+
                     b.Property<int>("Status")
                         .HasColumnType("integer");
 
@@ -873,8 +876,6 @@ namespace TgPoster.Storage.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ChannelParsingSettingId");
-
                     b.HasIndex("CreatedById");
 
                     b.HasIndex("DeletedById");
@@ -882,6 +883,8 @@ namespace TgPoster.Storage.Data.Migrations
                     b.HasIndex("ScheduleId");
 
                     b.HasIndex("UpdatedById");
+
+                    b.HasIndex("ChannelParsingSettingId", "SourceMessageId");
 
                     b.ToTable("Messages");
                 });

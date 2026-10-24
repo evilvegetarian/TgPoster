@@ -1,5 +1,4 @@
 using TgPoster.API.Domain.UseCases.Parse.ListParseChannel;
-using TgPoster.API.Domain.UseCases.Parse.UpdateParseChannel;
 using TgPoster.Storage.Data.Entities;
 using TgPoster.Storage.Data.Enum;
 
@@ -29,23 +28,5 @@ public static class ChannelParsingParametersMapper
 			TotalMessagesCount = entity.TotalMessagesCount,
 			ParsedMessagesCount = parsedMessagesCount,
 			SkipAds = entity.SkipAds
-		};
-
-	public static ChannelParsingSetting ToEntity(this UpdateParseChannelCommand request) =>
-		new()
-		{
-			Id = request.Id,
-			Channel = request.Channel,
-			ScheduleId = request.ScheduleId,
-			AvoidWords = request.AvoidWords,
-			DateTo = request.DateTo,
-			DateFrom = request.DateFrom,
-			DeleteText = request.DeleteText,
-			CheckNewPosts = request.AlwaysCheckNewPosts,
-			NeedVerifiedPosts = request.NeedVerifiedPosts,
-			DeleteMedia = request.DeleteMedia,
-			UseAiForPosts = request.UseAiForPosts,
-			TelegramSessionId = request.TelegramSessionId,
-			SkipAds = request.SkipAds
 		};
 }

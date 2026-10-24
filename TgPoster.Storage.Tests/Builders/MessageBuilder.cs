@@ -108,6 +108,12 @@ internal class MessageBuilder(PosterContext context)
 		return this;
 	}
 
+	public MessageBuilder WithSourceMessageId(int? value)
+	{
+		message.SourceMessageId = value;
+		return this;
+	}
+
 	public MessageBuilder WithChannelParsingSettingId(Guid? value)
 	{
 		message.ChannelParsingSettingId = value;

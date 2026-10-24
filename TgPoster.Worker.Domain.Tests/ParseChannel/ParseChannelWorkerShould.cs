@@ -62,11 +62,12 @@ public sealed class ParseChannelWorkerShould
 		await sut.ProcessMessagesAsync();
 
 		useCaseStorage.Verify(s => s.UpdateErrorStatusAsync(id, It.IsAny<CancellationToken>()), Times.Once);
-		storage.Verify(s => s.SetWaitingStatusAsync(It.IsAny<Guid>()), Times.Never);
+		useCaseStorage.Verify(s => s.UpdateChannelParsingParametersAsync(It.IsAny<Guid>(), It.IsAny<int>(),
+			It.IsAny<bool>(), It.IsAny<CancellationToken>()), Times.Never);
 	}
 
 	[Fact]
-	public async Task SetWaitingStatus_WhenParsingSucceeded()
+	public async Task LeaveFinalStatusToParsing_WhenParsingSucceeded()
 	{
 		SetupResolve(TelegramOperationResult<TelegramChatInfo>.Success(new TelegramChatInfo
 		{
@@ -81,7 +82,19 @@ public sealed class ParseChannelWorkerShould
 
 		await sut.ProcessMessagesAsync();
 
-		storage.Verify(s => s.SetWaitingStatusAsync(id), Times.Once);
+		useCaseStorage.Verify(s => s.UpdateChannelParsingParametersAsync(id, 0, true, It.IsAny<CancellationToken>()),
+			Times.Once);
+		storage.Verify(s => s.SetErrorStatusAsync(It.IsAny<Guid>()), Times.Never);
+	}
+
+	[Fact]
+	public async Task ReleaseStuckSources_WhenRecoveringAfterRestart()
+	{
+		storage.Setup(s => s.ReleaseStuckInHandleAsync()).ReturnsAsync(2);
+
+		await sut.RecoverAfterRestartAsync();
+
+		storage.Verify(s => s.ReleaseStuckInHandleAsync(), Times.Once);
 	}
 
 	[Fact]

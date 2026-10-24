@@ -3,6 +3,7 @@ using Shouldly;
 using TgPoster.API.Domain.UseCases.Parse.UpdateParseChannel;
 using TgPoster.Storage.Data;
 using TgPoster.Storage.Data.Entities;
+using TgPoster.Storage.Data.Enum;
 using TgPoster.Storage.Storages;
 using TgPoster.Storage.Tests.Builders;
 
@@ -71,6 +72,47 @@ public class UpdateParseChannelStorageShould : IClassFixture<StorageTestFixture>
 		var parseChannelUpdated = await _context.ChannelParsingParameters.AsNoTracking()
 			.FirstAsync(x => x.Id == parseChannel.Id, ct);
 		parseChannelUpdated.SkipAds.ShouldBeFalse();
+	}
+
+	[Fact]
+	public async Task UpdateParseChannelAsync_WithSameChannel_ShouldKeepParsingPosition()
+	{
+		var source = await CreateParsedSourceAsync();
+		var command = source.ToCommand() with { Channel = "@" + source.Channel, AvoidWords = ["новое"] };
+
+		await sut.UpdateParseChannelAsync(command, ct);
+
+		var updated = await _context.ChannelParsingParameters.AsNoTracking().FirstAsync(x => x.Id == source.Id, ct);
+		updated.LastParseId.ShouldBe(500);
+		updated.TotalMessagesCount.ShouldBe(985);
+		updated.Status.ShouldBe(ParsingStatus.Waiting);
+		updated.AvoidWords.ShouldBe(["новое"]);
+	}
+
+	[Fact]
+	public async Task UpdateParseChannelAsync_WithAnotherChannel_ShouldResetParsingPosition()
+	{
+		var source = await CreateParsedSourceAsync();
+		var command = source.ToCommand() with { Channel = "another_channel" };
+
+		await sut.UpdateParseChannelAsync(command, ct);
+
+		var updated = await _context.ChannelParsingParameters.AsNoTracking().FirstAsync(x => x.Id == source.Id, ct);
+		updated.Channel.ShouldBe("another_channel");
+		updated.LastParseId.ShouldBeNull();
+		updated.TotalMessagesCount.ShouldBeNull();
+		updated.Status.ShouldBe(ParsingStatus.New);
+	}
+
+	private async Task<ChannelParsingSetting> CreateParsedSourceAsync()
+	{
+		var source = new ChannelParsingSettingBuilder(_context).WithStatus(ParsingStatus.Waiting).Build();
+		source.LastParseId = 500;
+		source.TotalMessagesCount = 985;
+		_context.Add(source);
+		await _context.SaveChangesAsync(ct);
+		_context.Entry(source).State = EntityState.Detached;
+		return source;
 	}
 }
 

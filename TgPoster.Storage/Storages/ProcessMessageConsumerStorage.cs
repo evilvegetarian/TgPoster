@@ -81,6 +81,7 @@ internal sealed class ProcessMessageConsumerStorage(PosterContext context, GuidF
 			TextMessage = messageDto.Text,
 			ScheduleId = messageDto.ScheduleId,
 			ChannelParsingSettingId = messageDto.ChannelParsingSettingId,
+			SourceMessageId = messageDto.SourceMessageId,
 			IsVerified = !messageDto.IsNeedVerified,
 			Status = MessageStatus.Register,
 			TimePosting = messageDto.TimePosting,
@@ -89,6 +90,19 @@ internal sealed class ProcessMessageConsumerStorage(PosterContext context, GuidF
 		};
 		context.Messages.AddAsync(message, ct);
 		return context.SaveChangesAsync(ct);
+	}
+
+	public Task<bool> IsSourceMessageParsedAsync(
+		Guid channelParsingSettingId,
+		int sourceMessageId,
+		CancellationToken ct
+	)
+	{
+		// Удалённые посты тоже считаются: удалённую копию повторный парсинг не должен вернуть
+		return context.Messages
+			.IgnoreQueryFilters()
+			.AnyAsync(x => x.ChannelParsingSettingId == channelParsingSettingId
+			               && x.SourceMessageId == sourceMessageId, ct);
 	}
 
 	public Task<DateTimeOffset> GeLastMessageTimePostingAsync(Guid scheduleId, CancellationToken ct)

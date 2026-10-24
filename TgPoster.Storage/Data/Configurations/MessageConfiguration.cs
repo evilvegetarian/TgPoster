@@ -42,7 +42,8 @@ internal class MessageConfiguration : BaseEntityConfiguration<Message>
 			.WithOne(x => x.Message)
 			.HasForeignKey(x => x.MessageId);
 
-		builder.HasIndex(x => x.ChannelParsingSettingId);
+		// Составной индекс: по нему ищутся уже спарсенные сообщения источника, он же покрывает внешний ключ
+		builder.HasIndex(x => new { x.ChannelParsingSettingId, x.SourceMessageId });
 
 		builder.HasOne(x => x.ChannelParsingSetting)
 			.WithMany(x => x.ParsedMessages)

@@ -80,14 +80,33 @@ public class ParseChannelWorkerStorageShould : IClassFixture<StorageTestFixture>
 	}
 
 	[Fact]
-	public async Task SetWaitingStatusAsync_ShouldUpdateStatusForExistingId()
+	public async Task GetChannelParsingParametersAsync_ShouldIncludeUnfinishedOneTimeSources()
 	{
-		var cpp = await new ChannelParsingSettingBuilder(context).WithStatus(ParsingStatus.InHandle).CreateAsync();
+		var unfinished = await new ChannelParsingSettingBuilder(context).WithStatus(ParsingStatus.Waiting)
+			.WithCheckNewPosts(false).CreateAsync();
+		var finished = await new ChannelParsingSettingBuilder(context).WithStatus(ParsingStatus.Finished)
+			.WithCheckNewPosts(false).CreateAsync();
 
-		await sut.SetWaitingStatusAsync(cpp.Id);
-		await context.Entry(cpp).ReloadAsync();
+		var result = await sut.GetChannelParsingParametersAsync();
 
-		cpp.Status.ShouldBe(ParsingStatus.Waiting);
+		result.ShouldContain(unfinished.Id);
+		result.ShouldNotContain(finished.Id);
+	}
+
+	[Fact]
+	public async Task ReleaseStuckInHandleAsync_ShouldReturnOnlyInHandleSourcesToWaiting()
+	{
+		var stuck = await new ChannelParsingSettingBuilder(context).WithStatus(ParsingStatus.InHandle).CreateAsync();
+		var finished = await new ChannelParsingSettingBuilder(context).WithStatus(ParsingStatus.Finished)
+			.CreateAsync();
+
+		var count = await sut.ReleaseStuckInHandleAsync();
+
+		count.ShouldBeGreaterThanOrEqualTo(1);
+		(await context.ChannelParsingParameters.AsNoTracking().FirstAsync(x => x.Id == stuck.Id)).Status
+			.ShouldBe(ParsingStatus.Waiting);
+		(await context.ChannelParsingParameters.AsNoTracking().FirstAsync(x => x.Id == finished.Id)).Status
+			.ShouldBe(ParsingStatus.Finished);
 	}
 
 	[Fact]

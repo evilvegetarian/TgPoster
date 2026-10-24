@@ -154,6 +154,10 @@ public static class DependencyInjection
 		senderMessageWorker.RecoverAfterRestartAsync(CancellationToken.None)
 			.GetAwaiter().GetResult();
 
+		// Источник, на котором парсинг оборвался падением воркера, остаётся InHandle, а его суточный запуск пропускает
+		scope.ServiceProvider.GetRequiredService<ParseChannelWorker>().RecoverAfterRestartAsync()
+			.GetAwaiter().GetResult();
+
 		var recurringJobManager = scope.ServiceProvider.GetRequiredService<IRecurringJobManager>();
 
 		recurringJobManager.AddOrUpdate<SenderMessageWorker>(

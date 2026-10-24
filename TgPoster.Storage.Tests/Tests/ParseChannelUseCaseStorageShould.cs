@@ -240,4 +240,55 @@ public class ParseChannelUseCaseStorageShould(StorageTestFixture fixture) : ICla
 		var result = await sut.GetExistMessageTimePostingAsync(schedule.Id, CancellationToken.None);
 		result.ShouldBeEmpty();
 	}
+
+	[Fact]
+	public async Task GetAlreadyParsedSourceIdsAsync_ShouldFindBySourceIdAndLegacyText()
+	{
+		var source = new ChannelParsingSettingBuilder(context).Create();
+		new MessageBuilder(context).WithChannelParsingSettingId(source.Id).WithSourceMessageId(10).Create();
+		new MessageBuilder(context).WithChannelParsingSettingId(source.Id).WithTextMessage("старый пост").Create();
+		var otherSource = new ChannelParsingSettingBuilder(context).Create();
+		new MessageBuilder(context).WithChannelParsingSettingId(otherSource.Id).WithSourceMessageId(30).Create();
+
+		var result = await sut.GetAlreadyParsedSourceIdsAsync(source.Id,
+		[
+			new ParsedSourceCandidate(10, "текст"),
+			new ParsedSourceCandidate(20, "старый пост"),
+			new ParsedSourceCandidate(30, "чужой источник"),
+			new ParsedSourceCandidate(40, "новый пост")
+		], CancellationToken.None);
+
+		result.ShouldBe([10, 20], ignoreOrder: true);
+	}
+
+	[Fact]
+	public async Task GetAlreadyParsedSourceIdsAsync_ShouldCountDeletedPosts()
+	{
+		var source = new ChannelParsingSettingBuilder(context).Create();
+		var deleted = new MessageBuilder(context).WithChannelParsingSettingId(source.Id).WithSourceMessageId(10)
+			.Create();
+		context.Messages.Remove(deleted);
+		await context.SaveChangesAsync();
+
+		var result = await sut.GetAlreadyParsedSourceIdsAsync(source.Id, [new ParsedSourceCandidate(10, null)],
+			CancellationToken.None);
+
+		result.ShouldContain(10);
+	}
+
+	[Fact]
+	public async Task ReleaseAfterTemporaryFailureAsync_ShouldSetWaitingAndKeepPosition()
+	{
+		var source = new ChannelParsingSettingBuilder(context).WithStatus(ParsingStatus.InHandle)
+			.WithCheckNewPosts(false).Build();
+		source.LastParseId = 500;
+		context.Add(source);
+		await context.SaveChangesAsync();
+
+		await sut.ReleaseAfterTemporaryFailureAsync(source.Id, CancellationToken.None);
+
+		var updated = await context.ChannelParsingParameters.AsNoTracking().FirstAsync(x => x.Id == source.Id);
+		updated.Status.ShouldBe(ParsingStatus.Waiting);
+		updated.LastParseId.ShouldBe(500);
+	}
 }

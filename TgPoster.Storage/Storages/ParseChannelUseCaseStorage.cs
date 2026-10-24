@@ -110,6 +110,54 @@ internal class ParseChannelUseCaseStorage(PosterContext context, GuidFactory gui
 		await context.SaveChangesAsync(ct);
 	}
 
+	public async Task<HashSet<int>> GetAlreadyParsedSourceIdsAsync(
+		Guid id,
+		IReadOnlyCollection<ParsedSourceCandidate> candidates,
+		CancellationToken ct
+	)
+	{
+		// Удалённые посты тоже считаются: удалённую копию повторный парсинг не должен вернуть
+		var sourceMessages = context.Messages
+			.IgnoreQueryFilters()
+			.Where(x => x.ChannelParsingSettingId == id);
+
+		var ids = candidates.Select(x => x.SourceMessageId).Distinct().ToList();
+		var parsed = (await sourceMessages
+				.Where(x => x.SourceMessageId != null && ids.Contains(x.SourceMessageId.Value))
+				.Select(x => x.SourceMessageId!.Value)
+				.ToListAsync(ct))
+			.ToHashSet();
+
+		// У постов, созданных до появления SourceMessageId, источник известен только по тексту
+		var texts = candidates
+			.Where(x => !parsed.Contains(x.SourceMessageId) && !string.IsNullOrEmpty(x.Text))
+			.Select(x => x.Text!)
+			.Distinct()
+			.ToList();
+		if (texts.Count == 0)
+		{
+			return parsed;
+		}
+
+		var legacyTexts = (await sourceMessages
+				.Where(x => x.SourceMessageId == null && x.TextMessage != null && texts.Contains(x.TextMessage))
+				.Select(x => x.TextMessage!)
+				.ToListAsync(ct))
+			.ToHashSet();
+		parsed.UnionWith(candidates
+			.Where(x => x.Text != null && legacyTexts.Contains(x.Text))
+			.Select(x => x.SourceMessageId));
+
+		return parsed;
+	}
+
+	public async Task ReleaseAfterTemporaryFailureAsync(Guid id, CancellationToken ct)
+	{
+		var parameter = await context.ChannelParsingParameters.FirstAsync(x => x.Id == id, ct);
+		parameter.Status = ParsingStatus.Waiting;
+		await context.SaveChangesAsync(ct);
+	}
+
 	public async Task UpdateErrorStatusAsync(Guid id, CancellationToken ct)
 	{
 		var parametr = await context.ChannelParsingParameters

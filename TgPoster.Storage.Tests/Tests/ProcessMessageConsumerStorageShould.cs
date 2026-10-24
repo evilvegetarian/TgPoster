@@ -81,4 +81,25 @@ public sealed class ProcessMessageConsumerStorageShould(StorageTestFixture fixtu
 			.SingleAsync(m => m.ScheduleId == schedule.Id);
 		message.IsVerified.ShouldBe(expectedIsVerified);
 	}
+
+	[Fact]
+	public async Task CreateMessageAsync_ShouldSaveSourceMessageId()
+	{
+		var source = new ChannelParsingSettingBuilder(context).Create();
+		var messageDto = new MessageDto
+		{
+			Text = Guid.NewGuid().ToString(),
+			ScheduleId = source.ScheduleId,
+			ChannelParsingSettingId = source.Id,
+			SourceMessageId = 777,
+			TimePosting = DateTimeOffset.UtcNow.AddHours(1)
+		};
+
+		await sut.CreateMessageAsync(messageDto, CancellationToken.None);
+
+		var parsed = await sut.IsSourceMessageParsedAsync(source.Id, 777, CancellationToken.None);
+		var otherSourceMessage = await sut.IsSourceMessageParsedAsync(source.Id, 778, CancellationToken.None);
+		parsed.ShouldBeTrue();
+		otherSourceMessage.ShouldBeFalse();
+	}
 }

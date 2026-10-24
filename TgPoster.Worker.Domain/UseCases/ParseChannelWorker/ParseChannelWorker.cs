@@ -14,6 +14,20 @@ internal class ParseChannelWorker(
 	IHostApplicationLifetime lifetime)
 {
 	/// <summary>
+	/// Возвращает в ожидание источники, оставшиеся «в процессе» после падения или перезапуска воркера:
+	/// суточный запуск пропускает такие источники, и без этого они не парсились бы больше никогда
+	/// </summary>
+	/// <returns></returns>
+	public async Task RecoverAfterRestartAsync()
+	{
+		var count = await storage.ReleaseStuckInHandleAsync();
+		if (count > 0)
+		{
+			logger.LogWarning("После перезапуска воркера возвращено в ожидание источников парсинга: {Count}", count);
+		}
+	}
+
+	/// <summary>
 	///     Раз в 4 дня
 	/// </summary>
 	[DisableConcurrentExecution(96 * 60 * 60)]
@@ -34,11 +48,8 @@ internal class ParseChannelWorker(
 		{
 			try
 			{
-				// False — источник уже помечен ошибкой или настроек нет: Waiting перетёр бы Failed
-				if (await parseChannelUseCase.Handle(id, ct))
-				{
-					await storage.SetWaitingStatusAsync(id);
-				}
+				// Итоговый статус ставит сам парсинг: Waiting, Finished для разового источника или Failed
+				await parseChannelUseCase.Handle(id, ct);
 			}
 			catch (Exception e)
 			{

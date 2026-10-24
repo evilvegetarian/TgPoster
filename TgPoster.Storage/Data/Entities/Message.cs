@@ -63,6 +63,12 @@ public sealed class Message : BaseEntity
 	public Guid? ChannelParsingSettingId { get; set; }
 
 	/// <summary>
+	/// Id сообщения в канале-источнике, из которого спарсен пост (для альбома — первое сообщение).
+	/// По нему отсекаются повторные посты из того же сообщения, null у ручных и старых постов
+	/// </summary>
+	public int? SourceMessageId { get; set; }
+
+	/// <summary>
 	///     Участвует ли сообщение в кросс-постинге
 	/// </summary>
 	public bool CrossPostEnabled { get; set; } = true;

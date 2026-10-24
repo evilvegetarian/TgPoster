@@ -28,6 +28,15 @@ internal sealed class ProcessMessageConsumer(
 	public async Task Consume(ConsumeContext<ProcessMessage> context)
 	{
 		var command = context.Message;
+		var sourceMessageId = command.Messages.Min(m => m.Id);
+
+		// Повторная доставка той же команды или повторный парсинг не должны создавать второй пост
+		if (await storage.IsSourceMessageParsedAsync(command.Id, sourceMessageId, context.CancellationToken))
+		{
+			logger.LogInformation("Сообщение {SourceMessageId} источника {SettingId} уже спарсено, пропускаем",
+				sourceMessageId, command.Id);
+			return;
+		}
 
 		var parameters = await storage.GetChannelParsingParametersAsync(command.Id, context.CancellationToken);
 		var channelName = parameters!.ChannelName;
@@ -63,7 +72,8 @@ internal sealed class ProcessMessageConsumer(
 		{
 			IsNeedVerified = isNeedVerified,
 			ScheduleId = scheduleId,
-			ChannelParsingSettingId = command.Id
+			ChannelParsingSettingId = command.Id,
+			SourceMessageId = sourceMessageId
 		};
 
 		var downloadedMedia = new List<DownloadedMedia>();
