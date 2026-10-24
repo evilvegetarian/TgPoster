@@ -36,6 +36,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TgPoster.Exceptions", "TgPo
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TgPoster.Telegram", "TgPoster.Telegram\TgPoster.Telegram.csproj", "{3113FF6D-1D45-4523-8985-D2DB54E6E40C}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TgPoster.OpenApi", "TgPoster.OpenApi\TgPoster.OpenApi.csproj", "{D1254D18-73FD-41DD-B400-F16C5872698D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -238,6 +240,18 @@ Global
 		{3113FF6D-1D45-4523-8985-D2DB54E6E40C}.Release|x64.Build.0 = Release|Any CPU
 		{3113FF6D-1D45-4523-8985-D2DB54E6E40C}.Release|x86.ActiveCfg = Release|Any CPU
 		{3113FF6D-1D45-4523-8985-D2DB54E6E40C}.Release|x86.Build.0 = Release|Any CPU
+		{D1254D18-73FD-41DD-B400-F16C5872698D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D1254D18-73FD-41DD-B400-F16C5872698D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D1254D18-73FD-41DD-B400-F16C5872698D}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{D1254D18-73FD-41DD-B400-F16C5872698D}.Debug|x64.Build.0 = Debug|Any CPU
+		{D1254D18-73FD-41DD-B400-F16C5872698D}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{D1254D18-73FD-41DD-B400-F16C5872698D}.Debug|x86.Build.0 = Debug|Any CPU
+		{D1254D18-73FD-41DD-B400-F16C5872698D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D1254D18-73FD-41DD-B400-F16C5872698D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D1254D18-73FD-41DD-B400-F16C5872698D}.Release|x64.ActiveCfg = Release|Any CPU
+		{D1254D18-73FD-41DD-B400-F16C5872698D}.Release|x64.Build.0 = Release|Any CPU
+		{D1254D18-73FD-41DD-B400-F16C5872698D}.Release|x86.ActiveCfg = Release|Any CPU
+		{D1254D18-73FD-41DD-B400-F16C5872698D}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

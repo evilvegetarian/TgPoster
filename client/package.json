@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "generate:api": "orval --config src/api/orval.config.ts"
+    "generate:api": "orval --config src/api/orval.config.ts",
+    "generate:api:offline": "dotnet run --project ../TgPoster.OpenApi -- openapi.json && orval --config src/api/orval.config.ts --input openapi.json"
   },
   "dependencies": {
     "@faker-js/faker": "^9.8.0",

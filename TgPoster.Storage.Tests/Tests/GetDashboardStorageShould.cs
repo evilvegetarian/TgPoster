@@ -127,6 +127,25 @@ public sealed class GetDashboardStorageShould(StorageTestFixture fixture) : ICla
 	}
 
 	[Fact]
+	public async Task GetUpcomingPostsAsync_ShouldStripHtmlFromPreview()
+	{
+		var now = DateTimeOffset.UtcNow;
+		var schedule = await CreateScheduleWithSlotsAsync();
+		var message = new MessageBuilder(context)
+			.WithScheduleId(schedule.Id)
+			.WithStatus(MessageStatus.Register)
+			.WithTimeMessage(now.AddHours(1))
+			.WithTextMessage($"<b>Жирный</b> &amp; <a href=\"https://example.com/{new string('x', 200)}\">ссылка</a>")
+			.Build();
+		context.Messages.Add(message);
+		await context.SaveChangesAsync();
+
+		var result = await sut.GetUpcomingPostsAsync(schedule.UserId, now, 10, CancellationToken.None);
+
+		result.Single().TextPreview.ShouldBe("Жирный & ссылка");
+	}
+
+	[Fact]
 	public async Task GetUpcomingPostsAsync_ShouldReturnNullPreview_WhenNoText()
 	{
 		var now = DateTimeOffset.UtcNow;

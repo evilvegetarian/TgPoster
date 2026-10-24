@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Shared.CrossPosting;
 using Shared.Enums;
 using TgPoster.API.Domain.UseCases.Dashboard.GetDashboard;
 using TgPoster.API.Domain.UseCases.Discover.GetDiscoverStatus;
@@ -87,9 +88,7 @@ internal sealed class GetDashboardStorage(PosterContext context) : IGetDashboard
 				m.ScheduleId,
 				ScheduleName = m.Schedule.Name,
 				m.TimePosting,
-				TextPreview = m.TextMessage == null
-					? null
-					: m.TextMessage.Substring(0, Math.Min(TextPreviewLength, m.TextMessage.Length)),
+				m.TextMessage,
 				PhotoCount = m.MessageFiles.Count(f => f.ParentFileId == null && f.FileType == FileTypes.Photo),
 				VideoCount = m.MessageFiles.Count(f => f.ParentFileId == null && f.FileType == FileTypes.Video),
 				NeedApprove = !m.IsVerified
@@ -102,7 +101,7 @@ internal sealed class GetDashboardStorage(PosterContext context) : IGetDashboard
 				x.ScheduleId,
 				x.ScheduleName,
 				x.TimePosting,
-				NullIfEmpty(x.TextPreview),
+				ToTextPreview(x.TextMessage),
 				x.PhotoCount,
 				x.VideoCount,
 				x.NeedApprove));
@@ -128,9 +127,7 @@ internal sealed class GetDashboardStorage(PosterContext context) : IGetDashboard
 				ScheduleName = m.Schedule.Name,
 				m.TimePosting,
 				m.SendError,
-				TextPreview = m.TextMessage == null
-					? null
-					: m.TextMessage.Substring(0, Math.Min(TextPreviewLength, m.TextMessage.Length))
+				m.TextMessage
 			})
 			.ToListAsync(ct);
 
@@ -141,7 +138,7 @@ internal sealed class GetDashboardStorage(PosterContext context) : IGetDashboard
 				x.ScheduleName,
 				x.TimePosting,
 				x.SendError,
-				NullIfEmpty(x.TextPreview)));
+				ToTextPreview(x.TextMessage)));
 	}
 
 	public Task<int> GetFailedPostsCountAsync(Guid userId, DateTimeOffset since, CancellationToken ct) =>
@@ -255,5 +252,15 @@ internal sealed class GetDashboardStorage(PosterContext context) : IGetDashboard
 			x.LastError));
 	}
 
-	private static string? NullIfEmpty(string? value) => string.IsNullOrEmpty(value) ? null : value;
+	// Текст хранится Telegram-HTML: режем уже очищенный, иначе в превью попадут теги и недорезанные сущности
+	private static string? ToTextPreview(string? html)
+	{
+		var text = TelegramHtmlToText.Convert(html);
+		if (text.Length == 0)
+		{
+			return null;
+		}
+
+		return text.Length > TextPreviewLength ? text[..TextPreviewLength] : text;
+	}
 }
