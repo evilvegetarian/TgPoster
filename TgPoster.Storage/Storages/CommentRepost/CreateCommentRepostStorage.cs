@@ -13,9 +13,10 @@ internal sealed class CreateCommentRepostStorage(PosterContext context, GuidFact
 		return context.Schedules.AnyAsync(x => x.Id == scheduleId && x.UserId == userId, ct);
 	}
 
-	public Task<bool> TelegramSessionExistsAndActiveAsync(Guid telegramSessionId, CancellationToken ct)
+	public Task<bool> TelegramSessionExistsAndActiveAsync(Guid telegramSessionId, Guid userId, CancellationToken ct)
 	{
-		return context.TelegramSessions.AnyAsync(x => x.Id == telegramSessionId && x.IsActive, ct);
+		return context.TelegramSessions.AnyAsync(
+			x => x.Id == telegramSessionId && x.UserId == userId && x.IsActive, ct);
 	}
 
 	public Task<bool> SettingsExistsAsync(long watchedChannelId, Guid scheduleId, CancellationToken ct)

@@ -19,7 +19,7 @@ internal sealed class CreateCommentRepostUseCase(
 			throw new ScheduleNotFoundException(request.ScheduleId);
 		}
 
-		if (!await storage.TelegramSessionExistsAndActiveAsync(request.TelegramSessionId, ct))
+		if (!await storage.TelegramSessionExistsAndActiveAsync(request.TelegramSessionId, identity.Current.UserId, ct))
 		{
 			throw new TelegramSessionEntityNotFoundException(request.TelegramSessionId);
 		}

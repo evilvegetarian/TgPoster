@@ -56,7 +56,7 @@ public sealed class DeleteFileMessageStorageShould : IClassFixture<StorageTestFi
 
 		(await context.MessageFiles.AnyAsync(x => x.Id == messageFile.Id, Ct)).ShouldBeTrue();
 
-		await sut.DeleteFileAsync(messageFile.Id, Ct);
+		await sut.DeleteFileAsync(messageFile.MessageId, messageFile.Id, Ct);
 
 		(await context.MessageFiles.AnyAsync(x => x.Id == messageFile.Id, Ct)).ShouldBeFalse();
 	}
@@ -64,14 +64,25 @@ public sealed class DeleteFileMessageStorageShould : IClassFixture<StorageTestFi
 	[Fact]
 	public async Task DeleteFileAsync_FileMissing_DoesNothing()
 	{
-		await new MessageBuilder(context)
+		var message = await new MessageBuilder(context)
 			.CreateAsync();
 
 		var beforeCount = await context.MessageFiles.CountAsync(Ct);
 
-		await sut.DeleteFileAsync(Guid.NewGuid(), Ct);
+		await sut.DeleteFileAsync(message.Id, Guid.NewGuid(), Ct);
 
 		var afterCount = await context.MessageFiles.CountAsync(Ct);
 		afterCount.ShouldBe(beforeCount);
+	}
+
+	[Fact]
+	public async Task DeleteFileAsync_FileOfAnotherMessage_DoesNotRemoveFile()
+	{
+		var ownMessage = await new MessageBuilder(context).CreateAsync();
+		var foreignFile = await new MessageFileBuilder(context).CreateAsync(Ct);
+
+		await sut.DeleteFileAsync(ownMessage.Id, foreignFile.Id, Ct);
+
+		(await context.MessageFiles.AnyAsync(x => x.Id == foreignFile.Id, Ct)).ShouldBeTrue();
 	}
 }

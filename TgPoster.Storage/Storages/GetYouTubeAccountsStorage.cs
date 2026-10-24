@@ -6,10 +6,11 @@ namespace TgPoster.Storage.Storages;
 
 internal sealed class GetYouTubeAccountsStorage(PosterContext context) : IGetYouTubeAccountsStorage
 {
-	public async Task<List<YouTubeAccountResponse>> GetYouTubeAccounts(CancellationToken ct)
+	public async Task<List<YouTubeAccountResponse>> GetYouTubeAccounts(Guid userId, CancellationToken ct)
 	{
 		return await context.YouTubeAccounts
 			.AsNoTracking()
+			.Where(x => x.UserId == userId)
 			.Select(x => new YouTubeAccountResponse
 			{
 				Id = x.Id,

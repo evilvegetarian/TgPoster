@@ -1,6 +1,8 @@
 using Moq;
 using Security.IdentityServices;
+using Shouldly;
 using TgPoster.API.Domain.UseCases.Parse.UpdateParseChannel;
+using TgPoster.Exceptions.NotFound;
 
 namespace TgPoster.API.Domain.Tests.Parse;
 
@@ -23,10 +25,8 @@ public sealed class UpdateParseChannelUseCaseShould
 	[InlineData(false)]
 	public async Task PassSkipAdsToStorage_WhenUpdating(bool skipAds)
 	{
-		var command = new UpdateParseChannelCommand(Guid.NewGuid(), "source_channel", true, Guid.NewGuid(), false,
-			false, [], false, null, null, false, Guid.NewGuid(), skipAds);
-		storage.Setup(x => x.ExistParseChannelAsync(command.Id, userId, It.IsAny<CancellationToken>()))
-			.ReturnsAsync(true);
+		var command = CreateCommand(skipAds);
+		SetupOwned(command);
 
 		await sut.Handle(command, CancellationToken.None);
 
@@ -34,4 +34,64 @@ public sealed class UpdateParseChannelUseCaseShould
 			It.Is<UpdateParseChannelCommand>(c => c.Id == command.Id && c.SkipAds == skipAds),
 			It.IsAny<CancellationToken>()), Times.Once);
 	}
+
+	[Fact]
+	public async Task ThrowNotFound_WhenSourceBelongsToAnotherUser()
+	{
+		var command = CreateCommand();
+		SetupOwned(command);
+		storage.Setup(x => x.ExistParseChannelAsync(command.Id, userId, It.IsAny<CancellationToken>()))
+			.ReturnsAsync(false);
+
+		await Should.ThrowAsync<ParseChannelNotFoundException>(() => sut.Handle(command, CancellationToken.None));
+
+		VerifyNotUpdated();
+	}
+
+	[Fact]
+	public async Task ThrowNotFound_WhenScheduleBelongsToAnotherUser()
+	{
+		var command = CreateCommand();
+		SetupOwned(command);
+		storage.Setup(x => x.ExistScheduleAsync(command.ScheduleId, userId, It.IsAny<CancellationToken>()))
+			.ReturnsAsync(false);
+
+		await Should.ThrowAsync<ScheduleNotFoundException>(() => sut.Handle(command, CancellationToken.None));
+
+		VerifyNotUpdated();
+	}
+
+	[Fact]
+	public async Task ThrowNotFound_WhenTelegramSessionBelongsToAnotherUser()
+	{
+		var command = CreateCommand();
+		SetupOwned(command);
+		storage.Setup(x => x.ExistTelegramSessionAsync(command.TelegramSessionId, userId,
+				It.IsAny<CancellationToken>()))
+			.ReturnsAsync(false);
+
+		await Should.ThrowAsync<TelegramSessionEntityNotFoundException>(() =>
+			sut.Handle(command, CancellationToken.None));
+
+		VerifyNotUpdated();
+	}
+
+	private static UpdateParseChannelCommand CreateCommand(bool skipAds = true) =>
+		new(Guid.NewGuid(), "source_channel", true, Guid.NewGuid(), false, false, [], false, null, null, false,
+			Guid.NewGuid(), skipAds);
+
+	private void SetupOwned(UpdateParseChannelCommand command)
+	{
+		storage.Setup(x => x.ExistParseChannelAsync(command.Id, userId, It.IsAny<CancellationToken>()))
+			.ReturnsAsync(true);
+		storage.Setup(x => x.ExistScheduleAsync(command.ScheduleId, userId, It.IsAny<CancellationToken>()))
+			.ReturnsAsync(true);
+		storage.Setup(x => x.ExistTelegramSessionAsync(command.TelegramSessionId, userId,
+				It.IsAny<CancellationToken>()))
+			.ReturnsAsync(true);
+	}
+
+	private void VerifyNotUpdated() =>
+		storage.Verify(x => x.UpdateParseChannelAsync(It.IsAny<UpdateParseChannelCommand>(),
+			It.IsAny<CancellationToken>()), Times.Never);
 }

@@ -7,10 +7,11 @@ namespace TgPoster.Storage.Storages;
 
 internal sealed class GenerateAiContentStorage(PosterContext context) : IGenerateAiContentStorage
 {
-	public Task<OpenRouterDto?> GetOpenRouterAsync(Guid messagId, CancellationToken ct)
+	public Task<OpenRouterDto?> GetOpenRouterAsync(Guid messagId, Guid userId, CancellationToken ct)
 	{
 		return context.Messages
 			.Where(m => m.Id == messagId && m.Schedule.OpenRouterSetting != null)
+			.Where(m => m.Schedule.UserId == userId)
 			.Select(x => new OpenRouterDto
 			{
 				Model = x.Schedule.OpenRouterSetting!.Model,
@@ -33,10 +34,11 @@ internal sealed class GenerateAiContentStorage(PosterContext context) : IGenerat
 			.FirstOrDefaultAsync(ct);
 	}
 
-	public Task<GenerateAiContentMessageDto?> GetMessageAsync(Guid messageId, CancellationToken ct)
+	public Task<GenerateAiContentMessageDto?> GetMessageAsync(Guid messageId, Guid userId, CancellationToken ct)
 	{
 		return context.Messages
 			.Where(m => m.Id == messageId)
+			.Where(m => m.Schedule.UserId == userId)
 			.Select(x => new GenerateAiContentMessageDto
 			{
 				Id = x.Id,

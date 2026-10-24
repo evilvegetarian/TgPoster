@@ -6,10 +6,14 @@ namespace TgPoster.Storage.Storages;
 
 internal sealed class RefreshParseChannelInfoStorage(PosterContext context) : IRefreshParseChannelInfoStorage
 {
-	public async Task<(Guid TelegramSessionId, string Channel)?> GetParseChannelInfoAsync(Guid id, CancellationToken ct)
+	public async Task<(Guid TelegramSessionId, string Channel)?> GetParseChannelInfoAsync(
+		Guid id,
+		Guid userId,
+		CancellationToken ct
+	)
 	{
 		var result = await context.ChannelParsingParameters
-			.Where(x => x.Id == id)
+			.Where(x => x.Id == id && x.Schedule.UserId == userId)
 			.Select(x => new { x.TelegramSessionId, x.Channel })
 			.FirstOrDefaultAsync(ct);
 

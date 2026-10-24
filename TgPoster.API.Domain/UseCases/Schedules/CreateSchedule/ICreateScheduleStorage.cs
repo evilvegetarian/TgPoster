@@ -13,4 +13,6 @@ public interface ICreateScheduleStorage
 	);
 
 	Task<string?> GetApiTokenAsync(Guid telegramBotId, Guid userId, CancellationToken ct);
+
+	Task<bool> YouTubeAccountExistsAsync(Guid youTubeAccountId, Guid userId, CancellationToken ct);
 }

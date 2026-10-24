@@ -6,11 +6,13 @@ using Moq.Protected;
 using Security.Cryptography;
 using Security.IdentityServices;
 using Shared.Telegram;
+using Shouldly;
 using Telegram.Bot;
 using TgPoster.API.Domain.ConfigModels;
 using TgPoster.API.Domain.Services;
 using TgPoster.API.Domain.UseCases.Messages.CreateMessagesFromFiles;
 using TgPoster.API.Domain.UseCases.Parse.CreateParseChannel;
+using TgPoster.Exceptions.NotFound;
 using TgPoster.Telegram.Abstractions;
 
 namespace TgPoster.API.Domain.Tests.Parse;
@@ -27,9 +29,10 @@ public sealed class CreateParseChannelUseCaseShould : IDisposable
 	private readonly Mock<IParseChannelStorage> storage = new();
 	private readonly CreateParseChannelUseCase sut;
 
+	private readonly Guid userId = Guid.NewGuid();
+
 	public CreateParseChannelUseCaseShould()
 	{
-		var userId = Guid.NewGuid();
 		var identity = new Mock<IIdentityProvider>();
 		identity.Setup(x => x.Current).Returns(new Identity(userId));
 
@@ -51,7 +54,27 @@ public sealed class CreateParseChannelUseCaseShould : IDisposable
 		              "username":"source_channel","accent_color_id":0,"max_reaction_count":11}}
 		              """);
 
-		sut = new CreateParseChannelUseCase(storage.Object, tokenService, chatService.Object, botManager);
+		storage.Setup(x => x.TelegramSessionExistsAsync(sessionId, userId, It.IsAny<CancellationToken>()))
+			.ReturnsAsync(true);
+
+		sut = new CreateParseChannelUseCase(storage.Object, tokenService, chatService.Object, botManager,
+			identity.Object);
+	}
+
+	[Fact]
+	public async Task ThrowNotFound_WhenTelegramSessionBelongsToAnotherUser()
+	{
+		var foreignSessionId = Guid.NewGuid();
+		var command = new CreateParseChannelCommand(ChannelName, true, scheduleId, false, false, [], false, null, null,
+			false, foreignSessionId, true);
+
+		await Should.ThrowAsync<TelegramSessionEntityNotFoundException>(() =>
+			sut.Handle(command, CancellationToken.None));
+
+		storage.Verify(x => x.AddParseChannelParametersAsync(It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<Guid>(),
+			It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<string[]>(), It.IsAny<bool>(), It.IsAny<DateTime?>(),
+			It.IsAny<DateTime?>(), It.IsAny<bool>(), It.IsAny<Guid>(), It.IsAny<int?>(), It.IsAny<bool>(),
+			It.IsAny<CancellationToken>()), Times.Never);
 	}
 
 	public void Dispose()

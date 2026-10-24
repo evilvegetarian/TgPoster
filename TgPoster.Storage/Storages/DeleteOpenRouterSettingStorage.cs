@@ -6,9 +6,9 @@ namespace TgPoster.Storage.Storages;
 
 internal sealed class DeleteOpenRouterSettingStorage(PosterContext context) : IDeleteOpenRouterSettingStorage
 {
-	public Task<bool> ExistsAsync(Guid id, CancellationToken ctx)
+	public Task<bool> ExistsAsync(Guid id, Guid userId, CancellationToken ctx)
 	{
-		return context.OpenRouterSettings.AnyAsync(x => x.Id == id, ctx);
+		return context.OpenRouterSettings.AnyAsync(x => x.Id == id && x.UserId == userId, ctx);
 	}
 
 	public async Task DeleteAsync(Guid id, CancellationToken ctx)

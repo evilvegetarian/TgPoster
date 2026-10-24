@@ -57,4 +57,9 @@ internal sealed class UpdateScheduleStorage(PosterContext context) : IUpdateSche
 			.Select(x => x.ChannelName)
 			.FirstOrDefaultAsync(ct);
 	}
+
+	public Task<bool> YouTubeAccountExistsAsync(Guid youTubeAccountId, Guid userId, CancellationToken ct)
+	{
+		return context.YouTubeAccounts.AnyAsync(x => x.Id == youTubeAccountId && x.UserId == userId, ct);
+	}
 }

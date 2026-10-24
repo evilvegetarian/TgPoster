@@ -26,4 +26,5 @@ public interface IUpdateScheduleStorage
 
 	Task<string?> GetApiTokenAsync(Guid telegramBotId, Guid userId, CancellationToken ct);
 	Task<string?> GetChannelNameAsync(Guid scheduleId, Guid userId, CancellationToken ct);
+	Task<bool> YouTubeAccountExistsAsync(Guid youTubeAccountId, Guid userId, CancellationToken ct);
 }

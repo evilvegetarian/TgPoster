@@ -12,6 +12,7 @@ internal sealed class SendVideoOnYouTubeStorage(PosterContext context) : ISendVi
 	{
 		return context.Messages
 			.Where(x => x.Id == messageId)
+			.Where(x => x.Schedule.UserId == userId)
 			.SelectMany(x => x.MessageFiles)
 			.Where(file => file.ParentFileId == null)
 			.OrderBy(file => file.Order)

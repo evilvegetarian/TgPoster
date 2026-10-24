@@ -15,6 +15,17 @@ internal class UpdateParseChannelUseCase(IIdentityProvider provider, IUpdatePars
 			throw new ParseChannelNotFoundException();
 		}
 
+		// Источник свой, но перенести его можно только в своё расписание и на свою Telegram-сессию
+		if (!await storage.ExistScheduleAsync(request.ScheduleId, userId, cancellationToken))
+		{
+			throw new ScheduleNotFoundException(request.ScheduleId);
+		}
+
+		if (!await storage.ExistTelegramSessionAsync(request.TelegramSessionId, userId, cancellationToken))
+		{
+			throw new TelegramSessionEntityNotFoundException(request.TelegramSessionId);
+		}
+
 		await storage.UpdateParseChannelAsync(request, cancellationToken);
 	}
 }

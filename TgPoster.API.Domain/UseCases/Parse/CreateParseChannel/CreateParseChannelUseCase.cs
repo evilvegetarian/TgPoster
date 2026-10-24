@@ -1,8 +1,10 @@
 using MediatR;
+using Security.IdentityServices;
 using Shared.Telegram;
 using Telegram.Bot;
 using TgPoster.API.Domain.Extensions;
 using TgPoster.API.Domain.Services;
+using TgPoster.Exceptions.NotFound;
 using TgPoster.Telegram.Abstractions;
 using TgPoster.Telegram.Models;
 
@@ -12,11 +14,17 @@ internal class CreateParseChannelUseCase(
 	IParseChannelStorage storage,
 	TelegramTokenService tokenService,
 	ITelegramChatService chatService,
-	TelegramBotManager botManager)
+	TelegramBotManager botManager,
+	IIdentityProvider identity)
 	: IRequestHandler<CreateParseChannelCommand, CreateParseChannelResponse>
 {
 	public async Task<CreateParseChannelResponse> Handle(CreateParseChannelCommand request, CancellationToken ct)
 	{
+		if (!await storage.TelegramSessionExistsAsync(request.TelegramSessionId, identity.Current.UserId, ct))
+		{
+			throw new TelegramSessionEntityNotFoundException(request.TelegramSessionId);
+		}
+
 		var (token, _) = await tokenService.GetTokenByScheduleIdAsync(request.ScheduleId, ct);
 		var bot = botManager.GetClient(token);
 		var channel = request.Channel.ConvertToTelegramHandle();

@@ -13,6 +13,21 @@ internal sealed class UpdateParseChannelStorage(PosterContext context) : IUpdate
 			cancellationToken);
 	}
 
+	public Task<bool> ExistScheduleAsync(Guid scheduleId, Guid userId, CancellationToken cancellationToken)
+	{
+		return context.Schedules.AnyAsync(x => x.Id == scheduleId && x.UserId == userId, cancellationToken);
+	}
+
+	public Task<bool> ExistTelegramSessionAsync(
+		Guid telegramSessionId,
+		Guid userId,
+		CancellationToken cancellationToken
+	)
+	{
+		return context.TelegramSessions.AnyAsync(x => x.Id == telegramSessionId && x.UserId == userId,
+			cancellationToken);
+	}
+
 	public Task UpdateParseChannelAsync(UpdateParseChannelCommand command, CancellationToken cancellationToken)
 	{
 		var entity = command.ToEntity();

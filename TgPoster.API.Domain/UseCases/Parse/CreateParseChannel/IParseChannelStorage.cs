@@ -20,4 +20,6 @@ public interface IParseChannelStorage
 	);
 
 	Task<string?> GetTelegramTokenAsync(Guid scheduleId, Guid userId, CancellationToken ct);
+
+	Task<bool> TelegramSessionExistsAsync(Guid telegramSessionId, Guid userId, CancellationToken ct);
 }

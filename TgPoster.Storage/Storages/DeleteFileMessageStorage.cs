@@ -14,9 +14,11 @@ internal sealed class DeleteFileMessageStorage(PosterContext context) : IDeleteF
 			.AnyAsync(ct);
 	}
 
-	public async Task DeleteFileAsync(Guid fileId, CancellationToken ct)
+	public async Task DeleteFileAsync(Guid messageId, Guid fileId, CancellationToken ct)
 	{
-		var file = await context.MessageFiles.FindAsync(fileId, ct);
+		// Файл ищется только среди файлов поста: владелец проверен по посту, а не по файлу
+		var file = await context.MessageFiles
+			.FirstOrDefaultAsync(f => f.Id == fileId && f.MessageId == messageId, ct);
 		if (file != null)
 		{
 			context.MessageFiles.Remove(file);

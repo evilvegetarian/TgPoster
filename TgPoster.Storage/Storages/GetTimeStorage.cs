@@ -6,6 +6,11 @@ namespace TgPoster.Storage.Storages;
 
 internal sealed class GetTimeStorage(PosterContext context) : IGetTimeStorage
 {
+	public Task<bool> ExistScheduleAsync(Guid scheduleId, Guid userId, CancellationToken ct)
+	{
+		return context.Schedules.AnyAsync(x => x.Id == scheduleId && x.UserId == userId, ct);
+	}
+
 	public Task<DateTimeOffset> GetTime(Guid scheduleId, CancellationToken ct)
 	{
 		return context.Messages

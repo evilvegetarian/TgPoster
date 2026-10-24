@@ -28,6 +28,12 @@ internal sealed class UpdateScheduleUseCase(
 			throw new InvalidSignatureMarkupException();
 		}
 
+		if (request.YouTubeAccountId is { } youTubeAccountId
+		    && !await storage.YouTubeAccountExistsAsync(youTubeAccountId, userId, ct))
+		{
+			throw new YouTubeAccountNotFoundException(youTubeAccountId);
+		}
+
 		if (request.TelegramBotId is not null)
 		{
 			var encryptedToken = await storage.GetApiTokenAsync(request.TelegramBotId.Value, userId, ct);

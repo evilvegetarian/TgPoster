@@ -3,9 +3,9 @@ namespace TgPoster.API.Domain.UseCases.Parse.RefreshParseChannelInfo;
 public interface IRefreshParseChannelInfoStorage
 {
 	/// <summary>
-	///     Получает TelegramSessionId и имя канала по Id настройки парсинга.
+	///     Получает TelegramSessionId и имя канала по Id настройки парсинга пользователя.
 	/// </summary>
-	Task<(Guid TelegramSessionId, string Channel)?> GetParseChannelInfoAsync(Guid id, CancellationToken ct);
+	Task<(Guid TelegramSessionId, string Channel)?> GetParseChannelInfoAsync(Guid id, Guid userId, CancellationToken ct);
 
 	/// <summary>
 	///     Обновляет общее количество сообщений в канале.

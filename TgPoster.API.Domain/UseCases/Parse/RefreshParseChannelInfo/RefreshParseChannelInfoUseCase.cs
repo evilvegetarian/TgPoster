@@ -1,4 +1,5 @@
 using MediatR;
+using Security.IdentityServices;
 using TgPoster.Exceptions.NotFound;
 using TgPoster.Telegram.Abstractions;
 
@@ -6,12 +7,13 @@ namespace TgPoster.API.Domain.UseCases.Parse.RefreshParseChannelInfo;
 
 internal sealed class RefreshParseChannelInfoUseCase(
 	IRefreshParseChannelInfoStorage storage,
-	ITelegramChatService chatService)
+	ITelegramChatService chatService,
+	IIdentityProvider identity)
 	: IRequestHandler<RefreshParseChannelInfoCommand>
 {
 	public async Task Handle(RefreshParseChannelInfoCommand request, CancellationToken ct)
 	{
-		var info = await storage.GetParseChannelInfoAsync(request.Id, ct);
+		var info = await storage.GetParseChannelInfoAsync(request.Id, identity.Current.UserId, ct);
 		if (info is null)
 		{
 			throw new ParseChannelNotFoundException();

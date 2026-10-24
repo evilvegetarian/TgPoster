@@ -27,6 +27,12 @@ internal sealed class CreateScheduleUseCase(
 			throw new TelegramBotNotFoundException(request.TelegramBotId);
 		}
 
+		if (request.YouTubeAccountId is { } youTubeAccountId
+		    && !await storage.YouTubeAccountExistsAsync(youTubeAccountId, userId, ct))
+		{
+			throw new YouTubeAccountNotFoundException(youTubeAccountId);
+		}
+
 		var token = aes.Decrypt(options.SecretKey, encryptedToken);
 
 		var bot = botManager.GetClient(token);

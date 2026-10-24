@@ -1,5 +1,6 @@
 using MediatR;
 using Security.Cryptography;
+using Security.IdentityServices;
 using Shared.OpenRouter;
 using Shared.OpenRouter.Models.Request;
 using Shared.Telegram;
@@ -18,23 +19,26 @@ internal class GenerateAiContentHandler(
 	ITelegramService service,
 	TelegramTokenService tokenService,
 	TelegramBotManager botManager,
-	OpenRouterOptions options)
+	OpenRouterOptions options,
+	IIdentityProvider identity)
 	: IRequestHandler<GenerateAiContentCommand, GenerateAiContentResponse>
 {
 	public async Task<GenerateAiContentResponse> Handle(GenerateAiContentCommand request, CancellationToken ct)
 	{
-		var openApiToken = await storage.GetOpenRouterAsync(request.MessageId, ct);
+		var userId = identity.Current.UserId;
+		var messageDto = await storage.GetMessageAsync(request.MessageId, userId, ct);
+		if (messageDto is null)
+		{
+			throw new MessageNotFoundException(request.MessageId);
+		}
+
+		var openApiToken = await storage.GetOpenRouterAsync(request.MessageId, userId, ct);
 		if (openApiToken is null)
 		{
 			throw new ApplicationException("Токен не найден");
 		}
 
 		var token = crypto.Decrypt(options.SecretKey, openApiToken.Token);
-		var messageDto = await storage.GetMessageAsync(request.MessageId, ct);
-		if (messageDto is null)
-		{
-			throw new MessageNotFoundException(request.MessageId);
-		}
 
 		var tk = await tokenService.GetTokenByScheduleIdAsync(openApiToken.ScheduleId, ct);
 		var bot = botManager.GetClient(tk.token);

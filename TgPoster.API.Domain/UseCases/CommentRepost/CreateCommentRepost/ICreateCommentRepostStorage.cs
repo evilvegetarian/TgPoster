@@ -8,9 +8,9 @@ public interface ICreateCommentRepostStorage
 	Task<bool> ScheduleExistsAsync(Guid scheduleId, Guid userId, CancellationToken ct);
 
 	/// <summary>
-	///     Проверяет существует ли активная TelegramSession.
+	///     Проверяет существует ли активная TelegramSession пользователя.
 	/// </summary>
-	Task<bool> TelegramSessionExistsAndActiveAsync(Guid telegramSessionId, CancellationToken ct);
+	Task<bool> TelegramSessionExistsAndActiveAsync(Guid telegramSessionId, Guid userId, CancellationToken ct);
 
 	/// <summary>
 	///     Проверяет существует ли уже привязка для данного канала и расписания.

@@ -56,4 +56,9 @@ internal class ParseChannelStorage(PosterContext context, GuidFactory factory) :
 			.Where(x => x.UserId == userId)
 			.Select(x => x.TelegramBot.ApiTelegram).FirstOrDefaultAsync(ct);
 	}
+
+	public Task<bool> TelegramSessionExistsAsync(Guid telegramSessionId, Guid userId, CancellationToken ct)
+	{
+		return context.TelegramSessions.AnyAsync(x => x.Id == telegramSessionId && x.UserId == userId, ct);
+	}
 }

@@ -16,6 +16,6 @@ public class DeleteFileMessageUseCase(IDeleteFileMessageStorage storage, IIdenti
 			throw new MessageNotFoundException(request.Id);
 		}
 
-		await storage.DeleteFileAsync(request.FileId, cancellationToken);
+		await storage.DeleteFileAsync(request.Id, request.FileId, cancellationToken);
 	}
 }
