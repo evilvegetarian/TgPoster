@@ -1147,4 +1147,65 @@ export const usePostApiV1MessageRetry = <TError = ProblemDetails,
 
       return useMutation(mutationOptions, queryClient);
     }
+    /**
+ * @summary Удалить опубликованный пост из канала и из списка постов. Telegram даёт это сделать в течение 48 часов
+ */
+export const deleteApiV1MessageIdChannel = (
+    id: string,
+ ) => {
+      
+      
+      return customInstance<void>(
+      {url: `/api/v1/message/${id}/channel`, method: 'DELETE'
+    },
+      );
+    }
+  
+
+
+export const getDeleteApiV1MessageIdChannelMutationOptions = <TError = ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteApiV1MessageIdChannel>>, TError,{id: string}, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof deleteApiV1MessageIdChannel>>, TError,{id: string}, TContext> => {
+
+const mutationKey = ['deleteApiV1MessageIdChannel'];
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteApiV1MessageIdChannel>>, {id: string}> = (props) => {
+          const {id} = props ?? {};
+
+          return  deleteApiV1MessageIdChannel(id,)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteApiV1MessageIdChannelMutationResult = NonNullable<Awaited<ReturnType<typeof deleteApiV1MessageIdChannel>>>
+    
+    export type DeleteApiV1MessageIdChannelMutationError = ProblemDetails
+
+    /**
+ * @summary Удалить опубликованный пост из канала и из списка постов. Telegram даёт это сделать в течение 48 часов
+ */
+export const useDeleteApiV1MessageIdChannel = <TError = ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteApiV1MessageIdChannel>>, TError,{id: string}, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof deleteApiV1MessageIdChannel>>,
+        TError,
+        {id: string},
+        TContext
+      > => {
+
+      const mutationOptions = getDeleteApiV1MessageIdChannelMutationOptions(options);
+
+      return useMutation(mutationOptions, queryClient);
+    }
     

@@ -13,7 +13,14 @@ public interface ISenderMessageStorage
 		CancellationToken ct
 	);
 
-	Task SaveTelegramMessageIdAsync(Guid messageId, int telegramMessageId, CancellationToken ct);
+	Task SaveTelegramMessageIdsAsync(
+		Guid messageId,
+		int firstId,
+		int[] allIds,
+		int? textMessageId,
+		CancellationToken ct
+	);
+
 	Task<List<RepostSettingsDto>> GetRepostSettingsForMessageAsync(Guid messageId, CancellationToken ct);
 	Task UpdateErrorStatusMessageAsync(Guid id, string error, CancellationToken ct);
 

@@ -1,6 +1,7 @@
 using MediatR;
 using Security.IdentityServices;
 using Shared.Utilities;
+using TgPoster.API.Domain.UseCases.Messages.DeletePublishedMessage;
 using TgPoster.Exceptions.NotFound;
 
 namespace TgPoster.API.Domain.UseCases.Messages.ListMessage;
@@ -8,7 +9,8 @@ namespace TgPoster.API.Domain.UseCases.Messages.ListMessage;
 internal sealed class ListMessageUseCase(
 	IListMessageStorage storage,
 	IIdentityProvider provider,
-	S3Options s3Options
+	S3Options s3Options,
+	TimeProvider timeProvider
 ) : IRequestHandler<ListMessageQuery, PagedResponse<MessageResponse>>
 {
 	public async Task<PagedResponse<MessageResponse>> Handle(ListMessageQuery request, CancellationToken ct)
@@ -19,6 +21,7 @@ internal sealed class ListMessageUseCase(
 		}
 
 		var pagedMessages = await storage.GetMessagesAsync(request, ct);
+		var now = timeProvider.GetUtcNow();
 
 		var messageResponses = pagedMessages.Items.Select(m => new MessageResponse
 		{
@@ -31,6 +34,13 @@ internal sealed class ListMessageUseCase(
 			IsSent = m.IsSent,
 			DeliveryStatus = m.DeliveryStatus,
 			SendError = m.SendError,
+			CanEditPublishedText = m.IsSent && m.HasTelegramTextMessage,
+			CanDeleteFromChannel = m.IsSent
+			                       && m.HasTelegramMessageIds
+			                       && PublishedMessageDeleteWindow.IsOpen(m.TimePosting, now),
+			DeleteFromChannelUntil = m.HasTelegramMessageIds
+				? PublishedMessageDeleteWindow.GetDeadline(m.TimePosting)
+				: null,
 			HasVideo = m.Files.Any(f => f.ContentType.GetFileType() == FileTypes.Video),
 			HasYouTubeAccount = m.HasYouTubeAccount,
 			CrossPostEnabled = m.CrossPostEnabled,

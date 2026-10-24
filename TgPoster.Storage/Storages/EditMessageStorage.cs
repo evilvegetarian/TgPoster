@@ -3,18 +3,35 @@ using Shared.Enums;
 using TgPoster.API.Domain.Services;
 using TgPoster.API.Domain.UseCases.Messages.EditMessage;
 using TgPoster.Storage.Data;
+using TgPoster.Storage.Data.Enum;
 using TgPoster.Storage.Mapper;
 
 namespace TgPoster.Storage.Storages;
 
 internal sealed class EditMessageStorage(PosterContext context) : IEditMessageStorage
 {
-	public Task<bool> ExistMessageAsync(Guid messageId, Guid userId, CancellationToken ct)
+	public Task<EditMessageInfo?> GetMessageAsync(Guid messageId, Guid userId, CancellationToken ct)
 	{
 		return context.Messages
 			.Where(m => m.Id == messageId)
 			.Where(x => x.Schedule.UserId == userId)
-			.AnyAsync(ct);
+			.Select(m => new EditMessageInfo
+			{
+				ScheduleId = m.ScheduleId,
+				ChannelId = m.Schedule.ChannelId,
+				TimePosting = m.TimePosting,
+				IsPublished = m.Status == MessageStatus.Send,
+				Text = m.TextMessage,
+				Signature = m.Schedule.SignatureEnabled ? m.Schedule.SignatureFooter : null,
+				FileIds = m.MessageFiles
+					.Where(f => f.ParentFileId == null)
+					.OrderBy(f => f.Order)
+					.Select(f => f.Id)
+					.ToList(),
+				TelegramMessageIds = m.TelegramMessageIds,
+				TelegramTextMessageId = m.TelegramTextMessageId
+			})
+			.FirstOrDefaultAsync(ct);
 	}
 
 	public async Task UpdateMessageAsync(

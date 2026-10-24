@@ -43,6 +43,16 @@ public sealed class Message : BaseEntity
 	public int? TelegramMessageId { get; set; }
 
 	/// <summary>
+	/// Id всех сообщений поста в канале: альбом и отдельное текстовое сообщение. Null — пост опубликован до их сохранения
+	/// </summary>
+	public int[]? TelegramMessageIds { get; set; }
+
+	/// <summary>
+	/// Id сообщения в канале, в котором лежит текст поста: подпись альбома, отдельное текстовое сообщение или сам текстовый пост
+	/// </summary>
+	public int? TelegramTextMessageId { get; set; }
+
+	/// <summary>
 	/// Причина последней неудачной отправки, null после успешной отправки
 	/// </summary>
 	public string? SendError { get; set; }

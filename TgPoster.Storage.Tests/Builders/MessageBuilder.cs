@@ -94,6 +94,14 @@ internal class MessageBuilder(PosterContext context)
 		return this;
 	}
 
+	public MessageBuilder WithTelegramMessageIds(int[]? ids, int? textMessageId)
+	{
+		message.TelegramMessageId = ids?.FirstOrDefault();
+		message.TelegramMessageIds = ids;
+		message.TelegramTextMessageId = textMessageId;
+		return this;
+	}
+
 	public MessageBuilder WithSendError(string? value)
 	{
 		message.SendError = value;

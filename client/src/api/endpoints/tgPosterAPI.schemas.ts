@@ -1241,6 +1241,10 @@ export interface MessageResponse {
   deliveryStatus: MessageDeliveryStatus;
   /** @nullable */
   sendError?: string | null;
+  canEditPublishedText: boolean;
+  canDeleteFromChannel: boolean;
+  /** @nullable */
+  deleteFromChannelUntil?: string | null;
   hasVideo: boolean;
   hasYouTubeAccount: boolean;
   crossPostEnabled: boolean;
@@ -2415,7 +2419,7 @@ export type PostApiV1MessageBody = {
 export type PutApiV1MessageIdBody = {
   /** Id расписания */
   ScheduleId: string;
-  /** Время поста */
+  /** Время поста, не раньше текущего. У опубликованного поста не проверяется и не меняется */
   TimePosting: string;
   /** Текстовое сообщение */
   TextMessage?: string;

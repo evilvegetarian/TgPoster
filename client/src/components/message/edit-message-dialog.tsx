@@ -38,6 +38,7 @@ interface EditMessageDialogProps {
 
 export function EditMessageDialog({message, availableTimes, onTimeSelect, onSuccess}: EditMessageDialogProps) {
     const [open, setOpen] = useState(false); // 1. Контролируемый диалог
+    const textReadOnly = message.isSent && !message.canEditPublishedText;
 
     const form = useForm<EditMessageFormValues>({
         resolver: zodResolver(formSchema),
@@ -139,6 +140,11 @@ export function EditMessageDialog({message, availableTimes, onTimeSelect, onSucc
 
                 <Form {...form}>
                     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 py-2">
+                        {message.isSent && (
+                            <p className="rounded-md border bg-muted/50 p-3 text-sm text-muted-foreground">
+                                Пост уже опубликован: изменится текст в канале. Репосты и кросс-посты не обновятся
+                            </p>
+                        )}
                         <div className="space-y-2">
                             <FormField
                                 control={form.control}
@@ -153,7 +159,7 @@ export function EditMessageDialog({message, availableTimes, onTimeSelect, onSucc
                                                 type="button"
                                                 className="h-6 text-xs gap-1 border-violet-200 hover:bg-violet-50 text-violet-700"
                                                 onClick={handleAIContent}
-                                                disabled={aiContentIsFetching}
+                                                disabled={aiContentIsFetching || textReadOnly}
                                             >
                                                 {aiContentIsFetching ? <Loader2 className="h-3 w-3 animate-spin"/> :
                                                     <Sparkles className="h-3 w-3"/>}
@@ -164,10 +170,16 @@ export function EditMessageDialog({message, availableTimes, onTimeSelect, onSucc
                                             <Textarea
                                                 placeholder="Введите текст поста..."
                                                 className="min-h-[120px] resize-y"
+                                                readOnly={textReadOnly}
                                                 {...field}
                                                 value={field.value?.toString() ?? ''}
                                             />
                                         </FormControl>
+                                        {textReadOnly && (
+                                            <p className="text-sm text-muted-foreground">
+                                                Пост опубликован до обновления — текст можно изменить только в Telegram
+                                            </p>
+                                        )}
                                         <FormMessage/>
                                     </FormItem>
                                 )}
@@ -189,7 +201,7 @@ export function EditMessageDialog({message, availableTimes, onTimeSelect, onSucc
                             )}
                         />
 
-                        <div className="space-y-3">
+                        {!message.isSent && <div className="space-y-3">
                             <FormField
                                 control={form.control}
                                 name="timePosting"
@@ -212,7 +224,7 @@ export function EditMessageDialog({message, availableTimes, onTimeSelect, onSucc
                                 availableTimes={availableTimes}
                                 onSelect={handleTimeSuggestionClick}
                             />
-                        </div>
+                        </div>}
 
                         <div className="space-y-3">
                             <Label>Медиафайлы</Label>
@@ -222,12 +234,12 @@ export function EditMessageDialog({message, availableTimes, onTimeSelect, onSucc
                                     <FilePreview
                                         key={file.id}
                                         file={file}
-                                        showRemoveButton
+                                        showRemoveButton={!message.isSent}
                                         onRemove={() => removeOldFile(file.id)}
                                     />
                                 ))}
 
-                                {watchedNewFiles.map((file, index) => (
+                                {!message.isSent && watchedNewFiles.map((file, index) => (
                                     <div key={`new-${index}`} className="relative group aspect-square">
                                         <div
                                             className="w-full h-full bg-muted rounded-lg border flex flex-col items-center justify-center overflow-hidden p-2 text-center">
@@ -255,7 +267,7 @@ export function EditMessageDialog({message, availableTimes, onTimeSelect, onSucc
                                     </div>
                                 ))}
 
-                                <label
+                                {!message.isSent && <label
                                     className="cursor-pointer aspect-square border-2 border-dashed border-muted-foreground/25 rounded-lg flex flex-col items-center justify-center hover:border-primary/50 hover:bg-muted/50 transition-all">
                                     <Upload className="h-6 w-6 mb-2 text-muted-foreground"/>
                                     <span className="text-xs text-muted-foreground">Добавить</span>
@@ -267,7 +279,7 @@ export function EditMessageDialog({message, availableTimes, onTimeSelect, onSucc
                                         className="hidden"
                                         onClick={(e) => (e.currentTarget.value = "")}
                                     />
-                                </label>
+                                </label>}
                             </div>
                         </div>
 

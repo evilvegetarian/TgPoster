@@ -8,14 +8,14 @@ namespace TgPoster.Worker.Domain.UseCases;
 
 public sealed record TelegramSendResult(
 	bool IsSuccess,
-	int? MessageId = null,
+	IReadOnlyList<int> MessageIds,
 	string? Error = null,
 	bool IsAccessLost = false)
 {
-	public static TelegramSendResult Success(int? messageId = null) => new(true, messageId);
+	public static TelegramSendResult Success(IReadOnlyList<int> messageIds) => new(true, messageIds);
 
 	public static TelegramSendResult Failure(string error, bool isAccessLost = false) =>
-		new(false, Error: error, IsAccessLost: isAccessLost);
+		new(false, [], error, isAccessLost);
 }
 
 public class TelegramExecuteServices(ILogger<TelegramExecuteServices> logger)
@@ -84,7 +84,7 @@ public class TelegramExecuteServices(ILogger<TelegramExecuteServices> logger)
 		{
 			var msgs = await ExecuteWithRetryAsync(
 				() => bot.SendMediaGroup(chatId, medias, cancellationToken: ct), ct: ct);
-			return TelegramSendResult.Success(msgs.FirstOrDefault()?.MessageId);
+			return TelegramSendResult.Success(msgs.Select(x => x.MessageId).ToList());
 		}
 		catch (RequestException ex) when (ex.InnerException is TaskCanceledException)
 		{
@@ -116,7 +116,7 @@ public class TelegramExecuteServices(ILogger<TelegramExecuteServices> logger)
 		{
 			var msg = await ExecuteWithRetryAsync(
 				() => bot.SendMessage(chatId, text, parseMode, cancellationToken: ct), ct: ct);
-			return TelegramSendResult.Success(msg.MessageId);
+			return TelegramSendResult.Success([msg.MessageId]);
 		}
 		catch (RequestException ex) when (ex.InnerException is TaskCanceledException)
 		{

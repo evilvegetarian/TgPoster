@@ -41,6 +41,7 @@ public static class DependencyInjection
 			.AddScoped<ITelegramService, TelegramService>()
 			.AddScoped<FileService>()
 			.AddScoped<TelegramTokenService>()
+			.AddScoped<IPublishedMessageService, PublishedMessageService>()
 			.AddSingleton<DomainMetrics>();
 		return services;
 	}

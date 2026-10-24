@@ -14,6 +14,8 @@ public sealed class MessageDto
 	public bool IsSent { get; set; }
 	public required MessageDeliveryStatus DeliveryStatus { get; set; }
 	public string? SendError { get; set; }
+	public bool HasTelegramTextMessage { get; set; }
+	public bool HasTelegramMessageIds { get; set; }
 	public bool HasYouTubeAccount { get; set; }
 	public bool CrossPostEnabled { get; set; }
 	public CrossPostFormat? CrossPostFormat { get; set; }

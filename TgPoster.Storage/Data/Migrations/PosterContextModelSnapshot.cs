@@ -847,6 +847,12 @@ namespace TgPoster.Storage.Data.Migrations
                     b.Property<int?>("TelegramMessageId")
                         .HasColumnType("integer");
 
+                    b.PrimitiveCollection<int[]>("TelegramMessageIds")
+                        .HasColumnType("integer[]");
+
+                    b.Property<int?>("TelegramTextMessageId")
+                        .HasColumnType("integer");
+
                     b.Property<string>("TextMessage")
                         .HasMaxLength(4096)
                         .HasColumnType("character varying(4096)");

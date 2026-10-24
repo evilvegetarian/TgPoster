@@ -141,6 +141,31 @@ public sealed class ListMessageStorageShould(StorageTestFixture fixture) : IClas
 	}
 
 	[Fact]
+	public async Task GetMessagesAsync_ShouldReturnTelegramFlagsPerMessage()
+	{
+		var schedule = await new ScheduleBuilder(context).CreateAsync();
+		var withIds = new MessageBuilder(context)
+			.WithSchedule(schedule)
+			.WithStatus(Data.Enum.MessageStatus.Send)
+			.WithTelegramMessageIds([10, 11, 12], 12)
+			.Create();
+		var legacy = new MessageBuilder(context)
+			.WithSchedule(schedule)
+			.WithStatus(Data.Enum.MessageStatus.Send)
+			.WithTelegramMessageIds(null, null)
+			.Create();
+
+		var result = await sut.GetMessagesAsync(CreateQuery(schedule.Id), Ct);
+
+		var withIdsDto = result.Items.Single(x => x.Id == withIds.Id);
+		withIdsDto.HasTelegramMessageIds.ShouldBeTrue();
+		withIdsDto.HasTelegramTextMessage.ShouldBeTrue();
+		var legacyDto = result.Items.Single(x => x.Id == legacy.Id);
+		legacyDto.HasTelegramMessageIds.ShouldBeFalse();
+		legacyDto.HasTelegramTextMessage.ShouldBeFalse();
+	}
+
+	[Fact]
 	public async Task GetMessagesAsync_WithCrossPosts_ShouldReturnStatusesOrderedByCreated()
 	{
 		var schedule = await new ScheduleBuilder(context).CreateAsync();

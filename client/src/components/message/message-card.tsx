@@ -27,6 +27,7 @@ import type {MessageResponse} from "@/api/endpoints/tgPosterAPI.schemas"
 import {usePostApiV1YoutubeMessageId} from "@/api/endpoints/you-tube-account/you-tube-account"
 import {
     useDeleteApiV1Message,
+    useDeleteApiV1MessageIdChannel,
     usePatchApiV1Message,
     usePostApiV1MessageRetry
 } from "@/api/endpoints/message/message"
@@ -72,6 +73,18 @@ export function MessageCard({message, isSelected, onSelectionChange, availableTi
             },
             onError: (error) => {
                 toast.error("Ошибка", {description: error.title ?? "Не удалось удалить сообщение"})
+            }
+        }
+    })
+
+    const {mutate: deleteFromChannel, isPending: isDeletingFromChannel} = useDeleteApiV1MessageIdChannel({
+        mutation: {
+            onSuccess: () => {
+                toast.success("Пост удалён из канала")
+                queryClient.invalidateQueries({queryKey: ["/api/v1/message"]})
+            },
+            onError: (error) => {
+                toast.error("Ошибка", {description: error.title ?? "Не удалось удалить пост из канала"})
             }
         }
     })
@@ -224,9 +237,9 @@ export function MessageCard({message, isSelected, onSelectionChange, availableTi
                                                 variant="ghost"
                                                 size="sm"
                                                 className="text-destructive hover:text-destructive"
-                                                disabled={isDeleting}
+                                                disabled={isDeleting || isDeletingFromChannel}
                                             >
-                                                {isDeleting
+                                                {isDeleting || isDeletingFromChannel
                                                     ? <Loader2 className="h-4 w-4 mr-1 animate-spin"/>
                                                     : <Trash2 className="h-4 w-4 mr-1"/>}
                                                 Удалить
@@ -236,14 +249,49 @@ export function MessageCard({message, isSelected, onSelectionChange, availableTi
                                             <AlertDialogHeader>
                                                 <AlertDialogTitle>Удалить сообщение?</AlertDialogTitle>
                                                 <AlertDialogDescription>
-                                                    Это действие нельзя отменить. Сообщение будет удалено безвозвратно
+                                                    {message.isSent
+                                                        ? `Пост уже опубликован в канале. ${message.canDeleteFromChannel && message.deleteFromChannelUntil
+                                                            ? `Удалить из канала можно до ${format(new Date(message.deleteFromChannelUntil), "dd.MM.yyyy HH:mm", {locale: ru})}. `
+                                                            : ""}«Убрать только из списка» не удалит его из канала.`
+                                                        : "Это действие нельзя отменить. Сообщение будет удалено безвозвратно"}
                                                 </AlertDialogDescription>
                                             </AlertDialogHeader>
                                             <AlertDialogFooter>
                                                 <AlertDialogCancel>Отмена</AlertDialogCancel>
-                                                <AlertDialogAction onClick={() => deleteMessage({data: [message.id]})}>
-                                                    Удалить
-                                                </AlertDialogAction>
+                                                {message.isSent ? (
+                                                    <>
+                                                        <AlertDialogAction
+                                                            className="bg-secondary text-secondary-foreground hover:bg-secondary/80"
+                                                            onClick={() => deleteMessage({data: [message.id]})}
+                                                        >
+                                                            Убрать только из списка
+                                                        </AlertDialogAction>
+                                                        {message.canDeleteFromChannel ? (
+                                                            <AlertDialogAction
+                                                                onClick={() => deleteFromChannel({id: message.id})}
+                                                            >
+                                                                Удалить из канала
+                                                            </AlertDialogAction>
+                                                        ) : (
+                                                            <Tooltip>
+                                                                <TooltipTrigger asChild>
+                                                                    <span tabIndex={0}>
+                                                                        <Button disabled>Удалить из канала</Button>
+                                                                    </span>
+                                                                </TooltipTrigger>
+                                                                <TooltipContent className="max-w-xs">
+                                                                    {message.deleteFromChannelUntil
+                                                                        ? "Прошло больше 48 часов — Telegram не даёт боту удалить пост"
+                                                                        : "Пост опубликован до обновления — удалите его в Telegram вручную"}
+                                                                </TooltipContent>
+                                                            </Tooltip>
+                                                        )}
+                                                    </>
+                                                ) : (
+                                                    <AlertDialogAction onClick={() => deleteMessage({data: [message.id]})}>
+                                                        Удалить
+                                                    </AlertDialogAction>
+                                                )}
                                             </AlertDialogFooter>
                                         </AlertDialogContent>
                                     </AlertDialog>

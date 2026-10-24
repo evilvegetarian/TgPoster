@@ -108,7 +108,8 @@ public class SenderMessageWorker(
 				: new InputMediaVideo(file.TgFileId)))
 			.ToList();
 
-		int? telegramMessageId;
+		IReadOnlyList<int> postMessageIds;
+		int? separateTextMessageId = null;
 
 		if (medias.Any())
 		{
@@ -133,7 +134,7 @@ public class SenderMessageWorker(
 				return;
 			}
 
-			telegramMessageId = result.MessageId;
+			postMessageIds = result.MessageIds;
 
 			if (!string.IsNullOrWhiteSpace(captionText) && isCaptionTooLong)
 			{
@@ -142,6 +143,8 @@ public class SenderMessageWorker(
 				if (!captionResult.IsSuccess)
 					logger.LogWarning("Не удалось отправить подпись к медиа-группе для сообщения {MessageId}",
 						messageId);
+				else if (captionResult.MessageIds.Count > 0)
+					separateTextMessageId = captionResult.MessageIds[0];
 			}
 		}
 		else
@@ -155,14 +158,16 @@ public class SenderMessageWorker(
 				return;
 			}
 
-			telegramMessageId = result.MessageId;
+			postMessageIds = result.MessageIds;
 		}
 
 		await storage.UpdateSendStatusMessageAsync(messageId);
 
-		if (telegramMessageId.HasValue)
+		var sentIds = BuildSentMessageIds(postMessageIds, separateTextMessageId);
+		if (sentIds is not null)
 		{
-			await storage.SaveTelegramMessageIdAsync(messageId, telegramMessageId.Value, ct);
+			await storage.SaveTelegramMessageIdsAsync(messageId, sentIds.FirstId, sentIds.AllIds,
+				sentIds.TextMessageId, ct);
 
 			var repostSettingsList = await storage.GetRepostSettingsForMessageAsync(messageId, ct);
 			foreach (var repostSettings in repostSettingsList.Where(rs => rs.Destinations.Count > 0))
@@ -222,6 +227,30 @@ public class SenderMessageWorker(
 		return string.IsNullOrEmpty(preview)
 			? details
 			: $"{details}\nТекст: {ScheduleAlertService.Truncate(preview, PostPreviewLength)}";
+	}
+
+	/// <summary>
+	/// Собирает id сообщений поста: альбом или текстовый пост плюс отдельное текстовое сообщение.
+	/// Текст лежит в отдельном сообщении, если оно ушло, иначе в первом сообщении поста
+	/// </summary>
+	/// <param name="postMessageIds"></param>
+	/// <param name="separateTextMessageId"></param>
+	/// <returns></returns>
+	internal static SentMessageIds? BuildSentMessageIds(
+		IReadOnlyList<int> postMessageIds,
+		int? separateTextMessageId
+	)
+	{
+		if (postMessageIds.Count == 0)
+		{
+			return null;
+		}
+
+		int[] allIds = separateTextMessageId.HasValue
+			? [..postMessageIds, separateTextMessageId.Value]
+			: [..postMessageIds];
+
+		return new SentMessageIds(postMessageIds[0], allIds, separateTextMessageId ?? postMessageIds[0]);
 	}
 
 	private async Task UploadVideosToYouTubeAsync(

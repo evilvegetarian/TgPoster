@@ -146,7 +146,7 @@ public class SenderMessageStorageShould(StorageTestFixture fixture) : IClassFixt
 	}
 
 	[Fact]
-	public async Task SaveTelegramMessageIdAsync_WithValidMessage_ShouldSaveTelegramMessageId()
+	public async Task SaveTelegramMessageIdsAsync_WithValidMessage_ShouldSaveAllIds()
 	{
 		var schedule = await new ScheduleBuilder(context).CreateAsync();
 		var msg = new Message
@@ -161,22 +161,21 @@ public class SenderMessageStorageShould(StorageTestFixture fixture) : IClassFixt
 		await context.Messages.AddAsync(msg);
 		await context.SaveChangesAsync();
 
-		var telegramMessageId = 12345;
-
-		await sut.SaveTelegramMessageIdAsync(msg.Id, telegramMessageId, CancellationToken.None);
+		await sut.SaveTelegramMessageIdsAsync(msg.Id, 12345, [12345, 12346, 12347], 12347, CancellationToken.None);
 		await context.Entry(msg).ReloadAsync();
 
-		msg.TelegramMessageId.ShouldBe(telegramMessageId);
+		msg.TelegramMessageId.ShouldBe(12345);
+		msg.TelegramMessageIds.ShouldBe([12345, 12346, 12347]);
+		msg.TelegramTextMessageId.ShouldBe(12347);
 	}
 
 	[Fact]
-	public async Task SaveTelegramMessageIdAsync_WithNonExistingMessage_ShouldNotThrow()
+	public async Task SaveTelegramMessageIdsAsync_WithNonExistingMessage_ShouldNotThrow()
 	{
 		var nonExistingId = Guid.NewGuid();
-		var telegramMessageId = 12345;
 
 		await Should.NotThrowAsync(async () =>
-			await sut.SaveTelegramMessageIdAsync(nonExistingId, telegramMessageId, CancellationToken.None));
+			await sut.SaveTelegramMessageIdsAsync(nonExistingId, 12345, [12345], 12345, CancellationToken.None));
 	}
 
 	[Fact]

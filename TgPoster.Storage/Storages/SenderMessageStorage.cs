@@ -152,14 +152,22 @@ internal class SenderMessageStorage(PosterContext context) : ISenderMessageStora
 		return interrupted;
 	}
 
-	public async Task SaveTelegramMessageIdAsync(Guid messageId, int telegramMessageId, CancellationToken ct)
+	public async Task SaveTelegramMessageIdsAsync(
+		Guid messageId,
+		int firstId,
+		int[] allIds,
+		int? textMessageId,
+		CancellationToken ct
+	)
 	{
 		var message = await context.Messages
 			.FirstOrDefaultAsync(m => m.Id == messageId, ct);
 
 		if (message != null)
 		{
-			message.TelegramMessageId = telegramMessageId;
+			message.TelegramMessageId = firstId;
+			message.TelegramMessageIds = allIds;
+			message.TelegramTextMessageId = textMessageId;
 			await context.SaveChangesAsync(ct);
 		}
 	}

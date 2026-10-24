@@ -8,6 +8,7 @@ using TgPoster.API.Domain.UseCases.Messages.CreateMessage;
 using TgPoster.API.Domain.UseCases.Messages.CreateMessagesFromFiles;
 using TgPoster.API.Domain.UseCases.Messages.DeleteFileMessage;
 using TgPoster.API.Domain.UseCases.Messages.DeleteMessages;
+using TgPoster.API.Domain.UseCases.Messages.DeletePublishedMessage;
 using TgPoster.API.Domain.UseCases.Messages.EditMessage;
 using TgPoster.API.Domain.UseCases.Messages.GenerateAiContent;
 using TgPoster.API.Domain.UseCases.Messages.GetMessageById;
@@ -322,5 +323,22 @@ public class MessageController(ISender sender) : ControllerBase
 	{
 		var response = await sender.Send(new RetryMessagesCommand(request.Ids, request.Mode), ct);
 		return Ok(response);
+	}
+
+	/// <summary>
+	/// Удалить опубликованный пост из канала и из списка постов. Telegram даёт это сделать в течение 48 часов
+	/// </summary>
+	/// <param name="id"></param>
+	/// <param name="ct"></param>
+	/// <returns></returns>
+	[HttpDelete(Routes.Message.DeleteFromChannel)]
+	[ProducesResponseType(StatusCodes.Status204NoContent)]
+	[ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
+	[ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
+	[ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
+	public async Task<IActionResult> DeleteFromChannel([FromRoute] [Required] Guid id, CancellationToken ct)
+	{
+		await sender.Send(new DeletePublishedMessageCommand(id), ct);
+		return NoContent();
 	}
 }

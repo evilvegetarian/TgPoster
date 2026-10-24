@@ -1,6 +1,7 @@
 using MediatR;
 using Security.IdentityServices;
 using Shared.Utilities;
+using TgPoster.API.Domain.UseCases.Messages.DeletePublishedMessage;
 using TgPoster.API.Domain.UseCases.Messages.ListMessage;
 using TgPoster.Exceptions.NotFound;
 
@@ -9,7 +10,8 @@ namespace TgPoster.API.Domain.UseCases.Messages.GetMessageById;
 internal sealed class GetMessageUseCase(
 	IGetMessageStorage storage,
 	IIdentityProvider identity,
-	S3Options s3Options
+	S3Options s3Options,
+	TimeProvider timeProvider
 ) : IRequestHandler<GetMessageQuery, MessageResponse>
 {
 	public async Task<MessageResponse> Handle(GetMessageQuery request, CancellationToken ct)
@@ -33,6 +35,13 @@ internal sealed class GetMessageUseCase(
 			IsSent = message.IsSent,
 			DeliveryStatus = message.DeliveryStatus,
 			SendError = message.SendError,
+			CanEditPublishedText = message.IsSent && message.HasTelegramTextMessage,
+			CanDeleteFromChannel = message.IsSent
+			                       && message.HasTelegramMessageIds
+			                       && PublishedMessageDeleteWindow.IsOpen(message.TimePosting, timeProvider.GetUtcNow()),
+			DeleteFromChannelUntil = message.HasTelegramMessageIds
+				? PublishedMessageDeleteWindow.GetDeadline(message.TimePosting)
+				: null,
 			HasYouTubeAccount = message.HasYouTubeAccount,
 			CrossPostEnabled = message.CrossPostEnabled,
 			CrossPostFormat = message.CrossPostFormat,

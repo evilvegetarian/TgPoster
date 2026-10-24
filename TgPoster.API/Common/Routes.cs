@@ -64,6 +64,7 @@ internal static class Routes
 		internal const string Shuffle = Root + "/{scheduleId:guid}/shuffle";
 		internal const string RetryCrossPost = Root + "/{id:guid}/cross-posts/{crossPostId:guid}/retry";
 		internal const string Retry = Root + "/retry";
+		internal const string DeleteFromChannel = Root + "/{id:guid}/channel";
 	}
 
 	internal static class File

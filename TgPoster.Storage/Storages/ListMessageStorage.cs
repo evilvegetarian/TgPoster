@@ -99,6 +99,8 @@ internal sealed class ListMessageStorage(PosterContext context) : IListMessageSt
 					: message.Status == Data.Enum.MessageStatus.Error ? MessageDeliveryStatus.Failed
 					: MessageDeliveryStatus.Cancelled,
 				SendError = message.SendError,
+				HasTelegramTextMessage = message.TelegramTextMessageId != null,
+				HasTelegramMessageIds = message.TelegramMessageIds != null && message.TelegramMessageIds.Length > 0,
 				HasYouTubeAccount = message.Schedule.YouTubeAccountId.HasValue,
 				CrossPostEnabled = message.CrossPostEnabled,
 				CrossPostFormat = message.CrossPostFormat,

@@ -23,6 +23,21 @@ public sealed record MessageResponse
 	/// </summary>
 	public string? SendError { get; init; }
 
+	/// <summary>
+	/// Текст опубликованного поста можно изменить в канале
+	/// </summary>
+	public required bool CanEditPublishedText { get; init; }
+
+	/// <summary>
+	/// Опубликованный пост ещё можно удалить из канала
+	/// </summary>
+	public required bool CanDeleteFromChannel { get; init; }
+
+	/// <summary>
+	/// До какого момента пост можно удалить из канала, null — id сообщений поста в канале неизвестны
+	/// </summary>
+	public DateTimeOffset? DeleteFromChannelUntil { get; init; }
+
 	public required bool HasVideo { get; init; }
 	public required bool HasYouTubeAccount { get; init; }
 

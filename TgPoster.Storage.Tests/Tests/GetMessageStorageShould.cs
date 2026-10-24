@@ -188,4 +188,38 @@ public class GetMessageStorageShould(StorageTestFixture fixture) : IClassFixture
 		result.ShouldNotBeNull();
 		result.SendError.ShouldBe("403: Forbidden: bot was kicked");
 	}
+
+	[Fact]
+	public async Task GetMessagesAsync_WithTelegramIds_ShouldReturnTelegramFlags()
+	{
+		var schedule = await new ScheduleBuilder(context).CreateAsync();
+		var message = await new MessageBuilder(context)
+			.WithSchedule(schedule)
+			.WithStatus(Data.Enum.MessageStatus.Send)
+			.WithTelegramMessageIds([10, 11], 10)
+			.CreateAsync();
+
+		var result = await sut.GetMessagesAsync(message.Id, schedule.UserId, CancellationToken.None);
+
+		result.ShouldNotBeNull();
+		result.HasTelegramMessageIds.ShouldBeTrue();
+		result.HasTelegramTextMessage.ShouldBeTrue();
+	}
+
+	[Fact]
+	public async Task GetMessagesAsync_WithoutTelegramIds_ShouldReturnFalseTelegramFlags()
+	{
+		var schedule = await new ScheduleBuilder(context).CreateAsync();
+		var message = await new MessageBuilder(context)
+			.WithSchedule(schedule)
+			.WithStatus(Data.Enum.MessageStatus.Send)
+			.WithTelegramMessageIds(null, null)
+			.CreateAsync();
+
+		var result = await sut.GetMessagesAsync(message.Id, schedule.UserId, CancellationToken.None);
+
+		result.ShouldNotBeNull();
+		result.HasTelegramMessageIds.ShouldBeFalse();
+		result.HasTelegramTextMessage.ShouldBeFalse();
+	}
 }
