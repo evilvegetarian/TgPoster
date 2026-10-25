@@ -50,7 +50,7 @@ const SESSION_STATUS_LABELS: Record<string, string> = {
 }
 
 function workerLink(jobName: string | undefined): string {
-    return WORKER_LINKS[jobName ?? ""] ?? "/discover/stats"
+    return WORKER_LINKS[jobName ?? ""] ?? "/discover?tab=stats"
 }
 
 function sessionName(session: DashboardSession): string {

@@ -2,6 +2,7 @@ using System.Text.RegularExpressions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Shared.Discover;
 using Shared.Enums;
 using TgPoster.Telegram.Abstractions;
 using TgPoster.Telegram.Models;
@@ -14,15 +15,21 @@ internal sealed partial class DiscoverChannelLinksWorker(
 	ITelegramAuthService authService,
 	IWorkerJobStatusStorage statusStorage,
 	IServiceScopeFactory scopeFactory,
-	HangfireNextRunProvider nextRun,
+	TimeProvider timeProvider,
 	ILogger<DiscoverChannelLinksWorker> logger,
 	IHostApplicationLifetime lifetime)
 {
 	private const int MessageBatchSize = 100;
-	private const int ChannelsPerSession = 1;
 	private static readonly TimeSpan InterBatchDelay = TimeSpan.FromMilliseconds(1500);
 	private static readonly TimeSpan InviteLookupDelay = TimeSpan.FromMilliseconds(500);
 	private static readonly TimeSpan HeartbeatInterval = TimeSpan.FromSeconds(20);
+
+	/// <summary>
+	/// Job тикает раз в минуту, поэтому интервал из настроек сверяем с запасом —
+	/// иначе каждый запуск съезжал бы на лишнюю минуту
+	/// </summary>
+	private static readonly TimeSpan ScheduleTolerance = TimeSpan.FromSeconds(30);
+
 	private static readonly SemaphoreSlim ParseLock = new(1, 1);
 
 	// Ветки разных сессий работают параллельно, но storage и statusStorage живут в одном
@@ -33,6 +40,17 @@ internal sealed partial class DiscoverChannelLinksWorker(
 	private int progressCurrent;
 	private int progressTotal;
 
+	/// <summary>
+	/// Настройки по умолчанию — те, с которыми воркер работал до появления настроек
+	/// </summary>
+	/// <returns></returns>
+	internal static DiscoverSettingsDto CreateDefaultSettings() => new()
+	{
+		IsEnabled = DiscoverDefaults.IsEnabled,
+		IntervalMinutes = DiscoverDefaults.IntervalMinutes,
+		ChannelsPerSession = DiscoverDefaults.ChannelsPerSession
+	};
+
 	public async Task ProcessChannelsAsync()
 	{
 		var ct = lifetime.ApplicationStopping;
@@ -42,20 +60,36 @@ internal sealed partial class DiscoverChannelLinksWorker(
 			return;
 		}
 
+		DateTimeOffset? nextRunAt = null;
 		try
 		{
+			var settings = await storage.GetSettingsAsync(ct) ?? CreateDefaultSettings();
+			if (!settings.IsEnabled)
+			{
+				return;
+			}
+
+			// Hangfire дёргает job каждую минуту, а реальный интервал берётся из настроек
+			var startedAt = timeProvider.GetUtcNow();
+			var interval = TimeSpan.FromMinutes(settings.IntervalMinutes);
+			var lastStartedAt = await statusStorage.GetLastStartedAtAsync(WorkerJobNames.DiscoverChannelLinks, ct);
+			if (lastStartedAt is not null && startedAt - lastStartedAt < interval - ScheduleTolerance)
+			{
+				return;
+			}
+
+			nextRunAt = startedAt + interval;
 			await TryReportAsync(() => statusStorage.ReportStartedAsync(WorkerJobNames.DiscoverChannelLinks, ct));
 
-			var outcome = await ProcessChannelsCoreAsync(ct);
+			var outcome = await ProcessChannelsCoreAsync(settings.ChannelsPerSession, ct);
 
 			// Финальную запись статуса делаем с CancellationToken.None: при остановке приложения
 			// она должна успеть выполниться best-effort
-			var nextRunAt = nextRun.GetNextRunAt(WorkerJobNames.DiscoverChannelLinks);
 			if (outcome.CooldownSeconds is { } floodWait)
 			{
 				await TryReportAsync(() => statusStorage.ReportCooldownAsync(
 					WorkerJobNames.DiscoverChannelLinks,
-					DateTimeOffset.UtcNow.AddSeconds(floodWait),
+					timeProvider.GetUtcNow().AddSeconds(floodWait),
 					nextRunAt,
 					CancellationToken.None));
 			}
@@ -80,7 +114,7 @@ internal sealed partial class DiscoverChannelLinksWorker(
 			await TryReportAsync(() => statusStorage.ReportFailedAsync(
 				WorkerJobNames.DiscoverChannelLinks,
 				ex.Message,
-				nextRun.GetNextRunAt(WorkerJobNames.DiscoverChannelLinks),
+				nextRunAt,
 				CancellationToken.None));
 			throw;
 		}
@@ -94,9 +128,10 @@ internal sealed partial class DiscoverChannelLinksWorker(
 	///     Разложить каналы по доступным Discover-сессиям и обработать их параллельно:
 	///     за каждой сессией стоит отдельный Telegram-аккаунт со своими лимитами
 	/// </summary>
+	/// <param name="channelsPerSession">Сколько каналов берёт каждая сессия за запуск</param>
 	/// <param name="ct">Токен отмены</param>
 	/// <returns>Кулдаун, если FloodWait поймали все сессии; ошибка, если упали все каналы запуска</returns>
-	private async Task<RunOutcome> ProcessChannelsCoreAsync(CancellationToken ct)
+	private async Task<RunOutcome> ProcessChannelsCoreAsync(int channelsPerSession, CancellationToken ct)
 	{
 		var sessionIds = await authService.GetSessionIdsForPurposeAsync(TelegramSessionPurpose.Discover, ct);
 		if (sessionIds.Count == 0)
@@ -105,7 +140,7 @@ internal sealed partial class DiscoverChannelLinksWorker(
 			return RunOutcome.Success;
 		}
 
-		var channels = await storage.GetChannelsToProcessAsync(ChannelsPerSession * sessionIds.Count, sessionIds, ct);
+		var channels = await storage.GetChannelsToProcessAsync(channelsPerSession * sessionIds.Count, sessionIds, ct);
 		if (channels.Count == 0)
 		{
 			logger.LogInformation("Нет каналов для обработки DiscoverChannelLinks");

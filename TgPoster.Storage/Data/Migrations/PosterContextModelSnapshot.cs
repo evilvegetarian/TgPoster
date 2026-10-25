@@ -747,6 +747,50 @@ namespace TgPoster.Storage.Data.Migrations
                     b.ToTable("Days");
                 });
 
+            modelBuilder.Entity("TgPoster.Storage.Data.Entities.DiscoverSettings", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("ChannelsPerSession")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTimeOffset?>("Created")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("CreatedById")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset?>("Deleted")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("DeletedById")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("IntervalMinutes")
+                        .HasColumnType("integer");
+
+                    b.Property<bool>("IsEnabled")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTimeOffset?>("Updated")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("UpdatedById")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedById");
+
+                    b.HasIndex("DeletedById");
+
+                    b.HasIndex("UpdatedById");
+
+                    b.ToTable("DiscoverSettings");
+                });
+
             modelBuilder.Entity("TgPoster.Storage.Data.Entities.DiscoveredChannel", b =>
                 {
                     b.Property<Guid>("Id")
@@ -2522,6 +2566,27 @@ namespace TgPoster.Storage.Data.Migrations
                     b.Navigation("DeletedBy");
 
                     b.Navigation("Schedule");
+
+                    b.Navigation("UpdatedBy");
+                });
+
+            modelBuilder.Entity("TgPoster.Storage.Data.Entities.DiscoverSettings", b =>
+                {
+                    b.HasOne("TgPoster.Storage.Data.Entities.User", "CreatedBy")
+                        .WithMany()
+                        .HasForeignKey("CreatedById");
+
+                    b.HasOne("TgPoster.Storage.Data.Entities.User", "DeletedBy")
+                        .WithMany()
+                        .HasForeignKey("DeletedById");
+
+                    b.HasOne("TgPoster.Storage.Data.Entities.User", "UpdatedBy")
+                        .WithMany()
+                        .HasForeignKey("UpdatedById");
+
+                    b.Navigation("CreatedBy");
+
+                    b.Navigation("DeletedBy");
 
                     b.Navigation("UpdatedBy");
                 });

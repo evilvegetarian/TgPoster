@@ -16,6 +16,25 @@ public sealed class DiscoverChannelLinksStorageShould(StorageTestFixture fixture
 	private readonly DiscoverChannelLinksStorage sut = new(fixture.GetDbContext(), new GuidFactory());
 
 	[Fact]
+	public async Task EnsureSettingsAsync_ShouldCreateOnce_AndKeepExistingValues()
+	{
+		await sut.EnsureSettingsAsync(
+			new DiscoverSettingsDto { IsEnabled = false, IntervalMinutes = 30, ChannelsPerSession = 2 },
+			CancellationToken.None);
+		await sut.EnsureSettingsAsync(
+			new DiscoverSettingsDto { IsEnabled = true, IntervalMinutes = 60, ChannelsPerSession = 1 },
+			CancellationToken.None);
+
+		var result = await sut.GetSettingsAsync(CancellationToken.None);
+
+		result.ShouldNotBeNull();
+		result.IsEnabled.ShouldBeFalse();
+		result.IntervalMinutes.ShouldBe(30);
+		result.ChannelsPerSession.ShouldBe(2);
+		(await context.DiscoverSettings.CountAsync(CancellationToken.None)).ShouldBe(1);
+	}
+
+	[Fact]
 	public async Task UpsertAsync_WhenChannelIsNew_ShouldSavePeerTypeAndTelegramId()
 	{
 		var username = "newchannel";

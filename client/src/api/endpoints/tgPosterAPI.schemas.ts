@@ -1015,6 +1015,27 @@ export interface DiscoverParticipantsBucketCount {
   count: number;
 }
 
+export interface DiscoverSessionOption {
+  id: string;
+  /** @nullable */
+  name?: string | null;
+  /** @nullable */
+  phoneNumber?: string | null;
+  isActive: boolean;
+  isAuthorized: boolean;
+  isSelected: boolean;
+  isOwn: boolean;
+}
+
+export interface DiscoverSettingsResponse {
+  isEnabled: boolean;
+  intervalMinutes: number;
+  channelsPerSession: number;
+  sessions: DiscoverSessionOption[];
+  /** @nullable */
+  updatedAt?: string | null;
+}
+
 /**
  * Поле для сортировки обнаруженных каналов
  */
@@ -2104,6 +2125,32 @@ export interface UpdateCrossPostTargetRequest {
    * @maximum 1440
    */
   delayMinutes: number;
+}
+
+/**
+ * Настройки поиска каналов (Discover)
+ */
+export interface UpdateDiscoverSettingsRequest {
+  /** Включён ли поиск каналов */
+  isEnabled: boolean;
+  /**
+   * Как часто запускать поиск каналов, в минутах
+   * @minimum 1
+   * @maximum 1440
+   */
+  intervalMinutes: number;
+  /**
+   * Сколько каналов парсит каждая сессия за один запуск
+   * @minimum 1
+   * @maximum 20
+   */
+  channelsPerSession: number;
+  /**
+   * Свои Telegram-сессии, которыми парсятся каналы; с остальных своих сессий назначение снимается,
+чужие не меняются
+   * @maxItems 50
+   */
+  telegramSessionIds: string[];
 }
 
 /**

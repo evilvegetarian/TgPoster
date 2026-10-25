@@ -29,6 +29,7 @@ import type {
   ClassifierSettingsResponse,
   DiscoverChannelResponsePagedResponse,
   DiscoverParseHistoryItemResponsePagedResponse,
+  DiscoverSettingsResponse,
   DiscoverStatsResponse,
   DiscoverStatusResponse,
   GetApiV1DiscoverClassificationHistoryParams,
@@ -37,7 +38,8 @@ import type {
   GetApiV1DiscoverParseHistoryParams,
   GetApiV1DiscoverStatsParams,
   ProblemDetails,
-  UpdateClassifierSettingsRequest
+  UpdateClassifierSettingsRequest,
+  UpdateDiscoverSettingsRequest
 } from '../tgPosterAPI.schemas';
 
 import { customInstance } from '../../axios-instance';
@@ -509,6 +511,161 @@ export function useGetApiV1DiscoverParseHistory<TData = Awaited<ReturnType<typeo
 
 
 /**
+ * @summary Получить настройки поиска каналов вместе с сессиями, которые можно ему назначить
+ */
+export const getApiV1DiscoverSettings = (
+    
+ signal?: AbortSignal
+) => {
+      
+      
+      return customInstance<DiscoverSettingsResponse>(
+      {url: `/api/v1/discover/settings`, method: 'GET', signal
+    },
+      );
+    }
+  
+
+
+
+export const getGetApiV1DiscoverSettingsQueryKey = () => {
+    return [
+    `/api/v1/discover/settings`
+    ] as const;
+    }
+
+    
+export const getGetApiV1DiscoverSettingsQueryOptions = <TData = Awaited<ReturnType<typeof getApiV1DiscoverSettings>>, TError = ProblemDetails>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1DiscoverSettings>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetApiV1DiscoverSettingsQueryKey();
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getApiV1DiscoverSettings>>> = ({ signal }) => getApiV1DiscoverSettings(signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getApiV1DiscoverSettings>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetApiV1DiscoverSettingsQueryResult = NonNullable<Awaited<ReturnType<typeof getApiV1DiscoverSettings>>>
+export type GetApiV1DiscoverSettingsQueryError = ProblemDetails
+
+
+export function useGetApiV1DiscoverSettings<TData = Awaited<ReturnType<typeof getApiV1DiscoverSettings>>, TError = ProblemDetails>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1DiscoverSettings>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getApiV1DiscoverSettings>>,
+          TError,
+          Awaited<ReturnType<typeof getApiV1DiscoverSettings>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetApiV1DiscoverSettings<TData = Awaited<ReturnType<typeof getApiV1DiscoverSettings>>, TError = ProblemDetails>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1DiscoverSettings>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getApiV1DiscoverSettings>>,
+          TError,
+          Awaited<ReturnType<typeof getApiV1DiscoverSettings>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetApiV1DiscoverSettings<TData = Awaited<ReturnType<typeof getApiV1DiscoverSettings>>, TError = ProblemDetails>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1DiscoverSettings>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Получить настройки поиска каналов вместе с сессиями, которые можно ему назначить
+ */
+
+export function useGetApiV1DiscoverSettings<TData = Awaited<ReturnType<typeof getApiV1DiscoverSettings>>, TError = ProblemDetails>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1DiscoverSettings>>, TError, TData>>, }
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetApiV1DiscoverSettingsQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+
+/**
+ * @summary Сохранить настройки поиска каналов
+ */
+export const putApiV1DiscoverSettings = (
+    updateDiscoverSettingsRequest: UpdateDiscoverSettingsRequest,
+ ) => {
+      
+      
+      return customInstance<void>(
+      {url: `/api/v1/discover/settings`, method: 'PUT',
+      headers: {'Content-Type': 'application/json', },
+      data: updateDiscoverSettingsRequest
+    },
+      );
+    }
+  
+
+
+export const getPutApiV1DiscoverSettingsMutationOptions = <TError = ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof putApiV1DiscoverSettings>>, TError,{data: UpdateDiscoverSettingsRequest}, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof putApiV1DiscoverSettings>>, TError,{data: UpdateDiscoverSettingsRequest}, TContext> => {
+
+const mutationKey = ['putApiV1DiscoverSettings'];
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof putApiV1DiscoverSettings>>, {data: UpdateDiscoverSettingsRequest}> = (props) => {
+          const {data} = props ?? {};
+
+          return  putApiV1DiscoverSettings(data,)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type PutApiV1DiscoverSettingsMutationResult = NonNullable<Awaited<ReturnType<typeof putApiV1DiscoverSettings>>>
+    export type PutApiV1DiscoverSettingsMutationBody = UpdateDiscoverSettingsRequest
+    export type PutApiV1DiscoverSettingsMutationError = ProblemDetails
+
+    /**
+ * @summary Сохранить настройки поиска каналов
+ */
+export const usePutApiV1DiscoverSettings = <TError = ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof putApiV1DiscoverSettings>>, TError,{data: UpdateDiscoverSettingsRequest}, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof putApiV1DiscoverSettings>>,
+        TError,
+        {data: UpdateDiscoverSettingsRequest},
+        TContext
+      > => {
+
+      const mutationOptions = getPutApiV1DiscoverSettingsMutationOptions(options);
+
+      return useMutation(mutationOptions, queryClient);
+    }
+    /**
  * @summary Получить статистику классификации каналов: покрытие, свежесть, уверенность модели и разбивки
  */
 export const getApiV1DiscoverClassificationStats = (

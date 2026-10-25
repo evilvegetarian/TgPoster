@@ -9,6 +9,7 @@ using TgPoster.API.Domain.UseCases.Discover.GetClassificationStats;
 using TgPoster.API.Domain.UseCases.Discover.GetClassificationStatus;
 using TgPoster.API.Domain.UseCases.Discover.GetClassifierSettings;
 using TgPoster.API.Domain.UseCases.Discover.GetDiscoverParseHistory;
+using TgPoster.API.Domain.UseCases.Discover.GetDiscoverSettings;
 using TgPoster.API.Domain.UseCases.Discover.GetDiscoverStats;
 using TgPoster.API.Domain.UseCases.Discover.GetDiscoverStatus;
 using TgPoster.API.Domain.UseCases.Discover.ListDiscover;
@@ -89,6 +90,35 @@ public class DiscoverController(ISender sender) : ControllerBase
 	{
 		var response = await sender.Send(request.ToDomain(), ct);
 		return Ok(response);
+	}
+
+	/// <summary>
+	/// Получить настройки поиска каналов вместе с сессиями, которые можно ему назначить
+	/// </summary>
+	[HttpGet(Routes.Discover.Settings)]
+	[ProducesResponseType(StatusCodes.Status200OK, Type = typeof(DiscoverSettingsResponse))]
+	[ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
+	public async Task<IActionResult> GetDiscoverSettings(CancellationToken ct)
+	{
+		var settings = await sender.Send(new GetDiscoverSettingsQuery(), ct);
+		return Ok(settings);
+	}
+
+	/// <summary>
+	/// Сохранить настройки поиска каналов
+	/// </summary>
+	[HttpPut(Routes.Discover.Settings)]
+	[ProducesResponseType(StatusCodes.Status204NoContent)]
+	[ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
+	[ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
+	[ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
+	public async Task<IActionResult> UpdateDiscoverSettings(
+		[FromBody] [Required] UpdateDiscoverSettingsRequest request,
+		CancellationToken ct
+	)
+	{
+		await sender.Send(request.ToDomain(), ct);
+		return NoContent();
 	}
 
 	/// <summary>

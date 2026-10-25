@@ -180,11 +180,11 @@ public static class DependencyInjection
 			worker => worker.CheckAsync(),
 			Cron.Hourly());
 
-		//Каждый 1 часов
+		// Тикает каждую минуту: включён ли поиск каналов и пора ли запускаться, решают настройки в БД
 		recurringJobManager.AddOrUpdate<DiscoverChannelLinksWorker>(
 			WorkerJobNames.DiscoverChannelLinks,
 			worker => worker.ProcessChannelsAsync(),
-			"0 */1 * * *");
+			Cron.Minutely());
 
 		// Тикает каждую минуту: включён ли классификатор и пора ли запускаться, решают настройки в БД
 		recurringJobManager.AddOrUpdate<ClassifyChannelWorker>(
@@ -219,10 +219,7 @@ public static class DependencyInjection
 
 		var statusStorage = scope.ServiceProvider.GetRequiredService<IWorkerJobStatusStorage>();
 		var nextRunProvider = scope.ServiceProvider.GetRequiredService<HangfireNextRunProvider>();
-		statusStorage.EnsureRegisteredAsync(
-				WorkerJobNames.DiscoverChannelLinks,
-				nextRunProvider.GetNextRunAt(WorkerJobNames.DiscoverChannelLinks),
-				CancellationToken.None)
+		statusStorage.EnsureRegisteredAsync(WorkerJobNames.DiscoverChannelLinks, null, CancellationToken.None)
 			.GetAwaiter().GetResult();
 		statusStorage.EnsureRegisteredAsync(WorkerJobNames.ClassifyChannels, null, CancellationToken.None)
 			.GetAwaiter().GetResult();
@@ -237,6 +234,10 @@ public static class DependencyInjection
 		classifyStorage.EnsureSettingsAsync(
 				ClassifyChannelWorker.CreateDefaultSettings(openRouterOptions),
 				CancellationToken.None)
+			.GetAwaiter().GetResult();
+
+		scope.ServiceProvider.GetRequiredService<IDiscoverChannelLinksStorage>()
+			.EnsureSettingsAsync(DiscoverChannelLinksWorker.CreateDefaultSettings(), CancellationToken.None)
 			.GetAwaiter().GetResult();
 	}
 

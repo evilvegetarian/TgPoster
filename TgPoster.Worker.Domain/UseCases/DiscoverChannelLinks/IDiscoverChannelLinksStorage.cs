@@ -3,6 +3,20 @@ namespace TgPoster.Worker.Domain.UseCases.DiscoverChannelLinks;
 public interface IDiscoverChannelLinksStorage
 {
 	/// <summary>
+	/// Прочитать настройки поиска каналов; null, если их ещё никто не сохранял
+	/// </summary>
+	/// <param name="ct"></param>
+	/// <returns></returns>
+	Task<DiscoverSettingsDto?> GetSettingsAsync(CancellationToken ct);
+
+	/// <summary>
+	/// Создать запись настроек из переданных значений, если её ещё нет; существующую не трогать
+	/// </summary>
+	/// <param name="defaults"></param>
+	/// <param name="ct"></param>
+	Task EnsureSettingsAsync(DiscoverSettingsDto defaults, CancellationToken ct);
+
+	/// <summary>
 	/// Каналы на парсинг вместе с сессиями, которые в канале забанены. Каналы, где забанены все переданные
 	/// сессии, не возвращаются: их некому парсить, а в очереди они занимали бы место каждый запуск.
 	/// Сначала все чаты, потом каналы; внутри каждой группы — ни разу не парсенные, затем самые давние
@@ -53,4 +67,14 @@ public interface IDiscoverChannelLinksStorage
 		string? error,
 		CancellationToken ct
 	);
+}
+
+/// <summary>
+/// Настройки поиска каналов, с которыми работает воркер
+/// </summary>
+public sealed record DiscoverSettingsDto
+{
+	public required bool IsEnabled { get; init; }
+	public required int IntervalMinutes { get; init; }
+	public required int ChannelsPerSession { get; init; }
 }

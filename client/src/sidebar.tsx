@@ -122,11 +122,6 @@ export function SideBar() {
                 icon: Telescope
             },
             {
-                title: "Статистика Discover",
-                path: "/discover/stats",
-                icon: BarChart3
-            },
-            {
                 title: "Классификация каналов",
                 path: "/discover/classification",
                 icon: Tags

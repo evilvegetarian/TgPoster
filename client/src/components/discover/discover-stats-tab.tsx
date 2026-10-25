@@ -1,5 +1,4 @@
 import {useState} from "react"
-import {Link} from "react-router-dom"
 import {
     Ban,
     CheckCircle2,
@@ -11,15 +10,10 @@ import {
     Search,
     Sparkles,
     Tag,
-    Tags,
     Telescope,
     Users,
 } from "lucide-react"
-import {
-    useGetApiV1DiscoverParseHistory,
-    useGetApiV1DiscoverStats,
-    useGetApiV1DiscoverStatus,
-} from "@/api/endpoints/discover/discover"
+import {useGetApiV1DiscoverParseHistory, useGetApiV1DiscoverStats} from "@/api/endpoints/discover/discover"
 import {Badge} from "@/components/ui/badge"
 import {Button} from "@/components/ui/button"
 import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card"
@@ -39,7 +33,6 @@ import {
 } from "@/components/discover/format"
 import {NamedCountBars, type NamedCountBarItem} from "@/components/discover/named-count-bars"
 import {StatTile} from "@/components/discover/stat-tile"
-import {WorkerStatusCard} from "@/components/discover/worker-status-card"
 import {useDebounce} from "@/hooks/use-debounce"
 import {
     DiscoverChannelStatus,
@@ -494,52 +487,30 @@ function StatsSkeleton() {
     )
 }
 
-export function DiscoverStatsPage() {
+// Вкладка «Статистика» страницы Discover: что и когда спарсилось, откуда берутся каналы, история парсинга
+export function DiscoverStatsTab() {
     const [days, setDays] = useState("30")
 
     const {data: stats, isLoading, isFetching, refetch} = useGetApiV1DiscoverStats({Days: Number(days)})
-    const {data: status} = useGetApiV1DiscoverStatus({query: {refetchInterval: 15_000}})
 
     return (
-        <div className="container mx-auto p-6 max-w-6xl space-y-4">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-                <div>
-                    <h1 className="text-2xl font-bold">Статистика Discover</h1>
-                    <p className="text-sm text-muted-foreground mt-1">
-                        Что и когда спарсилось, откуда берутся каналы и что накопилось в базе
-                    </p>
-                </div>
-                <div className="flex items-center gap-2">
-                    <Select value={days} onValueChange={setDays}>
-                        <SelectTrigger className="w-[130px]">
-                            <SelectValue placeholder="Период"/>
-                        </SelectTrigger>
-                        <SelectContent>
-                            {PERIOD_OPTIONS.map((opt) => (
-                                <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
-                    <Button variant="outline" size="sm" className="gap-1.5" onClick={() => void refetch()} disabled={isFetching}>
-                        <RefreshCw className={`h-3.5 w-3.5 ${isFetching ? "animate-spin" : ""}`}/>
-                        Обновить
-                    </Button>
-                    <Button variant="outline" size="sm" className="gap-1.5" asChild>
-                        <Link to="/discover/classification">
-                            <Tags className="h-3.5 w-3.5"/>
-                            Классификация
-                        </Link>
-                    </Button>
-                    <Button variant="outline" size="sm" className="gap-1.5" asChild>
-                        <Link to="/discover">
-                            <Telescope className="h-3.5 w-3.5"/>
-                            К списку каналов
-                        </Link>
-                    </Button>
-                </div>
+        <div className="space-y-4">
+            <div className="flex flex-wrap items-center justify-end gap-2">
+                <Select value={days} onValueChange={setDays}>
+                    <SelectTrigger className="w-[130px]">
+                        <SelectValue placeholder="Период"/>
+                    </SelectTrigger>
+                    <SelectContent>
+                        {PERIOD_OPTIONS.map((opt) => (
+                            <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
+                <Button variant="outline" size="sm" className="gap-1.5" onClick={() => void refetch()} disabled={isFetching}>
+                    <RefreshCw className={`h-3.5 w-3.5 ${isFetching ? "animate-spin" : ""}`}/>
+                    Обновить
+                </Button>
             </div>
-
-            {status && <WorkerStatusCard title="Воркер парсинга" status={status}/>}
 
             {isLoading || !stats ? (
                 <StatsSkeleton/>

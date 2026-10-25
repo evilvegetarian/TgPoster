@@ -9,6 +9,37 @@ namespace TgPoster.Storage.Storages.DiscoverChannelLinks;
 internal sealed class DiscoverChannelLinksStorage(PosterContext context, GuidFactory guidFactory)
 	: IDiscoverChannelLinksStorage
 {
+	public Task<DiscoverSettingsDto?> GetSettingsAsync(CancellationToken ct) =>
+		context.DiscoverSettings
+			.Where(x => x.Id == DiscoverSettings.SingletonId)
+			.Select(x => new DiscoverSettingsDto
+			{
+				IsEnabled = x.IsEnabled,
+				IntervalMinutes = x.IntervalMinutes,
+				ChannelsPerSession = x.ChannelsPerSession
+			})
+			.FirstOrDefaultAsync(ct);
+
+	public async Task EnsureSettingsAsync(DiscoverSettingsDto defaults, CancellationToken ct)
+	{
+		var exists = await context.DiscoverSettings
+			.IgnoreQueryFilters()
+			.AnyAsync(x => x.Id == DiscoverSettings.SingletonId, ct);
+		if (exists)
+		{
+			return;
+		}
+
+		context.DiscoverSettings.Add(new DiscoverSettings
+		{
+			Id = DiscoverSettings.SingletonId,
+			IsEnabled = defaults.IsEnabled,
+			IntervalMinutes = defaults.IntervalMinutes,
+			ChannelsPerSession = defaults.ChannelsPerSession
+		});
+		await context.SaveChangesAsync(ct);
+	}
+
 	public Task<List<DiscoverChannelDto>> GetChannelsToProcessAsync(
 		int channelBatchSize,
 		IReadOnlyCollection<Guid> sessionIds,

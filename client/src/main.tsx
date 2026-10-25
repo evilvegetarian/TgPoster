@@ -1,7 +1,7 @@
 import {StrictMode} from 'react';
 import {createRoot} from 'react-dom/client';
 import './index.css';
-import {createBrowserRouter, RouterProvider} from "react-router-dom";
+import {createBrowserRouter, Navigate, RouterProvider} from "react-router-dom";
 import {Layout} from "@/layout.tsx";
 import {RegisterPage} from "@/pages/register-page.tsx";
 import {LoginPage} from "@/pages/login-page.tsx";
@@ -27,7 +27,6 @@ import {RepostLogsPage} from "@/pages/repostpage/repost-logs-page.tsx";
 import {CommentRepostPage} from "@/pages/commentrepostpage/comment-repost-page.tsx";
 import ProxyPage from "@/pages/proxy-page.tsx"
 import {DiscoverPage} from "@/pages/discover-page.tsx";
-import {DiscoverStatsPage} from "@/pages/discover-stats-page.tsx";
 import {DiscoverClassificationPage} from "@/pages/discover-classification-page.tsx";
 
 const router = createBrowserRouter([
@@ -128,8 +127,9 @@ const router = createBrowserRouter([
                                 element: <DiscoverPage/>,
                             },
                             {
+                                // Статистика переехала во вкладку страницы Discover, старые ссылки ведут туда
                                 path: "/discover/stats",
-                                element: <DiscoverStatsPage/>,
+                                element: <Navigate to="/discover?tab=stats" replace/>,
                             },
                             {
                                 path: "/discover/classification",
