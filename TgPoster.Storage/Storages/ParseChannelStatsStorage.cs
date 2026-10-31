@@ -45,7 +45,7 @@ internal sealed class ParseChannelStatsStorage(PosterContext context)
 		{
 			Total = counts.Sum(x => x.Count),
 			Planned = counts
-				.Where(x => x.Status == MessageStatus.InHandle || (x.Status == MessageStatus.Register && x.IsVerified))
+				.Where(x => x.Status == MessageStatus.InHandle || x.Status == MessageStatus.Sending || (x.Status == MessageStatus.Register && x.IsVerified))
 				.Sum(x => x.Count),
 			AwaitingApproval = counts.Where(x => x.Status == MessageStatus.Register && !x.IsVerified).Sum(x => x.Count),
 			Published = counts.Where(x => x.Status == MessageStatus.Send).Sum(x => x.Count),

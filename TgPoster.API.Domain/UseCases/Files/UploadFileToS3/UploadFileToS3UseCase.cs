@@ -1,7 +1,9 @@
 using MediatR;
+using Security.IdentityServices;
 using Shared.Telegram;
 using Shared.Utilities;
 using TgPoster.API.Domain.Services;
+using TgPoster.Exceptions;
 using TgPoster.Exceptions.NotFound;
 
 namespace TgPoster.API.Domain.UseCases.Files.UploadFileToS3;
@@ -11,13 +13,19 @@ internal sealed class UploadFileToS3UseCase(
 	FileService fileService,
 	TelegramTokenService tokenService,
 	TelegramBotManager botManager,
-	S3Options s3Options
+	S3Options s3Options,
+	IIdentityProvider identity,
+	FileAccessTokenService fileAccess
 ) : IRequestHandler<UploadFileToS3Command, string>
 {
 	public async Task<string> Handle(UploadFileToS3Command request, CancellationToken ct)
 	{
+		var signedAccess = fileAccess.IsValid(request.FileId, request.Token);
+		if (!identity.Current.IsAuthenticated && !signedAccess)
+			throw new AuthorizationRequiredException();
+
 		var fileInfo = await storage.GetFileInfoAsync(request.FileId, ct);
-		if (fileInfo is null)
+		if (fileInfo is null || (!signedAccess && fileInfo.UserId != identity.Current.UserId))
 		{
 			throw new FileNotExistException();
 		}

@@ -44,7 +44,10 @@ internal sealed class EditMessageStorage(PosterContext context) : IEditMessageSt
 			.Include(m => m.MessageFiles)
 			.FirstOrDefaultAsync(m => m.Id == messageDto.Id, ct);
 
-		message!.TextMessage = messageDto.Text;
+		if (message!.Status == MessageStatus.InHandle && message.TimePosting != messageDto.TimePosting)
+			message.Status = MessageStatus.Register;
+
+		message.TextMessage = messageDto.Text;
 		message.TimePosting = messageDto.TimePosting;
 		message.ScheduleId = messageDto.ScheduleId;
 

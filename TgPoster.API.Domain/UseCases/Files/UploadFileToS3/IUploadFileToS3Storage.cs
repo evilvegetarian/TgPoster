@@ -34,6 +34,7 @@ public interface IUploadFileToS3Storage
 /// </summary>
 public sealed class FileInfoDto
 {
+	public Guid UserId { get; set; }
 	public required string TgFileId { get; set; }
 	public required string ContentType { get; set; }
 	public bool IsInS3 { get; set; }

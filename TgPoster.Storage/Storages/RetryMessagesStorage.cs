@@ -28,7 +28,7 @@ internal sealed class RetryMessagesStorage(PosterContext context) : IRetryMessag
 		return context.Messages
 			.Where(x => x.ScheduleId == scheduleId)
 			.Where(x => x.TimePosting > from)
-			.Where(x => x.Status == MessageStatus.Register || x.Status == MessageStatus.InHandle)
+			.Where(x => x.Status == MessageStatus.Register || x.Status == MessageStatus.InHandle || x.Status == MessageStatus.Sending)
 			.Select(x => x.TimePosting)
 			.ToListAsync(ct);
 	}

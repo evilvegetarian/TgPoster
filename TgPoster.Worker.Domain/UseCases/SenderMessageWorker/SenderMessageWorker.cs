@@ -72,14 +72,12 @@ public class SenderMessageWorker(
 		await storage.UpdateStatusInHandleMessageAsync(messages.Select(x => x.Id).ToList());
 		foreach (var detail in messageDetails)
 		{
-			var token = crypto.Decrypt(options.SecretKey, detail.Api);
-
 			foreach (var message in detail.MessageDto.OrderBy(x => x.TimePosting))
 			{
 				try
 				{
 					BackgroundJob.Schedule<SenderMessageWorker>(
-						x => x.SendMessageAsync(message.Id, token, detail.ChannelId, message, detail.YouTubeAccount),
+						x => x.SendMessageAsync(message.Id),
 						message.TimePosting);
 				}
 				catch (Exception e)
@@ -92,16 +90,30 @@ public class SenderMessageWorker(
 		}
 	}
 
-	[SuppressMessage("ReSharper", "MemberCanBePrivate.Global")]
-	public async Task SendMessageAsync(
+	// Сохраняет совместимость с заданиями Hangfire, созданными до перехода на загрузку поста по ID
+	[AutomaticRetry(Attempts = 0)]
+	public Task SendMessageAsync(
 		Guid messageId,
 		string token,
 		long chatId,
 		MessageDto message,
 		YouTubeAccountDto? youTubeAccount
-	)
+	) => SendMessageAsync(messageId);
+
+	[SuppressMessage("ReSharper", "MemberCanBePrivate.Global")]
+	[AutomaticRetry(Attempts = 0)]
+	public async Task SendMessageAsync(Guid messageId)
 	{
 		var ct = lifetime.ApplicationStopping;
+		ct.ThrowIfCancellationRequested();
+		var detail = await storage.TakeMessageForSendingAsync(messageId, ct);
+		if (detail is null)
+			return;
+
+		var message = detail.MessageDto.Single();
+		var token = crypto.Decrypt(options.SecretKey, detail.Api);
+		var chatId = detail.ChannelId;
+		var youTubeAccount = detail.YouTubeAccount;
 		var bot = botManager.GetClient(token);
 		var medias = message.File.Select(file => (InputMedia)(file.ContentType.GetFileType() == FileTypes.Image
 				? new InputMediaPhoto(file.TgFileId)
@@ -160,8 +172,6 @@ public class SenderMessageWorker(
 
 			postMessageIds = result.MessageIds;
 		}
-
-		await storage.UpdateSendStatusMessageAsync(messageId);
 
 		var sentIds = BuildSentMessageIds(postMessageIds, separateTextMessageId);
 		if (sentIds is not null)

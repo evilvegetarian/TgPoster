@@ -3,17 +3,24 @@ using Google.Apis.Auth.OAuth2.Flows;
 using Google.Apis.Services;
 using Google.Apis.YouTube.v3;
 using MediatR;
-using Security.IdentityServices;
+using TgPoster.API.Domain.Services;
+using TgPoster.Exceptions.BadRequest;
+using TgPoster.Exceptions.NotFound;
 
 namespace TgPoster.API.Domain.UseCases.YouTubeAccount.CallBackYouTube;
 
-public class CallBackYouTubeUseCase(ICallBackYouTubeStorage storage, IIdentityProvider provider)
+public class CallBackYouTubeUseCase(ICallBackYouTubeStorage storage, YouTubeOAuthStateService states)
 	: IRequestHandler<CallBackYouTubeQuery>
 {
 	public async Task Handle(CallBackYouTubeQuery request, CancellationToken ct)
 	{
-		var accountYouTubeGuid = Guid.Parse(request.State);
-		var (clientId, clientSecret) = await storage.GetClients(accountYouTubeGuid, provider.Current.UserId, ct);
+		if (string.IsNullOrEmpty(request.ExpectedState) || request.State != request.ExpectedState)
+			throw new InvalidYouTubeOAuthStateException();
+		var state = states.Take(request.State) ?? throw new InvalidYouTubeOAuthStateException();
+		var accountYouTubeGuid = state.AccountId;
+		var (clientId, clientSecret) = await storage.GetClients(accountYouTubeGuid, state.UserId, ct);
+		if (string.IsNullOrEmpty(clientId) || string.IsNullOrEmpty(clientSecret))
+			throw new YouTubeAccountNotFoundException(accountYouTubeGuid);
 
 		var flow = new GoogleAuthorizationCodeFlow(new GoogleAuthorizationCodeFlow.Initializer
 		{
@@ -49,6 +56,7 @@ public class CallBackYouTubeUseCase(ICallBackYouTubeStorage storage, IIdentityPr
 
 		await storage.AddToken(
 			accountYouTubeGuid,
+			state.UserId,
 			token.AccessToken,
 			token.RefreshToken,
 			channelName,

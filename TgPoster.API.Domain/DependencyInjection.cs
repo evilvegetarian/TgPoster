@@ -36,6 +36,8 @@ public static class DependencyInjection
 			}));
 
 		services.TryAddSingleton(TimeProvider.System);
+		services.AddSingleton<FileAccessTokenService>();
+		services.AddSingleton<YouTubeOAuthStateService>();
 		services.AddShared();
 		services
 			.AddScoped<ITelegramService, TelegramService>()

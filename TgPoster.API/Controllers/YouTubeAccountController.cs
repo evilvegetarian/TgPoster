@@ -1,6 +1,7 @@
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.WebUtilities;
 using TgPoster.API.Common;
 using TgPoster.API.Domain.UseCases.YouTubeAccount.CallBackYouTube;
 using TgPoster.API.Domain.UseCases.YouTubeAccount.DeleteYouTubeAccount;
@@ -19,6 +20,7 @@ namespace TgPoster.API.Controllers;
 [ApiController]
 public class YouTubeAccountController(ISender sender) : ControllerBase
 {
+	private const string OAuthCookieName = "tgposter-youtube-oauth";
 	/// <summary>
 	///     Регистрация Аккаунта, редиректит на гугл авторизацию
 	/// </summary>
@@ -37,6 +39,15 @@ public class YouTubeAccountController(ISender sender) : ControllerBase
 		var uri = "http://localhost:5173/api/v1/youtube/callback";
 		var command = new LoginYouTubeCommand(request.JsonFile, request.ClientId, request.ClientSecret, uri);
 		var response = await sender.Send(command, ct);
+		var state = QueryHelpers.ParseQuery(new Uri(response.Url).Query)["state"].ToString();
+		Response.Cookies.Append(OAuthCookieName, state, new CookieOptions
+		{
+			HttpOnly = true,
+			Secure = true,
+			SameSite = SameSiteMode.Lax,
+			Path = "/" + Routes.YouTubeAccount.CallBack,
+			MaxAge = TimeSpan.FromMinutes(10)
+		});
 		return Created(Routes.YouTubeAccount.Create, response);
 	}
 
@@ -44,7 +55,7 @@ public class YouTubeAccountController(ISender sender) : ControllerBase
 	///     Коллбэк от гугл обратно к нам
 	/// </summary>
 	/// <param name="code">Код авторизации от Google</param>
-	/// <param name="state">Идентификатор записи в базе данных</param>
+	/// <param name="state">Одноразовый идентификатор сессии подключения</param>
 	/// <param name="error">Сообщение об ошибке (если есть)</param>
 	/// <param name="ct">Токен отмены операции</param>
 	/// <returns>Результат выполнения операции</returns>
@@ -56,8 +67,9 @@ public class YouTubeAccountController(ISender sender) : ControllerBase
 	public async Task<IActionResult> GoogleCallback(string code, string state, string? error, CancellationToken ct)
 	{
 		var uri = "http://localhost:5173/api/v1/youtube/callback";
-		var command = new CallBackYouTubeQuery(code, state, uri);
+		var command = new CallBackYouTubeQuery(code, state, uri, Request.Cookies[OAuthCookieName]);
 		await sender.Send(command, ct);
+		Response.Cookies.Delete(OAuthCookieName, new CookieOptions { Path = "/" + Routes.YouTubeAccount.CallBack });
 		return Redirect("/");
 	}
 

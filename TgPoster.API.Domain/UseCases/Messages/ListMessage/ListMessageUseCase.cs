@@ -1,6 +1,7 @@
 using MediatR;
 using Security.IdentityServices;
 using Shared.Utilities;
+using TgPoster.API.Domain.Services;
 using TgPoster.API.Domain.UseCases.Messages.DeletePublishedMessage;
 using TgPoster.Exceptions.NotFound;
 
@@ -10,7 +11,8 @@ internal sealed class ListMessageUseCase(
 	IListMessageStorage storage,
 	IIdentityProvider provider,
 	S3Options s3Options,
-	TimeProvider timeProvider
+	TimeProvider timeProvider,
+	FileAccessTokenService fileAccess
 ) : IRequestHandler<ListMessageQuery, PagedResponse<MessageResponse>>
 {
 	public async Task<PagedResponse<MessageResponse>> Handle(ListMessageQuery request, CancellationToken ct)
@@ -77,7 +79,7 @@ internal sealed class ListMessageUseCase(
 		{
 			return isCached
 				? $"{s3Options.ServiceUrl}/{s3Options.BucketName}/{fileId}"
-				: $"/api/v1/file/{fileId}/upload-s3";
+				: $"/api/v1/file/{fileId}/upload-s3?token={Uri.EscapeDataString(fileAccess.Create(fileId))}";
 		}
 	}
 }

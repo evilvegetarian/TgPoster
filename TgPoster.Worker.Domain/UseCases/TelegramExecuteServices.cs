@@ -73,7 +73,7 @@ public class TelegramExecuteServices(ILogger<TelegramExecuteServices> logger)
 			maxRetries, ct);
 	}
 
-	public async Task<TelegramSendResult> SendMediaGroupAsync(
+	public virtual async Task<TelegramSendResult> SendMediaGroupAsync(
 		ITelegramBotClient bot,
 		long chatId,
 		IEnumerable<IAlbumInputMedia> medias,
@@ -104,7 +104,7 @@ public class TelegramExecuteServices(ILogger<TelegramExecuteServices> logger)
 		}
 	}
 
-	public async Task<TelegramSendResult> SendTextAsync(
+	public virtual async Task<TelegramSendResult> SendTextAsync(
 		ITelegramBotClient bot,
 		long chatId,
 		string text,

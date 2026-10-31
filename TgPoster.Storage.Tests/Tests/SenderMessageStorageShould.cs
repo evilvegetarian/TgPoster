@@ -1,3 +1,5 @@
+using Microsoft.EntityFrameworkCore;
+using Shared.Enums;
 using Shouldly;
 using TgPoster.Storage.Data;
 using TgPoster.Storage.Data.Entities;
@@ -12,6 +14,158 @@ public class SenderMessageStorageShould(StorageTestFixture fixture) : IClassFixt
 {
 	private readonly PosterContext context = fixture.GetDbContext();
 	private readonly SenderMessageStorage sut = new(fixture.GetDbContext());
+
+	[Fact]
+	public async Task TakeMessageForSendingAsync_ShouldReadEditedPostAndCurrentChannel()
+	{
+		var schedule = await new ScheduleBuilder(context).CreateAsync();
+		var message = CreateMessage(schedule.Id, DateTimeOffset.UtcNow.AddMinutes(-1), MessageStatus.InHandle);
+		context.Messages.Add(message);
+		await context.SaveChangesAsync();
+		message.TextMessage = "Исправленный текст";
+		schedule.ChannelId = -100987654321;
+		await context.SaveChangesAsync();
+
+		var result = await sut.TakeMessageForSendingAsync(message.Id, CancellationToken.None);
+
+		result.ShouldNotBeNull();
+		result.MessageDto.Single().Message.ShouldBe("Исправленный текст");
+		result.ChannelId.ShouldBe(schedule.ChannelId);
+		await using var check = fixture.GetDbContext();
+		(await check.Messages.FirstAsync(x => x.Id == message.Id)).Status.ShouldBe(MessageStatus.Sending);
+	}
+
+	[Fact]
+	public async Task TakeMessageForSendingAsync_ShouldIgnoreDeletedPost()
+	{
+		var schedule = await new ScheduleBuilder(context).CreateAsync();
+		var message = CreateMessage(schedule.Id, DateTimeOffset.UtcNow.AddMinutes(-1), MessageStatus.InHandle);
+		context.Messages.Add(message);
+		await context.SaveChangesAsync();
+		context.Messages.Remove(message);
+		await context.SaveChangesAsync();
+
+		var result = await sut.TakeMessageForSendingAsync(message.Id, CancellationToken.None);
+
+		result.ShouldBeNull();
+	}
+
+	[Theory]
+	[InlineData(false, true)]
+	[InlineData(true, false)]
+	public async Task TakeMessageForSendingAsync_ShouldNotTakeDisabledOrUnverifiedPost(bool active, bool verified)
+	{
+		var schedule = await new ScheduleBuilder(context).WithIsActive(active).CreateAsync();
+		var message = CreateMessage(schedule.Id, DateTimeOffset.UtcNow.AddMinutes(-1), MessageStatus.InHandle);
+		message.IsVerified = verified;
+		context.Messages.Add(message);
+		await context.SaveChangesAsync();
+
+		var result = await sut.TakeMessageForSendingAsync(message.Id, CancellationToken.None);
+
+		result.ShouldBeNull();
+	}
+
+	[Fact]
+	public async Task TakeMessageForSendingAsync_ShouldReleasePostMovedToFuture()
+	{
+		var schedule = await new ScheduleBuilder(context).CreateAsync();
+		var message = CreateMessage(schedule.Id, DateTimeOffset.UtcNow.AddHours(2), MessageStatus.InHandle);
+		context.Messages.Add(message);
+		await context.SaveChangesAsync();
+
+		var result = await sut.TakeMessageForSendingAsync(message.Id, CancellationToken.None);
+
+		result.ShouldBeNull();
+		await using var check = fixture.GetDbContext();
+		(await check.Messages.FirstAsync(x => x.Id == message.Id)).Status.ShouldBe(MessageStatus.Register);
+	}
+
+	[Theory]
+	[InlineData(MessageStatus.Sending)]
+	[InlineData(MessageStatus.Send)]
+	[InlineData(MessageStatus.Error)]
+	[InlineData(MessageStatus.Cancel)]
+	public async Task TakeMessageForSendingAsync_ShouldRejectAlreadyHandledPost(MessageStatus status)
+	{
+		var schedule = await new ScheduleBuilder(context).CreateAsync();
+		var message = CreateMessage(schedule.Id, DateTimeOffset.UtcNow.AddMinutes(-1), status);
+		context.Messages.Add(message);
+		await context.SaveChangesAsync();
+
+		var result = await sut.TakeMessageForSendingAsync(message.Id, CancellationToken.None);
+
+		result.ShouldBeNull();
+	}
+
+	[Fact]
+	public async Task TakeMessageForSendingAsync_ShouldGrantPostToOnlyOneConcurrentHandler()
+	{
+		var schedule = await new ScheduleBuilder(context).CreateAsync();
+		var message = CreateMessage(schedule.Id, DateTimeOffset.UtcNow.AddMinutes(-1), MessageStatus.InHandle);
+		context.Messages.Add(message);
+		await context.SaveChangesAsync();
+		await using var firstContext = fixture.GetDbContext();
+		await using var secondContext = fixture.GetDbContext();
+
+		var results = await Task.WhenAll(
+			new SenderMessageStorage(firstContext).TakeMessageForSendingAsync(message.Id, CancellationToken.None),
+			new SenderMessageStorage(secondContext).TakeMessageForSendingAsync(message.Id, CancellationToken.None));
+
+		results.Count(x => x is not null).ShouldBe(1);
+	}
+
+	[Theory]
+	[InlineData(MessageStatus.Sending)]
+	[InlineData(MessageStatus.Send)]
+	public async Task UpdateStatusInHandleMessageAsync_ShouldNotOverwriteDeliveryState(MessageStatus status)
+	{
+		var schedule = await new ScheduleBuilder(context).CreateAsync();
+		var message = CreateMessage(schedule.Id, DateTimeOffset.UtcNow.AddMinutes(-1), status);
+		context.Messages.Add(message);
+		await context.SaveChangesAsync();
+
+		await sut.UpdateStatusInHandleMessageAsync([message.Id]);
+
+		await using var check = fixture.GetDbContext();
+		(await check.Messages.FirstAsync(x => x.Id == message.Id)).Status.ShouldBe(status);
+	}
+
+	[Fact]
+	public async Task SaveTelegramMessageIdsAsync_ShouldSaveIdsAndSuccessTogether()
+	{
+		var schedule = await new ScheduleBuilder(context).CreateAsync();
+		var message = CreateMessage(schedule.Id, DateTimeOffset.UtcNow.AddMinutes(-1), MessageStatus.Sending);
+		message.SendError = "previous error";
+		context.Messages.Add(message);
+		await context.SaveChangesAsync();
+
+		await sut.SaveTelegramMessageIdsAsync(message.Id, 42, [42, 43], 43, CancellationToken.None);
+
+		await using var check = fixture.GetDbContext();
+		var saved = await check.Messages.FirstAsync(x => x.Id == message.Id);
+		saved.Status.ShouldBe(MessageStatus.Send);
+		saved.SendError.ShouldBeNull();
+		saved.TelegramMessageIds.ShouldBe(new[] { 42, 43 });
+		saved.TelegramTextMessageId.ShouldBe(43);
+	}
+
+	[Fact]
+	public async Task RecoverInHandleMessagesAsync_ShouldNotAutomaticallyRetrySendingPost()
+	{
+		var schedule = await new ScheduleBuilder(context).CreateAsync();
+		var now = DateTimeOffset.UtcNow;
+		var message = CreateMessage(schedule.Id, now.AddMinutes(1), MessageStatus.Sending);
+		context.Messages.Add(message);
+		await context.SaveChangesAsync();
+
+		await sut.RecoverInHandleMessagesAsync(now, "check channel", CancellationToken.None);
+
+		await using var check = fixture.GetDbContext();
+		var saved = await check.Messages.FirstAsync(x => x.Id == message.Id);
+		saved.Status.ShouldBe(MessageStatus.Error);
+		saved.SendError.ShouldBe("check channel");
+	}
 
 	[Fact]
 	public async Task GetMessagesAsync_ShouldReturnMessagesInNext5MinutesWithRegisterStatus()
@@ -309,12 +463,14 @@ public class SenderMessageStorageShould(StorageTestFixture fixture) : IClassFixt
 			.WithRepostSettingsId(settings.Id)
 			.WithChatIdentifier(channel1)
 			.WithIsActive(true)
+			.WithChatStatus(ChatStatus.Active)
 			.CreateAsync();
 
 		await new RepostDestinationBuilder(context)
 			.WithRepostSettingsId(settings.Id)
 			.WithChatIdentifier(channel2)
 			.WithIsActive(true)
+			.WithChatStatus(ChatStatus.Active)
 			.CreateAsync();
 
 		var result = await sut.GetRepostSettingsForMessageAsync(msg.Id, CancellationToken.None);
@@ -384,12 +540,14 @@ public class SenderMessageStorageShould(StorageTestFixture fixture) : IClassFixt
 			.WithRepostSettingsId(settings.Id)
 			.WithChatIdentifier(active)
 			.WithIsActive(true)
+			.WithChatStatus(ChatStatus.Active)
 			.CreateAsync();
 
 		await new RepostDestinationBuilder(context)
 			.WithRepostSettingsId(settings.Id)
 			.WithChatIdentifier(inactive)
 			.WithIsActive(false)
+			.WithChatStatus(ChatStatus.Active)
 			.CreateAsync();
 
 		var result = await sut.GetRepostSettingsForMessageAsync(msg.Id, CancellationToken.None);

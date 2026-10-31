@@ -1,6 +1,8 @@
 using Moq;
 using Security.IdentityServices;
 using Shouldly;
+using TgPoster.API.Domain.ConfigModels;
+using TgPoster.API.Domain.Services;
 using TgPoster.API.Domain.UseCases.Messages.GetMessageById;
 using TgPoster.API.Domain.UseCases.Messages.ListMessage;
 
@@ -27,7 +29,9 @@ public sealed class GetMessageUseCaseShould
 			BucketName = "bucket"
 		};
 
-		sut = new GetMessageUseCase(storage.Object, identity.Object, s3Options, new FixedTimeProvider(Now));
+		var clock = new FixedTimeProvider(Now);
+		sut = new GetMessageUseCase(storage.Object, identity.Object, s3Options, clock,
+			new FileAccessTokenService(new TelegramOptions { SecretKey = "test-signing-key" }, clock));
 	}
 
 	[Fact]

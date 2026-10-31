@@ -12,6 +12,7 @@ internal sealed class UploadFileToS3Storage(PosterContext context) : IUploadFile
 			.Where(f => f.Id == fileId)
 			.Select(f => new FileInfoDto
 			{
+				UserId = f.Message.Schedule.UserId,
 				TgFileId = f.TgFileId,
 				ContentType = f.ContentType,
 				IsInS3 = f.IsInS3

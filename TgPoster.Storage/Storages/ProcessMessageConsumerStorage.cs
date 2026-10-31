@@ -42,54 +42,68 @@ internal sealed class ProcessMessageConsumerStorage(PosterContext context, GuidF
 
 	public Task CreateMessageAsync(MessageDto messageDto, CancellationToken ct)
 	{
-		var id = guidFactory.New();
-		var messageFiles = new List<MessageFile>();
-		var order = 0;
-
-		foreach (var media in messageDto.Media)
+		return context.Database.CreateExecutionStrategy().ExecuteAsync(async () =>
 		{
-			var messageFileId = guidFactory.New();
-			var mainFile = new MessageFile
+			await using var transaction = await context.Database.BeginTransactionAsync(ct);
+			if (messageDto.ChannelParsingSettingId is { } sourceId && messageDto.SourceMessageId is { } sourceMessageId)
 			{
-				Id = messageFileId,
-				ContentType = media.MimeType,
-				TgFileId = media.FileId,
-				MessageId = id,
-				FileType = media.MimeType.GetFileType(),
-				ParentFileId = null,
-				Order = order++
+				var lockKey = $"parsed-message:{sourceId:D}:{sourceMessageId}";
+				await context.Database.ExecuteSqlInterpolatedAsync(
+					$"SELECT pg_advisory_xact_lock(hashtextextended({lockKey}, 0))", ct);
+				if (await IsSourceMessageParsedAsync(sourceId, sourceMessageId, ct))
+					return;
+			}
+
+			var id = guidFactory.New();
+			var messageFiles = new List<MessageFile>();
+			var order = 0;
+
+			foreach (var media in messageDto.Media)
+			{
+				var messageFileId = guidFactory.New();
+				var mainFile = new MessageFile
+				{
+					Id = messageFileId,
+					ContentType = media.MimeType,
+					TgFileId = media.FileId,
+					MessageId = id,
+					FileType = media.MimeType.GetFileType(),
+					ParentFileId = null,
+					Order = order++
+				};
+				messageFiles.Add(mainFile);
+
+				var thumbnails = media.PreviewPhotoIds.Select(x => new MessageFile
+				{
+					Id = guidFactory.New(),
+					MessageId = id,
+					TgFileId = x,
+					ContentType = "image/jpeg",
+					FileType = FileTypes.Thumbnail,
+					ParentFileId = messageFileId,
+					Order = 0
+				}).ToList();
+
+				messageFiles.AddRange(thumbnails);
+			}
+
+			var message = new Message
+			{
+				Id = id,
+				TextMessage = messageDto.Text,
+				ScheduleId = messageDto.ScheduleId,
+				ChannelParsingSettingId = messageDto.ChannelParsingSettingId,
+				SourceMessageId = messageDto.SourceMessageId,
+				IsVerified = !messageDto.IsNeedVerified,
+				Status = MessageStatus.Register,
+				TimePosting = messageDto.TimePosting,
+				IsTextMessage = messageDto.Text.IsTextMessage(),
+				MessageFiles = messageFiles
 			};
-			messageFiles.Add(mainFile);
-
-			var thumbnails = media.PreviewPhotoIds.Select(x => new MessageFile
-			{
-				Id = guidFactory.New(),
-				MessageId = id,
-				TgFileId = x,
-				ContentType = "image/jpeg",
-				FileType = FileTypes.Thumbnail,
-				ParentFileId = messageFileId,
-				Order = 0
-			}).ToList();
-
-			messageFiles.AddRange(thumbnails);
-		}
-
-		var message = new Message
-		{
-			Id = id,
-			TextMessage = messageDto.Text,
-			ScheduleId = messageDto.ScheduleId,
-			ChannelParsingSettingId = messageDto.ChannelParsingSettingId,
-			SourceMessageId = messageDto.SourceMessageId,
-			IsVerified = !messageDto.IsNeedVerified,
-			Status = MessageStatus.Register,
-			TimePosting = messageDto.TimePosting,
-			IsTextMessage = messageDto.Text.IsTextMessage(),
-			MessageFiles = messageFiles
-		};
-		context.Messages.AddAsync(message, ct);
-		return context.SaveChangesAsync(ct);
+			await context.Messages.AddAsync(message, ct);
+			await context.SaveChangesAsync(ct);
+			await transaction.CommitAsync(ct);
+		});
 	}
 
 	public Task<bool> IsSourceMessageParsedAsync(

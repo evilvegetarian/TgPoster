@@ -1,5 +1,6 @@
 using Shared.Enums;
 using Shouldly;
+using TgPoster.API.Domain.Models;
 using TgPoster.API.Domain.UseCases.Messages.ListMessage;
 using TgPoster.Storage.Data;
 using TgPoster.Storage.Data.Entities;
@@ -27,6 +28,22 @@ public sealed class ListMessageStorageShould(StorageTestFixture fixture) : IClas
 		string? searchText = null
 	) =>
 		new(scheduleId, pageNumber, pageSize, sortBy, sortDirection, searchText, status);
+
+	[Fact]
+	public async Task GetMessagesAsync_ShouldShowSendingPost()
+	{
+		var schedule = await new ScheduleBuilder(context).CreateAsync();
+		var message = await new MessageBuilder(context)
+			.WithScheduleId(schedule.Id)
+			.WithStatus(Data.Enum.MessageStatus.Sending)
+			.CreateAsync();
+
+		var result = await sut.GetMessagesAsync(CreateQuery(schedule.Id), Ct);
+
+		var actual = result.Items.Single(x => x.Id == message.Id);
+		actual.DeliveryStatus.ShouldBe(MessageDeliveryStatus.Sending);
+		actual.IsSent.ShouldBeFalse();
+	}
 
 	[Fact]
 	public async Task ExistScheduleAsync_WithExistingSchedule_ShouldReturnTrue()

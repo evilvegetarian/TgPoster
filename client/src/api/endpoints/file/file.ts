@@ -20,6 +20,7 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  GetApiV1FileIdUploadS3Params,
   ProblemDetails
 } from '../tgPosterAPI.schemas';
 
@@ -126,12 +127,14 @@ export function useGetApiV1FileId<TData = Awaited<ReturnType<typeof getApiV1File
  */
 export const getApiV1FileIdUploadS3 = (
     id: string,
+    params?: GetApiV1FileIdUploadS3Params,
  signal?: AbortSignal
 ) => {
       
       
       return customInstance<string>(
-      {url: `/api/v1/file/${id}/upload-s3`, method: 'GET', signal
+      {url: `/api/v1/file/${id}/upload-s3`, method: 'GET',
+        params, signal
     },
       );
     }
@@ -139,23 +142,25 @@ export const getApiV1FileIdUploadS3 = (
 
 
 
-export const getGetApiV1FileIdUploadS3QueryKey = (id?: string,) => {
+export const getGetApiV1FileIdUploadS3QueryKey = (id?: string,
+    params?: GetApiV1FileIdUploadS3Params,) => {
     return [
-    `/api/v1/file/${id}/upload-s3`
+    `/api/v1/file/${id}/upload-s3`, ...(params ? [params]: [])
     ] as const;
     }
 
     
-export const getGetApiV1FileIdUploadS3QueryOptions = <TData = Awaited<ReturnType<typeof getApiV1FileIdUploadS3>>, TError = ProblemDetails>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1FileIdUploadS3>>, TError, TData>>, }
+export const getGetApiV1FileIdUploadS3QueryOptions = <TData = Awaited<ReturnType<typeof getApiV1FileIdUploadS3>>, TError = ProblemDetails>(id: string,
+    params?: GetApiV1FileIdUploadS3Params, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1FileIdUploadS3>>, TError, TData>>, }
 ) => {
 
 const {query: queryOptions} = options ?? {};
 
-  const queryKey =  queryOptions?.queryKey ?? getGetApiV1FileIdUploadS3QueryKey(id);
+  const queryKey =  queryOptions?.queryKey ?? getGetApiV1FileIdUploadS3QueryKey(id,params);
 
   
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getApiV1FileIdUploadS3>>> = ({ signal }) => getApiV1FileIdUploadS3(id, signal);
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getApiV1FileIdUploadS3>>> = ({ signal }) => getApiV1FileIdUploadS3(id,params, signal);
 
       
 
@@ -169,7 +174,8 @@ export type GetApiV1FileIdUploadS3QueryError = ProblemDetails
 
 
 export function useGetApiV1FileIdUploadS3<TData = Awaited<ReturnType<typeof getApiV1FileIdUploadS3>>, TError = ProblemDetails>(
- id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1FileIdUploadS3>>, TError, TData>> & Pick<
+ id: string,
+    params: undefined |  GetApiV1FileIdUploadS3Params, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1FileIdUploadS3>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof getApiV1FileIdUploadS3>>,
           TError,
@@ -179,7 +185,8 @@ export function useGetApiV1FileIdUploadS3<TData = Awaited<ReturnType<typeof getA
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useGetApiV1FileIdUploadS3<TData = Awaited<ReturnType<typeof getApiV1FileIdUploadS3>>, TError = ProblemDetails>(
- id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1FileIdUploadS3>>, TError, TData>> & Pick<
+ id: string,
+    params?: GetApiV1FileIdUploadS3Params, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1FileIdUploadS3>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof getApiV1FileIdUploadS3>>,
           TError,
@@ -189,7 +196,8 @@ export function useGetApiV1FileIdUploadS3<TData = Awaited<ReturnType<typeof getA
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useGetApiV1FileIdUploadS3<TData = Awaited<ReturnType<typeof getApiV1FileIdUploadS3>>, TError = ProblemDetails>(
- id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1FileIdUploadS3>>, TError, TData>>, }
+ id: string,
+    params?: GetApiV1FileIdUploadS3Params, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1FileIdUploadS3>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
@@ -197,11 +205,12 @@ export function useGetApiV1FileIdUploadS3<TData = Awaited<ReturnType<typeof getA
  */
 
 export function useGetApiV1FileIdUploadS3<TData = Awaited<ReturnType<typeof getApiV1FileIdUploadS3>>, TError = ProblemDetails>(
- id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1FileIdUploadS3>>, TError, TData>>, }
+ id: string,
+    params?: GetApiV1FileIdUploadS3Params, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1FileIdUploadS3>>, TError, TData>>, }
  , queryClient?: QueryClient 
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
-  const queryOptions = getGetApiV1FileIdUploadS3QueryOptions(id,options)
+  const queryOptions = getGetApiV1FileIdUploadS3QueryOptions(id,params,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 

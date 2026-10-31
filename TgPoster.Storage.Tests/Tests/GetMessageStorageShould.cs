@@ -153,6 +153,7 @@ public class GetMessageStorageShould(StorageTestFixture fixture) : IClassFixture
 	[Theory]
 	[InlineData(Data.Enum.MessageStatus.Register, MessageDeliveryStatus.Planned)]
 	[InlineData(Data.Enum.MessageStatus.InHandle, MessageDeliveryStatus.Sending)]
+	[InlineData(Data.Enum.MessageStatus.Sending, MessageDeliveryStatus.Sending)]
 	[InlineData(Data.Enum.MessageStatus.Send, MessageDeliveryStatus.Sent)]
 	[InlineData(Data.Enum.MessageStatus.Error, MessageDeliveryStatus.Failed)]
 	[InlineData(Data.Enum.MessageStatus.Cancel, MessageDeliveryStatus.Cancelled)]

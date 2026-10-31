@@ -94,7 +94,7 @@ internal sealed class ListMessageStorage(PosterContext context) : IListMessageSt
 				Created = message.Created,
 				IsSent = message.Status == Data.Enum.MessageStatus.Send,
 				DeliveryStatus = message.Status == Data.Enum.MessageStatus.Register ? MessageDeliveryStatus.Planned
-					: message.Status == Data.Enum.MessageStatus.InHandle ? MessageDeliveryStatus.Sending
+					: message.Status == Data.Enum.MessageStatus.InHandle || message.Status == Data.Enum.MessageStatus.Sending ? MessageDeliveryStatus.Sending
 					: message.Status == Data.Enum.MessageStatus.Send ? MessageDeliveryStatus.Sent
 					: message.Status == Data.Enum.MessageStatus.Error ? MessageDeliveryStatus.Failed
 					: MessageDeliveryStatus.Cancelled,

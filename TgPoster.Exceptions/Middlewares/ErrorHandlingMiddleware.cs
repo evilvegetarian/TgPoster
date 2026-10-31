@@ -35,6 +35,11 @@ internal sealed class ErrorHandlingMiddleware(RequestDelegate next)
 			ProblemDetails problemDetails;
 			switch (exception)
 			{
+				case AuthorizationRequiredException:
+					problemDetails = problemDetailsFactory.CreateProblemDetails(
+						context, StatusCodes.Status401Unauthorized, "Требуется авторизация");
+					break;
+
 				case ArgumentException or ValidationException or DomainException:
 					problemDetails = problemDetailsFactory.CreateProblemDetails(
 						context,

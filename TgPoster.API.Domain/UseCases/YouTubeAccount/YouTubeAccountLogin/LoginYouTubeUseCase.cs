@@ -3,11 +3,12 @@ using Google.Apis.Auth.OAuth2.Flows;
 using Google.Apis.YouTube.v3;
 using MediatR;
 using Security.IdentityServices;
+using TgPoster.API.Domain.Services;
 using TgPoster.Exceptions.BadRequest;
 
 namespace TgPoster.API.Domain.UseCases.YouTubeAccount.YouTubeAccountLogin;
 
-public class LoginYouTubeUseCase(ILoginYouTubeStorage storage, IIdentityProvider provider)
+public class LoginYouTubeUseCase(ILoginYouTubeStorage storage, IIdentityProvider provider, YouTubeOAuthStateService states)
 	: IRequestHandler<LoginYouTubeCommand, YouTubeAuthUrlResponse>
 {
 	public async Task<YouTubeAuthUrlResponse> Handle(LoginYouTubeCommand request, CancellationToken ct)
@@ -44,7 +45,7 @@ public class LoginYouTubeUseCase(ILoginYouTubeStorage storage, IIdentityProvider
 		var guid = await storage.CreateYouTubeAccountAsync("", clientSecrets.ClientId, clientSecrets.ClientSecret,
 			provider.Current.UserId, ct);
 		var authRequestUrl = flow.CreateAuthorizationCodeRequest(request.RedirectUrl);
-		authRequestUrl.State = guid.ToString();
+		authRequestUrl.State = states.Create(guid, provider.Current.UserId);
 		return new YouTubeAuthUrlResponse { Url = authRequestUrl.Build().ToString() };
 	}
 }

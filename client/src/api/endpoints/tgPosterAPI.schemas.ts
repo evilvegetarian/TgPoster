@@ -2530,6 +2530,10 @@ PageNumber?: number;
 PageSize?: number;
 };
 
+export type GetApiV1FileIdUploadS3Params = {
+token?: string;
+};
+
 export type PostApiV1MessageBatchFromFilesBody = {
   /** Идентификатор расписания */
   ScheduleId: string;
@@ -2739,7 +2743,7 @@ export type GetApiV1YoutubeCallbackParams = {
  */
 code?: string;
 /**
- * Идентификатор записи в базе данных
+ * Одноразовый идентификатор сессии подключения
  */
 state?: string;
 /**

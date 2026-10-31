@@ -1,4 +1,6 @@
+using Microsoft.EntityFrameworkCore;
 using Shouldly;
+using TgPoster.API.Domain.UseCases.Messages.EditMessage;
 using TgPoster.Storage.Data;
 using TgPoster.Storage.Data.Enum;
 using TgPoster.Storage.Storages;
@@ -11,6 +13,21 @@ public sealed class EditMessageStorageShould(StorageTestFixture fixture) : IClas
 	private static readonly CancellationToken Ct = CancellationToken.None;
 	private readonly PosterContext context = fixture.GetDbContext();
 	private readonly EditMessageStorage sut = new(fixture.GetDbContext());
+
+	[Fact]
+	public async Task UpdateMessageAsync_ShouldRequeuePost_WhenScheduledTimeChanges()
+	{
+		var message = await new MessageBuilder(context).WithStatus(MessageStatus.InHandle).CreateAsync();
+		var newTime = DateTimeOffset.UtcNow.AddHours(3);
+
+		await sut.UpdateMessageAsync(new EditMessageCommand(message.Id, message.ScheduleId, newTime,
+			"Новый текст", [], []), [], Ct);
+
+		await using var check = fixture.GetDbContext();
+		var saved = await check.Messages.FirstAsync(x => x.Id == message.Id);
+		saved.Status.ShouldBe(MessageStatus.Register);
+		saved.TimePosting.ShouldBe(newTime, TimeSpan.FromMilliseconds(1));
+	}
 
 	[Fact]
 	public async Task GetMessageAsync_WithPublishedMessage_ShouldReturnTelegramStateAndTopLevelFiles()

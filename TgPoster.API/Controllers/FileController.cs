@@ -37,14 +37,16 @@ public class FileController(ISender sender) : ControllerBase
 	/// <param name="id">Идентификатор файла</param>
 	/// <param name="ct">Токен отмены операции</param>
 	/// <returns>URL файла в S3</returns>
+	/// <param name="token"></param>
 	[HttpGet(Routes.File.UploadToS3)]
 	[AllowAnonymous]
+	[ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ProblemDetails))]
 	[ProducesResponseType(StatusCodes.Status200OK, Type = typeof(string))]
 	[ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
 	[ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
-	public async Task<IActionResult> UploadToS3([FromRoute] Guid id, CancellationToken ct)
+	public async Task<IActionResult> UploadToS3([FromRoute] Guid id, [FromQuery] string? token, CancellationToken ct)
 	{
-		var response = await sender.Send(new UploadFileToS3Command(id), ct);
+		var response = await sender.Send(new UploadFileToS3Command(id, token), ct);
 		return Redirect(response);
 	}
 }

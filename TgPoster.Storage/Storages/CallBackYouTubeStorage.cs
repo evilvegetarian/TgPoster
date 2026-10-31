@@ -14,21 +14,14 @@ internal sealed class CallBackYouTubeStorage(PosterContext context) : ICallBackY
 	{
 		return context.YouTubeAccounts
 			.Where(x => x.Id == accountYouTubeId)
-			//.Where(x => x.UserId == userId)
+			.Where(x => x.UserId == userId)
 			.Select(x => new ValueTuple<string, string>(x.ClientId, x.ClientSecret))
 			.FirstOrDefaultAsync(ct);
 	}
 
-	public async Task AddToken(Guid accountYouTubeId, string accessToken, string? refreshToken, CancellationToken ct)
-	{
-		var entity = await context.YouTubeAccounts.FirstOrDefaultAsync(x => x.Id == accountYouTubeId, ct);
-		entity!.AccessToken = accessToken;
-		entity.RefreshToken = refreshToken;
-		await context.SaveChangesAsync(ct);
-	}
-
 	public async Task AddToken(
 		Guid accountYouTubeId,
+		Guid userId,
 		string accessToken,
 		string refreshToken,
 		string channelName,
@@ -36,8 +29,8 @@ internal sealed class CallBackYouTubeStorage(PosterContext context) : ICallBackY
 		CancellationToken ct
 	)
 	{
-		var entity = await context.YouTubeAccounts.FirstOrDefaultAsync(x => x.Id == accountYouTubeId, ct);
-		entity!.AccessToken = accessToken;
+		var entity = await context.YouTubeAccounts.FirstAsync(x => x.Id == accountYouTubeId && x.UserId == userId, ct);
+		entity.AccessToken = accessToken;
 		entity.RefreshToken = refreshToken;
 		entity.Name = channelName;
 		await context.SaveChangesAsync(ct);
