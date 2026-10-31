@@ -4,7 +4,6 @@ using Shared.OpenRouter;
 using Shared.Services;
 using Shared.Social.Bluesky;
 using Shared.Telegram;
-using Shared.TgStat;
 using Shared.Video;
 using Shared.YouTube;
 
@@ -51,7 +50,6 @@ public static class DependencyInjection
 
 		services.AddScoped<IBlueskyClient, BlueskyClient>();
 
-		services.AddScoped<ITgStatScrapingService, TgStatScrapingService>();
 		services.AddScoped<TimePostingService>();
 		services.AddScoped<VideoService>();
 		services.AddScoped<YouTubeService>();

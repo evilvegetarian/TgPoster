@@ -125,10 +125,6 @@ public static class DependencyInjection
 			{
 				opt.ConcurrentMessageLimit = 1;
 			});
-			//x.AddConsumer<ScrapeChannelConsumer>(opt =>
-			//{
-			//	opt.ConcurrentMessageLimit = 1;
-			//});
 			x.UsingPostgres((context, cfg) =>
 			{
 				cfg.ConfigureEndpoints(context);

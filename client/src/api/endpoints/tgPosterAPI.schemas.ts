@@ -1830,10 +1830,6 @@ export interface ScheduleResponse {
   signatureEnabled: boolean;
 }
 
-export interface ScrapeChannelsCommand {
-  urls?: string[];
-}
-
 /**
  * Запрос на отправку пароля
  */
