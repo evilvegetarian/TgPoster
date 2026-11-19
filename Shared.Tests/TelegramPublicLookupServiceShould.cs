@@ -11,15 +11,15 @@ namespace Shared.Tests;
 public sealed class TelegramPublicLookupServiceShould
 {
 	[Theory]
-	[InlineData("durov")]
-	[InlineData("@durov")]
-	[InlineData("t.me/durov")]
-	[InlineData("https://t.me/durov")]
-	[InlineData("HTTPS://T.ME/DUROV")]
+	[InlineData("testuser")]
+	[InlineData("@testuser")]
+	[InlineData("t.me/testuser")]
+	[InlineData("https://t.me/testuser")]
+	[InlineData("HTTPS://T.ME/TESTUSER")]
 	public async Task LookupAsync_AcceptsVariousInputFormats(string input)
 	{
 		const string html = """
-		                    <div class="tgme_page_title"><span>Pavel Durov</span></div>
+		                    <div class="tgme_page_title"><span>Test User</span></div>
 		                    """;
 		var (service, handler) = CreateService(_ => CreateResponse(HttpStatusCode.OK, html));
 
@@ -29,7 +29,7 @@ public sealed class TelegramPublicLookupServiceShould
 		result.Value!.Type.ShouldBe(TelegramEntityType.User);
 		handler.LastRequestedUrl.ShouldNotBeNull();
 		handler.LastRequestedUrl!.AbsoluteUri
-			.ShouldBeOneOf("https://t.me/durov", "https://t.me/DUROV");
+			.ShouldBeOneOf("https://t.me/testuser", "https://t.me/TESTUSER");
 	}
 
 	[Fact]

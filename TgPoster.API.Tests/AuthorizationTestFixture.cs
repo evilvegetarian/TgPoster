@@ -85,7 +85,8 @@ public sealed class AuthorizationTestFixture : IAsyncLifetime
 			.ConfigureServices(services =>
 			{
 				services.AddLogging();
-				services.AddControllers().AddApplicationPart(typeof(FileController).Assembly);
+				services.AddControllers().AddApplicationPart(typeof(FileController).Assembly)
+					.AddApplicationPart(typeof(ErrorHandlingEndpointShould).Assembly);
 				services.AddHttpContextAccessor();
 				services.AddMemoryCache();
 				services.AddSingleton<FileExtensionContentTypeProvider>();

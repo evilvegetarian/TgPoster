@@ -75,10 +75,9 @@ public sealed class RepostEndpointTest(EndpointTestFixture fixture) : IClassFixt
 		var response = await client.GetAsync($"{SettingsUrl}/{created.Id}");
 
 		response.StatusCode.ShouldBe(HttpStatusCode.OK);
-		var settings = await response.ToObject<RepostSettingsResponse>();
-		settings.ShouldNotBeNull();
-		settings.Id.ShouldBe(created.Id);
-		settings.ScheduleId.ShouldBe(GlobalConst.Worked.ScheduleId);
+		var settings = await response.Content.ReadFromJsonAsync<System.Text.Json.JsonElement>();
+		settings.GetProperty("id").GetGuid().ShouldBe(created.Id);
+		settings.GetProperty("scheduleId").GetGuid().ShouldBe(GlobalConst.Worked.ScheduleId);
 	}
 
 	[Fact]

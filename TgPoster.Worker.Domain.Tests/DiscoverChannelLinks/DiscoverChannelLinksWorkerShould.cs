@@ -277,6 +277,141 @@ public class DiscoverChannelLinksWorkerShould
 			.Setup(s => s.GetSessionIdsForPurposeAsync(TelegramSessionPurpose.Discover, It.IsAny<CancellationToken>()))
 			.ReturnsAsync([..sessionIds]);
 
+	[Fact]
+	public async Task SavePeersFromHistory_WithoutDuplicatingSourceOrKnownUsernames()
+	{
+		SetupSuccessfulSource();
+		var known = Chat(200, "knownchat", "Known");
+		SetupHistory(new TelegramHistoryPage
+		{
+			Chats = [known, Chat(100, firstChannel.Username!, "Source"), Chat(300, null, "Private")],
+			Messages = [new TelegramMessage
+			{
+				Id = 42, Date = FixedNow.UtcDateTime,
+				Text = "https://t.me/knownchat @knownchat https://t.me/first_chat https://t.me/c/400/5"
+			}]
+		});
+		List<DiscoveredPeerUpsert>? batch = null;
+		storage.Setup(x => x.BulkUpsertAsync(It.IsAny<IReadOnlyCollection<DiscoveredPeerUpsert>>(), It.IsAny<CancellationToken>()))
+			.Callback<IReadOnlyCollection<DiscoveredPeerUpsert>, CancellationToken>((items, _) => batch = items.ToList());
+
+		await CreateSut().ProcessChannelsAsync();
+
+		batch.ShouldNotBeNull();
+		batch.Count.ShouldBe(3);
+		batch.ShouldContain(x => x.Username == "knownchat" && x.TelegramId == 200 && x.Title == "Known");
+		batch.ShouldContain(x => x.TelegramId == 300 && x.Username == null);
+		batch.ShouldContain(x => x.TelegramId == 400 && x.PeerType == "channel");
+		batch.ShouldAllBe(x => x.DiscoveredFromChannelId == firstChannel.Id);
+		batch.ShouldNotContain(x => x.Username == firstChannel.Username);
+		publicLookup.VerifyNoOtherCalls();
+		storage.Verify(x => x.UpsertAsync(It.Is<DiscoveredPeerUpsert>(p => p.MarkAsCompleted && p.LastParsedId == 42),
+			It.IsAny<CancellationToken>()), Times.Once);
+	}
+
+	[Fact]
+	public async Task ReadHistoryPagesUsingLastMessageOffset_AndSaveLargestMessageId()
+	{
+		SetupSuccessfulSource();
+		SetupHistory(new TelegramHistoryPage
+		{
+			Messages = Enumerable.Range(101, 100).Reverse().Select(id => new TelegramMessage { Id = id, Date = FixedNow.UtcDateTime }).ToList()
+		}, new TelegramHistoryPage { Messages = [new TelegramMessage { Id = 100, Date = FixedNow.UtcDateTime }] });
+
+		await CreateSut().ProcessChannelsAsync();
+
+		tgMessages.Verify(x => x.SearchMessagesAsync(firstSessionId, It.IsAny<TelegramPeer>(), TelegramMessageFilter.Url,
+			100, 101, 0, 0, "", It.IsAny<CancellationToken>(), true), Times.Once);
+		storage.Verify(x => x.UpsertAsync(It.Is<DiscoveredPeerUpsert>(p => p.MarkAsCompleted && p.LastParsedId == 200),
+			It.IsAny<CancellationToken>()), Times.Once);
+	}
+
+	[Theory]
+	[InlineData(TelegramEntityType.Channel, true)]
+	[InlineData(TelegramEntityType.Group, true)]
+	[InlineData(TelegramEntityType.User, false)]
+	[InlineData(TelegramEntityType.Bot, false)]
+	public async Task ResolveHiddenLinks_AndKeepOnlyChannelsAndGroups(TelegramEntityType type, bool included)
+	{
+		SetupSuccessfulSource();
+		SetupHistory(new TelegramHistoryPage { Messages = [new TelegramMessage
+		{
+			Id = 1, Date = FixedNow.UtcDateTime, Text = "Hidden link",
+			Entities = [new TelegramMessageEntity(0, 6, TelegramMessageEntityType.TextUrl, "https://t.me/hiddenchat")]
+		}] });
+		publicLookup.Setup(x => x.LookupAsync("hiddenchat", It.IsAny<CancellationToken>()))
+			.ReturnsAsync(TelegramOperationResult<TelegramPublicEntityInfo>.Success(new TelegramPublicEntityInfo
+			{
+				Type = type, Username = "hiddenchat", Title = "Hidden", MembersCount = (long)int.MaxValue + 1
+			}));
+
+		await CreateSut().ProcessChannelsAsync();
+
+		storage.Verify(x => x.BulkUpsertAsync(It.Is<IReadOnlyCollection<DiscoveredPeerUpsert>>(items =>
+			included ? items.Count == 1 && items.Single().ParticipantsCount == int.MaxValue : items.Count == 0),
+			It.IsAny<CancellationToken>()), Times.Once);
+	}
+
+	[Fact]
+	public async Task MergeInviteIntoPublicPeer_AndIgnorePhoneNumberLinks()
+	{
+		SetupSuccessfulSource();
+		SetupHistory(new TelegramHistoryPage
+		{
+			Chats = [Chat(200, "knownchat", "Known")],
+			Messages = [new TelegramMessage { Id = 1, Date = FixedNow.UtcDateTime, Text = "https://t.me/+AbCd https://t.me/+79633081622" }]
+		});
+		publicLookup.Setup(x => x.LookupInviteAsync("AbCd", It.IsAny<CancellationToken>()))
+			.ReturnsAsync(TelegramOperationResult<TelegramPublicEntityInfo>.Success(new TelegramPublicEntityInfo
+			{
+				Type = TelegramEntityType.Channel, Username = "knownchat", Title = "Known"
+			}));
+
+		await CreateSut().ProcessChannelsAsync();
+
+		storage.Verify(x => x.BulkUpsertAsync(It.Is<IReadOnlyCollection<DiscoveredPeerUpsert>>(items =>
+			items.Count == 1 && items.Single().Username == "knownchat" && items.Single().InviteHash == "AbCd"),
+			It.IsAny<CancellationToken>()), Times.Once);
+		publicLookup.Verify(x => x.LookupInviteAsync("79633081622", It.IsAny<CancellationToken>()), Times.Never);
+	}
+
+	[Fact]
+	public async Task DeduplicatePrivateAndInvitedPeersByTitle()
+	{
+		SetupSuccessfulSource();
+		SetupHistory(new TelegramHistoryPage
+		{
+			Chats = [Chat(200, "knownchat", "Same"), Chat(300, null, "same")],
+			Messages = [new TelegramMessage { Id = 1, Date = FixedNow.UtcDateTime, Text = "https://t.me/+AbCd" }]
+		});
+		publicLookup.Setup(x => x.LookupInviteAsync("AbCd", It.IsAny<CancellationToken>()))
+			.ReturnsAsync(TelegramOperationResult<TelegramPublicEntityInfo>.Success(new TelegramPublicEntityInfo
+			{
+				Type = TelegramEntityType.Group, Title = "SAME"
+			}));
+
+		await CreateSut().ProcessChannelsAsync();
+
+		storage.Verify(x => x.BulkUpsertAsync(It.Is<IReadOnlyCollection<DiscoveredPeerUpsert>>(items =>
+			items.Count == 1 && items.Single().Username == "knownchat"), It.IsAny<CancellationToken>()), Times.Once);
+	}
+
+	private void SetupSuccessfulSource() => SetupResolve(firstChannel,
+		TelegramOperationResult<TelegramChatInfo>.Success(Chat(100, firstChannel.Username!, "Source")));
+
+	private static TelegramChatInfo Chat(long id, string? username, string title) => new()
+	{
+		Id = id, AccessHash = 1, Username = username, Title = title, IsChannel = true, Peer = TelegramPeer.Channel(id, 1)
+	};
+
+	private void SetupHistory(params TelegramHistoryPage[] pages)
+	{
+		var sequence = tgMessages.SetupSequence(x => x.SearchMessagesAsync(firstSessionId, It.IsAny<TelegramPeer>(),
+			TelegramMessageFilter.Url, 100, It.IsAny<int>(), It.IsAny<int>(), 0, "", It.IsAny<CancellationToken>(), true));
+		foreach (var page in pages)
+			sequence.ReturnsAsync(TelegramOperationResult<TelegramHistoryPage>.Success(page));
+	}
+
 	private void SetupQueue(params DiscoverChannelDto[] channels) =>
 		storage
 			.Setup(s => s.GetChannelsToProcessAsync(It.IsAny<int>(), It.IsAny<IReadOnlyCollection<Guid>>(), It.IsAny<CancellationToken>()))
@@ -337,5 +472,13 @@ public class DiscoverChannelLinksWorkerShould
 	private sealed class FixedTimeProvider(DateTimeOffset now) : TimeProvider
 	{
 		public override DateTimeOffset GetUtcNow() => now;
+
+		public override ITimer CreateTimer(TimerCallback callback, object? state, TimeSpan dueTime, TimeSpan period)
+		{
+			var timer = new Timer(callback, state, Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
+			if (dueTime != Timeout.InfiniteTimeSpan)
+				timer.Change(TimeSpan.Zero, Timeout.InfiniteTimeSpan);
+			return timer;
+		}
 	}
 }

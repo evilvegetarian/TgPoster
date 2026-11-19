@@ -10,7 +10,7 @@ namespace Shared.YouTube;
 /// <summary>
 ///     Сервис для работы с YouTube API
 /// </summary>
-public sealed class YouTubeService
+public sealed class YouTubeService(Google.Apis.Http.IHttpClientFactory? httpClientFactory = null)
 {
 	private const string ApplicationName = "TgPoster";
 	private const string CategoryId = "22"; // Category ID для Shorts
@@ -35,6 +35,7 @@ public sealed class YouTubeService
 	)
 	{
 		ArgumentNullException.ThrowIfNull(account);
+		ArgumentNullException.ThrowIfNull(stream);
 		title ??= account.DefaultTitle ?? "Видео";
 		description ??= account.DefaultDescription;
 
@@ -90,22 +91,28 @@ public sealed class YouTubeService
 			RefreshToken = account.RefreshToken
 		};
 
-		var flow = new GoogleAuthorizationCodeFlow(new GoogleAuthorizationCodeFlow.Initializer
+		var flowInitializer = new GoogleAuthorizationCodeFlow.Initializer
 		{
 			ClientSecrets = new ClientSecrets
 			{
 				ClientId = account.ClientId,
 				ClientSecret = account.ClientSecret
 			}
-		});
+		};
+		if (httpClientFactory is not null)
+			flowInitializer.HttpClientFactory = httpClientFactory;
+		var flow = new GoogleAuthorizationCodeFlow(flowInitializer);
 
 		var credential = new UserCredential(flow, "user", tokenResponse);
 
-		var service = new Google.Apis.YouTube.v3.YouTubeService(new BaseClientService.Initializer
+		var serviceInitializer = new BaseClientService.Initializer
 		{
 			HttpClientInitializer = credential,
 			ApplicationName = ApplicationName
-		});
+		};
+		if (httpClientFactory is not null)
+			serviceInitializer.HttpClientFactory = httpClientFactory;
+		var service = new Google.Apis.YouTube.v3.YouTubeService(serviceInitializer);
 
 		return (service, credential);
 	}

@@ -28,6 +28,10 @@
     </ItemGroup>
 
     <ItemGroup>
+        <None Include="..\Shared.Tests\TestFiles\video_2025-03-06_21-26-46.mp4" Link="TestFiles\video.mp4" CopyToOutputDirectory="PreserveNewest"/>
+    </ItemGroup>
+
+    <ItemGroup>
         <ProjectReference Include="..\TgPoster.Worker.Domain\TgPoster.Worker.Domain.csproj"/>
     </ItemGroup>
 

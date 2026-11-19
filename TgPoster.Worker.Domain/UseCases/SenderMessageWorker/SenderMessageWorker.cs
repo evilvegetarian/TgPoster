@@ -28,7 +28,8 @@ public class SenderMessageWorker(
 	TelegramBotManager botManager,
 	IHostApplicationLifetime lifetime,
 	TelegramExecuteServices telegramExecuteServices,
-	IScheduleAlertService scheduleAlertService
+	IScheduleAlertService scheduleAlertService,
+	IBackgroundJobClient jobs
 )
 {
 	private const string UnknownTelegramError = "Неизвестная ошибка Telegram";
@@ -76,7 +77,7 @@ public class SenderMessageWorker(
 			{
 				try
 				{
-					BackgroundJob.Schedule<SenderMessageWorker>(
+					jobs.Schedule<SenderMessageWorker>(
 						x => x.SendMessageAsync(message.Id),
 						message.TimePosting);
 				}

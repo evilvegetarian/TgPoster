@@ -175,7 +175,7 @@ public sealed class CommentRepostEndpointTest(EndpointTestFixture fixture) : ICl
 		{
 			ScheduleId = GlobalConst.Worked.ScheduleId,
 			TelegramSessionId = GlobalConst.Worked.TelegramSessionId,
-			WatchedChannel = GlobalConst.Worked.Channel
+			WatchedChannel = "comment_" + Guid.NewGuid().ToString("N")
 		};
 
 		return await client.PostAsync<CreateCommentRepostResponse>(Url, request);

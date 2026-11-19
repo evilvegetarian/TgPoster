@@ -9,6 +9,7 @@ internal class SocialAccountBuilder(PosterContext context)
 	private readonly SocialAccount account = new()
 	{
 		Id = Guid.NewGuid(),
+		Created = DateTimeOffset.UtcNow,
 		UserId = new UserBuilder(context).Create().Id,
 		Platform = SocialPlatform.Bluesky,
 		Name = "test.bsky.social",

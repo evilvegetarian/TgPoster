@@ -17,10 +17,10 @@ internal class TelegramSessionSeeder(PosterContext context) : BaseSeeder
 		var session = new TelegramSession
 		{
 			Id = GlobalConst.Worked.TelegramSessionId,
-			Name = "TelegramBot",
-			ApiId = "asdas1212",
-			ApiHash = "asdas1212",
-			PhoneNumber = "121241241",
+			Name = "test-session",
+			ApiId = "123",
+			ApiHash = "test-api-hash",
+			PhoneNumber = "+10000000000",
 			UserId = GlobalConst.Worked.UserId
 		};
 

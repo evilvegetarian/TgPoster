@@ -18,7 +18,7 @@ internal class TelegramBotSeeder(PosterContext context, string api) : BaseSeeder
 		{
 			Id = GlobalConst.TelegramBotId,
 			Name = "TelegramBot",
-			ApiTelegram = "API Key",
+			ApiTelegram = "invalid-test-token",
 			ChatId = long.MaxValue,
 			OwnerId = GlobalConst.Worked.UserId
 		};

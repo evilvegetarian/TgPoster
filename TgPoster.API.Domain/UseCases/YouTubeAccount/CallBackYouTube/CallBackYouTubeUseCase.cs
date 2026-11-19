@@ -9,7 +9,8 @@ using TgPoster.Exceptions.NotFound;
 
 namespace TgPoster.API.Domain.UseCases.YouTubeAccount.CallBackYouTube;
 
-public class CallBackYouTubeUseCase(ICallBackYouTubeStorage storage, YouTubeOAuthStateService states)
+public class CallBackYouTubeUseCase(ICallBackYouTubeStorage storage, YouTubeOAuthStateService states,
+	Google.Apis.Http.IHttpClientFactory? httpClientFactory = null)
 	: IRequestHandler<CallBackYouTubeQuery>
 {
 	public async Task Handle(CallBackYouTubeQuery request, CancellationToken ct)
@@ -22,7 +23,7 @@ public class CallBackYouTubeUseCase(ICallBackYouTubeStorage storage, YouTubeOAut
 		if (string.IsNullOrEmpty(clientId) || string.IsNullOrEmpty(clientSecret))
 			throw new YouTubeAccountNotFoundException(accountYouTubeGuid);
 
-		var flow = new GoogleAuthorizationCodeFlow(new GoogleAuthorizationCodeFlow.Initializer
+		var flowInitializer = new GoogleAuthorizationCodeFlow.Initializer
 		{
 			ClientSecrets = new ClientSecrets
 			{
@@ -30,7 +31,10 @@ public class CallBackYouTubeUseCase(ICallBackYouTubeStorage storage, YouTubeOAut
 				ClientSecret = clientSecret
 			},
 			Scopes = [YouTubeService.Scope.YoutubeUpload, YouTubeService.Scope.YoutubeReadonly]
-		});
+		};
+		if (httpClientFactory is not null)
+			flowInitializer.HttpClientFactory = httpClientFactory;
+		var flow = new GoogleAuthorizationCodeFlow(flowInitializer);
 
 		var token = await flow.ExchangeCodeForTokenAsync(
 			"user-id",
@@ -40,11 +44,14 @@ public class CallBackYouTubeUseCase(ICallBackYouTubeStorage storage, YouTubeOAut
 		);
 
 		var credential = new UserCredential(flow, "user-id", token);
-		var youtubeService = new YouTubeService(new BaseClientService.Initializer
+		var serviceInitializer = new BaseClientService.Initializer
 		{
 			HttpClientInitializer = credential,
 			ApplicationName = "TgPoster"
-		});
+		};
+		if (httpClientFactory is not null)
+			serviceInitializer.HttpClientFactory = httpClientFactory;
+		var youtubeService = new YouTubeService(serviceInitializer);
 
 		var channelsRequest = youtubeService.Channels.List("snippet");
 		channelsRequest.Mine = true;

@@ -8,7 +8,7 @@ internal static class GlobalConst
 	public static readonly Guid UserId = Guid.Parse("ae35ca81-4a8a-4f8c-a2bb-f4dca7a56876");
 	public static readonly Guid FileId = Guid.Parse("bfddea1f-9110-46a3-bae6-9ee358b7fb99");
 	public static readonly Guid UserIdEmpty = Guid.Parse("d312dedb-70e8-4015-8d88-dc3c4d49f30c");
-	public static readonly long ChannelId = -1001563514057;
+	public static readonly long ChannelId = -1001234567890L;
 	public static readonly Guid YouTubeAccountId = Guid.Parse("f8a3e1c5-7b2d-4a9e-8f3c-1d6e9a4b7c2f");
 
 	public static class Worked
@@ -16,11 +16,11 @@ internal static class GlobalConst
 		public static readonly Guid TelegramBotId = Guid.Parse("55f1dee4-137d-4ade-9f91-84249aceaec4");
 		public static readonly Guid ScheduleId = Guid.Parse("cee7c166-b5cf-41b4-8c66-d470a4974000");
 		public static readonly Guid UserId = Guid.Parse("b6cbe54a-21d2-44d5-bfcc-a9f93e3fc93c");
-		public static readonly long ChannelId = -1002233268199;
-		public static readonly long ChatIdTg = 492807650;
-		public static readonly string Channel = "https://t.me/testKanalsrt";
-		public static readonly string UserName = "Default_User_For_APP";
-		public static readonly string Password = "string";
+		public static readonly long ChannelId = -1001234567890L;
+		public static readonly long ChatIdTg = -1001234567890L;
+		public static readonly string Channel = "@test_channel";
+		public static readonly string UserName = "test-user";
+		public static readonly string Password = "test-password-123";
 		public static readonly string Model = "openai/gpt-3.5-turbo-0613";
 		public static readonly Guid TelegramSessionId = Guid.Parse("D003BC5F-63AD-4562-9D07-7464075C740C");
 	}

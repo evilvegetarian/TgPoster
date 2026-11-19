@@ -46,7 +46,8 @@ axiosInstance.interceptors.response.use(
             return Promise.resolve({status: 499});
         }
 
-        if (error.response?.status === HttpStatusCode.Unauthorized) {
+        if (error.response?.status === HttpStatusCode.Unauthorized && !originalRequest._retry) {
+            originalRequest._retry = true;
             if (isRefreshing) {
                 return new Promise((resolve, reject) => {
                     failedQueue.push({resolve, reject});
@@ -60,7 +61,6 @@ axiosInstance.interceptors.response.use(
                     });
             }
 
-            originalRequest._retry = true;
             isRefreshing = true;
 
             const refreshToken = localStorage.getItem('refreshToken');
@@ -103,7 +103,7 @@ axiosInstance.interceptors.response.use(
         }
 
         console.error('API Error:', error);
-        console.error('Error details:', error.response.data.title);
+        console.error('Error details:', error.response?.data?.title);
 
         if (error.response?.data) {
             return Promise.reject(error.response.data);

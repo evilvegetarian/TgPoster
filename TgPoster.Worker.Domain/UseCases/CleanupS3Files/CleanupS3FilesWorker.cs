@@ -51,10 +51,6 @@ internal sealed class CleanupS3FilesWorker(
 				}
 
 				keysToDelete.Add(new KeyVersion { Key = s3Object.Key });
-				if (Guid.TryParse(s3Object.Key, out var fileId))
-				{
-					fileIdsToReset.Add(fileId);
-				}
 			}
 
 			continuationToken = listResponse.IsTruncated == true ? listResponse.NextContinuationToken : null;
@@ -82,6 +78,13 @@ internal sealed class CleanupS3FilesWorker(
 			}, ct);
 
 			deleted += deleteResponse.DeletedObjects?.Count ?? 0;
+			foreach (var deletedObject in deleteResponse.DeletedObjects ?? [])
+			{
+				if (Guid.TryParse(deletedObject.Key, out var fileId))
+				{
+					fileIdsToReset.Add(fileId);
+				}
+			}
 		}
 
 		if (fileIdsToReset.Count > 0)

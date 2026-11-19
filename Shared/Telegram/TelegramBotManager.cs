@@ -100,7 +100,7 @@ public sealed class TelegramBotManager(IWebProxy? proxy = null, ILogger<Telegram
 	/// <param name="port">Целевой порт назначения</param>
 	/// <param name="proxyUri">Адрес прокси-сервера</param>
 	/// <param name="ct">Токен отмены</param>
-	private async ValueTask EstablishTunnelAsync(
+	internal async ValueTask EstablishTunnelAsync(
 		Stream stream,
 		string host,
 		int port,
@@ -139,7 +139,7 @@ public sealed class TelegramBotManager(IWebProxy? proxy = null, ILogger<Telegram
 	/// <param name="stream">Поток до прокси-сервера</param>
 	/// <param name="ct">Токен отмены</param>
 	/// <returns>HTTP-код из статусной строки ответа</returns>
-	private static async ValueTask<HttpStatusCode> ReadTunnelStatusAsync(Stream stream, CancellationToken ct)
+	internal static async ValueTask<HttpStatusCode> ReadTunnelStatusAsync(Stream stream, CancellationToken ct)
 	{
 		var buffer = new byte[1];
 		var header = new StringBuilder();

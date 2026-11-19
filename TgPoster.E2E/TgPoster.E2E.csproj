@@ -28,6 +28,7 @@
 
     <ItemGroup>
         <ProjectReference Include="..\TgPoster.API\TgPoster.API.csproj"/>
+        <ProjectReference Include="..\TgPoster.API.Tests\TgPoster.API.Tests.csproj"/>
     </ItemGroup>
 
 </Project>

@@ -517,7 +517,7 @@ internal sealed class TelegramMessageService(
 		return await ExecuteAsync(sessionId, () => action(client), operation, waitOnFloodWait, ct);
 	}
 
-	private async Task<TelegramOperationResult<T>> ExecuteAsync<T>(
+	internal async Task<TelegramOperationResult<T>> ExecuteAsync<T>(
 		Guid sessionId,
 		Func<Task<T>> action,
 		string operation,

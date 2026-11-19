@@ -19,8 +19,10 @@ internal sealed class TelegramAuthService(
 	ITelegramAuthRepository authRepository,
 	SessionDataDebouncer sessionDebouncer,
 	TelegramClientManager clientManager,
-	ITelegramSessionAlertService alertService) : ITelegramAuthService, ITelegramClientResolver
+	ITelegramSessionAlertService alertService,
+	Func<Client, string, Task<string?>>? login = null) : ITelegramAuthService, ITelegramClientResolver
 {
+	private readonly Func<Client, string, Task<string?>> loginAsync = login ?? ((client, value) => client.Login(value));
 	public Task<Guid?> GetSessionIdForPurposeAsync(TelegramSessionPurpose purpose, CancellationToken ct = default)
 		=> authRepository.GetByTelegramSessionPurpose(purpose, ct);
 
@@ -74,7 +76,7 @@ internal sealed class TelegramAuthService(
 
 		try
 		{
-			var loginState = await client.Login(session.PhoneNumber);
+			var loginState = await loginAsync(client, session.PhoneNumber);
 
 			if (loginState == null)
 			{
@@ -122,7 +124,7 @@ internal sealed class TelegramAuthService(
 
 		try
 		{
-			var loginState = await client!.Login(code);
+			var loginState = await loginAsync(client!, code);
 
 			if (loginState == null)
 			{
@@ -169,7 +171,7 @@ internal sealed class TelegramAuthService(
 
 		try
 		{
-			var loginState = await client!.Login(password);
+			var loginState = await loginAsync(client!, password);
 
 			if (loginState == null)
 			{

@@ -11,7 +11,8 @@ namespace TgPoster.Telegram.Internal;
 /// </summary>
 internal sealed class SessionDataDebouncer(
 	IServiceScopeFactory scopeFactory,
-	ILogger<SessionDataDebouncer> logger) : IAsyncDisposable
+	ILogger<SessionDataDebouncer> logger,
+	TimeProvider? timeProvider = null) : IAsyncDisposable
 {
 	private static readonly TimeSpan DebounceDelay = TimeSpan.FromSeconds(5);
 	private static readonly TimeSpan MaxDelay = TimeSpan.FromSeconds(30);
@@ -20,13 +21,13 @@ internal sealed class SessionDataDebouncer(
 
 	public async ValueTask DisposeAsync()
 	{
+		await FlushAllAsync();
 		foreach (var entry in entries.Values)
 		{
 			await entry.DebounceTimer.DisposeAsync();
 			await entry.MaxDelayTimer.DisposeAsync();
 		}
 
-		await FlushAllAsync();
 		entries.Clear();
 	}
 
@@ -39,8 +40,8 @@ internal sealed class SessionDataDebouncer(
 		var entry = entries.GetOrAdd(sessionId, id =>
 		{
 			var e = new SessionEntry(
-				new Timer(_ => _ = FlushAsync(id), null, Timeout.Infinite, Timeout.Infinite),
-				new Timer(_ => _ = FlushAsync(id), null, Timeout.Infinite, Timeout.Infinite)
+				(timeProvider ?? TimeProvider.System).CreateTimer(_ => _ = FlushAsync(id), null, Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan),
+				(timeProvider ?? TimeProvider.System).CreateTimer(_ => _ = FlushAsync(id), null, Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan)
 			);
 			e.MaxDelayTimer.Change(MaxDelay, Timeout.InfiniteTimeSpan);
 			return e;
@@ -59,7 +60,7 @@ internal sealed class SessionDataDebouncer(
 		if (data == null)
 			return;
 
-		entry.DebounceTimer.Change(Timeout.Infinite, Timeout.Infinite);
+		entry.DebounceTimer.Change(Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
 		entry.MaxDelayTimer.Change(MaxDelay, Timeout.InfiniteTimeSpan);
 
 		try
@@ -83,10 +84,10 @@ internal sealed class SessionDataDebouncer(
 		}
 	}
 
-	private sealed class SessionEntry(Timer debounceTimer, Timer maxDelayTimer)
+	private sealed class SessionEntry(ITimer debounceTimer, ITimer maxDelayTimer)
 	{
 		public byte[]? LatestData;
-		public Timer DebounceTimer { get; } = debounceTimer;
-		public Timer MaxDelayTimer { get; } = maxDelayTimer;
+		public ITimer DebounceTimer { get; } = debounceTimer;
+		public ITimer MaxDelayTimer { get; } = maxDelayTimer;
 	}
 }

@@ -36,10 +36,6 @@
     </ItemGroup>
 
     <ItemGroup>
-        <None Remove="appsettingsTest.json"/>
-        <Content Include="appsettingsTest.json">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </Content>
         <None Update="TestFiles\photo_2025-03-06_21-28-02.jpg">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>

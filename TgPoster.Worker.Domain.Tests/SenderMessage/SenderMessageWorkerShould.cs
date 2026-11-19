@@ -1,3 +1,11 @@
+using Hangfire;
+using System.Collections.Concurrent;
+using System.Net;
+using System.Net.Http.Json;
+using System.Reflection;
+using Google.Apis.Http;
+using Hangfire.Common;
+using Hangfire.States;
 using MassTransit;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -22,9 +30,12 @@ public sealed class SenderMessageWorkerShould : IDisposable
 	private readonly Mock<ISenderMessageStorage> storage = new();
 	private readonly Mock<IPublishEndpoint> publisher = new();
 	private readonly Mock<IScheduleAlertService> alerts = new();
+	private readonly Mock<IBackgroundJobClient> jobs = new();
 	private readonly Mock<TelegramExecuteServices> telegram = new(NullLogger<TelegramExecuteServices>.Instance);
 	private readonly CancellationTokenSource stopping = new();
 	private readonly TelegramBotManager botManager = new();
+	private readonly VideoDownloadHandler downloadHandler = new();
+	private readonly YouTubeUploadHandler uploadHandler = new();
 	private readonly MessageDto post = new()
 	{
 		Id = Guid.NewGuid(),
@@ -36,6 +47,10 @@ public sealed class SenderMessageWorkerShould : IDisposable
 
 	public SenderMessageWorkerShould()
 	{
+		var clients = (ConcurrentDictionary<string, TelegramBotClient>)typeof(TelegramBotManager)
+			.GetField("clients", BindingFlags.Instance | BindingFlags.NonPublic)!.GetValue(botManager)!;
+		const string token = "123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11";
+		clients[token] = new(token, new HttpClient(downloadHandler));
 		var crypto = new Mock<ICryptoAES>();
 		crypto.Setup(x => x.Decrypt("key", "encrypted"))
 			.Returns("123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11");
@@ -54,14 +69,140 @@ public sealed class SenderMessageWorkerShould : IDisposable
 				It.IsAny<IEnumerable<IAlbumInputMedia>>(), It.IsAny<CancellationToken>()))
 			.ReturnsAsync(TelegramSendResult.Success([10, 11]));
 		sut = new SenderMessageWorker(storage.Object, NullLogger<SenderMessageWorker>.Instance,
-			crypto.Object, new TelegramOptions { SecretKey = "key", TelegramSessionId = Guid.Empty }, new YouTubeService(),
-			publisher.Object, botManager, lifetime.Object, telegram.Object, alerts.Object);
+			crypto.Object, new TelegramOptions { SecretKey = "key", TelegramSessionId = Guid.Empty },
+			new YouTubeService(new TestGoogleFactory(uploadHandler)),
+			publisher.Object, botManager, lifetime.Object, telegram.Object, alerts.Object, jobs.Object);
 	}
 
 	public void Dispose()
 	{
 		stopping.Dispose();
 		botManager.Dispose();
+		downloadHandler.Dispose();
+		uploadHandler.Dispose();
+	}
+
+	[Fact]
+	public async Task UploadOnlyVideoAttachments_AndPersistRefreshedYouTubeTokens()
+	{
+		var account = SetupYouTubePost();
+
+		await sut.SendMessageAsync(post.Id);
+
+		uploadHandler.UploadedBytes.ShouldBe(new byte[] { 1, 2, 3 });
+		storage.Verify(x => x.UpdateYouTubeTokensAsync(account.Id, "updated-access", "test-refresh", stopping.Token), Times.Once);
+		downloadHandler.Downloads.ShouldBe(1);
+	}
+
+	[Fact]
+	public async Task KeepTelegramPostSuccessful_WhenYouTubeRejectsUpload()
+	{
+		SetupYouTubePost();
+		uploadHandler.Reject = true;
+
+		await Should.NotThrowAsync(() => sut.SendMessageAsync(post.Id));
+
+		storage.Verify(x => x.SaveTelegramMessageIdsAsync(post.Id, 10,
+			It.Is<int[]>(ids => ids.SequenceEqual(new[] { 10, 11 })), 10, stopping.Token), Times.Once);
+		storage.Verify(x => x.UpdateYouTubeTokensAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<string?>(),
+			It.IsAny<CancellationToken>()), Times.Never);
+	}
+
+	[Fact]
+	public async Task SkipYouTube_WhenPostContainsNoVideos()
+	{
+		SetupYouTubePost();
+		post.File = [];
+
+		await sut.SendMessageAsync(post.Id);
+
+		uploadHandler.Requests.ShouldBe(0);
+		downloadHandler.Downloads.ShouldBe(0);
+	}
+
+	[Fact]
+	public async Task ClaimReadyPostsBeforeScheduling_AndScheduleOnlyTheirIds()
+	{
+		post.TimePosting = DateTimeOffset.UtcNow.AddHours(1);
+		storage.Setup(x => x.GetMessagesAsync()).ReturnsAsync([new MessageDetail
+		{
+			Api = "encrypted", ChannelId = 100, MessageDto = [post]
+		}]);
+		var claimed = false;
+		storage.Setup(x => x.UpdateStatusInHandleMessageAsync(It.Is<List<Guid>>(ids => ids.SequenceEqual(new[] { post.Id }))))
+			.Callback(() => claimed = true).Returns(Task.CompletedTask);
+		jobs.Setup(x => x.Create(It.IsAny<Job>(), It.IsAny<IState>()))
+			.Callback<Job, IState>((job, state) =>
+			{
+				claimed.ShouldBeTrue();
+				job.Type.ShouldBe(typeof(SenderMessageWorker));
+				job.Method.Name.ShouldBe(nameof(SenderMessageWorker.SendMessageAsync));
+				job.Args.ShouldBe(new object[] { post.Id });
+				((ScheduledState)state).EnqueueAt.ShouldBe(post.TimePosting.UtcDateTime);
+			}).Returns("job-id");
+
+		await sut.ProcessMessagesAsync();
+
+		jobs.Verify(x => x.Create(It.IsAny<Job>(), It.IsAny<IState>()), Times.Once);
+	}
+
+	[Fact]
+	public async Task MarkPostAsFailed_WhenSchedulingFails()
+	{
+		storage.Setup(x => x.GetMessagesAsync()).ReturnsAsync([new MessageDetail
+		{
+			Api = "encrypted", ChannelId = 100, MessageDto = [post]
+		}]);
+		jobs.Setup(x => x.Create(It.IsAny<Job>(), It.IsAny<IState>())).Throws(new InvalidOperationException("scheduler unavailable"));
+
+		await sut.ProcessMessagesAsync();
+
+		storage.Verify(x => x.UpdateErrorStatusMessageAsync(post.Id,
+			It.Is<string>(error => error.Contains("scheduler unavailable")), stopping.Token), Times.Once);
+	}
+
+	[Fact]
+	public async Task NotScheduleJobs_WhenThereAreNoReadyPosts()
+	{
+		storage.Setup(x => x.GetMessagesAsync()).ReturnsAsync([]);
+
+		await sut.ProcessMessagesAsync();
+
+		jobs.VerifyNoOtherCalls();
+		storage.Verify(x => x.UpdateStatusInHandleMessageAsync(It.IsAny<List<Guid>>()), Times.Never);
+	}
+
+	[Fact]
+	public async Task RecoverInterruptedPosts_AndNotifyOncePerSchedule()
+	{
+		var anotherSchedule = Guid.NewGuid();
+		var interrupted = new List<InterruptedMessage>
+		{
+			new(Guid.NewGuid(), post.ScheduleId), new(Guid.NewGuid(), post.ScheduleId),
+			new(Guid.NewGuid(), anotherSchedule)
+		};
+		storage.Setup(x => x.RecoverInHandleMessagesAsync(It.IsAny<DateTimeOffset>(),
+			It.IsAny<string>(), stopping.Token)).ReturnsAsync(interrupted);
+
+		var result = await sut.RecoverAfterRestartAsync(stopping.Token);
+
+		result.ShouldBe(interrupted);
+		alerts.Verify(x => x.NotifyAsync(post.ScheduleId, ScheduleProblem.PostsInterrupted,
+			"Прервано постов: 2", null, It.IsAny<CancellationToken>()), Times.Once);
+		alerts.Verify(x => x.NotifyAsync(anotherSchedule, ScheduleProblem.PostsInterrupted,
+			"Прервано постов: 1", null, It.IsAny<CancellationToken>()), Times.Once);
+	}
+
+	[Fact]
+	public async Task NotNotify_WhenNoPostsWereInterrupted()
+	{
+		storage.Setup(x => x.RecoverInHandleMessagesAsync(It.IsAny<DateTimeOffset>(),
+			It.IsAny<string>(), stopping.Token)).ReturnsAsync([]);
+
+		var result = await sut.RecoverAfterRestartAsync(stopping.Token);
+
+		result.ShouldBeEmpty();
+		alerts.VerifyNoOtherCalls();
 	}
 
 	[Fact]
@@ -346,5 +487,66 @@ public sealed class SenderMessageWorkerShould : IDisposable
 		var result = SenderMessageWorker.BuildSentMessageIds([], 12);
 
 		result.ShouldBeNull();
+	}
+
+	private YouTubeAccountDto SetupYouTubePost()
+	{
+		var account = new YouTubeAccountDto
+		{
+			Id = Guid.NewGuid(), AccessToken = "test-access", RefreshToken = "test-refresh", ClientId = "test-client",
+			ClientSecret = "test-secret", AutoPostingVideo = true
+		};
+		post.File = [new FileDto { TgFileId = "video-file", ContentType = "video/mp4" },
+			new FileDto { TgFileId = "photo-file", ContentType = "image/jpeg" }];
+		storage.Setup(x => x.TakeMessageForSendingAsync(post.Id, It.IsAny<CancellationToken>())).ReturnsAsync(new MessageDetail
+		{
+			Api = "encrypted", ChannelId = 100, MessageDto = [post], YouTubeAccount = account
+		});
+		return account;
+	}
+
+	private sealed class TestGoogleFactory(HttpMessageHandler handler) : Google.Apis.Http.HttpClientFactory
+	{
+		protected override HttpMessageHandler CreateHandler(CreateHttpClientArgs args) => handler;
+	}
+
+	private sealed class VideoDownloadHandler : HttpMessageHandler
+	{
+		public int Downloads { get; private set; }
+		protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken ct)
+		{
+			if (request.RequestUri!.AbsolutePath.Contains("/file/", StringComparison.Ordinal))
+			{
+				Downloads++;
+				return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK) { Content = new ByteArrayContent([1, 2, 3]) });
+			}
+			return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
+			{
+				Content = JsonContent.Create(new { ok = true, result = new { file_id = "video-file", file_unique_id = "unique-video", file_path = "videos/test.mp4" } })
+			});
+		}
+	}
+
+	private sealed class YouTubeUploadHandler : HttpMessageHandler
+	{
+		public int Requests { get; private set; }
+		public bool Reject { get; set; }
+		public byte[] UploadedBytes { get; private set; } = [];
+		protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken ct)
+		{
+			Requests++;
+			if (request.RequestUri!.AbsolutePath.EndsWith("/token", StringComparison.Ordinal))
+				return new(HttpStatusCode.OK) { Content = JsonContent.Create(new { access_token = "updated-access", expires_in = 3600, token_type = "Bearer" }) };
+			if (request.Method == HttpMethod.Post)
+			{
+				var response = new HttpResponseMessage(HttpStatusCode.OK);
+				response.Headers.Location = new Uri("https://upload.example.test/video");
+				return response;
+			}
+			UploadedBytes = await request.Content!.ReadAsByteArrayAsync(ct);
+			return Reject
+				? new(HttpStatusCode.BadRequest) { Content = JsonContent.Create(new { error = new { code = 400, message = "rejected" } }) }
+				: new(HttpStatusCode.OK) { Content = JsonContent.Create(new { id = "uploaded-video" }) };
+		}
 	}
 }

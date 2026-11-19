@@ -1,0 +1,67 @@
+name: Tests
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  unit:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 9.0.x
+      - name: Run unit tests
+        shell: pwsh
+        run: |
+          foreach ($project in @('Security.Tests', 'Shared.Tests', 'TgPoster.API.Domain.Tests', 'TgPoster.Worker.Domain.Tests')) {
+            dotnet test "$project/$project.csproj" --collect:"XPlat Code Coverage" --logger trx --results-directory "TestResults/$project"
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          }
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: unit-test-results
+          path: TestResults
+
+  integration:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 9.0.x
+      - name: Check Docker
+        run: docker info
+      - name: Run PostgreSQL and HTTP tests
+        shell: pwsh
+        run: |
+          foreach ($project in @('TgPoster.Storage.Tests', 'TgPoster.API.Tests', 'TgPoster.E2E')) {
+            dotnet test "$project/$project.csproj" --collect:"XPlat Code Coverage" --logger trx --results-directory "TestResults/$project"
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          }
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: integration-test-results
+          path: TestResults
+
+  frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: client
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: client/package-lock.json
+      - run: npm ci
+      - run: npm test
+      - run: npx tsc --noEmit -p tsconfig.app.json

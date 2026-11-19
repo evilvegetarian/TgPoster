@@ -1,4 +1,6 @@
 using System.Net.Http.Headers;
+using System.Collections.Concurrent;
+using System.Reflection;
 using MassTransit;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -9,9 +11,11 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 using Security.Authentication;
+using Security.Cryptography;
 using Security.IdentityServices;
 using Shared.Social.Bluesky;
 using Shared.Utilities;
+using Shared.Telegram;
 using Telegram.Bot;
 using Testcontainers.PostgreSql;
 using TgPoster.API.Domain.Services;
@@ -25,6 +29,9 @@ namespace TgPoster.API.Tests;
 
 public class EndpointTestFixture : WebApplicationFactory<Program>, IAsyncLifetime
 {
+	private const string CryptoKey = "0123456789abcdef0123456789abcdef";
+	private const string BotToken = "123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11";
+	private readonly string contentRoot = Path.Combine(Path.GetTempPath(), "tgposter-api-tests-" + Guid.NewGuid().ToString("N"));
 	private readonly PostgreSqlContainer dbContainer = new PostgreSqlBuilder()
 		.Build();
 
@@ -33,9 +40,13 @@ public class EndpointTestFixture : WebApplicationFactory<Program>, IAsyncLifetim
 	public string? Token;
 	public HttpClient AuthClient { get; private set; } = null!;
 	public IBlueskyClient BlueskyClient { get; } = Substitute.For<IBlueskyClient>();
+	public ITelegramAuthService TelegramAuth { get; } = Substitute.For<ITelegramAuthService>();
 
 	public async Task InitializeAsync()
 	{
+		Directory.CreateDirectory(contentRoot);
+		await File.WriteAllTextAsync(Path.Combine(contentRoot, "appsettings.json"),
+			"""{"CorsPolicies":{"AllowedOrigins":["https://client.example.test"]}}""");
 		await dbContainer.StartAsync();
 		var context = new PosterContext(new DbContextOptionsBuilder<PosterContext>()
 			.UseNpgsql(dbContainer.GetConnectionString()).Options, identityProvider);
@@ -46,7 +57,10 @@ public class EndpointTestFixture : WebApplicationFactory<Program>, IAsyncLifetim
 
 	public new async Task DisposeAsync()
 	{
+		await base.DisposeAsync();
 		await dbContainer.DisposeAsync();
+		File.Delete(Path.Combine(contentRoot, "appsettings.json"));
+		Directory.Delete(contentRoot);
 	}
 
 	public string GenerateTestToken(Guid userId)
@@ -61,6 +75,7 @@ public class EndpointTestFixture : WebApplicationFactory<Program>, IAsyncLifetim
 	{
 		AuthClient = CreateClient();
 		var accessToken = GenerateTestToken(GlobalConst.Worked.UserId);
+		Token = accessToken;
 		AuthClient.DefaultRequestHeaders.Authorization =
 			new AuthenticationHeaderValue("Bearer", accessToken);
 		return Task.CompletedTask;
@@ -79,10 +94,23 @@ public class EndpointTestFixture : WebApplicationFactory<Program>, IAsyncLifetim
 
 	protected override void ConfigureWebHost(IWebHostBuilder builder)
 	{
+		builder.UseEnvironment("Testing");
+		builder.UseContentRoot(contentRoot);
 		var configuration = new ConfigurationBuilder()
 			.AddInMemoryCollection(new Dictionary<string, string?>
 			{
-				["DataBase:ConnectionString"] = dbContainer.GetConnectionString()
+				["DataBase:ConnectionString"] = dbContainer.GetConnectionString(),
+				["JwtOptions:SecretKey"] = "test-jwt-signing-key-for-isolated-http-tests-only-123456789",
+				["JwtOptions:NameCookie"] = "test-access-token",
+				["JwtOptions:AccessExpiresHours"] = "1",
+				["JwtOptions:RefreshTokenExpiresHours"] = "1",
+				["TelegramOptions:SecretKey"] = CryptoKey,
+				["OpenRouterOptions:SecretKey"] = CryptoKey,
+				["S3Options:AccessKey"] = "test-access",
+				["S3Options:SecretKey"] = "test-secret",
+				["S3Options:ServiceUrl"] = "https://files.example.test",
+				["S3Options:BucketName"] = "test-bucket",
+				["TracingConfiguration:Url"] = "http://127.0.0.1:4318"
 			})
 			.Build();
 		builder.UseConfiguration(configuration);
@@ -91,10 +119,11 @@ public class EndpointTestFixture : WebApplicationFactory<Program>, IAsyncLifetim
 		builder.ConfigureServices(services =>
 		{
 			ReplaceService<IBus>(services, Substitute.For<IBus>());
-			ReplaceService<ITelegramAuthService>(services, Substitute.For<ITelegramAuthService>());
+			ReplaceService<ITelegramAuthService>(services, TelegramAuth);
 			ReplaceService<ITelegramChatService>(services, CreateMockChatService());
 			ReplaceService<ITelegramService>(services, CreateMockTelegramService());
 			ReplaceService<IBlueskyClient>(services, BlueskyClient);
+			ReplaceService(services, CreateBotManager());
 		});
 		base.ConfigureWebHost(builder);
 	}
@@ -112,9 +141,10 @@ public class EndpointTestFixture : WebApplicationFactory<Program>, IAsyncLifetim
 	{
 		var mock = Substitute.For<ITelegramChatService>();
 		mock.GetChatInfoAsync(Arg.Any<Guid>(), Arg.Any<string>(), Arg.Any<bool>())
-			.Returns(new TelegramChatInfo
+			.Returns(call => new TelegramChatInfo
 			{
-				Id = 123456789L,
+				Id = call.ArgAt<string>(1).StartsWith("comment_", StringComparison.Ordinal)
+					? (long)(uint)call.ArgAt<string>(1).GetHashCode() + 1 : 123456789L,
 				AccessHash = 0L,
 				Title = "Test Channel",
 				Username = "testchannel",
@@ -124,6 +154,8 @@ public class EndpointTestFixture : WebApplicationFactory<Program>, IAsyncLifetim
 				CanSendMedia = true,
 				Peer = TelegramPeer.Channel(123456789L, 0L)
 			});
+		mock.GetChatInfoAsync(Arg.Any<Guid>(), "GlobalConst.Worked.Channel", Arg.Any<bool>())
+			.Returns(Task.FromException<TelegramChatInfo>(new ArgumentException("Test channel does not exist")));
 		mock.GetFullChannelInfoAsync(Arg.Any<Guid>(), Arg.Any<TelegramChatInfo>())
 			.Returns(new TelegramChannelInfoResult
 			{
@@ -183,15 +215,8 @@ public class EndpointTestFixture : WebApplicationFactory<Program>, IAsyncLifetim
 
 	private async Task InsertSeed(PosterContext context)
 	{
-		var configuration = new ConfigurationBuilder()
-			.SetBasePath(AppContext.BaseDirectory)
-			.AddJsonFile("appsettingsTest.json", false, true)
-			.Build();
-
-		var apiValue = configuration["Api"]!;
-
-		var hash = configuration["Hash"]!;
-		Token = configuration["Token"]!;
+		var apiValue = new CryptoAES().Encrypt(CryptoKey, BotToken);
+		var hash = new PasswordHasher().Generate(GlobalConst.Worked.Password);
 		var seeders = new BaseSeeder[]
 		{
 			new TelegramBotSeeder(context, apiValue),
@@ -211,6 +236,46 @@ public class EndpointTestFixture : WebApplicationFactory<Program>, IAsyncLifetim
 		}
 
 		await context.SaveChangesAsync();
+	}
+
+	private static TelegramBotManager CreateBotManager()
+	{
+		var manager = new TelegramBotManager();
+		var clients = (ConcurrentDictionary<string, TelegramBotClient>)typeof(TelegramBotManager)
+			.GetField("clients", BindingFlags.Instance | BindingFlags.NonPublic)!.GetValue(manager)!;
+		clients[BotToken] = new TelegramBotClient(BotToken, new HttpClient(new TelegramTestHandler()));
+		return manager;
+	}
+}
+
+internal sealed class TelegramTestHandler : HttpMessageHandler
+{
+	protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken ct)
+	{
+		var method = request.RequestUri!.Segments[^1];
+		var content = request.Content is null ? "" : await request.Content.ReadAsStringAsync(ct);
+		if (content.Contains("random-channel-not-exist", StringComparison.Ordinal)
+			|| content.Contains("GlobalConst.Worked.Channel", StringComparison.Ordinal))
+			return new(System.Net.HttpStatusCode.BadRequest)
+			{
+				Content = System.Net.Http.Json.JsonContent.Create(new { ok = false, error_code = 400, description = "Bad Request: chat not found" })
+			};
+		object result = method.ToLowerInvariant() switch
+		{
+			"getchat" => new { id = GlobalConst.Worked.ChatIdTg, type = "channel", title = "Test Channel", username = "testchannel" },
+			"getchatmember" => new
+			{
+				status = "administrator", user = new { id = 123456, is_bot = true, first_name = "Test Bot" },
+				can_be_edited = true, is_anonymous = false, can_manage_chat = true, can_delete_messages = true,
+				can_manage_video_chats = true, can_restrict_members = true, can_promote_members = true,
+				can_change_info = true, can_invite_users = true, can_post_messages = true
+			},
+			_ => throw new InvalidOperationException("Unexpected Telegram request: " + method)
+		};
+		return new HttpResponseMessage(System.Net.HttpStatusCode.OK)
+		{
+			Content = System.Net.Http.Json.JsonContent.Create(new { ok = true, result })
+		};
 	}
 }
 

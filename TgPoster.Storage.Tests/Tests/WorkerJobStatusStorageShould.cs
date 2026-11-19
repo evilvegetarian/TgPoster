@@ -23,7 +23,8 @@ public sealed class WorkerJobStatusStorageShould(StorageTestFixture fixture)
 
 		var saved = await context.WorkerJobStates.FirstAsync(x => x.JobName == jobName, CancellationToken.None);
 		saved.Status.ShouldBe(WorkerJobStatus.Idle);
-		saved.NextRunAt.ShouldBe(nextRunAt);
+		saved.NextRunAt.ShouldNotBeNull();
+		saved.NextRunAt.Value.ShouldBe(nextRunAt, TimeSpan.FromMicroseconds(1));
 	}
 
 	[Fact]
@@ -44,7 +45,8 @@ public sealed class WorkerJobStatusStorageShould(StorageTestFixture fixture)
 
 		var saved = await context.WorkerJobStates.FirstAsync(x => x.JobName == jobName, CancellationToken.None);
 		saved.Status.ShouldBe(WorkerJobStatus.Running);
-		saved.NextRunAt.ShouldBe(nextRunAt);
+		saved.NextRunAt.ShouldNotBeNull();
+		saved.NextRunAt.Value.ShouldBe(nextRunAt, TimeSpan.FromMicroseconds(1));
 	}
 
 	[Fact]
@@ -117,8 +119,10 @@ public sealed class WorkerJobStatusStorageShould(StorageTestFixture fixture)
 
 		var saved = await context.WorkerJobStates.FirstAsync(x => x.JobName == jobName, CancellationToken.None);
 		saved.Status.ShouldBe(WorkerJobStatus.CooldownWait);
-		saved.CooldownUntil.ShouldBe(cooldownUntil);
-		saved.NextRunAt.ShouldBe(nextRunAt);
+		saved.CooldownUntil.ShouldNotBeNull();
+		saved.CooldownUntil.Value.ShouldBe(cooldownUntil, TimeSpan.FromMicroseconds(1));
+		saved.NextRunAt.ShouldNotBeNull();
+		saved.NextRunAt.Value.ShouldBe(nextRunAt, TimeSpan.FromMicroseconds(1));
 		saved.LastFinishedAt.ShouldNotBeNull();
 	}
 
@@ -133,7 +137,8 @@ public sealed class WorkerJobStatusStorageShould(StorageTestFixture fixture)
 
 		var saved = await context.WorkerJobStates.FirstAsync(x => x.JobName == jobName, CancellationToken.None);
 		saved.Status.ShouldBe(WorkerJobStatus.Idle);
-		saved.NextRunAt.ShouldBe(nextRunAt);
+		saved.NextRunAt.ShouldNotBeNull();
+		saved.NextRunAt.Value.ShouldBe(nextRunAt, TimeSpan.FromMicroseconds(1));
 		saved.LastFinishedAt.ShouldNotBeNull();
 	}
 

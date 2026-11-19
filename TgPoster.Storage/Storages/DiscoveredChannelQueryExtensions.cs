@@ -35,8 +35,8 @@ internal static class DiscoveredChannelQueryExtensions
 			.Where(x => maxParticipants == null
 			            || (x.ParticipantsCount != null && x.ParticipantsCount <= maxParticipants))
 			.Where(x => search == null
-			            || (x.Title != null && x.Title.Contains(search))
-			            || (x.Username != null && x.Username.Contains(search)));
+			            || (x.Title != null && x.Title.ToLower().Contains(search.ToLower()))
+			            || (x.Username != null && x.Username.ToLower().Contains(search.ToLower())));
 
 	/// <summary>
 	///     Применить сортировку Discover к запросу

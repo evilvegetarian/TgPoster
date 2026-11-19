@@ -456,7 +456,7 @@ internal sealed partial class DiscoverChannelLinksWorker(
 						break;
 					}
 
-					await Task.Delay(TimeSpan.FromSeconds(5), ct);
+					await Task.Delay(TimeSpan.FromSeconds(5), timeProvider, ct);
 					continue;
 				}
 
@@ -483,7 +483,7 @@ internal sealed partial class DiscoverChannelLinksWorker(
 				break;
 			}
 
-			await Task.Delay(InterBatchDelay, ct);
+			await Task.Delay(InterBatchDelay, timeProvider, ct);
 		}
 
 		return new HistoryFetchResult(allHistory, null);
@@ -640,7 +640,7 @@ internal sealed partial class DiscoverChannelLinksWorker(
 				chats.TryAdd(username, peerInfo.Value);
 			}
 
-			await Task.Delay(TimeSpan.FromSeconds(10), ct);
+			await Task.Delay(TimeSpan.FromSeconds(10), timeProvider, ct);
 		}
 
 		return chats;
@@ -698,14 +698,14 @@ internal sealed partial class DiscoverChannelLinksWorker(
 			{
 				logger.LogDebug("HTTP-lookup инвайта {Hash} не удался ({Status}), пропускаем",
 					hash, result.Status);
-				await Task.Delay(InviteLookupDelay, ct);
+				await Task.Delay(InviteLookupDelay, timeProvider, ct);
 				continue;
 			}
 
 			var info = result.Value;
 			if (info.Type is not (TelegramEntityType.Channel or TelegramEntityType.Group))
 			{
-				await Task.Delay(InviteLookupDelay, ct);
+				await Task.Delay(InviteLookupDelay, timeProvider, ct);
 				continue;
 			}
 
@@ -723,7 +723,7 @@ internal sealed partial class DiscoverChannelLinksWorker(
 				InviteHash = hash
 			};
 
-			await Task.Delay(InviteLookupDelay, ct);
+			await Task.Delay(InviteLookupDelay, timeProvider, ct);
 		}
 
 		return results;

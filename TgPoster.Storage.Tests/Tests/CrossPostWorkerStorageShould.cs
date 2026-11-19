@@ -82,12 +82,13 @@ public class CrossPostWorkerStorageShould(StorageTestFixture fixture) : IClassFi
 			.WithSocialAccount(account)
 			.WithIncludeParsed(false)
 			.CreateAsync();
+		var source = await new ChannelParsingSettingBuilder(context).WithSchedule(schedule).CreateAsync();
 		await new MessageBuilder(context)
 			.WithSchedule(schedule)
 			.WithStatus(MessageStatus.Send)
 			.WithTelegramMessageId(100)
 			.WithCrossPostEnabled(true)
-			.WithChannelParsingSettingId(Guid.NewGuid())
+			.WithChannelParsingSettingId(source.Id)
 			.WithTimeMessage(now.AddMinutes(10))
 			.CreateAsync();
 
@@ -138,7 +139,7 @@ public class CrossPostWorkerStorageShould(StorageTestFixture fixture) : IClassFi
 			.WithScheduledAt(now.AddMinutes(-5))
 			.CreateAsync();
 		await new CrossPostBuilder(context)
-			.WithMessage(message)
+			.WithMessage(await new MessageBuilder(context).WithSchedule(schedule).CreateAsync())
 			.WithTarget(target)
 			.WithScheduledAt(now.AddMinutes(5))
 			.CreateAsync();
@@ -197,8 +198,12 @@ public class CrossPostWorkerStorageShould(StorageTestFixture fixture) : IClassFi
 			.WithStatus(CrossPostStatus.Pending)
 			.CreateAsync();
 
-		context.SocialAccounts.Remove(account);
-		await context.SaveChangesAsync();
+		await using (var deleteContext = fixture.GetDbContext())
+		{
+			var toDelete = await deleteContext.SocialAccounts.FirstAsync(x => x.Id == account.Id);
+			deleteContext.SocialAccounts.Remove(toDelete);
+			await deleteContext.SaveChangesAsync();
+		}
 
 		var count = await sut.SkipOrphanedAsync(CancellationToken.None);
 

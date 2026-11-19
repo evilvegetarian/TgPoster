@@ -14,6 +14,43 @@ public sealed class VideoServiceTestsShould
 	private readonly VideoService sut = new();
 
 	[Fact]
+	public async Task ReadVideoDuration_AndRewindInput()
+	{
+		await using var input = new MemoryStream(await File.ReadAllBytesAsync(filePath));
+		input.Position = 10;
+
+		var duration = await sut.GetDurationAsync(input);
+
+		duration.ShouldBeGreaterThan(TimeSpan.Zero);
+		input.Position.ShouldBe(0);
+		input.CanRead.ShouldBeTrue();
+	}
+
+	[Fact]
+	public async Task TrimVideoToRequestedDuration_AndReturnReadableRewoundStream()
+	{
+		await using var input = new MemoryStream(await File.ReadAllBytesAsync(filePath));
+
+		await using var output = await sut.TrimVideoAsync(input, TimeSpan.FromSeconds(1));
+		var duration = await sut.GetDurationAsync(output);
+
+		output.Length.ShouldBeGreaterThan(0);
+		output.Position.ShouldBe(0);
+		input.Position.ShouldBe(0);
+		duration.ShouldBeGreaterThan(TimeSpan.Zero);
+		duration.ShouldBeLessThanOrEqualTo(TimeSpan.FromSeconds(1.2));
+	}
+
+	[Fact]
+	public async Task RejectCorruptVideo_WhenReadingDurationOrTrimming()
+	{
+		await using var input = new MemoryStream([1, 2, 3]);
+
+		await Should.ThrowAsync<VideoProcessingException>(() => sut.GetDurationAsync(input));
+		await Should.ThrowAsync<VideoProcessingException>(() => sut.TrimVideoAsync(input, TimeSpan.FromSeconds(1)));
+	}
+
+	[Fact]
 	public async Task ExtractScreenshots_WithValidVideo_ReturnsExpectedNumberOfScreenshots()
 	{
 		var fileBytes = await File.ReadAllBytesAsync(filePath);

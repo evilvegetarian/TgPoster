@@ -14,7 +14,7 @@ internal class UserBuilder(PosterContext context)
 		Id = Guid.NewGuid(),
 		Email = new Email(faker.Internet.Email()),
 		PasswordHash = faker.Random.Hash(),
-		UserName = new UserName(faker.Internet.UserName())
+		UserName = new UserName("t" + Guid.NewGuid().ToString("N")[..15])
 	};
 
 	private readonly List<User> users = [];

@@ -513,6 +513,7 @@ public sealed class DiscoverChannelLinksStorageShould(StorageTestFixture fixture
 	public async Task BulkUpsertAsync_ShouldNotOverwriteDiscoveredFromChannelId()
 	{
 		var sourceId = Guid.NewGuid();
+		context.DiscoveredChannels.Add(new DiscoveredChannel { Id = sourceId, Status = DiscoveryStatus.Pending });
 		var existingUsername = $"bulkfrom_{Guid.NewGuid():N}";
 		context.DiscoveredChannels.Add(new DiscoveredChannel
 		{

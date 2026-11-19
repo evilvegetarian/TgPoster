@@ -12,6 +12,53 @@ public sealed class CrossPostComposerShould
 	private static readonly PlatformTextProfile P40 = new(40, TextLengthMode.Utf16, true, false, false);
 
 	[Theory]
+	[InlineData("abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyz")]
+	[InlineData("one two three four five six seven eight nine ten eleven twelve thirteen fourteen fifteen sixteen")]
+	public void SplitLongSentencesAndWords_WithoutLosingText(string text)
+	{
+		var result = CrossPostComposer.Compose(text, CrossPostFormat.Full, null, "", P40);
+
+		result.FellBackToTeaser.ShouldBeFalse();
+		result.Truncated.ShouldBeFalse();
+		string.Concat(result.Parts).Replace(" ", "").Replace("\n", "").ShouldBe(text.Replace(" ", ""));
+		AssertPartsWithinLimit(result, P40);
+	}
+
+	[Fact]
+	public void SplitLongEmojiWords_WithoutBreakingTextElements()
+	{
+		var text = string.Concat(Enumerable.Repeat("👩‍👩‍👧‍👦", 30));
+		var profile = new PlatformTextProfile(10, TextLengthMode.Graphemes, true, false, false);
+
+		var result = CrossPostComposer.Compose(text, CrossPostFormat.Full, null, "", profile);
+
+		result.FellBackToTeaser.ShouldBeFalse();
+		string.Concat(result.Parts).TrimEnd().ShouldBe(text);
+		foreach (var part in result.Parts)
+		{
+			TextLength.Measure(part, profile.Mode).ShouldBeLessThanOrEqualTo(profile.MaxLength);
+			System.Text.Encoding.UTF8.GetString(System.Text.Encoding.UTF8.GetBytes(part)).ShouldBe(part);
+		}
+	}
+
+	[Fact]
+	public void ReturnOnlyFooter_WhenTeaserHasNoRoomForText()
+	{
+		var result = CrossPostComposer.Compose("text", CrossPostFormat.Teaser, null, "abc",
+			new PlatformTextProfile(3, TextLengthMode.Utf16, true, false, false));
+
+		result.Parts.ShouldBe(["abc"]);
+		result.Truncated.ShouldBeTrue();
+	}
+
+	[Fact]
+	public void ReturnFooterForEmptyFullPost_AndRejectUnknownFormat()
+	{
+		CrossPostComposer.Compose("", CrossPostFormat.Full, null, "footer", P40).Parts.ShouldBe(["footer"]);
+		Should.Throw<ArgumentOutOfRangeException>(() => CrossPostComposer.Compose("text", (CrossPostFormat)999, null, "footer", P40));
+	}
+
+	[Theory]
 	[InlineData("Короткий пост", "t.me/c/1", "Далее:", new[] { "Короткий пост\n\nДалее:\nt.me/c/1" }, false, false)]
 	[InlineData("Сегодня мы расскажем о новой функции сервиса", "t.me/c/1", "Далее:", new[] { "Сегодня мы расскажем о…\n\nДалее:\nt.me/c/1" }, true, false)]
 	[InlineData("Большое обновление приложения уже доступно", "t.me/c/1", "Далее:", new[] { "Большое обновление…\n\nДалее:\nt.me/c/1" }, true, false)]

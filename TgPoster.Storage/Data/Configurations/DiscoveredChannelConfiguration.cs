@@ -34,6 +34,6 @@ internal sealed class DiscoveredChannelConfiguration : BaseEntityConfiguration<D
 			.OnDelete(DeleteBehavior.SetNull);
 
 		builder.HasIndex(x => x.DiscoveredFromChannelId);
-		builder.HasQueryFilter(x => !x.IsBanned);
+		builder.HasQueryFilter(x => !x.IsBanned && x.Deleted == null);
 	}
 }

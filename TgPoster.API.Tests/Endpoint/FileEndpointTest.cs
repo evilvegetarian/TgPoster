@@ -9,15 +9,6 @@ public class FileEndpointTest(EndpointTestFixture fixture) : IClassFixture<Endpo
 	private const string Url = Routes.File.Root;
 	private readonly HttpClient client = fixture.AuthClient;
 
-	// [Fact]
-	// public async Task GetFile_WithValidId_ShouldReturnFile()
-	// {
-	// 	var response = await client.GetAsync($"{Url}/{GlobalConst.FileId}");
-	// 	response.StatusCode.ShouldBe(HttpStatusCode.OK);
-	// 	var content = await response.Content.ReadAsByteArrayAsync();
-	// 	content.Length.ShouldBeGreaterThan(0);
-	// }
-
 	[Fact]
 	public async Task GetFile_WithNonExistentId_ShouldReturnNotFound()
 	{

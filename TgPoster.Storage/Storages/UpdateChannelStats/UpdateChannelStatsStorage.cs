@@ -16,7 +16,8 @@ internal sealed class UpdateChannelStatsStorage(PosterContext context) : IUpdate
 	public Task<List<ChannelStatsDto>> GetChannelsToUpdateAsync(int batchSize, CancellationToken ct)
 		=> context.DiscoveredChannels
 			.Where(c => !c.IsBanned && c.Username != null)
-			.OrderBy(c => c.ParticipantsUpdatedAt)
+			.OrderBy(c => c.ParticipantsUpdatedAt != null)
+			.ThenBy(c => c.ParticipantsUpdatedAt)
 			.Take(batchSize)
 			.Select(c => new ChannelStatsDto(c.Id, c.Username!, c.TelegramId))
 			.ToListAsync(ct);

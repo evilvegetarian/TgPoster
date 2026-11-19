@@ -15,7 +15,7 @@ public sealed class DiscoverStorageShould(StorageTestFixture fixture)
 	private readonly DiscoverStorage sut = new(fixture.GetDbContext());
 
 	[Fact]
-	public async Task GetDiscoverChannelsAsync_WhenNoCategoryFilter_ShouldReturnOnlyCompletedChannels()
+	public async Task GetDiscoverChannelsAsync_WhenNoCategoryFilter_ShouldIncludePendingAndCompletedChannels()
 	{
 		var completed = new DiscoveredChannel
 		{
@@ -40,8 +40,25 @@ public sealed class DiscoverStorageShould(StorageTestFixture fixture)
 			SortDirection.Desc);
 		var result = await sut.GetDiscoverChannelsAsync(query, CancellationToken.None);
 
-		result.Items.ShouldAllBe(x => x.Id != pending.Id);
+		result.Items.ShouldContain(x => x.Id == pending.Id);
 		result.Items.ShouldContain(x => x.Id == completed.Id);
+	}
+
+	[Fact]
+	public async Task GetDiscoverChannelsAsync_ShouldExcludeDeletedAndBannedChannels()
+	{
+		var marker = Guid.NewGuid().ToString("N");
+		var active = new DiscoveredChannel { Id = Guid.NewGuid(), Username = "active_" + marker };
+		var banned = new DiscoveredChannel { Id = Guid.NewGuid(), Username = "banned_" + marker, IsBanned = true };
+		var deleted = new DiscoveredChannel { Id = Guid.NewGuid(), Username = "deleted_" + marker, Deleted = DateTimeOffset.UtcNow };
+		context.DiscoveredChannels.AddRange(active, banned, deleted);
+		await context.SaveChangesAsync();
+
+		var result = await sut.GetDiscoverChannelsAsync(new ListDiscoverQuery(1, 50, null, marker, null, null, null,
+			DiscoverSortBy.Participants, SortDirection.Desc), CancellationToken.None);
+
+		result.Items.Select(x => x.Id).ShouldBe([active.Id]);
+		result.TotalCount.ShouldBe(1);
 	}
 
 	[Fact]
