@@ -202,12 +202,13 @@ public sealed class ListMessageStorageShould(StorageTestFixture fixture) : IClas
 			.WithMessage(message)
 			.WithTarget(firstTarget)
 			.WithStatus(CrossPostStatus.Failed)
+			.WithCreatedDate(DateTime.UnixEpoch)
 			.CreateAsync();
-		await Task.Delay(20);
 		var second = await new CrossPostBuilder(context)
 			.WithMessage(message)
 			.WithTarget(secondTarget)
 			.WithStatus(CrossPostStatus.Published)
+			.WithCreatedDate(DateTime.UnixEpoch.AddMinutes(1))
 			.CreateAsync();
 
 		var request = CreateQuery(schedule.Id);
@@ -245,11 +246,11 @@ public sealed class ListMessageStorageShould(StorageTestFixture fixture) : IClas
 		var schedule = await new ScheduleBuilder(context).CreateAsync();
 		var messages = new List<Message>
 		{
-			await new MessageBuilder(context).WithSchedule(schedule).CreateAsync(),
-			await new MessageBuilder(context).WithSchedule(schedule).CreateAsync(),
-			await new MessageBuilder(context).WithSchedule(schedule).CreateAsync(),
-			await new MessageBuilder(context).WithSchedule(schedule).CreateAsync(),
-			await new MessageBuilder(context).WithSchedule(schedule).CreateAsync()
+			await new MessageBuilder(context).WithSchedule(schedule).WithCreatedDate(DateTime.UnixEpoch).CreateAsync(),
+			await new MessageBuilder(context).WithSchedule(schedule).WithCreatedDate(DateTime.UnixEpoch.AddMinutes(1)).CreateAsync(),
+			await new MessageBuilder(context).WithSchedule(schedule).WithCreatedDate(DateTime.UnixEpoch.AddMinutes(2)).CreateAsync(),
+			await new MessageBuilder(context).WithSchedule(schedule).WithCreatedDate(DateTime.UnixEpoch.AddMinutes(3)).CreateAsync(),
+			await new MessageBuilder(context).WithSchedule(schedule).WithCreatedDate(DateTime.UnixEpoch.AddMinutes(4)).CreateAsync()
 		};
 
 		var request = CreateQuery(
@@ -296,17 +297,17 @@ public sealed class ListMessageStorageShould(StorageTestFixture fixture) : IClas
 		var schedule = await new ScheduleBuilder(context).CreateAsync();
 		var messages = new List<Message>
 		{
-			await new MessageBuilder(context).WithSchedule(schedule).CreateAsync(),
-			await new MessageBuilder(context).WithSchedule(schedule).CreateAsync(),
-			await new MessageBuilder(context).WithSchedule(schedule).CreateAsync(),
-			await new MessageBuilder(context).WithSchedule(schedule).CreateAsync()
+			await new MessageBuilder(context).WithSchedule(schedule).WithCreatedDate(DateTime.UnixEpoch.AddMinutes(2)).CreateAsync(),
+			await new MessageBuilder(context).WithSchedule(schedule).WithCreatedDate(DateTime.UnixEpoch).CreateAsync(),
+			await new MessageBuilder(context).WithSchedule(schedule).WithCreatedDate(DateTime.UnixEpoch.AddMinutes(3)).CreateAsync(),
+			await new MessageBuilder(context).WithSchedule(schedule).WithCreatedDate(DateTime.UnixEpoch.AddMinutes(1)).CreateAsync()
 		};
 		var request = CreateQuery(schedule.Id, sortBy: MessageSortBy.CreatedAt, sortDirection: SortDirection.Asc);
 
 		var result = await sut.GetMessagesAsync(request, Ct);
 
 		result.Items.ShouldNotBeEmpty();
-		result.Items.Select(m => m.Id).ShouldBe(messages.Select(m => m.Id));
+		result.Items.Select(m => m.Id).ShouldBe([messages[1].Id, messages[3].Id, messages[0].Id, messages[2].Id]);
 		result.Items.Select(m => m.Created).ShouldBeInOrder(Shouldly.SortDirection.Ascending);
 	}
 
@@ -314,11 +315,15 @@ public sealed class ListMessageStorageShould(StorageTestFixture fixture) : IClas
 	public async Task GetMessagesAsync_SortByCreatedAtDesc_ShouldReturnSortedMessages()
 	{
 		var schedule = await new ScheduleBuilder(context).CreateAsync();
-		var message1 = await new MessageBuilder(context).WithSchedule(schedule).CreateAsync();
-		var message2 = await new MessageBuilder(context).WithSchedule(schedule).CreateAsync();
-		var message3 = await new MessageBuilder(context).WithSchedule(schedule).CreateAsync();
-		var message4 = await new MessageBuilder(context).WithSchedule(schedule).CreateAsync();
-		var messages = new List<Message> { message4, message3, message2, message1 };
+		var message1 = await new MessageBuilder(context).WithSchedule(schedule)
+			.WithCreatedDate(DateTime.UnixEpoch).CreateAsync();
+		var message2 = await new MessageBuilder(context).WithSchedule(schedule)
+			.WithCreatedDate(DateTime.UnixEpoch.AddMinutes(2)).CreateAsync();
+		var message3 = await new MessageBuilder(context).WithSchedule(schedule)
+			.WithCreatedDate(DateTime.UnixEpoch.AddMinutes(1)).CreateAsync();
+		var message4 = await new MessageBuilder(context).WithSchedule(schedule)
+			.WithCreatedDate(DateTime.UnixEpoch.AddMinutes(3)).CreateAsync();
+		var messages = new List<Message> { message4, message2, message3, message1 };
 		var request = CreateQuery(schedule.Id, sortBy: MessageSortBy.CreatedAt, sortDirection: SortDirection.Desc);
 
 		var result = await sut.GetMessagesAsync(request, Ct);
@@ -356,11 +361,11 @@ public sealed class ListMessageStorageShould(StorageTestFixture fixture) : IClas
 		var messages = new List<Message>
 		{
 			await new MessageBuilder(context).WithSchedule(schedule).WithIsVerified(false)
-				.WithStatus(Data.Enum.MessageStatus.Register).CreateAsync(),
+				.WithStatus(Data.Enum.MessageStatus.Register).WithCreatedDate(DateTime.UnixEpoch).CreateAsync(),
 			await new MessageBuilder(context).WithSchedule(schedule).WithIsVerified(true)
-				.WithStatus(Data.Enum.MessageStatus.Register).CreateAsync(),
+				.WithStatus(Data.Enum.MessageStatus.Register).WithCreatedDate(DateTime.UnixEpoch.AddMinutes(1)).CreateAsync(),
 			await new MessageBuilder(context).WithSchedule(schedule).WithIsVerified(false)
-				.WithStatus(Data.Enum.MessageStatus.Register).CreateAsync()
+				.WithStatus(Data.Enum.MessageStatus.Register).WithCreatedDate(DateTime.UnixEpoch.AddMinutes(2)).CreateAsync()
 		};
 
 		var request = CreateQuery(schedule.Id, MessageStatus.NotApproved, MessageSortBy.CreatedAt,
@@ -405,11 +410,11 @@ public sealed class ListMessageStorageShould(StorageTestFixture fixture) : IClas
 		var messages = new List<Message>
 		{
 			await new MessageBuilder(context).WithSchedule(schedule).WithStatus(Data.Enum.MessageStatus.Register)
-				.WithIsVerified(true).CreateAsync(),
+				.WithIsVerified(true).WithCreatedDate(DateTime.UnixEpoch).CreateAsync(),
 			await new MessageBuilder(context).WithSchedule(schedule).WithStatus(Data.Enum.MessageStatus.Register)
-				.WithIsVerified(false).CreateAsync(),
+				.WithIsVerified(false).WithCreatedDate(DateTime.UnixEpoch.AddMinutes(1)).CreateAsync(),
 			await new MessageBuilder(context).WithSchedule(schedule).WithStatus(Data.Enum.MessageStatus.Register)
-				.WithIsVerified(true).CreateAsync()
+				.WithIsVerified(true).WithCreatedDate(DateTime.UnixEpoch.AddMinutes(2)).CreateAsync()
 		};
 
 		var request = CreateQuery(schedule.Id, MessageStatus.Planed, MessageSortBy.CreatedAt,

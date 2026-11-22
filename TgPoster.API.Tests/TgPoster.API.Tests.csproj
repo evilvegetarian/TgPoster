@@ -27,6 +27,12 @@
 
     <ItemGroup>
         <Using Include="Xunit"/>
+        <Compile Include="..\TestInfrastructure\PostgreSqlTestDatabase.cs" Link="Infrastructure\PostgreSqlTestDatabase.cs"/>
+        <Compile Include="..\TestInfrastructure\PostgreSqlTestFramework.cs" Link="Infrastructure\PostgreSqlTestFramework.cs"/>
+        <AssemblyAttribute Include="Xunit.TestFrameworkAttribute">
+            <_Parameter1>TgPoster.Testing.PostgreSqlTestFramework</_Parameter1>
+            <_Parameter2>$(AssemblyName)</_Parameter2>
+        </AssemblyAttribute>
     </ItemGroup>
 
     <ItemGroup>

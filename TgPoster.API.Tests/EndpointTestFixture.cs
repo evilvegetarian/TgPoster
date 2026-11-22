@@ -17,11 +17,11 @@ using Shared.Social.Bluesky;
 using Shared.Utilities;
 using Shared.Telegram;
 using Telegram.Bot;
-using Testcontainers.PostgreSql;
 using TgPoster.API.Domain.Services;
 using TgPoster.API.Tests.Helper;
 using TgPoster.API.Tests.Seeder;
 using TgPoster.Storage.Data;
+using TgPoster.Testing;
 using TgPoster.Telegram.Abstractions;
 using TgPoster.Telegram.Models;
 
@@ -32,8 +32,7 @@ public class EndpointTestFixture : WebApplicationFactory<Program>, IAsyncLifetim
 	private const string CryptoKey = "0123456789abcdef0123456789abcdef";
 	private const string BotToken = "123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11";
 	private readonly string contentRoot = Path.Combine(Path.GetTempPath(), "tgposter-api-tests-" + Guid.NewGuid().ToString("N"));
-	private readonly PostgreSqlContainer dbContainer = new PostgreSqlBuilder()
-		.Build();
+	private PostgreSqlTestDatabase database = null!;
 
 	private readonly IIdentityProvider identityProvider = new TestIdentityProvider();
 
@@ -47,10 +46,9 @@ public class EndpointTestFixture : WebApplicationFactory<Program>, IAsyncLifetim
 		Directory.CreateDirectory(contentRoot);
 		await File.WriteAllTextAsync(Path.Combine(contentRoot, "appsettings.json"),
 			"""{"CorsPolicies":{"AllowedOrigins":["https://client.example.test"]}}""");
-		await dbContainer.StartAsync();
-		var context = new PosterContext(new DbContextOptionsBuilder<PosterContext>()
-			.UseNpgsql(dbContainer.GetConnectionString()).Options, identityProvider);
-		await context.Database.MigrateAsync();
+		database = await PostgreSqlTestDatabase.CreateAsync(GetType().Assembly);
+		await using var context = new PosterContext(new DbContextOptionsBuilder<PosterContext>()
+			.UseNpgsql(database.ConnectionString).Options, identityProvider);
 		await InsertSeed(context);
 		await CreateAuthClient();
 	}
@@ -58,7 +56,8 @@ public class EndpointTestFixture : WebApplicationFactory<Program>, IAsyncLifetim
 	public new async Task DisposeAsync()
 	{
 		await base.DisposeAsync();
-		await dbContainer.DisposeAsync();
+		if (database is not null)
+			await database.DisposeAsync();
 		File.Delete(Path.Combine(contentRoot, "appsettings.json"));
 		Directory.Delete(contentRoot);
 	}
@@ -90,7 +89,7 @@ public class EndpointTestFixture : WebApplicationFactory<Program>, IAsyncLifetim
 
 	internal PosterContext GetDbContext() =>
 		new(new DbContextOptionsBuilder<PosterContext>()
-			.UseNpgsql(dbContainer.GetConnectionString()).Options, identityProvider);
+			.UseNpgsql(database.ConnectionString).Options, identityProvider);
 
 	protected override void ConfigureWebHost(IWebHostBuilder builder)
 	{
@@ -99,7 +98,7 @@ public class EndpointTestFixture : WebApplicationFactory<Program>, IAsyncLifetim
 		var configuration = new ConfigurationBuilder()
 			.AddInMemoryCollection(new Dictionary<string, string?>
 			{
-				["DataBase:ConnectionString"] = dbContainer.GetConnectionString(),
+				["DataBase:ConnectionString"] = database.ConnectionString,
 				["JwtOptions:SecretKey"] = "test-jwt-signing-key-for-isolated-http-tests-only-123456789",
 				["JwtOptions:NameCookie"] = "test-access-token",
 				["JwtOptions:AccessExpiresHours"] = "1",

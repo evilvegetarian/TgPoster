@@ -1,33 +1,29 @@
 using Microsoft.EntityFrameworkCore;
 using Security.IdentityServices;
-using Testcontainers.PostgreSql;
 using TgPoster.Storage.Data;
+using TgPoster.Testing;
 
 namespace TgPoster.Storage.Tests;
 
 public class StorageTestFixture : IAsyncLifetime
 {
-	private readonly PostgreSqlContainer dbContainer = new PostgreSqlBuilder().Build();
 	private readonly IIdentityProvider identityProvider = new TestIdentityProvider();
-	private PosterContext PosterContext { get; set; } = null!;
+	private PostgreSqlTestDatabase database = null!;
 
 	public virtual async Task InitializeAsync()
 	{
-		await dbContainer.StartAsync();
-		var forumDbContext = new PosterContext(new DbContextOptionsBuilder<PosterContext>()
-			.UseNpgsql(dbContainer.GetConnectionString()).Options, identityProvider);
-		PosterContext = forumDbContext;
-		await forumDbContext.Database.MigrateAsync();
+		database = await PostgreSqlTestDatabase.CreateAsync(GetType().Assembly);
 	}
 
 	public async Task DisposeAsync()
 	{
-		await dbContainer.StopAsync();
+		if (database is not null)
+			await database.DisposeAsync();
 	}
 
 	internal PosterContext GetDbContext() =>
 		new(new DbContextOptionsBuilder<PosterContext>()
-			.UseNpgsql(dbContainer.GetConnectionString()).Options, identityProvider);
+			.UseNpgsql(database.ConnectionString).Options, identityProvider);
 }
 
 internal sealed class TestIdentityProvider : IIdentityProvider

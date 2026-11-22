@@ -1,4 +1,5 @@
 using Bogus;
+using Microsoft.EntityFrameworkCore;
 using TgPoster.Storage.Data;
 using TgPoster.Storage.Data.Entities;
 using TgPoster.Storage.Data.Enum;
@@ -8,6 +9,7 @@ namespace TgPoster.Storage.Tests.Builders;
 internal class MessageBuilder(PosterContext context)
 {
 	private static readonly Faker faker = FakerProvider.Instance;
+	private DateTime? createdDate;
 
 	private readonly Message message = new()
 	{
@@ -50,6 +52,7 @@ internal class MessageBuilder(PosterContext context)
 
 	public MessageBuilder WithCreatedDate(DateTime value)
 	{
+		createdDate = value;
 		message.Created = value;
 		return this;
 	}
@@ -70,9 +73,16 @@ internal class MessageBuilder(PosterContext context)
 
 	public async Task<Message> CreateAsync()
 	{
-		await Task.Delay(TimeSpan.FromSeconds(1));
 		await context.Messages.AddRangeAsync(message);
 		await context.SaveChangesAsync();
+		if (createdDate is { } value)
+		{
+			// SaveChangesAsync перезаписывает Created, поэтому фиксируем дату после вставки
+			await context.Database.ExecuteSqlInterpolatedAsync(
+				$"""UPDATE "Messages" SET "Created" = {value} WHERE "Id" = {message.Id}""");
+			message.Created = value;
+			context.Entry(message).Property(x => x.Created).OriginalValue = value;
+		}
 		return message;
 	}
 

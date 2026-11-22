@@ -119,12 +119,13 @@ public class GetMessageStorageShould(StorageTestFixture fixture) : IClassFixture
 			.WithMessage(message)
 			.WithTarget(firstTarget)
 			.WithStatus(CrossPostStatus.Failed)
+			.WithCreatedDate(DateTime.UnixEpoch)
 			.CreateAsync();
-		await Task.Delay(20);
 		var second = await new CrossPostBuilder(context)
 			.WithMessage(message)
 			.WithTarget(secondTarget)
 			.WithStatus(CrossPostStatus.Published)
+			.WithCreatedDate(DateTime.UnixEpoch.AddMinutes(1))
 			.CreateAsync();
 
 		var result = await sut.GetMessagesAsync(message.Id, schedule.UserId, CancellationToken.None);

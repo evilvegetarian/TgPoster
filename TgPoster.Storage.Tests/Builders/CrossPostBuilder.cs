@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using Shared.Enums;
 using TgPoster.Storage.Data;
 using TgPoster.Storage.Data.Entities;
@@ -6,6 +7,8 @@ namespace TgPoster.Storage.Tests.Builders;
 
 internal class CrossPostBuilder(PosterContext context)
 {
+	private DateTimeOffset? createdDate;
+
 	private readonly CrossPost crossPost = new()
 	{
 		Id = Guid.NewGuid(),
@@ -59,6 +62,13 @@ internal class CrossPostBuilder(PosterContext context)
 		return this;
 	}
 
+	public CrossPostBuilder WithCreatedDate(DateTimeOffset value)
+	{
+		createdDate = value;
+		crossPost.Created = value;
+		return this;
+	}
+
 	public CrossPost Build() => crossPost;
 
 	public CrossPost Create()
@@ -72,6 +82,13 @@ internal class CrossPostBuilder(PosterContext context)
 	{
 		await context.CrossPosts.AddRangeAsync(crossPost);
 		await context.SaveChangesAsync(ct);
+		if (createdDate is { } value)
+		{
+			await context.Database.ExecuteSqlInterpolatedAsync(
+				$"""UPDATE "CrossPosts" SET "Created" = {value} WHERE "Id" = {crossPost.Id}""", ct);
+			crossPost.Created = value;
+			context.Entry(crossPost).Property(x => x.Created).OriginalValue = value;
+		}
 		return crossPost;
 	}
 }
