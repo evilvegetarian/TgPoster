@@ -429,7 +429,7 @@ public class DiscoverChannelLinksWorkerShould
 	}
 
 	[Fact]
-	public async Task DeduplicatePrivateAndInvitedPeersByTitle()
+	public async Task KeepDistinctPeers_WhenTitlesMatch()
 	{
 		SetupSuccessfulSource();
 		SetupHistory(new TelegramHistoryPage
@@ -446,7 +446,10 @@ public class DiscoverChannelLinksWorkerShould
 		await CreateSut().ProcessChannelsAsync();
 
 		storage.Verify(x => x.BulkUpsertAsync(It.Is<IReadOnlyCollection<DiscoveredPeerUpsert>>(items =>
-			items.Count == 1 && items.Single().Username == "knownchat"), It.IsAny<CancellationToken>()), Times.Once);
+			items.Count == 3 &&
+			items.Any(p => p.TelegramId == 200 && p.Username == "knownchat") &&
+			items.Any(p => p.TelegramId == 300 && p.Username == null) &&
+			items.Any(p => p.InviteHash == "AbCd" && p.TelegramId == null)), It.IsAny<CancellationToken>()), Times.Once);
 	}
 
 	private void SetupSuccessfulSource() => SetupResolve(firstChannel,

@@ -288,7 +288,6 @@ internal sealed partial class DiscoverChannelLinksWorker(
 		var resolvedInvites = await ResolveInviteLinksAsync(session, scan.InviteHashes, ct);
 
 		DeduplicateResolvedInvites(scan.PublicPeers, scan.PrivatePeers, resolvedInvites);
-		DeduplicateByTitle(scan.PublicPeers, scan.PrivatePeers, resolvedInvites);
 
 		if (channelDto.Username is not null)
 		{
@@ -776,51 +775,6 @@ internal sealed partial class DiscoverChannelLinksWorker(
 			}
 
 			if (peer.TelegramId != 0 && !seenTelegramIds.Add(peer.TelegramId))
-			{
-				hashesToRemove.Add(hash);
-			}
-		}
-
-		foreach (var hash in hashesToRemove)
-		{
-			resolvedInvites.Remove(hash);
-		}
-	}
-
-	private static void DeduplicateByTitle(
-		Dictionary<string, DiscoveredPeerInfo> allUsernames,
-		Dictionary<long, DiscoveredPeerInfo> privateChats,
-		Dictionary<string, DiscoveredPeerInfo> resolvedInvites
-	)
-	{
-		var seenTitles = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-
-		foreach (var peer in allUsernames.Values)
-		{
-			if (peer.Title is not null)
-			{
-				seenTitles.Add(peer.Title);
-			}
-		}
-
-		var idsToRemove = new List<long>();
-		foreach (var (id, peer) in privateChats)
-		{
-			if (peer.Title is not null && !seenTitles.Add(peer.Title))
-			{
-				idsToRemove.Add(id);
-			}
-		}
-
-		foreach (var id in idsToRemove)
-		{
-			privateChats.Remove(id);
-		}
-
-		var hashesToRemove = new List<string>();
-		foreach (var (hash, peer) in resolvedInvites)
-		{
-			if (peer.Username is null && peer.Title is not null && !seenTitles.Add(peer.Title))
 			{
 				hashesToRemove.Add(hash);
 			}
