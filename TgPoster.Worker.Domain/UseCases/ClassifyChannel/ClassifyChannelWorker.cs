@@ -330,24 +330,35 @@ internal sealed partial class ClassifyChannelWorker(
 			new() { Role = "user", Content = contentParts }
 		};
 
-		var response = await openRouterClient.SendMessageRawAsync(
-			options.SecretKey!,
-			settings.Model,
-			messages,
-			ct);
-
-		var content = response.Choices.FirstOrDefault()?.Message.Content.ToString();
-		if (string.IsNullOrWhiteSpace(content))
+		var classification = await RequestClassificationAsync(settings.Model, messages, ct);
+		if (classification is null)
 		{
-			logger.LogWarning("Пустой ответ от LLM для канала {ChannelId}", channel.Id);
+			logger.LogWarning("Не удалось прочитать классификацию для канала {ChannelId}", channel.Id);
 			return null;
 		}
 
-		var classification = ParseClassification(content);
-		if (classification is null)
+		if (HasUntranslatedLabels(classification))
 		{
-			logger.LogWarning("Не удалось распарсить ответ LLM для канала {ChannelId}: {Content}", channel.Id, content);
-			return null;
+			var corrected = await RequestClassificationAsync(settings.Model, [
+				new ChatMessage { Role = "system", Content = $"""
+					Переведи подписи готовой классификации на русский и верни JSON с полями category, subcategory и tags.
+					Сохрани смысл и все теги. Допустимые категории: {string.Join(", ", settings.Categories)}.
+					{ClassifierDefaults.OutputLanguageRule}
+					""" },
+				new ChatMessage { Role = "user", Content = JsonSerializer.Serialize(classification) }
+			], ct);
+			if (corrected is null || HasUntranslatedLabels(corrected)
+			    || !settings.Categories.Contains(corrected.Category, StringComparer.Ordinal)
+			    || (!string.IsNullOrWhiteSpace(classification.Subcategory) && string.IsNullOrWhiteSpace(corrected.Subcategory))
+			    || (classification.Tags is { Length: > 0 } && (corrected.Tags is not { Length: > 0 } || corrected.Tags.Any(string.IsNullOrWhiteSpace))))
+			{
+				logger.LogWarning("Модель не вернула русские подписи для канала {ChannelId}", channel.Id);
+				return null;
+			}
+
+			classification.Category = corrected.Category;
+			classification.Subcategory = corrected.Subcategory;
+			classification.Tags = corrected.Tags;
 		}
 
 		await storage.UpdateClassificationAsync(
@@ -371,7 +382,22 @@ internal sealed partial class ClassifyChannelWorker(
 	/// <param name="settings"></param>
 	/// <returns></returns>
 	private static string BuildSystemPrompt(ClassifierSettingsDto settings) =>
-		settings.SystemPrompt.Replace(ClassifierDefaults.CategoriesPlaceholder, string.Join(", ", settings.Categories));
+		settings.SystemPrompt.Replace(ClassifierDefaults.CategoriesPlaceholder, string.Join(", ", settings.Categories))
+		+ "\n\n" + ClassifierDefaults.OutputLanguageRule;
+
+	private async Task<ChannelClassificationResult?> RequestClassificationAsync(string model, List<ChatMessage> messages, CancellationToken ct)
+	{
+		var response = await openRouterClient.SendMessageRawAsync(options.SecretKey!, model, messages, ct);
+		var content = response.Choices.FirstOrDefault()?.Message.Content?.ToString();
+		return string.IsNullOrWhiteSpace(content) ? null : ParseClassification(content);
+	}
+
+	private static bool HasUntranslatedLabels(ChannelClassificationResult result) =>
+		HanCharacters().IsMatch(result.Category ?? "") || HanCharacters().IsMatch(result.Subcategory ?? "")
+		|| result.Tags?.Any(tag => tag != null && HanCharacters().IsMatch(tag)) == true;
+
+	[GeneratedRegex(@"[\u3400-\u4DBF\u4E00-\u9FFF\uF900-\uFAFF]|[\uD840-\uD87E][\uDC00-\uDFFF]|[\uD880-\uD888][\uDC00-\uDFFF]")]
+	private static partial Regex HanCharacters();
 
 	private async Task<RecentMessagesSample> FetchRecentMessagesAsync(
 		Guid sessionId,

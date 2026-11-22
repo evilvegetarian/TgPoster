@@ -30,6 +30,8 @@ import {
     percent,
     toIsoEnd,
     toIsoStart,
+    utcDayRange,
+    utcTime,
 } from "@/components/discover/format"
 import {NamedCountBars, type NamedCountBarItem} from "@/components/discover/named-count-bars"
 import {StatTile} from "@/components/discover/stat-tile"
@@ -293,7 +295,7 @@ function TopSources({sources}: {sources: DiscoverSourceStat[]}) {
     )
 }
 
-function HistoryRow({item}: {item: DiscoverParseHistoryItemResponse}) {
+function HistoryRow({item, parsedAt}: {item: DiscoverParseHistoryItemResponse; parsedAt: string}) {
     const statusMeta = CHANNEL_STATUS_META[item.status]
     const link = channelLink(item)
     const sourceName = item.sourceTitle ?? (item.sourceUsername ? `@${item.sourceUsername}` : null)
@@ -319,7 +321,7 @@ function HistoryRow({item}: {item: DiscoverParseHistoryItemResponse}) {
                 </div>
             </td>
             <td className="py-2.5 px-3 whitespace-nowrap">
-                <p className="text-sm">{formatDateTime(item.parsedAt)}</p>
+                <p className="text-sm">{parsedAt}</p>
                 <p className="text-xs text-muted-foreground">{formatRelative(item.parsedAt)}</p>
             </td>
             <td className="py-2.5 px-3 text-right tabular-nums font-medium">{item.foundCount.toLocaleString("ru-RU")}</td>
@@ -348,17 +350,16 @@ function HistoryRow({item}: {item: DiscoverParseHistoryItemResponse}) {
     )
 }
 
-function ParseHistory() {
+function ParseHistory({day}: {day?: string}) {
     const [search, setSearch] = useState("")
     const [from, setFrom] = useState("")
     const [to, setTo] = useState("")
     const [page, setPage] = useState(1)
     const debouncedSearch = useDebounce(search.trim(), 400)
 
-    const {data, isLoading, isFetching} = useGetApiV1DiscoverParseHistory({
+    const {data, isLoading, isFetching, isError, refetch} = useGetApiV1DiscoverParseHistory({
         Search: debouncedSearch || undefined,
-        From: toIsoStart(from),
-        To: toIsoEnd(to),
+        ...(day ? utcDayRange(day) : {From: toIsoStart(from), To: toIsoEnd(to)}),
         PageNumber: page,
         PageSize: HISTORY_PAGE_SIZE,
     })
@@ -368,10 +369,12 @@ function ParseHistory() {
     const totalCount = data?.totalCount ?? 0
 
     const resetPage = () => setPage(1)
+    const Container = day ? "div" : Card
 
     return (
-        <Card>
-            <CardHeader className="pb-3">
+        <Container className="min-w-0">
+            {day && data && <p className="mb-3 text-sm text-muted-foreground">Всего каналов: {totalCount.toLocaleString("ru-RU")}</p>}
+            {!day && <CardHeader className="pb-3">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                     <div>
                         <CardTitle className="text-base">История парсинга</CardTitle>
@@ -416,17 +419,22 @@ function ParseHistory() {
                         aria-label="Спарсен по"
                     />
                 </div>
-            </CardHeader>
-            <CardContent>
+            </CardHeader>}
+            <CardContent className={day ? "px-0" : undefined}>
                 {isLoading ? (
                     <div className="space-y-2">
                         {Array.from({length: 5}).map((_, i) => (
                             <Skeleton key={i} className="h-12 w-full"/>
                         ))}
                     </div>
+                ) : isError ? (
+                    <div role="alert" className="space-y-2 py-4 text-sm">
+                        <p>Не удалось загрузить историю парсинга.</p>
+                        <Button variant="outline" size="sm" onClick={() => void refetch()}>Повторить</Button>
+                    </div>
                 ) : items.length === 0 ? (
                     <p className="text-sm text-muted-foreground py-6 text-center">
-                        {debouncedSearch || from || to
+                        {day ? "За этот день каналов в истории парсинга нет" : debouncedSearch || from || to
                             ? "Под фильтр ничего не попало"
                             : "Ни один канал ещё не парсился"}
                     </p>
@@ -447,7 +455,8 @@ function ParseHistory() {
                             </thead>
                             <tbody>
                             {items.map((item) => (
-                                <HistoryRow key={item.id} item={item}/>
+                                <HistoryRow key={item.id} item={item}
+                                            parsedAt={day ? utcTime.format(new Date(item.parsedAt)) : formatDateTime(item.parsedAt)}/>
                             ))}
                             </tbody>
                         </table>
@@ -467,7 +476,7 @@ function ParseHistory() {
                     </div>
                 )}
             </CardContent>
-        </Card>
+        </Container>
     )
 }
 
@@ -522,10 +531,11 @@ export function DiscoverStatsTab() {
                         <Card>
                             <CardHeader className="pb-3">
                                 <CardTitle className="text-base">Спарсено каналов по дням</CardTitle>
-                                <p className="text-xs text-muted-foreground">Сколько каналов воркер обработал в каждый день</p>
+                                <p className="text-xs text-muted-foreground">Нажмите на столбец, чтобы увидеть каналы за день (UTC).</p>
                             </CardHeader>
                             <CardContent>
-                                <DailyBarChart data={stats.parsedByDay} colorClass="bg-chart-2" unitLabel="спарсено"/>
+                                <DailyBarChart data={stats.parsedByDay} colorClass="bg-chart-2" unitLabel="спарсено"
+                                               dayDetails={{title: "Спарсенные каналы", render: day => <ParseHistory day={day}/>}}/>
                             </CardContent>
                         </Card>
                         <Card>

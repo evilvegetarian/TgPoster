@@ -84,6 +84,16 @@ window.openSimilarChannels = async () => {
         <SimilarChannelsDialog sourceId="source-id" sourceName="Источник" onClose={() => root.unmount()}/>
     </QueryClientProvider>);
 };
+window.openDiscoverStats = async classification => {
+    const Stats = classification
+        ? (await import('/src/pages/discover-classification-page.tsx')).DiscoverClassificationPage
+        : (await import('/src/components/discover/discover-stats-tab.tsx')).DiscoverStatsTab;
+    const {QueryClient, QueryClientProvider} = await import('@tanstack/react-query');
+    const client = new QueryClient({defaultOptions: {queries: {retry: false}}});
+    createRoot(document.body.appendChild(document.createElement('div'))).render(
+        <QueryClientProvider client={client}><MemoryRouter><Stats/></MemoryRouter></QueryClientProvider>
+    );
+};
 function Probe() {
     const auth = useAuth();
     const [filter, setFilter] = usePersistentState<number | null>('filter', 1);
@@ -117,7 +127,7 @@ before(async () => {
         resolve: {alias: {'@': join(root, 'src')}},
         esbuild: {jsx: 'automatic'},
         server: {host: '127.0.0.1', port: 0, fs: {allow: [root, temporary]}},
-        optimizeDeps: {noDiscovery: true, include: ['react', 'react/jsx-runtime', 'react/jsx-dev-runtime', 'react-dom', 'react-dom/client', 'react-router-dom', 'lucide-react', 'react-hook-form', '@hookform/resolvers/zod', 'axios', '@tanstack/react-query']},
+        optimizeDeps: {noDiscovery: true, include: ['react', 'react/jsx-runtime', 'react/jsx-dev-runtime', 'react-dom', 'react-dom/client', 'react-router-dom', 'lucide-react', 'react-hook-form', '@hookform/resolvers/zod', 'axios', '@tanstack/react-query', 'use-sync-external-store/shim']},
         plugins: [{
             name: 'test-fixture', enforce: 'pre',
             resolveId(source) {
@@ -320,6 +330,76 @@ test('Discover previews recommendations and saves only the selected new channels
     assert.deepEqual(await browser.evaluate('window.savedSelections'), [[3]]);
     assert.equal(await browser.evaluate(`${checkboxes}[0].getAttribute("aria-label")`), 'Выбрать Первый');
 });
+
+for (const [chart, historyPath] of [['parsing', 'parse-history'], ['classification', 'classification/history']]) {
+    test(`Discover ${chart} chart opens every channel for the selected UTC day`, async t => {
+        const browser = await page(); t.after(() => browser.close());
+        await browser.evaluate(`(async () => {
+            const {axiosInstance} = await import('/src/api/axios-instance.ts');
+            const days = [{date:'2026-11-20', count:0}, {date:'2026-11-21', count:21}, {date:'2026-11-22', count:1}];
+            const parsing = {
+                totals: {total:22, parsed:22, notParsed:0, public:22, private:0, classified:22, withParticipants:0, totalParticipants:0, banned:0},
+                freshness: {parsedLast24Hours:1, parsedLast7Days:22, parsedLast30Days:22, foundLast24Hours:0, foundLast7Days:0, foundLast30Days:0},
+                byStatus:[], byPeerType:[], byCategory:[], byLanguage:[], byParticipants:[], topSources:[],
+                parsedByDay:days, foundByDay:days
+            };
+            const classification = {
+                totals: {total:22, eligible:22, skipped:0, classified:22, pending:0, failed:0, withCategory:0, withTags:0, distinctSubcategories:0, distinctTags:0},
+                freshness: {classifiedLast24Hours:1, classifiedLast7Days:22, classifiedLast30Days:22},
+                byCategory:[], byLanguage:[], byConfidence:[], topSubcategories:[], topTags:[], classifiedByDay:days
+            };
+            const channels = Array.from({length:22}, (_, i) => {
+                const time = i === 21 ? '2026-11-22T00:00:00Z' : i === 0 ? '2026-11-21T00:00:00Z' : '2026-11-21T23:59:59.999999Z';
+                return {id:String(i), title:'Канал ' + i, username:'channel' + i, tags:[], status:'Completed',
+                    foundCount:0, parsedAt:time, classifiedAt:time};
+            });
+            window.dayRequests = [];
+            axiosInstance.defaults.adapter = async config => {
+                let data = null;
+                if (config.url === '/api/v1/discover/stats') data = parsing;
+                if (config.url === '/api/v1/discover/classification/stats') data = classification;
+                if (config.url === '/api/v1/discover/${historyPath}') {
+                    const {From, To, PageSize, PageNumber} = config.params;
+                    if (From) window.dayRequests.push({From, To, PageSize, PageNumber});
+                    const matches = From ? channels.filter(c => Date.parse(c.parsedAt) >= Date.parse(From) && Date.parse(c.parsedAt) <= Date.parse(To)) : channels;
+                    data = {data:matches.slice((PageNumber-1)*PageSize, PageNumber*PageSize),
+                        totalCount:matches.length, totalPages:Math.ceil(matches.length/PageSize), currentPage:PageNumber};
+                }
+                return {data, status:200, headers:{}, config};
+            };
+            await window.openDiscoverStats(${chart === 'classification'});
+        })()`);
+
+        const bars = 'document.querySelectorAll("button[aria-haspopup=dialog][title]")';
+        const dialog = 'document.querySelector("[role=dialog]")';
+        const rows = 'document.querySelectorAll("[role=dialog] tbody tr")';
+        await browser.until(`${bars}.length === 2`);
+        assert.deepEqual(await browser.evaluate('window.dayRequests'), []);
+        await browser.evaluate(`${bars}[0].focus()`);
+        await browser.send('Input.dispatchKeyEvent', {type:'keyDown', key:'Enter', code:'Enter', windowsVirtualKeyCode:13, text:'\r'});
+        await browser.send('Input.dispatchKeyEvent', {type:'keyUp', key:'Enter', code:'Enter', windowsVirtualKeyCode:13});
+        await browser.until(`${dialog} !== null`);
+        await browser.until(`${rows}.length === 20`);
+        assert.match(await browser.evaluate(`${dialog}.textContent`), /21 ноября 2026 \(UTC\)/);
+        assert.equal(await browser.evaluate(`${rows}[0].querySelector('a').textContent`), 'Канал 0');
+        assert.match(await browser.evaluate(`${rows}[0].textContent`), /00:00/);
+        assert.match(await browser.evaluate(`${rows}[1].textContent`), /23:59/);
+        assert.deepEqual(await browser.evaluate('window.dayRequests[0]'), {
+            From:'2026-11-21T00:00:00Z', To:'2026-11-21T23:59:59.999999Z', PageSize:20, PageNumber:1
+        });
+        await browser.evaluate(`[...${dialog}.querySelectorAll('button')].find(b => b.textContent === 'Вперёд').click()`);
+        await browser.until(`${rows}.length === 1 && ${rows}[0].querySelector('a').textContent === 'Канал 20'`);
+        assert.equal(await browser.evaluate('window.dayRequests.at(-1).PageNumber'), 2);
+
+        await browser.send('Input.dispatchKeyEvent', {type:'keyDown', key:'Escape', code:'Escape', windowsVirtualKeyCode:27});
+        await browser.until(`${dialog} === null && document.activeElement === ${bars}[0]`);
+        await browser.evaluate(`${bars}[1].click()`);
+        await browser.until(`${rows}.length === 1 && ${rows}[0].querySelector('a').textContent === 'Канал 21'`);
+        assert.deepEqual(await browser.evaluate('window.dayRequests.at(-1)'), {
+            From:'2026-11-22T00:00:00Z', To:'2026-11-22T23:59:59.999999Z', PageSize:20, PageNumber:1
+        });
+    });
+}
 
 test('persistent filters restore saved values, support functional updates and clear storage', async t => {
     const browser = await page({filter: '2'}); t.after(() => browser.close());

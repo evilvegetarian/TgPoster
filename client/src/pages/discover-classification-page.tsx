@@ -42,6 +42,8 @@ import {
     percent,
     toIsoEnd,
     toIsoStart,
+    utcDayRange,
+    utcTime,
 } from "@/components/discover/format"
 import {NamedCountBars, type NamedCountBarItem} from "@/components/discover/named-count-bars"
 import {StatTile} from "@/components/discover/stat-tile"
@@ -353,7 +355,7 @@ function Breakdowns({stats}: {stats: ClassificationStatsResponse}) {
     )
 }
 
-function HistoryRow({item}: {item: ClassificationHistoryItemResponse}) {
+function HistoryRow({item, classifiedAt}: {item: ClassificationHistoryItemResponse; classifiedAt: string}) {
     const link = channelLink(item)
     const visibleTags = item.tags.slice(0, VISIBLE_TAGS_IN_ROW)
     const hiddenTags = item.tags.length - visibleTags.length
@@ -405,7 +407,7 @@ function HistoryRow({item}: {item: ClassificationHistoryItemResponse}) {
                 <ConfidenceValue value={item.confidence}/>
             </td>
             <td className="py-2.5 px-3 whitespace-nowrap">
-                <p className="text-sm">{formatDateTime(item.classifiedAt)}</p>
+                <p className="text-sm">{classifiedAt}</p>
                 <p className="text-xs text-muted-foreground">{formatRelative(item.classifiedAt)}</p>
             </td>
             <td className="py-2.5 pl-2">
@@ -421,7 +423,7 @@ function HistoryRow({item}: {item: ClassificationHistoryItemResponse}) {
     )
 }
 
-function ClassificationHistory({categories}: {categories: string[]}) {
+function ClassificationHistory({categories = [], day}: {categories?: string[]; day?: string}) {
     const [search, setSearch] = useState("")
     const [category, setCategory] = useState(ALL)
     const [confidence, setConfidence] = useState(ALL)
@@ -430,12 +432,11 @@ function ClassificationHistory({categories}: {categories: string[]}) {
     const [page, setPage] = useState(1)
     const debouncedSearch = useDebounce(search.trim(), 400)
 
-    const {data, isLoading, isFetching} = useGetApiV1DiscoverClassificationHistory({
+    const {data, isLoading, isFetching, isError, refetch} = useGetApiV1DiscoverClassificationHistory({
         Search: debouncedSearch || undefined,
         Category: category === ALL ? undefined : category,
         Confidence: confidence === ALL ? undefined : (confidence as ClassificationConfidenceBucket),
-        From: toIsoStart(from),
-        To: toIsoEnd(to),
+        ...(day ? utcDayRange(day) : {From: toIsoStart(from), To: toIsoEnd(to)}),
         PageNumber: page,
         PageSize: HISTORY_PAGE_SIZE,
     })
@@ -446,10 +447,12 @@ function ClassificationHistory({categories}: {categories: string[]}) {
     const hasFilters = Boolean(debouncedSearch || from || to) || category !== ALL || confidence !== ALL
 
     const resetPage = () => setPage(1)
+    const Container = day ? "div" : Card
 
     return (
-        <Card>
-            <CardHeader className="pb-3">
+        <Container className="min-w-0">
+            {day && data && <p className="mb-3 text-sm text-muted-foreground">Всего каналов: {totalCount.toLocaleString("ru-RU")}</p>}
+            {!day && <CardHeader className="pb-3">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                     <div>
                         <CardTitle className="text-base">История классификации</CardTitle>
@@ -530,17 +533,23 @@ function ClassificationHistory({categories}: {categories: string[]}) {
                         aria-label="Классифицирован по"
                     />
                 </div>
-            </CardHeader>
-            <CardContent>
+            </CardHeader>}
+            <CardContent className={day ? "px-0" : undefined}>
                 {isLoading ? (
                     <div className="space-y-2">
                         {Array.from({length: 5}).map((_, i) => (
                             <Skeleton key={i} className="h-12 w-full"/>
                         ))}
                     </div>
+                ) : isError ? (
+                    <div role="alert" className="space-y-2 py-4 text-sm">
+                        <p>Не удалось загрузить историю классификации.</p>
+                        <Button variant="outline" size="sm" onClick={() => void refetch()}>Повторить</Button>
+                    </div>
                 ) : items.length === 0 ? (
                     <p className="text-sm text-muted-foreground py-6 text-center">
-                        {hasFilters ? "Под фильтр ничего не попало" : "Ни один канал ещё не классифицирован"}
+                        {day ? "За этот день каналов в истории классификации нет"
+                            : hasFilters ? "Под фильтр ничего не попало" : "Ни один канал ещё не классифицирован"}
                     </p>
                 ) : (
                     <div className="overflow-x-auto -mx-6 px-6">
@@ -558,7 +567,8 @@ function ClassificationHistory({categories}: {categories: string[]}) {
                             </thead>
                             <tbody>
                             {items.map((item) => (
-                                <HistoryRow key={item.id} item={item}/>
+                                <HistoryRow key={item.id} item={item}
+                                            classifiedAt={day ? utcTime.format(new Date(item.classifiedAt)) : formatDateTime(item.classifiedAt)}/>
                             ))}
                             </tbody>
                         </table>
@@ -578,7 +588,7 @@ function ClassificationHistory({categories}: {categories: string[]}) {
                     </div>
                 )}
             </CardContent>
-        </Card>
+        </Container>
     )
 }
 
@@ -633,11 +643,12 @@ function StatsTab() {
                             <CardHeader className="pb-3">
                                 <CardTitle className="text-base">Классифицировано по дням</CardTitle>
                                 <p className="text-xs text-muted-foreground">
-                                    По дате последней классификации: повторная классификация переносит канал на новый день
+                                    Нажмите на столбец, чтобы увидеть каналы за день (UTC). Повторная классификация переносит канал на новый день.
                                 </p>
                             </CardHeader>
                             <CardContent>
-                                <DailyBarChart data={stats.classifiedByDay} colorClass="bg-violet-500" unitLabel="классифицировано"/>
+                                <DailyBarChart data={stats.classifiedByDay} colorClass="bg-violet-500" unitLabel="классифицировано"
+                                               dayDetails={{title: "Классифицированные каналы", render: day => <ClassificationHistory day={day}/>}}/>
                             </CardContent>
                         </Card>
                         <Card>

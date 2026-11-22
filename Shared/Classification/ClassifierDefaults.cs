@@ -11,6 +11,13 @@ public static class ClassifierDefaults
 	/// </summary>
 	public const string CategoriesPlaceholder = "{categories}";
 
+	/// <summary>Язык подписей в каталоге и язык исходных публикаций</summary>
+	public const string OutputLanguageRule = """
+		Категорию бери дословно из заданного списка. Подкатегорию и все теги пиши по-русски при любом языке канала.
+		Переводи иероглифические названия и термины, например 上海 → Шанхай, 德州扑克 → техасский покер.
+		В поле language указывай ISO-код фактического языка публикаций, например zh для китайскоязычного канала.
+		""";
+
 	/// <summary>Модель OpenRouter</summary>
 	public const string Model = "qwen/qwen3-vl-8b-instruct";
 
