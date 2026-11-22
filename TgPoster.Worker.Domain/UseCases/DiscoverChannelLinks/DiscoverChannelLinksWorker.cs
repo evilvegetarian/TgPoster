@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Text.RegularExpressions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -35,6 +36,8 @@ internal sealed partial class DiscoverChannelLinksWorker(
 	// Ветки разных сессий работают параллельно, но storage и statusStorage живут в одном
 	// scope и делят один DbContext — обращения к нему сериализуем
 	private readonly SemaphoreSlim dbLock = new(1, 1);
+	private readonly ConcurrentDictionary<string, Lazy<Task<DiscoveredPeerInfo?>>> usernameLookups =
+		new(StringComparer.OrdinalIgnoreCase);
 
 	private long lastHeartbeatTicks;
 	private int progressCurrent;
@@ -120,6 +123,7 @@ internal sealed partial class DiscoverChannelLinksWorker(
 		}
 		finally
 		{
+			usernameLookups.Clear();
 			ParseLock.Release();
 		}
 	}
@@ -627,20 +631,22 @@ internal sealed partial class DiscoverChannelLinksWorker(
 	)
 	{
 		var chats = new Dictionary<string, DiscoveredPeerInfo>(StringComparer.OrdinalIgnoreCase);
+		if (usernames.Count == 0)
+			return chats;
+
+		await WithDbLockAsync(async () => usernames.ExceptWith(await storage.GetKnownUsernamesAsync(usernames, ct)), ct);
 
 		foreach (var username in usernames)
 		{
 			ct.ThrowIfCancellationRequested();
 
-			await ReportProgressAsync($"HTTP-lookup @{username}", ct);
-
-			var peerInfo = await ResolveChatPeersAsync(session, username, ct);
+			var lookup = usernameLookups.GetOrAdd(username,
+				name => new Lazy<Task<DiscoveredPeerInfo?>>(() => ResolveChatPeersAsync(session, name, ct)));
+			var peerInfo = await lookup.Value;
 			if (peerInfo.HasValue)
 			{
 				chats.TryAdd(username, peerInfo.Value);
 			}
-
-			await Task.Delay(TimeSpan.FromSeconds(10), timeProvider, ct);
 		}
 
 		return chats;
@@ -652,7 +658,9 @@ internal sealed partial class DiscoverChannelLinksWorker(
 		CancellationToken ct
 	)
 	{
+		await ReportProgressAsync($"HTTP-lookup @{username}", ct);
 		var result = await session.PublicLookup.LookupAsync(username, ct);
+		await Task.Delay(TimeSpan.FromSeconds(10), timeProvider, ct);
 		if (!result.IsSuccess || result.Value is null)
 		{
 			logger.LogDebug("HTTP-lookup не удался для @{Username} ({Status}), пропускаем",

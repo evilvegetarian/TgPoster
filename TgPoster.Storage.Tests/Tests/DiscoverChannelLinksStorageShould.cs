@@ -91,6 +91,21 @@ public sealed class DiscoverChannelLinksStorageShould(StorageTestFixture fixture
 	}
 
 	[Fact]
+	public async Task GetKnownUsernamesAsync_ShouldMatchMixedCaseAndHiddenChannels()
+	{
+		var active = NewQueueChannel(c => c.Username = $"Active_{Guid.NewGuid():N}");
+		var banned = NewQueueChannel(c => c.IsBanned = true);
+		var deleted = NewQueueChannel(c => c.Deleted = DateTimeOffset.UtcNow);
+		context.DiscoveredChannels.AddRange(active, banned, deleted, NewQueueChannel());
+		await context.SaveChangesAsync();
+
+		var known = await sut.GetKnownUsernamesAsync(
+			[active.Username!.ToUpperInvariant(), banned.Username!, deleted.Username!, "missing"], CancellationToken.None);
+
+		known.ShouldBe([active.Username, banned.Username, deleted.Username], ignoreOrder: true);
+	}
+
+	[Fact]
 	public async Task GetChannelsToProcessAsync_ShouldReturnPendingChannelsBeforeCompleted()
 	{
 		await ClearChannelsAsync();

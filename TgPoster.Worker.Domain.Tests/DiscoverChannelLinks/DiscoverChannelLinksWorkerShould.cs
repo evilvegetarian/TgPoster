@@ -31,6 +31,8 @@ public class DiscoverChannelLinksWorkerShould
 	public DiscoverChannelLinksWorkerShould()
 	{
 		storage.Setup(s => s.GetSettingsAsync(It.IsAny<CancellationToken>())).ReturnsAsync(() => settings);
+		storage.Setup(s => s.GetKnownUsernamesAsync(It.IsAny<IReadOnlyCollection<string>>(), It.IsAny<CancellationToken>()))
+			.ReturnsAsync([]);
 		SetupSessions(firstSessionId);
 		SetupQueue(firstChannel);
 	}
@@ -307,6 +309,57 @@ public class DiscoverChannelLinksWorkerShould
 		publicLookup.VerifyNoOtherCalls();
 		storage.Verify(x => x.UpsertAsync(It.Is<DiscoveredPeerUpsert>(p => p.MarkAsCompleted && p.LastParsedId == 42),
 			It.IsAny<CancellationToken>()), Times.Once);
+	}
+
+	[Fact]
+	public async Task LookUpOnlyMissingUsernames_WhenSourceMentionsKnownAndNewChannels()
+	{
+		SetupSuccessfulSource();
+		SetupHistory(new TelegramHistoryPage { Messages = [new TelegramMessage
+		{
+			Id = 1, Date = FixedNow.UtcDateTime, Text = "@KNOWNCHAT @newchat"
+		}] });
+		storage.Setup(x => x.GetKnownUsernamesAsync(It.Is<IReadOnlyCollection<string>>(names =>
+			names.Count == 2 && names.Contains("KNOWNCHAT") && names.Contains("newchat")), It.IsAny<CancellationToken>()))
+			.ReturnsAsync(["KnownChat"]);
+		publicLookup.Setup(x => x.LookupAsync("newchat", It.IsAny<CancellationToken>()))
+			.ReturnsAsync(TelegramOperationResult<TelegramPublicEntityInfo>.Success(new TelegramPublicEntityInfo
+			{
+				Type = TelegramEntityType.Group, Username = "newchat"
+			}));
+
+		await CreateSut().ProcessChannelsAsync();
+
+		publicLookup.Verify(x => x.LookupAsync("newchat", It.IsAny<CancellationToken>()), Times.Once);
+		publicLookup.VerifyNoOtherCalls();
+		storage.Verify(x => x.BulkUpsertAsync(It.Is<IReadOnlyCollection<DiscoveredPeerUpsert>>(items =>
+			items.Count == 1 && items.Single().Username == "newchat"), It.IsAny<CancellationToken>()), Times.Once);
+	}
+
+	[Fact]
+	public async Task ShareLookup_WhenTwoSessionsFindTheSameNewUsername()
+	{
+		SetupSessions(firstSessionId, secondSessionId);
+		SetupQueue(firstChannel, secondChannel);
+		SetupSuccessfulSource();
+		SetupResolve(secondChannel, TelegramOperationResult<TelegramChatInfo>.Success(Chat(101, secondChannel.Username!, "Other")));
+		tgMessages.Setup(x => x.SearchMessagesAsync(It.IsAny<Guid>(), It.IsAny<TelegramPeer>(), TelegramMessageFilter.Url,
+			100, 0, 0, 0, "", It.IsAny<CancellationToken>(), true))
+			.ReturnsAsync(TelegramOperationResult<TelegramHistoryPage>.Success(new TelegramHistoryPage
+			{
+				Messages = [new TelegramMessage { Id = 1, Date = FixedNow.UtcDateTime, Text = "@sharedchat" }]
+			}));
+		publicLookup.Setup(x => x.LookupAsync("sharedchat", It.IsAny<CancellationToken>()))
+			.ReturnsAsync(TelegramOperationResult<TelegramPublicEntityInfo>.Success(new TelegramPublicEntityInfo
+			{
+				Type = TelegramEntityType.Channel, Username = "sharedchat"
+			}));
+
+		await CreateSut().ProcessChannelsAsync();
+
+		publicLookup.Verify(x => x.LookupAsync("sharedchat", It.IsAny<CancellationToken>()), Times.Once);
+		storage.Verify(x => x.BulkUpsertAsync(It.Is<IReadOnlyCollection<DiscoveredPeerUpsert>>(items =>
+			items.Count == 1 && items.Single().Username == "sharedchat"), It.IsAny<CancellationToken>()), Times.Exactly(2));
 	}
 
 	[Fact]

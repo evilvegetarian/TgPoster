@@ -31,6 +31,14 @@ public interface IDiscoverChannelLinksStorage
 		CancellationToken ct
 	);
 
+	/// <summary>
+	/// Найти уже известные username, включая скрытые площадки
+	/// </summary>
+	/// <param name="usernames"></param>
+	/// <param name="ct"></param>
+	/// <returns></returns>
+	Task<List<string>> GetKnownUsernamesAsync(IReadOnlyCollection<string> usernames, CancellationToken ct);
+
 	Task UpsertAsync(DiscoveredPeerUpsert upsert, CancellationToken ct);
 	Task BulkUpsertAsync(IReadOnlyCollection<DiscoveredPeerUpsert> upserts, CancellationToken ct);
 	Task MarkAsSkippedAsync(Guid id, CancellationToken ct);

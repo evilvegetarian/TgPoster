@@ -84,6 +84,16 @@ internal sealed class DiscoverChannelLinksStorage(PosterContext context, GuidFac
 			.ToListAsync(ct);
 	}
 
+	public Task<List<string>> GetKnownUsernamesAsync(IReadOnlyCollection<string> usernames, CancellationToken ct)
+	{
+		var normalized = usernames.Select(username => username.ToLowerInvariant()).ToArray();
+		return context.DiscoveredChannels
+			.IgnoreQueryFilters()
+			.Where(c => c.Username != null && normalized.Contains(c.Username.ToLower()))
+			.Select(c => c.Username!)
+			.ToListAsync(ct);
+	}
+
 	public async Task UpsertAsync(DiscoveredPeerUpsert upsert, CancellationToken ct)
 	{
 		var matches = await FindAllMatchingAsync(upsert.Username, upsert.TelegramId, upsert.InviteHash, ct);
