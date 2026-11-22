@@ -19,6 +19,7 @@ import {Tabs, TabsContent, TabsList, TabsTrigger} from "@/components/ui/tabs"
 import {ChannelAvatar, ChannelName} from "@/components/discover/channel-identity"
 import {DiscoverSettingsForm} from "@/components/discover/discover-settings-form"
 import {DiscoverStatsTab} from "@/components/discover/discover-stats-tab"
+import {LanguageFilter} from "@/components/discover/language-filter"
 import {SimilarChannelsDialog} from "@/components/discover/similar-channels-dialog"
 import {channelLink, formatDateTime, formatRelative} from "@/components/discover/format"
 import {WorkerStatusCard} from "@/components/discover/worker-status-card"
@@ -185,6 +186,7 @@ function ImportJobBanner({job, onOpen, onDismiss}: ImportJobBannerProps) {
 
 function ChannelsTab() {
     const [category, setCategory] = useState<string>("all")
+    const [language, setLanguage] = useState<string>()
     const [peerType, setPeerType] = useState<string>("all")
     const [search, setSearch] = useState("")
     const [minParticipants, setMinParticipants] = useState("")
@@ -208,6 +210,7 @@ function ChannelsTab() {
 
     const {data, isLoading, isFetching} = useGetApiV1Discover({
         Category: apiCategory,
+        Language: language,
         Search: apiSearch,
         PeerType: apiPeerType,
         MinParticipants: apiMinParticipants,
@@ -284,7 +287,7 @@ function ChannelsTab() {
                             Добавить все по фильтру
                         </Button>
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-3">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 mt-3">
                         <div className="relative">
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground"/>
                             <Input
@@ -314,6 +317,10 @@ function ChannelsTab() {
                                 ))}
                             </SelectContent>
                         </Select>
+                        <LanguageFilter value={language} onChange={(code) => {
+                            setLanguage(code)
+                            resetPage()
+                        }}/>
                         <Select
                             value={peerType}
                             onValueChange={(value) => {
@@ -486,6 +493,7 @@ function ChannelsTab() {
                 selectedChannelIds={selectedIds}
                 filter={{
                     category: apiCategory,
+                    language,
                     search: apiSearch,
                     peerType: apiPeerType,
                     minParticipants: apiMinParticipants,

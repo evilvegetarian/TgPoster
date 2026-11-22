@@ -314,6 +314,24 @@ public sealed class ClassificationStatsStorageShould(StorageTestFixture fixture)
 	}
 
 	[Fact]
+	public async Task GetClassificationHistoryAsync_ShouldCombineLanguageAndCategory()
+	{
+		var category = Guid.NewGuid().ToString("N");
+		var chinese = NewChannel(c => { Classify(c, category, 0.9, ["Новости"]); c.Language = "ZH"; });
+		context.DiscoveredChannels.AddRange(chinese,
+			NewChannel(c => { Classify(c, category, 0.9, []); c.Language = "ru"; }),
+			NewChannel(c => Classify(c, category, 0.9, [])),
+			NewChannel(c => { Classify(c, "Другое", 0.9, []); c.Language = "zh"; }));
+		await context.SaveChangesAsync();
+
+		var query = new GetClassificationHistoryQuery(1, 10, null, category, null, null, null, " zh ");
+		var result = await sut.GetClassificationHistoryAsync(query, CancellationToken.None);
+
+		result.TotalCount.ShouldBe(1);
+		result.Items.Single().Id.ShouldBe(chinese.Id);
+	}
+
+	[Fact]
 	public async Task GetClassificationHistoryAsync_ShouldFilterByClassifiedAtPeriod()
 	{
 		var marker = Guid.NewGuid().ToString("N")[..8];

@@ -12,6 +12,7 @@ using TgPoster.API.Domain.UseCases.Discover.GetDiscoverParseHistory;
 using TgPoster.API.Domain.UseCases.Discover.GetDiscoverSettings;
 using TgPoster.API.Domain.UseCases.Discover.GetDiscoverStats;
 using TgPoster.API.Domain.UseCases.Discover.GetDiscoverStatus;
+using TgPoster.API.Domain.UseCases.Discover.GetLanguages;
 using TgPoster.API.Domain.UseCases.Discover.ListDiscover;
 using TgPoster.API.Domain.UseCases.Discover.SimilarChannels;
 using TgPoster.API.Domain.UseCases.Messages.ListMessage;
@@ -77,6 +78,15 @@ public class DiscoverController(ISender sender) : ControllerBase
 		var categories = await sender.Send(new GetCategoriesQuery(), ct);
 		return Ok(categories);
 	}
+
+	/// <summary>Получить языки публикаций обнаруженных каналов</summary>
+	/// <param name="ct">Токен отмены</param>
+	/// <returns>ISO-коды доступных языков</returns>
+	[HttpGet(Routes.Discover.Languages)]
+	[ProducesResponseType(StatusCodes.Status200OK, Type = typeof(List<string>))]
+	[ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
+	public async Task<IActionResult> GetLanguages(CancellationToken ct) =>
+		Ok(await sender.Send(new GetLanguagesQuery(), ct));
 
 	/// <summary>
 	///     Получить состояние фоновой задачи обнаружения каналов

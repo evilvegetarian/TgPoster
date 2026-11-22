@@ -296,6 +296,22 @@ public sealed class AddDestinationsFromDiscoverStorageShould(StorageTestFixture 
 
 	private static string NewCategory() => "Категория-" + Guid.NewGuid();
 
+	[Fact]
+	public async Task GetCandidatesByFilterAsync_ShouldApplyLanguageBeforeLimit()
+	{
+		var category = NewCategory();
+		var chinese = await CreateDiscoveredChannelAsync(category: category, participantsCount: 100);
+		chinese.Language = "ZH";
+		var russian = await CreateDiscoveredChannelAsync(category: category, participantsCount: 1000);
+		russian.Language = "ru";
+		await context.SaveChangesAsync();
+
+		var filter = FilterFor(category) with { Language = "zh" };
+		var result = await sut.GetCandidatesByFilterAsync(filter, [], Guid.NewGuid(), 1, CancellationToken.None);
+
+		result.Single().Id.ShouldBe(chinese.Id);
+	}
+
 	private static DiscoverImportFilter FilterFor(string category, string? peerType = null) =>
 		new(category, null, peerType, null, null, DiscoverSortBy.Participants, SortDirection.Desc);
 

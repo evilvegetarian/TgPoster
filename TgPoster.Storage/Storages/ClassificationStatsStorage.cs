@@ -171,6 +171,7 @@ internal sealed class ClassificationStatsStorage(PosterContext context)
 	)
 	{
 		var q = context.DiscoveredChannels
+			.FilterByLanguage(query.Language)
 			.Where(x => x.LastClassifiedAt != null)
 			.Where(x => query.From == null || x.LastClassifiedAt >= query.From)
 			.Where(x => query.To == null || x.LastClassifiedAt <= query.To)

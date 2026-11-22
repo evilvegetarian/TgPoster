@@ -84,14 +84,15 @@ window.openSimilarChannels = async () => {
         <SimilarChannelsDialog sourceId="source-id" sourceName="Источник" onClose={() => root.unmount()}/>
     </QueryClientProvider>);
 };
-window.openDiscoverStats = async classification => {
-    const Stats = classification
+window.openDiscover = async view => {
+    const Page = view === 'classification'
         ? (await import('/src/pages/discover-classification-page.tsx')).DiscoverClassificationPage
+        : view === 'channels' ? (await import('/src/pages/discover-page.tsx')).DiscoverPage
         : (await import('/src/components/discover/discover-stats-tab.tsx')).DiscoverStatsTab;
     const {QueryClient, QueryClientProvider} = await import('@tanstack/react-query');
     const client = new QueryClient({defaultOptions: {queries: {retry: false}}});
     createRoot(document.body.appendChild(document.createElement('div'))).render(
-        <QueryClientProvider client={client}><MemoryRouter><Stats/></MemoryRouter></QueryClientProvider>
+        <QueryClientProvider client={client}><MemoryRouter><Page/></MemoryRouter></QueryClientProvider>
     );
 };
 function Probe() {
@@ -331,6 +332,45 @@ test('Discover previews recommendations and saves only the selected new channels
     assert.equal(await browser.evaluate(`${checkboxes}[0].getAttribute("aria-label")`), 'Выбрать Первый');
 });
 
+for (const [view, path] of [['channels', '/api/v1/discover'], ['classification', '/api/v1/discover/classification/history']]) {
+    test(`Discover ${view} filters by the publication language and resets pagination`, async t => {
+        const browser = await page(); t.after(() => browser.close());
+        await browser.evaluate(`(async () => {
+            const {axiosInstance} = await import('/src/api/axios-instance.ts');
+            window.languageRequests = [];
+            axiosInstance.defaults.adapter = async config => {
+                let data = null;
+                if (config.url === '/api/v1/discover/languages') data = ['ru', 'zh'];
+                if (config.url === '${path}') {
+                    const {Language, PageNumber} = config.params;
+                    window.languageRequests.push({language: Language ?? null, page: PageNumber});
+                    const title = Language === 'zh' ? 'Шанхай' : 'Москва';
+                    data = {data:[{id:'channel', title, tags:[], classifiedAt:'2026-11-21T12:00:00Z'}],
+                        totalCount:Language ? 1 : 21, totalPages:Language ? 1 : 2};
+                }
+                return {data, status:200, headers:{}, config};
+            };
+            await window.openDiscover('${view}');
+        })()`);
+        const next = '[...document.querySelectorAll("button")].find(b => b.textContent.trim() === "Вперёд")';
+        const trigger = `document.querySelector('[aria-label="Язык публикаций"]')`;
+        const selectKey = 'new KeyboardEvent("keydown", {key:"Enter", bubbles:true})';
+        await browser.until(`${next} && !${next}.disabled`);
+        await browser.evaluate(`${next}.click()`);
+        await browser.until('window.languageRequests.at(-1).page === 2');
+        for (const [label, title] of [['Китайский (ZH)', 'Шанхай'], ['Все языки', 'Москва']]) {
+            await browser.evaluate(`${trigger}.dispatchEvent(${selectKey})`);
+            const option = `[...document.querySelectorAll("[role=option]")].find(o => o.textContent === "${label}")`;
+            await browser.until(`Boolean(${option})`);
+            await browser.evaluate(`${option}.dispatchEvent(${selectKey})`);
+            await browser.until(`document.querySelector("tbody")?.textContent.includes("${title}")`);
+        }
+        assert.deepEqual(await browser.evaluate('window.languageRequests.slice(-2)'), [
+            {language:'zh', page:1}, {language:null, page:1}
+        ]);
+    });
+}
+
 for (const [chart, historyPath] of [['parsing', 'parse-history'], ['classification', 'classification/history']]) {
     test(`Discover ${chart} chart opens every channel for the selected UTC day`, async t => {
         const browser = await page(); t.after(() => browser.close());
@@ -367,7 +407,7 @@ for (const [chart, historyPath] of [['parsing', 'parse-history'], ['classificati
                 }
                 return {data, status:200, headers:{}, config};
             };
-            await window.openDiscoverStats(${chart === 'classification'});
+            await window.openDiscover('${chart}');
         })()`);
 
         const bars = 'document.querySelectorAll("button[aria-haspopup=dialog][title]")';

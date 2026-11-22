@@ -14,6 +14,7 @@ namespace TgPoster.API.Domain.UseCases.Discover.GetClassificationHistory;
 /// <param name="Confidence">Корзина уверенности модели</param>
 /// <param name="From">Начало периода по времени классификации (включительно)</param>
 /// <param name="To">Конец периода по времени классификации (включительно)</param>
+/// <param name="Language">ISO-код языка публикаций</param>
 public sealed record GetClassificationHistoryQuery(
 	int Page,
 	int PageSize,
@@ -21,4 +22,5 @@ public sealed record GetClassificationHistoryQuery(
 	string? Category,
 	ClassificationConfidenceBucket? Confidence,
 	DateTimeOffset? From,
-	DateTimeOffset? To) : IRequest<PagedResponse<ClassificationHistoryItemResponse>>;
+	DateTimeOffset? To,
+	string? Language = null) : IRequest<PagedResponse<ClassificationHistoryItemResponse>>;

@@ -9,6 +9,21 @@ namespace TgPoster.Storage.Storages;
 /// </summary>
 internal static class DiscoveredChannelQueryExtensions
 {
+	/// <summary>Отобрать каналы по языку публикаций с учётом регистра старых записей</summary>
+	/// <param name="query">Исходный запрос</param>
+	/// <param name="language">ISO-код языка или пустое значение для всех языков</param>
+	/// <returns>Запрос с фильтром по языку</returns>
+	public static IQueryable<DiscoveredChannel> FilterByLanguage(this IQueryable<DiscoveredChannel> query, string? language)
+	{
+		if (string.IsNullOrWhiteSpace(language))
+		{
+			return query;
+		}
+
+		var code = language.Trim().ToLowerInvariant();
+		return query.Where(x => x.Language != null && x.Language.Trim().ToLower() == code);
+	}
+
 	/// <summary>
 	///     Применить фильтры Discover к запросу
 	/// </summary>
@@ -18,6 +33,7 @@ internal static class DiscoveredChannelQueryExtensions
 	/// <param name="search">Подстрока названия или username (null — без поиска)</param>
 	/// <param name="minParticipants">Минимальное число подписчиков включительно</param>
 	/// <param name="maxParticipants">Максимальное число подписчиков включительно</param>
+	/// <param name="language">ISO-код языка публикаций</param>
 	/// <returns>Запрос с наложенными фильтрами</returns>
 	public static IQueryable<DiscoveredChannel> ApplyDiscoverFilter(
 		this IQueryable<DiscoveredChannel> query,
@@ -25,9 +41,11 @@ internal static class DiscoveredChannelQueryExtensions
 		string? peerType,
 		string? search,
 		int? minParticipants,
-		int? maxParticipants
+		int? maxParticipants,
+		string? language
 	) =>
 		query
+			.FilterByLanguage(language)
 			.Where(x => category == null || x.Category == category)
 			.Where(x => peerType == null || x.PeerType == peerType)
 			.Where(x => minParticipants == null

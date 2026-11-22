@@ -59,7 +59,8 @@ internal sealed class AddDestinationsFromDiscoverStorage(PosterContext context, 
 				filter.PeerType,
 				filter.Search,
 				filter.MinParticipants,
-				filter.MaxParticipants)
+				filter.MaxParticipants,
+				filter.Language)
 			// Уже добавленные каналы и канал-источник заняли бы места в задании впустую
 			.Where(x => x.TelegramId == null || !excludedChatIds.Contains(x.TelegramId.Value))
 			// Права из прошлых проверок: писать нельзя — резолвить и вступать незачем

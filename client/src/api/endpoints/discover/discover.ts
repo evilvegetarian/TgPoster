@@ -392,6 +392,98 @@ export function useGetApiV1DiscoverCategories<TData = Awaited<ReturnType<typeof 
 
 
 /**
+ * @summary Получить языки публикаций обнаруженных каналов
+ */
+export const getApiV1DiscoverLanguages = (
+
+ signal?: AbortSignal
+) => {
+
+
+      return customInstance<string[]>(
+      {url: `/api/v1/discover/languages`, method: 'GET', signal
+    },
+      );
+    }
+
+
+
+
+export const getGetApiV1DiscoverLanguagesQueryKey = () => {
+    return [
+    `/api/v1/discover/languages`
+    ] as const;
+    }
+
+
+export const getGetApiV1DiscoverLanguagesQueryOptions = <TData = Awaited<ReturnType<typeof getApiV1DiscoverLanguages>>, TError = ProblemDetails>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1DiscoverLanguages>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetApiV1DiscoverLanguagesQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getApiV1DiscoverLanguages>>> = ({ signal }) => getApiV1DiscoverLanguages(signal);
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getApiV1DiscoverLanguages>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetApiV1DiscoverLanguagesQueryResult = NonNullable<Awaited<ReturnType<typeof getApiV1DiscoverLanguages>>>
+export type GetApiV1DiscoverLanguagesQueryError = ProblemDetails
+
+
+export function useGetApiV1DiscoverLanguages<TData = Awaited<ReturnType<typeof getApiV1DiscoverLanguages>>, TError = ProblemDetails>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1DiscoverLanguages>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getApiV1DiscoverLanguages>>,
+          TError,
+          Awaited<ReturnType<typeof getApiV1DiscoverLanguages>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetApiV1DiscoverLanguages<TData = Awaited<ReturnType<typeof getApiV1DiscoverLanguages>>, TError = ProblemDetails>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1DiscoverLanguages>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getApiV1DiscoverLanguages>>,
+          TError,
+          Awaited<ReturnType<typeof getApiV1DiscoverLanguages>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetApiV1DiscoverLanguages<TData = Awaited<ReturnType<typeof getApiV1DiscoverLanguages>>, TError = ProblemDetails>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1DiscoverLanguages>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Получить языки публикаций обнаруженных каналов
+ */
+
+export function useGetApiV1DiscoverLanguages<TData = Awaited<ReturnType<typeof getApiV1DiscoverLanguages>>, TError = ProblemDetails>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1DiscoverLanguages>>, TError, TData>>, }
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetApiV1DiscoverLanguagesQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+
+/**
  * @summary Получить состояние фоновой задачи обнаружения каналов
  */
 export const getApiV1DiscoverStatus = (

@@ -17,6 +17,9 @@ public sealed class ListClassificationHistoryRequest : PaginationRequest
 	/// </summary>
 	public string? Category { get; init; }
 
+	/// <summary>ISO-код языка публикаций</summary>
+	public string? Language { get; init; }
+
 	/// <summary>
 	///     Корзина уверенности модели
 	/// </summary>

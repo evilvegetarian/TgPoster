@@ -41,6 +41,11 @@ export interface AddDestinationsFromDiscoverFilterRequest {
    */
   category?: string | null;
   /**
+   * ISO-код языка публикаций
+   * @nullable
+   */
+  language?: string | null;
+  /**
    * Поиск по названию или username
    * @nullable
    */
@@ -2461,6 +2466,10 @@ export type GetApiV1DiscoverParams = {
  */
 Category?: string;
 /**
+ * ISO-код языка публикаций
+ */
+Language?: string;
+/**
  * Поиск по названию или username
  */
 Search?: string;
@@ -2548,6 +2557,10 @@ Search?: string;
  * Точное название тематики
  */
 Category?: string;
+/**
+ * ISO-код языка публикаций
+ */
+Language?: string;
 /**
  * Корзина уверенности модели
  */

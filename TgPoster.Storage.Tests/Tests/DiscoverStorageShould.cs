@@ -15,6 +15,30 @@ public sealed class DiscoverStorageShould(StorageTestFixture fixture)
 	private readonly DiscoverStorage sut = new(fixture.GetDbContext());
 
 	[Fact]
+	public async Task GetDiscoverChannelsAsync_ShouldFilterByNormalizedLanguageBeforePagination()
+	{
+		var category = Guid.NewGuid().ToString("N");
+		var matching = new DiscoveredChannel { Id = Guid.NewGuid(), Category = category, Language = " ZH " };
+		context.DiscoveredChannels.AddRange(matching,
+			new DiscoveredChannel { Id = Guid.NewGuid(), Category = category, Language = "zh" },
+			new DiscoveredChannel { Id = Guid.NewGuid(), Category = category, Language = "ru" },
+			new DiscoveredChannel { Id = Guid.NewGuid(), Category = category });
+		await context.SaveChangesAsync();
+
+		var query = new ListDiscoverQuery(2, 1, category, null, null, null, null, DiscoverSortBy.Participants,
+			SortDirection.Desc, " Zh ");
+		var result = await sut.GetDiscoverChannelsAsync(query, CancellationToken.None);
+		var languages = await sut.GetLanguagesAsync(CancellationToken.None);
+
+		result.TotalCount.ShouldBe(2);
+		result.Items.Single().Language!.Trim().ToLowerInvariant().ShouldBe("zh");
+		languages.Count(code => code.Equals("zh", StringComparison.OrdinalIgnoreCase)).ShouldBe(1);
+		languages.ShouldContain("zh");
+		languages.ShouldContain("ru");
+		languages.ShouldAllBe(code => code.Trim() == code && code.Length > 0);
+	}
+
+	[Fact]
 	public async Task GetDiscoverChannelsAsync_WhenNoCategoryFilter_ShouldIncludePendingAndCompletedChannels()
 	{
 		var completed = new DiscoveredChannel

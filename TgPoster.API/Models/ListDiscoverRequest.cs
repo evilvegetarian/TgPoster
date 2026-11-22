@@ -12,6 +12,9 @@ public sealed class ListDiscoverRequest : PaginationRequest
 	/// </summary>
 	public string? Category { get; init; }
 
+	/// <summary>ISO-код языка публикаций</summary>
+	public string? Language { get; init; }
+
 	/// <summary>
 	///     Поиск по названию или username
 	/// </summary>

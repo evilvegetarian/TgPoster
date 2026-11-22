@@ -34,6 +34,7 @@ import {Tabs, TabsContent, TabsList, TabsTrigger} from "@/components/ui/tabs"
 import {ChannelAvatar, ChannelName} from "@/components/discover/channel-identity"
 import {ClassifierSettingsForm} from "@/components/discover/classifier-settings-form"
 import {DailyBarChart} from "@/components/discover/daily-bar-chart"
+import {LanguageFilter} from "@/components/discover/language-filter"
 import {
     compactNumber,
     channelLink,
@@ -426,6 +427,7 @@ function HistoryRow({item, classifiedAt}: {item: ClassificationHistoryItemRespon
 function ClassificationHistory({categories = [], day}: {categories?: string[]; day?: string}) {
     const [search, setSearch] = useState("")
     const [category, setCategory] = useState(ALL)
+    const [language, setLanguage] = useState<string>()
     const [confidence, setConfidence] = useState(ALL)
     const [from, setFrom] = useState("")
     const [to, setTo] = useState("")
@@ -435,6 +437,7 @@ function ClassificationHistory({categories = [], day}: {categories?: string[]; d
     const {data, isLoading, isFetching, isError, refetch} = useGetApiV1DiscoverClassificationHistory({
         Search: debouncedSearch || undefined,
         Category: category === ALL ? undefined : category,
+        Language: language,
         Confidence: confidence === ALL ? undefined : (confidence as ClassificationConfidenceBucket),
         ...(day ? utcDayRange(day) : {From: toIsoStart(from), To: toIsoEnd(to)}),
         PageNumber: page,
@@ -444,7 +447,7 @@ function ClassificationHistory({categories = [], day}: {categories?: string[]; d
     const items = data?.data ?? []
     const totalPages = data?.totalPages ?? 1
     const totalCount = data?.totalCount ?? 0
-    const hasFilters = Boolean(debouncedSearch || from || to) || category !== ALL || confidence !== ALL
+    const hasFilters = Boolean(debouncedSearch || language || from || to) || category !== ALL || confidence !== ALL
 
     const resetPage = () => setPage(1)
     const Container = day ? "div" : Card
@@ -463,8 +466,8 @@ function ClassificationHistory({categories = [], day}: {categories?: string[]; d
                     </div>
                     {isFetching && !isLoading && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground"/>}
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3 mt-3">
-                    <div className="relative md:col-span-2 lg:col-span-1">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3 mt-3">
+                    <div className="relative">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground"/>
                         <Input
                             placeholder="Название или @username"
@@ -493,6 +496,10 @@ function ClassificationHistory({categories = [], day}: {categories?: string[]; d
                             ))}
                         </SelectContent>
                     </Select>
+                    <LanguageFilter value={language} onChange={(code) => {
+                        setLanguage(code)
+                        resetPage()
+                    }}/>
                     <Select
                         value={confidence}
                         onValueChange={(value) => {

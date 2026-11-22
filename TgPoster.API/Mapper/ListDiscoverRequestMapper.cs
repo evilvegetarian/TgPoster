@@ -17,5 +17,6 @@ internal static class ListDiscoverRequestMapper
 			request.MinParticipants,
 			request.MaxParticipants,
 			(DiscoverSortBy)request.SortBy,
-			(SortDirection)request.SortDirection);
+			(SortDirection)request.SortDirection,
+			request.Language);
 }

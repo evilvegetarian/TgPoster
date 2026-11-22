@@ -12,6 +12,7 @@ namespace TgPoster.API.Domain.UseCases.Repost.AddDestinationsFromDiscover;
 /// <param name="MaxParticipants">Максимальное число подписчиков включительно</param>
 /// <param name="SortBy">Поле сортировки: задаёт, какие каналы попадут в задание при упирании в лимит</param>
 /// <param name="SortDirection">Направление сортировки</param>
+/// <param name="Language">ISO-код языка публикаций</param>
 public sealed record DiscoverImportFilter(
 	string? Category,
 	string? Search,
@@ -19,4 +20,5 @@ public sealed record DiscoverImportFilter(
 	int? MinParticipants,
 	int? MaxParticipants,
 	DiscoverSortBy SortBy,
-	SortDirection SortDirection);
+	SortDirection SortDirection,
+	string? Language = null);

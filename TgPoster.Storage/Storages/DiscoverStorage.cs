@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using TgPoster.API.Domain.Models;
 using TgPoster.API.Domain.UseCases.Discover.GetCategories;
 using TgPoster.API.Domain.UseCases.Discover.GetDiscoverStatus;
+using TgPoster.API.Domain.UseCases.Discover.GetLanguages;
 using TgPoster.API.Domain.UseCases.Discover.ListDiscover;
 using TgPoster.Storage.Data;
 using TgPoster.Storage.Data.Enum;
@@ -10,12 +11,20 @@ using TgPoster.Worker.Domain;
 namespace TgPoster.Storage.Storages;
 
 internal sealed class DiscoverStorage(PosterContext context)
-	: IListDiscoverStorage, IGetCategoriesStorage, IGetDiscoverStatusStorage
+	: IListDiscoverStorage, IGetCategoriesStorage, IGetLanguagesStorage, IGetDiscoverStatusStorage
 {
 	public Task<List<string>> GetCategoriesAsync(CancellationToken ct) =>
 		context.DiscoveredChannels
 			.Where(x => x.Category != null && x.Status == DiscoveryStatus.Completed)
 			.Select(x => x.Category!)
+			.Distinct()
+			.OrderBy(x => x)
+			.ToListAsync(ct);
+
+	public Task<List<string>> GetLanguagesAsync(CancellationToken ct) =>
+		context.DiscoveredChannels
+			.Where(x => x.Language != null && x.Language.Trim() != "")
+			.Select(x => x.Language!.Trim().ToLower())
 			.Distinct()
 			.OrderBy(x => x)
 			.ToListAsync(ct);
@@ -47,7 +56,8 @@ internal sealed class DiscoverStorage(PosterContext context)
 				query.PeerType,
 				query.Search,
 				query.MinParticipants,
-				query.MaxParticipants);
+				query.MaxParticipants,
+				query.Language);
 
 		var total = await q.CountAsync(ct);
 

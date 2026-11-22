@@ -13,5 +13,6 @@ internal static class ListClassificationHistoryRequestMapper
 			request.Category,
 			request.Confidence,
 			request.From,
-			request.To);
+			request.To,
+			request.Language);
 }
