@@ -371,6 +371,66 @@ for (const [view, path] of [['channels', '/api/v1/discover'], ['classification',
     });
 }
 
+test('Discover filters channels by source and uses the same source for bulk import', async t => {
+    const browser = await page(); t.after(() => browser.close());
+    await browser.evaluate(`(async () => {
+        const {axiosInstance} = await import('/src/api/axios-instance.ts');
+        window.sourceRequests = [];
+        axiosInstance.defaults.adapter = async config => {
+            let data = null;
+            if (config.url === '/api/v1/discover/sources') data = [
+                {id:'north', title:'Новости', username:'north'},
+                {id:'south', title:'Новости', username:'south'},
+            ];
+            if (config.url === '/api/v1/discover') {
+                const {SourceId, PageNumber} = config.params;
+                window.sourceRequests.push({source:SourceId ?? null, page:PageNumber});
+                data = {data:[{id:'channel', title:SourceId === 'south' ? 'Из южного канала' : 'Общий список'}],
+                    totalCount:SourceId ? 1 : 21, totalPages:SourceId ? 1 : 2};
+            }
+            if (config.url === '/api/v1/repost/settings')
+                data = {items:[{id:'settings', scheduleName:'Мой репост', destinationsCount:0}]};
+            if (config.url === '/api/v1/repost/settings/settings/destinations/from-discover-filter') {
+                window.importFilter = JSON.parse(config.data);
+                data = {jobId:'job', totalCount:1, pendingCount:1};
+            }
+            return {data, status:200, headers:{}, config};
+        };
+        await window.openDiscover('channels');
+    })()`);
+    const clickButton = async label => {
+        const button = `[...document.querySelectorAll('button')].find(b => b.textContent.trim() === ${JSON.stringify(label)})`;
+        await browser.until(`${button} && !${button}.disabled`);
+        await browser.evaluate(`${button}.click()`);
+    };
+    const choose = async (selector, label) => {
+        const enter = 'new KeyboardEvent("keydown", {key:"Enter", bubbles:true})';
+        const trigger = `document.querySelector(${JSON.stringify(selector)})`;
+        await browser.until(`Boolean(${trigger})`);
+        await browser.evaluate(`${trigger}.dispatchEvent(${enter})`);
+        const option = `[...document.querySelectorAll('[role=option]')].find(o => o.textContent === ${JSON.stringify(label)})`;
+        await browser.until(`Boolean(${option})`);
+        await browser.evaluate(`${option}.dispatchEvent(${enter})`);
+    };
+
+    await clickButton('Вперёд');
+    await browser.until('window.sourceRequests.at(-1).page === 2');
+    const source = '[aria-label="Источник"]';
+    await choose(source, 'Новости · @south');
+    await browser.until('document.querySelector("tbody")?.textContent.includes("Из южного канала")');
+    assert.deepEqual(await browser.evaluate('window.sourceRequests.at(-1)'), {source:'south', page:1});
+    await choose(source, 'Все источники');
+    await browser.until('document.querySelector("tbody")?.textContent.includes("Общий список")');
+    assert.deepEqual(await browser.evaluate('window.sourceRequests.at(-1)'), {source:null, page:1});
+
+    await choose(source, 'Новости · @south');
+    await clickButton('Добавить все по фильтру');
+    await choose('#repost-settings', 'Мой репост (0)');
+    await clickButton('Добавить');
+    await browser.until('Boolean(window.importFilter)');
+    assert.equal(await browser.evaluate('window.importFilter.sourceId'), 'south');
+});
+
 for (const [chart, historyPath] of [['parsing', 'parse-history'], ['classification', 'classification/history']]) {
     test(`Discover ${chart} chart opens every channel for the selected UTC day`, async t => {
         const browser = await page(); t.after(() => browser.close());

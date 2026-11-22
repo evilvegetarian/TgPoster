@@ -13,6 +13,7 @@ using TgPoster.API.Domain.UseCases.Discover.GetDiscoverSettings;
 using TgPoster.API.Domain.UseCases.Discover.GetDiscoverStats;
 using TgPoster.API.Domain.UseCases.Discover.GetDiscoverStatus;
 using TgPoster.API.Domain.UseCases.Discover.GetLanguages;
+using TgPoster.API.Domain.UseCases.Discover.GetSources;
 using TgPoster.API.Domain.UseCases.Discover.ListDiscover;
 using TgPoster.API.Domain.UseCases.Discover.SimilarChannels;
 using TgPoster.API.Domain.UseCases.Messages.ListMessage;
@@ -87,6 +88,16 @@ public class DiscoverController(ISender sender) : ControllerBase
 	[ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
 	public async Task<IActionResult> GetLanguages(CancellationToken ct) =>
 		Ok(await sender.Send(new GetLanguagesQuery(), ct));
+
+	/// <summary>Получить источники, из которых найдены каналы в Discover</summary>
+	/// <param name="ct"></param>
+	/// <returns></returns>
+	[HttpGet(Routes.Discover.Sources)]
+	[ProducesResponseType(StatusCodes.Status200OK, Type = typeof(List<DiscoverSourceOption>))]
+	[ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ProblemDetails))]
+	[ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
+	public async Task<IActionResult> GetSources(CancellationToken ct) =>
+		Ok(await sender.Send(new GetSourcesQuery(), ct));
 
 	/// <summary>
 	///     Получить состояние фоновой задачи обнаружения каналов

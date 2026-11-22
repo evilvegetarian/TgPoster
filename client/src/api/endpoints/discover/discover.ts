@@ -30,6 +30,7 @@ import type {
   DiscoverChannelResponsePagedResponse,
   DiscoverParseHistoryItemResponsePagedResponse,
   DiscoverSettingsResponse,
+  DiscoverSourceOption,
   DiscoverStatsResponse,
   DiscoverStatusResponse,
   GetApiV1DiscoverClassificationHistoryParams,
@@ -472,6 +473,98 @@ export function useGetApiV1DiscoverLanguages<TData = Awaited<ReturnType<typeof g
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getGetApiV1DiscoverLanguagesQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+
+/**
+ * @summary Получить источники, из которых найдены каналы в Discover
+ */
+export const getApiV1DiscoverSources = (
+
+ signal?: AbortSignal
+) => {
+
+
+      return customInstance<DiscoverSourceOption[]>(
+      {url: `/api/v1/discover/sources`, method: 'GET', signal
+    },
+      );
+    }
+
+
+
+
+export const getGetApiV1DiscoverSourcesQueryKey = () => {
+    return [
+    `/api/v1/discover/sources`
+    ] as const;
+    }
+
+
+export const getGetApiV1DiscoverSourcesQueryOptions = <TData = Awaited<ReturnType<typeof getApiV1DiscoverSources>>, TError = ProblemDetails>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1DiscoverSources>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetApiV1DiscoverSourcesQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getApiV1DiscoverSources>>> = ({ signal }) => getApiV1DiscoverSources(signal);
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getApiV1DiscoverSources>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetApiV1DiscoverSourcesQueryResult = NonNullable<Awaited<ReturnType<typeof getApiV1DiscoverSources>>>
+export type GetApiV1DiscoverSourcesQueryError = ProblemDetails
+
+
+export function useGetApiV1DiscoverSources<TData = Awaited<ReturnType<typeof getApiV1DiscoverSources>>, TError = ProblemDetails>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1DiscoverSources>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getApiV1DiscoverSources>>,
+          TError,
+          Awaited<ReturnType<typeof getApiV1DiscoverSources>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetApiV1DiscoverSources<TData = Awaited<ReturnType<typeof getApiV1DiscoverSources>>, TError = ProblemDetails>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1DiscoverSources>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getApiV1DiscoverSources>>,
+          TError,
+          Awaited<ReturnType<typeof getApiV1DiscoverSources>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetApiV1DiscoverSources<TData = Awaited<ReturnType<typeof getApiV1DiscoverSources>>, TError = ProblemDetails>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1DiscoverSources>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Получить источники, из которых найдены каналы в Discover
+ */
+
+export function useGetApiV1DiscoverSources<TData = Awaited<ReturnType<typeof getApiV1DiscoverSources>>, TError = ProblemDetails>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1DiscoverSources>>, TError, TData>>, }
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetApiV1DiscoverSourcesQueryOptions(options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 

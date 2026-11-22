@@ -15,6 +15,54 @@ public sealed class DiscoverStorageShould(StorageTestFixture fixture)
 	private readonly DiscoverStorage sut = new(fixture.GetDbContext());
 
 	[Fact]
+	public async Task GetDiscoverChannelsAsync_WhenSourceSelected_ShouldFilterBeforePagination()
+	{
+		var category = Guid.NewGuid().ToString("N");
+		var source = new DiscoveredChannel { Id = Guid.NewGuid(), Title = "Новости" };
+		var other = new DiscoveredChannel { Id = Guid.NewGuid(), Title = source.Title };
+		var second = new DiscoveredChannel
+		{
+			Id = Guid.NewGuid(), DiscoveredFromChannelId = source.Id, Category = category, ParticipantsCount = 10
+		};
+		context.DiscoveredChannels.AddRange(source, other, second,
+			new() { Id = Guid.NewGuid(), DiscoveredFromChannelId = source.Id, Category = category, ParticipantsCount = 20 },
+			new() { Id = Guid.NewGuid(), DiscoveredFromChannelId = other.Id, Category = category, ParticipantsCount = 30 },
+			new() { Id = Guid.NewGuid(), Category = category, ParticipantsCount = 40 },
+			new() { Id = Guid.NewGuid(), DiscoveredFromChannelId = source.Id });
+		await context.SaveChangesAsync();
+
+		var query = new ListDiscoverQuery(2, 1, category, null, null, null, null, DiscoverSortBy.Participants,
+			SortDirection.Desc, SourceId: source.Id);
+		var filtered = await sut.GetDiscoverChannelsAsync(query, CancellationToken.None);
+		var allSources = await sut.GetDiscoverChannelsAsync(query with { SourceId = null }, CancellationToken.None);
+
+		filtered.TotalCount.ShouldBe(2);
+		filtered.Items.Single().Id.ShouldBe(second.Id);
+		allSources.TotalCount.ShouldBe(4);
+	}
+
+	[Fact]
+	public async Task GetSourcesAsync_ShouldReturnEachSourceWithVisibleChildrenOnce()
+	{
+		var source = new DiscoveredChannel
+		{
+			Id = Guid.NewGuid(), Username = $"source_{Guid.NewGuid():N}", IsBanned = true
+		};
+		var hiddenOnly = new DiscoveredChannel { Id = Guid.NewGuid() };
+		context.DiscoveredChannels.AddRange(source, hiddenOnly,
+			new() { Id = Guid.NewGuid(), DiscoveredFromChannelId = source.Id },
+			new() { Id = Guid.NewGuid(), DiscoveredFromChannelId = source.Id },
+			new() { Id = Guid.NewGuid(), DiscoveredFromChannelId = hiddenOnly.Id, IsBanned = true },
+			new() { Id = Guid.NewGuid(), DiscoveredFromChannelId = hiddenOnly.Id, Deleted = DateTimeOffset.UtcNow });
+		await context.SaveChangesAsync();
+
+		var sources = await sut.GetSourcesAsync(CancellationToken.None);
+
+		sources.Single(x => x.Id == source.Id).Username.ShouldBe(source.Username);
+		sources.ShouldNotContain(x => x.Id == hiddenOnly.Id);
+	}
+
+	[Fact]
 	public async Task GetDiscoverChannelsAsync_ShouldFilterByNormalizedLanguageBeforePagination()
 	{
 		var category = Guid.NewGuid().ToString("N");

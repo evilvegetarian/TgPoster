@@ -3,6 +3,7 @@ using TgPoster.API.Domain.Models;
 using TgPoster.API.Domain.UseCases.Discover.GetCategories;
 using TgPoster.API.Domain.UseCases.Discover.GetDiscoverStatus;
 using TgPoster.API.Domain.UseCases.Discover.GetLanguages;
+using TgPoster.API.Domain.UseCases.Discover.GetSources;
 using TgPoster.API.Domain.UseCases.Discover.ListDiscover;
 using TgPoster.Storage.Data;
 using TgPoster.Storage.Data.Enum;
@@ -11,7 +12,7 @@ using TgPoster.Worker.Domain;
 namespace TgPoster.Storage.Storages;
 
 internal sealed class DiscoverStorage(PosterContext context)
-	: IListDiscoverStorage, IGetCategoriesStorage, IGetLanguagesStorage, IGetDiscoverStatusStorage
+	: IListDiscoverStorage, IGetCategoriesStorage, IGetLanguagesStorage, IGetSourcesStorage, IGetDiscoverStatusStorage
 {
 	public Task<List<string>> GetCategoriesAsync(CancellationToken ct) =>
 		context.DiscoveredChannels
@@ -27,6 +28,17 @@ internal sealed class DiscoverStorage(PosterContext context)
 			.Select(x => x.Language!.Trim().ToLower())
 			.Distinct()
 			.OrderBy(x => x)
+			.ToListAsync(ct);
+
+	public Task<List<DiscoverSourceOption>> GetSourcesAsync(CancellationToken ct) =>
+		context.DiscoveredChannels
+			// Источник мог попасть в бан после обнаружения доступных каналов
+			.IgnoreQueryFilters()
+			.Where(source => context.DiscoveredChannels.Any(channel => channel.DiscoveredFromChannelId == source.Id
+				&& !channel.IsBanned && channel.Deleted == null))
+			.OrderBy(source => source.Title ?? source.Username ?? source.TgUrl)
+			.ThenBy(source => source.Id)
+			.Select(source => new DiscoverSourceOption(source.Id, source.Title, source.Username, source.TgUrl))
 			.ToListAsync(ct);
 
 	public Task<WorkerJobStateDto?> GetDiscoverJobStateAsync(CancellationToken ct) =>
@@ -57,7 +69,8 @@ internal sealed class DiscoverStorage(PosterContext context)
 				query.Search,
 				query.MinParticipants,
 				query.MaxParticipants,
-				query.Language);
+				query.Language,
+				query.SourceId);
 
 		var total = await q.CountAsync(ct);
 

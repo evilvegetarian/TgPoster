@@ -5,6 +5,7 @@ import {
     useGetApiV1Discover,
     useGetApiV1DiscoverCategories,
     useGetApiV1DiscoverSettings,
+    useGetApiV1DiscoverSources,
     useGetApiV1DiscoverStatus,
 } from "@/api/endpoints/discover/discover"
 import {Badge} from "@/components/ui/badge"
@@ -187,6 +188,7 @@ function ImportJobBanner({job, onOpen, onDismiss}: ImportJobBannerProps) {
 function ChannelsTab() {
     const [category, setCategory] = useState<string>("all")
     const [language, setLanguage] = useState<string>()
+    const [sourceId, setSourceId] = useState<string>()
     const [peerType, setPeerType] = useState<string>("all")
     const [search, setSearch] = useState("")
     const [minParticipants, setMinParticipants] = useState("")
@@ -211,6 +213,7 @@ function ChannelsTab() {
     const {data, isLoading, isFetching} = useGetApiV1Discover({
         Category: apiCategory,
         Language: language,
+        SourceId: sourceId,
         Search: apiSearch,
         PeerType: apiPeerType,
         MinParticipants: apiMinParticipants,
@@ -222,6 +225,7 @@ function ChannelsTab() {
     })
 
     const {data: categoriesData} = useGetApiV1DiscoverCategories()
+    const {data: sources} = useGetApiV1DiscoverSources()
     const categories = categoriesData ?? []
 
     const channels = data?.data ?? []
@@ -287,7 +291,7 @@ function ChannelsTab() {
                             Добавить все по фильтру
                         </Button>
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 mt-3">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3 mt-3">
                         <div className="relative">
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground"/>
                             <Input
@@ -321,6 +325,27 @@ function ChannelsTab() {
                             setLanguage(code)
                             resetPage()
                         }}/>
+                        <Select value={sourceId ?? "all"} onValueChange={(value) => {
+                            setSourceId(value === "all" ? undefined : value)
+                            resetPage()
+                        }}>
+                            <SelectTrigger aria-label="Источник" className="max-w-full">
+                                <SelectValue placeholder="Все источники"/>
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="all">Все источники</SelectItem>
+                                {sources?.map((source) => {
+                                    const identifier = source.username ? `@${source.username}` : source.tgUrl || source.id
+                                    return (
+                                        <SelectItem key={source.id} value={source.id}>
+                                            <span className="truncate">
+                                                {source.title ? `${source.title} · ${identifier}` : identifier}
+                                            </span>
+                                        </SelectItem>
+                                    )
+                                })}
+                            </SelectContent>
+                        </Select>
                         <Select
                             value={peerType}
                             onValueChange={(value) => {
@@ -494,6 +519,7 @@ function ChannelsTab() {
                 filter={{
                     category: apiCategory,
                     language,
+                    sourceId,
                     search: apiSearch,
                     peerType: apiPeerType,
                     minParticipants: apiMinParticipants,

@@ -13,7 +13,8 @@ public sealed record ListDiscoverQuery(
 	int? MaxParticipants,
 	DiscoverSortBy SortBy,
 	SortDirection SortDirection,
-	string? Language = null) : IRequest<PagedResponse<DiscoverChannelResponse>>;
+	string? Language = null,
+	Guid? SourceId = null) : IRequest<PagedResponse<DiscoverChannelResponse>>;
 
 /// <summary>
 ///     Поле для сортировки обнаруженных каналов

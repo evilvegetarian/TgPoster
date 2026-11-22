@@ -15,6 +15,9 @@ public sealed class ListDiscoverRequest : PaginationRequest
 	/// <summary>ISO-код языка публикаций</summary>
 	public string? Language { get; init; }
 
+	/// <summary>ID канала, из которого нашли площадку</summary>
+	public Guid? SourceId { get; init; }
+
 	/// <summary>
 	///     Поиск по названию или username
 	/// </summary>

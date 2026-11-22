@@ -34,6 +34,7 @@ internal static class DiscoveredChannelQueryExtensions
 	/// <param name="minParticipants">Минимальное число подписчиков включительно</param>
 	/// <param name="maxParticipants">Максимальное число подписчиков включительно</param>
 	/// <param name="language">ISO-код языка публикаций</param>
+	/// <param name="sourceId"></param>
 	/// <returns>Запрос с наложенными фильтрами</returns>
 	public static IQueryable<DiscoveredChannel> ApplyDiscoverFilter(
 		this IQueryable<DiscoveredChannel> query,
@@ -42,10 +43,12 @@ internal static class DiscoveredChannelQueryExtensions
 		string? search,
 		int? minParticipants,
 		int? maxParticipants,
-		string? language
+		string? language,
+		Guid? sourceId
 	) =>
 		query
 			.FilterByLanguage(language)
+			.Where(x => sourceId == null || x.DiscoveredFromChannelId == sourceId)
 			.Where(x => category == null || x.Category == category)
 			.Where(x => peerType == null || x.PeerType == peerType)
 			.Where(x => minParticipants == null

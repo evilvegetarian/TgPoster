@@ -297,6 +297,22 @@ public sealed class AddDestinationsFromDiscoverStorageShould(StorageTestFixture 
 	private static string NewCategory() => "Категория-" + Guid.NewGuid();
 
 	[Fact]
+	public async Task GetCandidatesByFilterAsync_ShouldApplySourceBeforeLimit()
+	{
+		var category = NewCategory();
+		var source = await CreateDiscoveredChannelAsync();
+		var child = await CreateDiscoveredChannelAsync(category: category, participantsCount: 100);
+		await CreateDiscoveredChannelAsync(category: category, participantsCount: 1000);
+		child.DiscoveredFromChannelId = source.Id;
+		await context.SaveChangesAsync();
+
+		var filter = FilterFor(category) with { SourceId = source.Id };
+		var candidates = await sut.GetCandidatesByFilterAsync(filter, [], Guid.NewGuid(), 1, CancellationToken.None);
+
+		candidates.Single().Id.ShouldBe(child.Id);
+	}
+
+	[Fact]
 	public async Task GetCandidatesByFilterAsync_ShouldApplyLanguageBeforeLimit()
 	{
 		var category = NewCategory();

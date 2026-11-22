@@ -13,6 +13,7 @@ public sealed class DiscoverEndpointShould(EndpointTestFixture fixture) : IClass
 	[Theory]
 	[InlineData("")]
 	[InlineData("/categories")]
+	[InlineData("/sources")]
 	[InlineData("/status")]
 	[InlineData("/stats")]
 	[InlineData("/parse-history")]

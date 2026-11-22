@@ -46,6 +46,11 @@ export interface AddDestinationsFromDiscoverFilterRequest {
    */
   language?: string | null;
   /**
+   * ID канала, из которого нашли площадку
+   * @nullable
+   */
+  sourceId?: string | null;
+  /**
    * Поиск по названию или username
    * @nullable
    */
@@ -1053,6 +1058,16 @@ export const DiscoverSortBy = {
   DiscoveredAt: 'DiscoveredAt',
   Title: 'Title',
 } as const;
+
+export interface DiscoverSourceOption {
+  id: string;
+  /** @nullable */
+  title?: string | null;
+  /** @nullable */
+  username?: string | null;
+  /** @nullable */
+  tgUrl?: string | null;
+}
 
 export interface DiscoverSourceStat {
   id: string;
@@ -2469,6 +2484,10 @@ Category?: string;
  * ISO-код языка публикаций
  */
 Language?: string;
+/**
+ * ID канала, из которого нашли площадку
+ */
+SourceId?: string;
 /**
  * Поиск по названию или username
  */
