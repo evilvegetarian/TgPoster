@@ -414,7 +414,9 @@ public class ClassifyChannelWorkerShould
 
 		sentModel.ShouldBe("test/model");
 		sent.ShouldNotBeNull();
-		sent[0].Content.ShouldBe("Выбери из: Альфа, Бета");
+		sent[0].Content.ShouldBe($"Выбери из: Альфа, Бета\n\n{ClassifierDefaults.OutputLanguageRule}");
+		openRouter.Verify(s => s.SendMessageRawAsync(It.IsAny<string>(), It.IsAny<string>(),
+			It.IsAny<List<ChatMessage>>(), It.IsAny<CancellationToken>()), Times.Once);
 		storage.Verify(s => s.UpdateClassificationAsync(
 				channel.Id, "Альфа", "Под", It.Is<string[]>(t => t.SequenceEqual(new[] { "t1" })), "ru", 0.9,
 				It.IsAny<CancellationToken>()),
@@ -423,6 +425,51 @@ public class ClassifyChannelWorkerShould
 				It.IsAny<Guid>(), It.IsAny<TelegramPeer>(), 10, It.IsAny<int>(), It.IsAny<DateTime?>(), It.IsAny<int>(),
 				It.IsAny<CancellationToken>(), It.IsAny<bool>()),
 			Times.Once);
+	}
+
+	[Theory]
+	[InlineData("Альфа", "Альфа")]
+	[InlineData("新闻", "Бета")]
+	public async Task TranslateChineseLabels_KeepingLanguageAndConfiguredCategory(string originalCategory, string expectedCategory)
+	{
+		var channel = CreateChannel("first");
+		SetupQueue(channel);
+		SetupResolveSucceeds();
+		SetupHistory(new TelegramMessage { Id = 1, Text = "上海新闻", Date = DateTime.UtcNow });
+		openRouter.SetupSequence(s => s.SendMessageRawAsync(It.IsAny<string>(), settings.Model,
+				It.IsAny<List<ChatMessage>>(), It.IsAny<CancellationToken>()))
+			.ReturnsAsync(LlmAnswer($$"""{"category":"{{originalCategory}}","subcategory":"新闻","tags":["上海","Telegram"],"language":"zh","confidence":0.91}"""))
+			.ReturnsAsync(LlmAnswer("""{"category":"Бета","subcategory":"Новости","tags":["Шанхай","Телеграм"],"language":"ru","confidence":0.4}"""));
+
+		await CreateSut().ClassifyChannelsAsync();
+
+		storage.Verify(s => s.UpdateClassificationAsync(channel.Id, expectedCategory, "Новости",
+			It.Is<string[]>(tags => tags.SequenceEqual(new[] { "Шанхай", "Telegram" })), "zh", 0.91,
+			It.IsAny<CancellationToken>()), Times.Once);
+		openRouter.Verify(s => s.SendMessageRawAsync(It.IsAny<string>(), settings.Model,
+			It.Is<List<ChatMessage>>(messages => (messages[1].Content as string ?? "").Contains("上海")),
+			It.IsAny<CancellationToken>()), Times.Once);
+	}
+
+	[Theory]
+	[InlineData("上海")]
+	[InlineData("Shanghai")]
+	[InlineData("")]
+	public async Task SkipSaving_WhenChineseTagWasNotTranslatedIntoRussian(string translation)
+	{
+		var channel = CreateChannel("first");
+		SetupQueue(channel);
+		SetupResolveSucceeds();
+		SetupHistory();
+		openRouter.SetupSequence(s => s.SendMessageRawAsync(It.IsAny<string>(), settings.Model,
+				It.IsAny<List<ChatMessage>>(), It.IsAny<CancellationToken>()))
+			.ReturnsAsync(LlmAnswer("""{"category":"Альфа","tags":["上海"],"language":"zh"}"""))
+			.ReturnsAsync(LlmAnswer($$"""{"category":"Альфа","tags":["{{translation}}"]}"""));
+
+		await CreateSut().ClassifyChannelsAsync();
+
+		storage.Verify(s => s.UpdateClassificationAsync(channel.Id, It.IsAny<string?>(), It.IsAny<string?>(),
+			It.IsAny<string[]?>(), It.IsAny<string?>(), It.IsAny<double?>(), It.IsAny<CancellationToken>()), Times.Never);
 	}
 
 	[Fact]

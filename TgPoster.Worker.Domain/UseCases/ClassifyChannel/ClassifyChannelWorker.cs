@@ -1,5 +1,7 @@
+using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using System.Text.Unicode;
 using Hangfire;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -31,6 +33,11 @@ internal sealed partial class ClassifyChannelWorker(
 	private const int MaxImageSize = 512;
 	private const int JpegQuality = 80;
 	private const int MaxTextLength = 500;
+
+	private static readonly JsonSerializerOptions LabelJsonOptions = new(JsonSerializerDefaults.Web)
+	{
+		Encoder = JavaScriptEncoder.Create(UnicodeRanges.All)
+	};
 
 	/// <summary>
 	///     Длительность паузы, если Telegram вернул FloodWait без срока
@@ -337,28 +344,39 @@ internal sealed partial class ClassifyChannelWorker(
 			return null;
 		}
 
-		if (HasUntranslatedLabels(classification))
+		var categoryIsConfigured = settings.Categories.Contains(classification.Category, StringComparer.Ordinal);
+		if ((!categoryIsConfigured && ContainsHan(classification.Category)) || ContainsHan(classification.Subcategory)
+		    || classification.Tags?.Any(ContainsHan) == true)
 		{
 			var corrected = await RequestClassificationAsync(settings.Model, [
 				new ChatMessage { Role = "system", Content = $"""
 					Переведи подписи готовой классификации на русский и верни JSON с полями category, subcategory и tags.
-					Сохрани смысл и все теги. Допустимые категории: {string.Join(", ", settings.Categories)}.
-					{ClassifierDefaults.OutputLanguageRule}
+					Сохрани смысл, количество и порядок тегов. Уже русские подписи оставь как есть.
+					Категорию выбери дословно из списка: {string.Join(", ", settings.Categories)}.
 					""" },
-				new ChatMessage { Role = "user", Content = JsonSerializer.Serialize(classification) }
+				new ChatMessage { Role = "user", Content = JsonSerializer.Serialize(
+					new { classification.Category, classification.Subcategory, classification.Tags }, LabelJsonOptions) }
 			], ct);
-			if (corrected is null || HasUntranslatedLabels(corrected)
-			    || !settings.Categories.Contains(corrected.Category, StringComparer.Ordinal)
-			    || (!string.IsNullOrWhiteSpace(classification.Subcategory) && string.IsNullOrWhiteSpace(corrected.Subcategory))
-			    || (classification.Tags is { Length: > 0 } && (corrected.Tags is not { Length: > 0 } || corrected.Tags.Any(string.IsNullOrWhiteSpace))))
+			var category = categoryIsConfigured ? classification.Category : corrected?.Category;
+			var tags = classification.Tags ?? [];
+			var translatedTags = corrected?.Tags ?? [];
+			if (corrected is null || !settings.Categories.Contains(category, StringComparer.Ordinal)
+			    || !IsTranslated(classification.Subcategory, corrected.Subcategory)
+			    || tags.Length != translatedTags.Length
+			    || !tags.Zip(translatedTags, IsTranslated).All(valid => valid))
 			{
 				logger.LogWarning("Модель не вернула русские подписи для канала {ChannelId}", channel.Id);
 				return null;
 			}
 
-			classification.Category = corrected.Category;
-			classification.Subcategory = corrected.Subcategory;
-			classification.Tags = corrected.Tags;
+			classification.Category = category;
+			if (ContainsHan(classification.Subcategory))
+			{
+				classification.Subcategory = corrected.Subcategory;
+			}
+			classification.Tags = classification.Tags?
+				.Select((tag, i) => ContainsHan(tag) ? translatedTags[i] : tag)
+				.ToArray();
 		}
 
 		await storage.UpdateClassificationAsync(
@@ -392,9 +410,11 @@ internal sealed partial class ClassifyChannelWorker(
 		return string.IsNullOrWhiteSpace(content) ? null : ParseClassification(content);
 	}
 
-	private static bool HasUntranslatedLabels(ChannelClassificationResult result) =>
-		HanCharacters().IsMatch(result.Category ?? "") || HanCharacters().IsMatch(result.Subcategory ?? "")
-		|| result.Tags?.Any(tag => tag != null && HanCharacters().IsMatch(tag)) == true;
+	private static bool ContainsHan(string? value) => value != null && HanCharacters().IsMatch(value);
+
+	private static bool IsTranslated(string? original, string? translated) =>
+		!ContainsHan(original) || (!string.IsNullOrWhiteSpace(translated) && !ContainsHan(translated)
+		                         && translated.Any(c => c is >= 'А' and <= 'я' or 'ё' or 'Ё'));
 
 	[GeneratedRegex(@"[\u3400-\u4DBF\u4E00-\u9FFF\uF900-\uFAFF]|[\uD840-\uD87E][\uDC00-\uDFFF]|[\uD880-\uD888][\uDC00-\uDFFF]")]
 	private static partial Regex HanCharacters();

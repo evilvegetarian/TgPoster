@@ -399,7 +399,8 @@ function SettingsForm({settings}: {settings: ClassifierSettingsResponse}) {
                                 <CardTitle className="text-base">Системный промпт</CardTitle>
                                 <p className="text-xs text-muted-foreground">
                                     {settings.categoriesPlaceholder} заменится списком тематик через запятую. Формат ответа
-                                    (JSON с category, subcategory, tags, language, confidence) лучше не менять — иначе ответ не разберётся
+                                    (JSON с category, subcategory, tags, language, confidence) лучше не менять.
+                                    Классификатор пишет подтематику и теги по-русски. Поле language содержит язык публикаций.
                                 </p>
                             </div>
                             <Button
