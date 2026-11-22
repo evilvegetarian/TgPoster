@@ -27,6 +27,14 @@ public interface ITelegramMessageService
 		bool waitOnFloodWait = false
 	);
 
+	/// <summary>Получает рекомендации Telegram для публичного канала</summary>
+	/// <param name="sessionId"></param>
+	/// <param name="channel"></param>
+	/// <param name="ct"></param>
+	/// <returns></returns>
+	Task<TelegramOperationResult<IReadOnlyList<TelegramChatInfo>>> GetChannelRecommendationsAsync(
+		Guid sessionId, TelegramPeer channel, CancellationToken ct);
+
 	/// <summary>
 	/// Получает каналы, супергруппы и группы, в которых аккаунт сейчас состоит, включая архивные.
 	/// Чаты, которые только упоминаются в сообщениях, и покинутые/заблокированные сюда не попадают

@@ -98,6 +98,17 @@ internal sealed class TelegramMessageService(
 		return TelegramOperationResult<TelegramChatInfo>.Failed(TelegramOperationStatus.UsernameNotFound);
 	}
 
+	public Task<TelegramOperationResult<IReadOnlyList<TelegramChatInfo>>> GetChannelRecommendationsAsync(
+		Guid sessionId, TelegramPeer channel, CancellationToken ct) =>
+		ExecuteWithClientAsync<IReadOnlyList<TelegramChatInfo>>(sessionId, async client =>
+		{
+			var result = await client.Channels_GetChannelRecommendations(PeerMapper.ToInputChannel(channel));
+			return result.chats.Values.OfType<Channel>()
+				.Where(c => c.IsChannel && !c.IsGroup && !string.IsNullOrEmpty(c.MainUsername))
+				.Select(ChatMapper.FromChannel)
+				.ToList();
+		}, "GetChannelRecommendations", false, ct);
+
 	public async Task<TelegramOperationResult<IReadOnlyList<TelegramChatInfo>>> GetAllDialogsAsync(
 		Guid sessionId,
 		CancellationToken ct = default,

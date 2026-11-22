@@ -1804,6 +1804,17 @@ export const RetryMode = {
   NextFreeSlot: 'NextFreeSlot',
 } as const;
 
+/**
+ * Каналы, выбранные из рекомендаций Telegram
+ */
+export interface SaveSimilarDiscoverRequest {
+  /**
+   * Идентификаторы выбранных каналов в Telegram
+   * @minItems 1
+   */
+  telegramIds: number[];
+}
+
 export interface ScheduleListResponse {
   items: ScheduleResponse[];
 }
@@ -1906,6 +1917,35 @@ export interface SignOnRequest {
 export interface SignOnResponse {
   userId: string;
 }
+
+export interface SimilarDiscoverChannel {
+  /** @nullable */
+  discoverId?: string | null;
+  /** @nullable */
+  telegramId?: number | null;
+  /** @nullable */
+  username?: string | null;
+  /** @nullable */
+  title?: string | null;
+  /** @nullable */
+  tgUrl?: string | null;
+  /** @nullable */
+  participantsCount?: number | null;
+}
+
+export interface SimilarDiscoverResponse {
+  source: SimilarDiscoverSource;
+  channels: SimilarDiscoverChannel[];
+}
+
+export type SimilarDiscoverSource = typeof SimilarDiscoverSource[keyof typeof SimilarDiscoverSource];
+
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const SimilarDiscoverSource = {
+  Telegram: 'Telegram',
+  Catalog: 'Catalog',
+} as const;
 
 export interface SocialAccountResponse {
   id: string;

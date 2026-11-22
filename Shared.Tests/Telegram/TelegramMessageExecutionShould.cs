@@ -115,6 +115,16 @@ public sealed class TelegramMessageExecutionShould
 		alerts.VerifyNoOtherCalls();
 	}
 
+	[Fact]
+	public async Task ReportMissingSession_WhenLoadingChannelRecommendations()
+	{
+		var result = await sut.GetChannelRecommendationsAsync(sessionId, TelegramPeer.Channel(10, 123), default);
+
+		result.Status.ShouldBe(TelegramOperationStatus.SessionNotFound);
+		result.Value.ShouldBeNull();
+		alerts.VerifyNoOtherCalls();
+	}
+
 	private sealed class MissingClientResolver : ITelegramClientResolver
 	{
 		public Task<Client?> GetClientAsync(Guid sessionId, CancellationToken ct = default) => Task.FromResult<Client?>(null);

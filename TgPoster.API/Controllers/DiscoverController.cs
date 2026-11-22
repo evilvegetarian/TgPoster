@@ -13,6 +13,7 @@ using TgPoster.API.Domain.UseCases.Discover.GetDiscoverSettings;
 using TgPoster.API.Domain.UseCases.Discover.GetDiscoverStats;
 using TgPoster.API.Domain.UseCases.Discover.GetDiscoverStatus;
 using TgPoster.API.Domain.UseCases.Discover.ListDiscover;
+using TgPoster.API.Domain.UseCases.Discover.SimilarChannels;
 using TgPoster.API.Domain.UseCases.Messages.ListMessage;
 using TgPoster.API.Mapper;
 using TgPoster.API.Models;
@@ -38,6 +39,32 @@ public class DiscoverController(ISender sender) : ControllerBase
 		var response = await sender.Send(request.ToDomain(), ct);
 		return Ok(response);
 	}
+
+	/// <summary>Найти похожие площадки для канала или чата</summary>
+	/// <param name="id"></param>
+	/// <param name="ct"></param>
+	/// <returns></returns>
+	[HttpGet(Routes.Discover.Similar)]
+	[ProducesResponseType(StatusCodes.Status200OK, Type = typeof(SimilarDiscoverResponse))]
+	[ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ProblemDetails))]
+	[ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
+	[ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
+	public async Task<IActionResult> GetSimilar([FromRoute] Guid id, CancellationToken ct) =>
+		Ok(await sender.Send(new GetSimilarDiscoverQuery(id), ct));
+
+	/// <summary>Добавить выбранные похожие каналы в Discover</summary>
+	/// <param name="id"></param>
+	/// <param name="request"></param>
+	/// <param name="ct"></param>
+	/// <returns></returns>
+	[HttpPost(Routes.Discover.Similar)]
+	[ProducesResponseType(StatusCodes.Status200OK, Type = typeof(int))]
+	[ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
+	[ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ProblemDetails))]
+	[ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
+	[ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
+	public async Task<IActionResult> SaveSimilar([FromRoute] Guid id, [FromBody] SaveSimilarDiscoverRequest request, CancellationToken ct) =>
+		Ok(await sender.Send(new SaveSimilarDiscoverCommand(id, request.TelegramIds), ct));
 
 	/// <summary>
 	///     Получить список тематик обнаруженных каналов

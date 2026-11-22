@@ -38,6 +38,8 @@ import type {
   GetApiV1DiscoverParseHistoryParams,
   GetApiV1DiscoverStatsParams,
   ProblemDetails,
+  SaveSimilarDiscoverRequest,
+  SimilarDiscoverResponse,
   UpdateClassifierSettingsRequest,
   UpdateDiscoverSettingsRequest
 } from '../tgPosterAPI.schemas';
@@ -141,6 +143,163 @@ export function useGetApiV1Discover<TData = Awaited<ReturnType<typeof getApiV1Di
 
 
 /**
+ * @summary Найти похожие площадки для канала или чата
+ */
+export const getApiV1DiscoverIdSimilar = (
+    id: string,
+ signal?: AbortSignal
+) => {
+      
+      
+      return customInstance<SimilarDiscoverResponse>(
+      {url: `/api/v1/discover/${id}/similar`, method: 'GET', signal
+    },
+      );
+    }
+  
+
+
+
+export const getGetApiV1DiscoverIdSimilarQueryKey = (id?: string,) => {
+    return [
+    `/api/v1/discover/${id}/similar`
+    ] as const;
+    }
+
+    
+export const getGetApiV1DiscoverIdSimilarQueryOptions = <TData = Awaited<ReturnType<typeof getApiV1DiscoverIdSimilar>>, TError = ProblemDetails>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1DiscoverIdSimilar>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetApiV1DiscoverIdSimilarQueryKey(id);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getApiV1DiscoverIdSimilar>>> = ({ signal }) => getApiV1DiscoverIdSimilar(id, signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getApiV1DiscoverIdSimilar>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetApiV1DiscoverIdSimilarQueryResult = NonNullable<Awaited<ReturnType<typeof getApiV1DiscoverIdSimilar>>>
+export type GetApiV1DiscoverIdSimilarQueryError = ProblemDetails
+
+
+export function useGetApiV1DiscoverIdSimilar<TData = Awaited<ReturnType<typeof getApiV1DiscoverIdSimilar>>, TError = ProblemDetails>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1DiscoverIdSimilar>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getApiV1DiscoverIdSimilar>>,
+          TError,
+          Awaited<ReturnType<typeof getApiV1DiscoverIdSimilar>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetApiV1DiscoverIdSimilar<TData = Awaited<ReturnType<typeof getApiV1DiscoverIdSimilar>>, TError = ProblemDetails>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1DiscoverIdSimilar>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getApiV1DiscoverIdSimilar>>,
+          TError,
+          Awaited<ReturnType<typeof getApiV1DiscoverIdSimilar>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetApiV1DiscoverIdSimilar<TData = Awaited<ReturnType<typeof getApiV1DiscoverIdSimilar>>, TError = ProblemDetails>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1DiscoverIdSimilar>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Найти похожие площадки для канала или чата
+ */
+
+export function useGetApiV1DiscoverIdSimilar<TData = Awaited<ReturnType<typeof getApiV1DiscoverIdSimilar>>, TError = ProblemDetails>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1DiscoverIdSimilar>>, TError, TData>>, }
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetApiV1DiscoverIdSimilarQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+
+/**
+ * @summary Добавить выбранные похожие каналы в Discover
+ */
+export const postApiV1DiscoverIdSimilar = (
+    id: string,
+    saveSimilarDiscoverRequest: SaveSimilarDiscoverRequest,
+ signal?: AbortSignal
+) => {
+      
+      
+      return customInstance<number>(
+      {url: `/api/v1/discover/${id}/similar`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: saveSimilarDiscoverRequest, signal
+    },
+      );
+    }
+  
+
+
+export const getPostApiV1DiscoverIdSimilarMutationOptions = <TError = ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postApiV1DiscoverIdSimilar>>, TError,{id: string;data: SaveSimilarDiscoverRequest}, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof postApiV1DiscoverIdSimilar>>, TError,{id: string;data: SaveSimilarDiscoverRequest}, TContext> => {
+
+const mutationKey = ['postApiV1DiscoverIdSimilar'];
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof postApiV1DiscoverIdSimilar>>, {id: string;data: SaveSimilarDiscoverRequest}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  postApiV1DiscoverIdSimilar(id,data,)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type PostApiV1DiscoverIdSimilarMutationResult = NonNullable<Awaited<ReturnType<typeof postApiV1DiscoverIdSimilar>>>
+    export type PostApiV1DiscoverIdSimilarMutationBody = SaveSimilarDiscoverRequest
+    export type PostApiV1DiscoverIdSimilarMutationError = ProblemDetails
+
+    /**
+ * @summary Добавить выбранные похожие каналы в Discover
+ */
+export const usePostApiV1DiscoverIdSimilar = <TError = ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postApiV1DiscoverIdSimilar>>, TError,{id: string;data: SaveSimilarDiscoverRequest}, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof postApiV1DiscoverIdSimilar>>,
+        TError,
+        {id: string;data: SaveSimilarDiscoverRequest},
+        TContext
+      > => {
+
+      const mutationOptions = getPostApiV1DiscoverIdSimilarMutationOptions(options);
+
+      return useMutation(mutationOptions, queryClient);
+    }
+    /**
  * @summary Получить список тематик обнаруженных каналов
  */
 export const getApiV1DiscoverCategories = (

@@ -19,6 +19,7 @@ import {Tabs, TabsContent, TabsList, TabsTrigger} from "@/components/ui/tabs"
 import {ChannelAvatar, ChannelName} from "@/components/discover/channel-identity"
 import {DiscoverSettingsForm} from "@/components/discover/discover-settings-form"
 import {DiscoverStatsTab} from "@/components/discover/discover-stats-tab"
+import {SimilarChannelsDialog} from "@/components/discover/similar-channels-dialog"
 import {channelLink, formatDateTime, formatRelative} from "@/components/discover/format"
 import {WorkerStatusCard} from "@/components/discover/worker-status-card"
 import {useDebounce} from "@/hooks/use-debounce"
@@ -65,9 +66,10 @@ interface ChannelRowProps {
     channel: DiscoverChannelResponse
     selected: boolean
     onSelectedChange: (selected: boolean) => void
+    onFindSimilar: () => void
 }
 
-function ChannelRow({channel, selected, onSelectedChange}: ChannelRowProps) {
+function ChannelRow({channel, selected, onSelectedChange, onFindSimilar}: ChannelRowProps) {
     const link = channelLink(channel)
 
     return (
@@ -116,13 +118,19 @@ function ChannelRow({channel, selected, onSelectedChange}: ChannelRowProps) {
             <td className="py-2.5 px-3 whitespace-nowrap text-xs text-muted-foreground" title={formatDateTime(channel.lastDiscoveredAt)}>
                 {channel.lastDiscoveredAt ? formatRelative(channel.lastDiscoveredAt) : "не парсился"}
             </td>
-            <td className="py-2.5 pl-2">
+            <td className="py-2.5 pl-2 whitespace-nowrap">
+                <Button variant="ghost" size="sm" disabled={!channel.id} onClick={onFindSimilar}
+                        aria-label={`Найти похожие площадки для ${channel.title ?? channel.username ?? "канала"}`}
+                        title="Найти похожие площадки">
+                    <Search className="h-3.5 w-3.5"/>
+                    <span className="hidden lg:inline">Найти похожие</span>
+                </Button>
                 {link && (
-                    <a href={link} target="_blank" rel="noopener noreferrer" aria-label="Открыть в Telegram">
-                        <Button variant="ghost" size="sm" className="h-7 w-7 p-0">
+                    <Button asChild variant="ghost" size="sm" className="h-7 w-7 p-0">
+                        <a href={link} target="_blank" rel="noopener noreferrer" aria-label="Открыть в Telegram">
                             <ExternalLink className="h-3.5 w-3.5"/>
-                        </Button>
-                    </a>
+                        </a>
+                    </Button>
                 )}
             </td>
         </tr>
@@ -185,6 +193,7 @@ function ChannelsTab() {
     const [sortDirection, setSortDirection] = useState<SortDirection>("Desc")
     const [page, setPage] = useState(1)
     const [selectedIds, setSelectedIds] = useState<string[]>([])
+    const [similarSource, setSimilarSource] = useState<DiscoverChannelResponse | null>(null)
     const [isAddToRepostOpen, setIsAddToRepostOpen] = useState(false)
     const [addMode, setAddMode] = useState<"selected" | "filter">("selected")
     const debouncedSearch = useDebounce(search.trim(), 400)
@@ -438,6 +447,7 @@ function ChannelsTab() {
                                     <ChannelRow
                                         key={channel.id}
                                         channel={channel}
+                                        onFindSimilar={() => setSimilarSource(channel)}
                                         selected={!!channel.id && selectedIds.includes(channel.id)}
                                         onSelectedChange={(selected) => {
                                             if (channel.id) handleSelectedChange(channel.id, selected)
@@ -464,6 +474,11 @@ function ChannelsTab() {
                 </CardContent>
             </Card>
 
+            {similarSource?.id && (
+                <SimilarChannelsDialog key={similarSource.id} sourceId={similarSource.id}
+                                      sourceName={similarSource.title ?? similarSource.username ?? "Без названия"}
+                                      onClose={() => setSimilarSource(null)}/>
+            )}
             <AddFromDiscoverDialog
                 open={isAddToRepostOpen}
                 onOpenChange={setIsAddToRepostOpen}

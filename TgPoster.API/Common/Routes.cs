@@ -186,6 +186,7 @@ internal static class Routes
 	{
 		internal const string Root = Base + "/discover";
 		internal const string List = Root;
+		internal const string Similar = Root + "/{id:guid}/similar";
 		internal const string Categories = Root + "/categories";
 		internal const string Status = Root + "/status";
 		internal const string Stats = Root + "/stats";

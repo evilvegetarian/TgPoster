@@ -76,6 +76,14 @@ import {ProtectedRoute} from '/src/protected-route.tsx';
 import {PublicRoute} from '/src/public-route.tsx';
 import usePersistentState from '/src/pages/use-persistent-state.tsx';
 import {useDebounce} from '/src/hooks/use-debounce.ts';
+window.openSimilarChannels = async () => {
+    const {SimilarChannelsDialog} = await import('/src/components/discover/similar-channels-dialog.tsx');
+    const {QueryClient, QueryClientProvider} = await import('@tanstack/react-query');
+    const root = createRoot(document.body.appendChild(document.createElement('div')));
+    root.render(<QueryClientProvider client={new QueryClient()}>
+        <SimilarChannelsDialog sourceId="source-id" sourceName="Источник" onClose={() => root.unmount()}/>
+    </QueryClientProvider>);
+};
 function Probe() {
     const auth = useAuth();
     const [filter, setFilter] = usePersistentState<number | null>('filter', 1);
@@ -275,6 +283,42 @@ test('destination actions account for membership, activation and available names
             destinationTitle({...active,username:'user'}), destinationTitle(active)];
     })()`);
     assert.deepEqual(values, [true, true, false, false, true, true, 'Title', '@user', '123']);
+});
+
+test('Discover previews recommendations and saves only the selected new channels', async t => {
+    const browser = await page(); t.after(() => browser.close());
+    await browser.evaluate(`(async () => {
+        const {axiosInstance} = await import('/src/api/axios-instance.ts');
+        const channels = [
+            {telegramId: 1, title: 'Известный', discoverId: 'known-id'},
+            {telegramId: 2, title: 'Первый'},
+            {telegramId: 3, title: 'Второй'}
+        ];
+        window.savedSelections = [];
+        axiosInstance.defaults.adapter = async config => {
+            if (config.url !== '/api/v1/discover/source-id/similar') throw new Error(config.url);
+            let data = {source: 'Telegram', channels};
+            if (config.method === 'post') {
+                const {telegramIds} = JSON.parse(config.data);
+                window.savedSelections.push(telegramIds);
+                for (const id of telegramIds) channels.find(c => c.telegramId === id).discoverId = 'saved-' + id;
+                data = telegramIds.length;
+            }
+            return {data, status: 200, headers: {}, config};
+        };
+        await window.openSimilarChannels();
+    })()`);
+    const checkboxes = 'document.querySelectorAll("[role=dialog] [role=checkbox]")';
+    const save = '[...document.querySelectorAll("[role=dialog] button")].find(b => b.textContent.includes("Сохранить"))';
+    await browser.until(`${checkboxes}.length === 2`);
+    assert.equal(await browser.evaluate(`${save}.disabled`), true);
+    assert.deepEqual(await browser.evaluate('window.savedSelections'), []);
+    await browser.evaluate(`${checkboxes}[1].click()`);
+    await browser.until(`!${save}.disabled`);
+    await browser.evaluate(`${save}.click()`);
+    await browser.until(`${checkboxes}.length === 1`);
+    assert.deepEqual(await browser.evaluate('window.savedSelections'), [[3]]);
+    assert.equal(await browser.evaluate(`${checkboxes}[0].getAttribute("aria-label")`), 'Выбрать Первый');
 });
 
 test('persistent filters restore saved values, support functional updates and clear storage', async t => {
