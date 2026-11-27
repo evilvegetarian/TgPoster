@@ -30,12 +30,18 @@ internal sealed class ImportTelegramSessionUseCase(
 				throw new TelegramBotNotFoundException(request.NotificationBotId.Value);
 		}
 
+		var credentials = await TelegramApiCredentials.ResolveAsync(
+			request.CredentialsSessionId,
+			request.ApiId,
+			request.ApiHash,
+			sessionId => storage.GetApiCredentialsAsync(provider.Current.UserId, sessionId, ct));
+
 		using var memoryStream = new MemoryStream();
 		await request.SessionFile.CopyToAsync(memoryStream, ct);
 
 		var importResult = await authService.ImportSessionAsync(
-			request.ApiId,
-			request.ApiHash,
+			credentials.ApiId,
+			credentials.ApiHash,
 			memoryStream,
 			ct
 		);
@@ -51,8 +57,8 @@ internal sealed class ImportTelegramSessionUseCase(
 
 		var sessionId = await storage.CreateAsync(
 			provider.Current.UserId,
-			request.ApiId,
-			request.ApiHash,
+			credentials.ApiId,
+			credentials.ApiHash,
 			phoneNumber,
 			request.Name,
 			sessionData,

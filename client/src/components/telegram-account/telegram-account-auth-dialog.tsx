@@ -35,7 +35,7 @@ import { useQueryClient } from "@tanstack/react-query";
 type AuthStep = "code" | "password" | "success";
 
 const codeFormSchema = z.object({
-    code: z.string().min(3, "Код должен содержать минимум 5 символов"),
+    code: z.string().min(3, "Код должен содержать минимум 3 символа"),
 });
 
 const passwordFormSchema = z.object({
@@ -72,9 +72,22 @@ export function TelegramAccountAuthDialog({ accountId, accountName, status }: Te
 
     const { mutate: startAuth, isPending: isStarting } = usePostApiV1TelegramSessionIdStartAuth({
         mutation: {
-            onSuccess: () => {
-                toast.success("Код отправлен на ваш Telegram");
-                setAuthStep("code");
+            onSuccess: (data) => {
+                if (data.status === "already_authorized") {
+                    toast.success("Сессия уже авторизована");
+                    setAuthStep("success");
+                    queryClient.invalidateQueries({ queryKey: getGetApiV1TelegramSessionQueryKey() });
+                    setTimeout(() => {
+                        setOpen(false);
+                        setAuthStep("code");
+                    }, 1500);
+                } else if (data.status === "awaiting_password") {
+                    toast.info("Требуется пароль двухфакторной аутентификации");
+                    setAuthStep("password");
+                } else {
+                    toast.success("Код отправлен на ваш Telegram");
+                    setAuthStep("code");
+                }
             },
             onError: (error) => {
                 toast.error("Ошибка при начале авторизации", {
@@ -86,41 +99,53 @@ export function TelegramAccountAuthDialog({ accountId, accountName, status }: Te
 
     const { mutate: verifyCode, isPending: isVerifying } = usePostApiV1TelegramSessionIdVerifyCode({
         mutation: {
-            onSuccess: () => {
-                toast.success("Авторизация успешна!");
-                setAuthStep("success");
-                codeForm.reset();
-                queryClient.invalidateQueries({ queryKey: getGetApiV1TelegramSessionQueryKey() });
-                setTimeout(() => {
-                    setOpen(false);
-                    setAuthStep("code");
-                }, 1500);
-            },
-            onError: (error) => {
-                const errorMessage = error.title || "";
-                if (errorMessage.includes("password") || errorMessage.includes("2FA")) {
+            onSuccess: (data) => {
+                if (data.success) {
+                    toast.success("Авторизация успешна!");
+                    setAuthStep("success");
+                    codeForm.reset();
+                    queryClient.invalidateQueries({ queryKey: getGetApiV1TelegramSessionQueryKey() });
+                    setTimeout(() => {
+                        setOpen(false);
+                        setAuthStep("code");
+                    }, 1500);
+                } else if (data.requiresPassword) {
                     toast.info("Требуется пароль двухфакторной аутентификации");
                     setAuthStep("password");
                 } else {
                     toast.error("Ошибка при проверке кода", {
-                        description: errorMessage || "Неверный код",
+                        description:
+                            data.message === "invalid_code"
+                                ? "Неверный код подтверждения"
+                                : data.message || "Не удалось подтвердить код",
                     });
                 }
+            },
+            onError: (error) => {
+                toast.error("Ошибка при проверке кода", {
+                    description: error.title || "Неверный код",
+                });
             },
         },
     });
 
     const { mutate: sendPassword, isPending: isSendingPassword } = usePostApiV1TelegramSessionIdSendPassword({
         mutation: {
-            onSuccess: () => {
-                toast.success("Авторизация успешна!");
-                setAuthStep("success");
-                passwordForm.reset();
-                queryClient.invalidateQueries({ queryKey: getGetApiV1TelegramSessionQueryKey() });
-                setTimeout(() => {
-                    setOpen(false);
-                    setAuthStep("code");
-                }, 1500);
+            onSuccess: (data) => {
+                if (data.success) {
+                    toast.success("Авторизация успешна!");
+                    setAuthStep("success");
+                    passwordForm.reset();
+                    queryClient.invalidateQueries({ queryKey: getGetApiV1TelegramSessionQueryKey() });
+                    setTimeout(() => {
+                        setOpen(false);
+                        setAuthStep("code");
+                    }, 1500);
+                } else {
+                    toast.error("Неверный пароль", {
+                        description: data.message || "Проверьте пароль и попробуйте снова",
+                    });
+                }
             },
             onError: (error) => {
                 toast.error("Ошибка при отправке пароля", {

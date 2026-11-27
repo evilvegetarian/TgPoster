@@ -164,6 +164,47 @@ public sealed class TelegramSessionEndpointShould : IClassFixture<EndpointTestFi
 		session.Status.ToString().ShouldBe("Authorized");
 	}
 
+	[Fact]
+	public async Task CreateSession_ReusesApiCredentialsFromOwnedSession_WithoutExposingThem()
+	{
+		var source = await Create();
+
+		var response = await client.PostAsJsonAsync(Url,
+			new CreateTelegramSessionRequest(null, null, "+10000000001", "reused-session", null, null, source.Id));
+
+		response.StatusCode.ShouldBe(HttpStatusCode.Created);
+		var created = (await response.Content.ReadFromJsonAsync<CreateTelegramSessionResponse>())!;
+		await using var context = fixture.GetDbContext();
+		var stored = await context.TelegramSessions.FirstAsync(x => x.Id == created.Id);
+		stored.ApiId.ShouldBe("123");
+		stored.ApiHash.ShouldBe("private-api-hash");
+		var listBody = await (await client.GetAsync(Url)).Content.ReadAsStringAsync();
+		listBody.ShouldNotContain("private-api-hash");
+	}
+
+	[Fact]
+	public async Task RejectSessionCreation_WhenCredentialsSessionBelongsToAnotherUser()
+	{
+		var source = await Create();
+		using var foreign = fixture.GetClient(fixture.GenerateTestToken(Guid.NewGuid()));
+		fixture.TelegramAuth.ClearReceivedCalls();
+
+		var response = await foreign.PostAsJsonAsync(Url,
+			new CreateTelegramSessionRequest(null, null, "+10000000001", "foreign-reuse", null, null, source.Id));
+
+		response.StatusCode.ShouldBe(HttpStatusCode.NotFound);
+		fixture.TelegramAuth.ReceivedCalls().ShouldBeEmpty();
+	}
+
+	[Fact]
+	public async Task RejectSessionCreation_WhenNeitherApiCredentialsNorSessionProvided()
+	{
+		var response = await client.PostAsJsonAsync(Url,
+			new CreateTelegramSessionRequest(null, null, "+10000000002", "missing-creds", null, null));
+
+		response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+	}
+
 	private async Task<CreateTelegramSessionResponse> Create()
 	{
 		var response = await client.PostAsJsonAsync(Url,

@@ -81,6 +81,22 @@ internal sealed class TelegramClientManager(ILogger<TelegramClientManager> logge
 	}
 
 	/// <summary>
+	///     Заменяет ожидающего клиента для указанной сессии, освобождая предыдущего
+	/// </summary>
+	/// <param name="sessionId"></param>
+	/// <param name="client"></param>
+	/// <returns></returns>
+	public async Task SetPendingClientAsync(Guid sessionId, Client client)
+	{
+		if (pendingClients.TryRemove(sessionId, out var existing))
+		{
+			await existing.DisposeAsync();
+		}
+
+		pendingClients[sessionId] = client;
+	}
+
+	/// <summary>
 	///     Удаляет ожидающего клиента без освобождения ресурсов (клиент может стать активным).
 	/// </summary>
 	public bool RemovePendingClient(Guid sessionId) => pendingClients.TryRemove(sessionId, out _);

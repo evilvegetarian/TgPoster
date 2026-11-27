@@ -1,3 +1,5 @@
+using Microsoft.EntityFrameworkCore;
+using TgPoster.API.Domain.UseCases.TelegramSessions;
 using TgPoster.API.Domain.UseCases.TelegramSessions.CreateTelegramSession;
 using TgPoster.Storage.Data;
 using TgPoster.Storage.Data.Entities;
@@ -7,6 +9,12 @@ namespace TgPoster.Storage.Storages;
 internal sealed class CreateTelegramSessionStorage(PosterContext context, GuidFactory guidFactory)
 	: ICreateTelegramSessionStorage
 {
+	public Task<TelegramApiCredentials?> GetApiCredentialsAsync(Guid userId, Guid sessionId, CancellationToken ct) =>
+		context.TelegramSessions
+			.Where(s => s.Id == sessionId && s.UserId == userId)
+			.Select(s => new TelegramApiCredentials(s.ApiId, s.ApiHash))
+			.FirstOrDefaultAsync(ct);
+
 	public async Task<CreateTelegramSessionResponse> CreateAsync(
 		Guid userId,
 		string apiId,

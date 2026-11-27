@@ -7,9 +7,10 @@ namespace TgPoster.API.Domain.UseCases.TelegramSessions.ImportTelegramSession;
 ///     Команда импорта Telegram сессии из файла
 /// </summary>
 public sealed record ImportTelegramSessionCommand(
-	string ApiId,
-	string ApiHash,
+	string? ApiId,
+	string? ApiHash,
 	IFormFile SessionFile,
 	string? Name,
-	Guid? NotificationBotId
+	Guid? NotificationBotId,
+	Guid? CredentialsSessionId = null
 ) : IRequest<ImportTelegramSessionResponse>;

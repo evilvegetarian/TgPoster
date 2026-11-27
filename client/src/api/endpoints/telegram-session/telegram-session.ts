@@ -208,14 +208,21 @@ export const postApiV1TelegramSessionImport = (
 ) => {
       
       const formData = new FormData();
-formData.append(`ApiId`, postApiV1TelegramSessionImportBody.ApiId)
-formData.append(`ApiHash`, postApiV1TelegramSessionImportBody.ApiHash)
+if(postApiV1TelegramSessionImportBody.ApiId !== undefined) {
+ formData.append(`ApiId`, postApiV1TelegramSessionImportBody.ApiId)
+ }
+if(postApiV1TelegramSessionImportBody.ApiHash !== undefined) {
+ formData.append(`ApiHash`, postApiV1TelegramSessionImportBody.ApiHash)
+ }
 formData.append(`SessionFile`, postApiV1TelegramSessionImportBody.SessionFile)
 if(postApiV1TelegramSessionImportBody.Name !== undefined) {
  formData.append(`Name`, postApiV1TelegramSessionImportBody.Name)
  }
 if(postApiV1TelegramSessionImportBody.NotificationBotId !== undefined) {
  formData.append(`NotificationBotId`, postApiV1TelegramSessionImportBody.NotificationBotId)
+ }
+if(postApiV1TelegramSessionImportBody.CredentialsSessionId !== undefined) {
+ formData.append(`CredentialsSessionId`, postApiV1TelegramSessionImportBody.CredentialsSessionId)
  }
 
       return customInstance<ImportTelegramSessionResponse>(

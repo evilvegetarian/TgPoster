@@ -72,7 +72,7 @@ internal sealed class TelegramAuthService(
 		});
 		SetupProxy(client, session.Proxy);
 
-		clientManager.AddPendingClient(sessionId, client);
+		await clientManager.SetPendingClientAsync(sessionId, client);
 
 		try
 		{
@@ -418,7 +418,7 @@ internal sealed class TelegramAuthService(
 			throw new TelegramAuthSessionNotFoundException(sessionId);
 		}
 
-		clientManager.AddPendingClient(sessionId, client);
+		await clientManager.SetPendingClientAsync(sessionId, client);
 		logger.LogInformation("Pending client восстановлен из session data для сессии {SessionId}", sessionId);
 		return client;
 	}

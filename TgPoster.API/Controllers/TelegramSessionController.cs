@@ -31,6 +31,7 @@ public class TelegramSessionController(ISender sender) : ControllerBase
 	[HttpPost(Routes.TelegramSession.Create)]
 	[ProducesResponseType(StatusCodes.Status201Created, Type = typeof(CreateTelegramSessionResponse))]
 	[ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
+	[ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
 	[ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
 	public async Task<IActionResult> Create(
 		[FromBody] [Required] CreateTelegramSessionRequest request,
@@ -39,7 +40,7 @@ public class TelegramSessionController(ISender sender) : ControllerBase
 	{
 		var response = await sender.Send(
 			new CreateTelegramSessionCommand(request.ApiId, request.ApiHash, request.PhoneNumber, request.Name,
-				request.ProxyId, request.NotificationBotId), ct);
+				request.ProxyId, request.NotificationBotId, request.CredentialsSessionId), ct);
 		return Created(Routes.TelegramSession.Create, response);
 	}
 
@@ -52,6 +53,7 @@ public class TelegramSessionController(ISender sender) : ControllerBase
 	[HttpPost(Routes.TelegramSession.Import)]
 	[ProducesResponseType(StatusCodes.Status201Created, Type = typeof(ImportTelegramSessionResponse))]
 	[ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProblemDetails))]
+	[ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
 	[ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
 	public async Task<IActionResult> Import(
 		[FromForm] [Required] ImportTelegramSessionRequest request,
@@ -60,7 +62,7 @@ public class TelegramSessionController(ISender sender) : ControllerBase
 	{
 		var response = await sender.Send(
 			new ImportTelegramSessionCommand(request.ApiId, request.ApiHash, request.SessionFile, request.Name,
-				request.NotificationBotId), ct);
+				request.NotificationBotId, request.CredentialsSessionId), ct);
 		return Created(Routes.TelegramSession.Import, response);
 	}
 

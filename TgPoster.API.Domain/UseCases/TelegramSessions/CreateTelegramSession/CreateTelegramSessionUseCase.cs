@@ -36,10 +36,16 @@ internal sealed class CreateTelegramSessionUseCase(
 				throw new TelegramBotNotFoundException(request.NotificationBotId.Value);
 		}
 
-		var createResponse = await storage.CreateAsync(
-			provider.Current.UserId,
+		var credentials = await TelegramApiCredentials.ResolveAsync(
+			request.CredentialsSessionId,
 			request.ApiId,
 			request.ApiHash,
+			sessionId => storage.GetApiCredentialsAsync(provider.Current.UserId, sessionId, ct));
+
+		var createResponse = await storage.CreateAsync(
+			provider.Current.UserId,
+			credentials.ApiId,
+			credentials.ApiHash,
 			request.PhoneNumber,
 			request.Name,
 			request.ProxyId,

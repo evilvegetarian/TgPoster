@@ -60,6 +60,21 @@ public sealed class TelegramAuthServiceShould : IAsyncLifetime
 	}
 
 	[Fact]
+	public async Task ReplacePendingClient_WhenStartingLoginAgain()
+	{
+		repository.Setup(x => x.GetByIdAsync(id, CancellationToken.None)).ReturnsAsync(Session(true));
+		login = (_, _) => Task.FromResult<string?>("verification_code");
+
+		await sut.StartAuthAsync(id, CancellationToken.None);
+		manager.TryGetPendingClient(id, out var firstClient).ShouldBeTrue();
+
+		await sut.StartAuthAsync(id, CancellationToken.None);
+		manager.TryGetPendingClient(id, out var secondClient).ShouldBeTrue();
+
+		secondClient.ShouldNotBeSameAs(firstClient);
+	}
+
+	[Fact]
 	public async Task ClearPendingClient_AndRecordFailure_WhenStartingLoginFails()
 	{
 		repository.Setup(x => x.GetByIdAsync(id, CancellationToken.None)).ReturnsAsync(Session(true));

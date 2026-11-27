@@ -629,10 +629,16 @@ export interface CreateTelegramBotResponse {
  * Запрос на создание Telegram сессии
  */
 export interface CreateTelegramSessionRequest {
-  /** API ID приложения Telegram */
-  apiId?: string;
-  /** API Hash приложения Telegram */
-  apiHash?: string;
+  /**
+   * API ID приложения Telegram (опционально, если указан CredentialsSessionId)
+   * @nullable
+   */
+  apiId?: string | null;
+  /**
+   * API Hash приложения Telegram (опционально, если указан CredentialsSessionId)
+   * @nullable
+   */
+  apiHash?: string | null;
   /** Номер телефона */
   phoneNumber?: string;
   /**
@@ -650,6 +656,11 @@ export interface CreateTelegramSessionRequest {
    * @nullable
    */
   notificationBotId?: string | null;
+  /**
+   * ID существующей сессии для переиспользования API ID и API Hash (опционально)
+   * @nullable
+   */
+  credentialsSessionId?: string | null;
 }
 
 export interface CreateTelegramSessionResponse {
@@ -2788,16 +2799,18 @@ To?: string;
 };
 
 export type PostApiV1TelegramSessionImportBody = {
-  /** API ID приложения Telegram */
-  ApiId: string;
-  /** API Hash приложения Telegram */
-  ApiHash: string;
+  /** API ID приложения Telegram (опционально, если указан CredentialsSessionId) */
+  ApiId?: string;
+  /** API Hash приложения Telegram (опционально, если указан CredentialsSessionId) */
+  ApiHash?: string;
   /** Файл сессии WTelegram (.session) */
   SessionFile: Blob;
   /** Название сессии (опционально) */
   Name?: string;
   /** ID бота для оповещений о проблемах с аккаунтом (опционально) */
   NotificationBotId?: string;
+  /** ID существующей сессии для переиспользования API ID и API Hash (опционально) */
+  CredentialsSessionId?: string;
 };
 
 export type PostApiV1YoutubeBody = {
