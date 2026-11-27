@@ -21,5 +21,11 @@
 **/obj
 **/secrets.dev.yaml
 **/values.dev.yaml
+ffmpeg/
+client/
+*Tests/
+TgPoster.E2E/
+docker/
+.github/
 LICENSE
 README.md

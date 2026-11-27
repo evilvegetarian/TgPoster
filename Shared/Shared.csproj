@@ -11,7 +11,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <Content Include="..\ffmpeg\**">
+        <Content Include="..\ffmpeg\**" Condition="$([MSBuild]::IsOSPlatform('Windows'))">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
             <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
         </Content>

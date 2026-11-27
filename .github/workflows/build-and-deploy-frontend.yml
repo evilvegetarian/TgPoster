@@ -36,6 +36,8 @@ jobs:
           file: client/Dockerfile
           push: true
           tags: ghcr.io/evilvegetarian/frontend:latest
+          cache-from: type=gha,scope=frontend
+          cache-to: type=gha,scope=frontend,mode=max
 
       - name: Upload docker-compose artifact
         uses: actions/upload-artifact@v4

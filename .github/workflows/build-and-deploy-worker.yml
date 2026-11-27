@@ -36,6 +36,8 @@ jobs:
           file: TgPoster.Worker/Dockerfile
           push: true
           tags: ghcr.io/evilvegetarian/tgposter-worker:latest
+          cache-from: type=gha,scope=worker
+          cache-to: type=gha,scope=worker,mode=max
 
       - name: Upload docker-compose.worker.yml
         uses: actions/upload-artifact@v4

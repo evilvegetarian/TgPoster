@@ -38,8 +38,8 @@ jobs:
           file: TgPoster.API/Dockerfile
           push: true
           tags: ghcr.io/evilvegetarian/tgposter-api:latest
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-from: type=gha,scope=api
+          cache-to: type=gha,scope=api,mode=max
 
       - name: Upload docker-compose.api.yml
         uses: actions/upload-artifact@v4
@@ -75,8 +75,8 @@ jobs:
           file: TgPoster.Worker/Dockerfile
           push: true
           tags: ghcr.io/evilvegetarian/tgposter-worker:latest
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-from: type=gha,scope=worker
+          cache-to: type=gha,scope=worker,mode=max
 
       - name: Upload docker-compose.worker.yml
         uses: actions/upload-artifact@v4
@@ -112,8 +112,8 @@ jobs:
           file: client/Dockerfile
           push: true
           tags: ghcr.io/evilvegetarian/frontend:latest
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-from: type=gha,scope=frontend
+          cache-to: type=gha,scope=frontend,mode=max
 
       - name: Upload docker-compose artifact
         uses: actions/upload-artifact@v4
